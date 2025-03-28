@@ -10,7 +10,7 @@ import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
 /**
- * This is an example teleop that showcases movement and field-centric driving.
+ * This is an example pedroPathing.teleop that showcases movement and field-centric driving.
  *
  * @author Baron Henderson - 20077 The Indubitables
  * @version 2.0, 12/30/2024

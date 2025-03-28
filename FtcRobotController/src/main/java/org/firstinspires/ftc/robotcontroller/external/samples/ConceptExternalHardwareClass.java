@@ -36,7 +36,7 @@ import com.qualcomm.robotcore.util.Range;
 
 /*
  * This OpMode illustrates how to use an external "hardware" class to modularize all the robot's sensors and actuators.
- * This approach is very efficient because the same hardware class can be used by all of your teleop and autonomous OpModes
+ * This approach is very efficient because the same hardware class can be used by all of your pedroPathing.teleop and autonomous OpModes
  * without requiring many copy & paste operations.  Once you have defined and tested the hardware class with one OpMode,
  * it is instantly available to other OpModes.
  *
