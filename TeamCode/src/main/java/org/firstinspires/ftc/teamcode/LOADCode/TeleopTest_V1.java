@@ -28,6 +28,7 @@ public class TeleopTest_V1 extends OpMode {
     public void start() {
         // Calling this method is necessary at the start of your TeleOp OpMode.
         follower.startTeleopDrive();
+        follower.update();
     }
 
     /** This is the main loop of the OpMode and runs continuously after pressing play **/
