@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -20,9 +22,16 @@ public class Constants {
             // Set following parameters to true to enable dual PID
             .useSecondaryTranslationalPIDF(false)
             .useSecondaryHeadingPIDF(false)
-            .useSecondaryDrivePIDF(false);
+            .useSecondaryDrivePIDF(false)
+            .translationalPIDFCoefficients(new PIDFCoefficients(.1, 0, 0.01, 0.05))
+            .headingPIDFCoefficients(new PIDFCoefficients(3, 0.3, 0.2, 0.05))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.3, 0.1, 0.01, 0.6, 0.6));
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(
+            0.99,
+            100,
+            3,
+            1);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
