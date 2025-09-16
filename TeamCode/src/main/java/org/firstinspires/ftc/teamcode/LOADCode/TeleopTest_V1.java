@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name = "Example Robot-Centric TeleOp", group = "Examples")
+@TeleOp(name = "Example Robot-Centric TeleOp", group = "Main")
 public class TeleopTest_V1 extends OpMode {
     public static Follower follower;
     @IgnoreConfigurable
