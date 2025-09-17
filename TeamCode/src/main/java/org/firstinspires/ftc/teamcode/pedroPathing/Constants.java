@@ -27,13 +27,14 @@ public class Constants {
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
-
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .xVelocity(30.13844)
+            .yVelocity(35.5499);
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             .forwardPodY(4)
             .strafePodX(4)
-            .forwardEncoder_HardwareMapName("rightFront")
-            .strafeEncoder_HardwareMapName("leftFront")
+            .forwardEncoder_HardwareMapName("leftFront")
+            .strafeEncoder_HardwareMapName("rightFront")
             .forwardEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.REVERSE)
             .forwardTicksToInches(0.001069012)
