@@ -23,6 +23,7 @@ import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.*;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,8 +126,18 @@ public class Tuning extends SelectableOpMode {
  * @version 1.0, 5/6/2024
  */
 class LocalizationTest extends OpMode {
+    public static DcMotor rightFront;
+    public static DcMotor leftFront;
+    public static DcMotor rightBack;
+    public static DcMotor leftBack;
+
     @Override
-    public void init() {}
+    public void init() {
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
+        rightBack =  hardwareMap.get(DcMotor.class, "rightBack");
+        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
+    }
 
     /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
     @Override
@@ -158,6 +169,22 @@ class LocalizationTest extends OpMode {
         telemetryM.debug("heading:" + follower.getPose().getHeading());
         telemetryM.debug("total heading:" + follower.getTotalHeading());
         telemetryM.update(telemetry);
+
+
+//        if (gamepad1.a) {
+//            rightFront.setPower(1);
+//        } else if (gamepad1.b) {
+//            leftFront.setPower(1);
+//        } else if (gamepad1.x) {
+//            rightBack.setPower(1);
+//        } else if (gamepad1.y) {
+//            leftBack.setPower(1);
+//        } else if (gamepad1.left_stick_x == 0 || gamepad1.left_stick_y == 0 || gamepad1.right_stick_x == 0){
+//            rightFront.setPower(0);
+//            leftFront.setPower(0);
+//            rightBack.setPower(0);
+//            leftBack.setPower(0);
+//        }
 
         drawCurrentAndHistory();
     }
