@@ -10,7 +10,7 @@ import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-public class Constants {
+public class PedroPathingConstants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(16.2)
             .forwardZeroPowerAcceleration(-25.9346931313679598)
