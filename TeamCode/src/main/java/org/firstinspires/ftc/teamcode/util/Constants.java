@@ -12,7 +12,7 @@ public class Constants {
 
     public static boolean robotCentric = false;
 
-    // Camera Constants
+    /* -------------------------------------------- CAMERA CONSTANTS -------------------------------------------- */
     //Pipeline: 0
     //Res: 1280X960 40FPS
     //Exposure: 252
@@ -22,7 +22,5 @@ public class Constants {
     // Detector Downscale: 4
     // Quality Threshold: 2
     // Sort Mode: Largest
-
-
 
 }
