@@ -133,10 +133,10 @@ class LocalizationTest extends OpMode {
 
     @Override
     public void init() {
-        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
-        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
-        rightBack =  hardwareMap.get(DcMotor.class, "rightBack");
-        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
+        rightFront = hardwareMap.get(DcMotor.class, Constants.driveConstants.rightFrontMotorName);
+        leftFront = hardwareMap.get(DcMotor.class, Constants.driveConstants.leftFrontMotorName);
+        rightBack =  hardwareMap.get(DcMotor.class, Constants.driveConstants.rightRearMotorName);
+        leftBack = hardwareMap.get(DcMotor.class, Constants.driveConstants.leftRearMotorName);
     }
 
     /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
