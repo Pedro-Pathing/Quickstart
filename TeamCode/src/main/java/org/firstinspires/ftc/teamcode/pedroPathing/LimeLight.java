@@ -17,6 +17,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 
 import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.Deque;
@@ -31,7 +32,7 @@ public class LimeLight extends OpMode {
     DcMotor motorFrontRight;
     DcMotor motorBackRight;
     Limelight3A limelight;
-    IMU
+    GoBildaPinpointDriver pinpoint;
 
     @Override
     // runs on init press
@@ -49,6 +50,8 @@ public class LimeLight extends OpMode {
 
         motorFrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
@@ -85,6 +88,8 @@ public class LimeLight extends OpMode {
             motorBackRight.setPower(0.3 * (y + x - rx));
         }
 
+        limelight.pipelineSwitch(0); // Switch to pipeline number 0
+
         LLResult result = limelight.getLatestResult();
         if (result != null && result.isValid()) {
             double tx = result.getTx(); // How far left or right the target is (degrees)
@@ -98,6 +103,7 @@ public class LimeLight extends OpMode {
             telemetry.addData("Limelight", "No Targets");
         }
 
+        /*
         // Sending numbers to Python
         double[] inputs = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
         limelight.updatePythonInputs(inputs);
@@ -108,17 +114,19 @@ public class LimeLight extends OpMode {
             double firstOutput = pythonOutputs[0];
             telemetry.addData("Python output:", firstOutput);
         }
+        */
 
-        double robotYaw = imu.getAngularOrientation().firstAngle;
+        double robotYaw = pinpoint.getHeading(AngleUnit.DEGREES);
         limelight.updateRobotOrientation(robotYaw);
         if (result != null && result.isValid()) {
             Pose3D botpose_mt2 = result.getBotpose_MT2();
             if (botpose_mt2 != null) {
-                double x = botpose_mt2.getPosition().x;
-                double y = botpose_mt2.getPosition().y;
-                telemetry.addData("MT2 Location:", "(" + x + ", " + y + ")");
+                double a = botpose_mt2.getPosition().x;
+                double b = botpose_mt2.getPosition().y;
+                telemetry.addData("MT2 Location:", "(" + a + ", " + b + ")");
             }
         }
+        telemetry.update();
 
     }
 
