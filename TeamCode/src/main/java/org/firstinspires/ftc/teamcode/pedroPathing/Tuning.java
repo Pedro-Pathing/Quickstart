@@ -309,7 +309,7 @@ class TurnTuner extends OpMode {
  * power until it reaches some specified distance. It records the most recent velocities, and on
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
- * is, when paired with StrafeVelocityTuner, allows FollowerConstants to create a Vector that
+ * is, when paired with StrafeVelocityTuner, allows Constants to create a Vector that
  * empirically represents the direction your mecanum wheels actually prefer to go in, allowing for
  * more accurate following.
  *
@@ -410,11 +410,11 @@ class ForwardVelocityTuner extends OpMode {
 }
 
 /**
- * This is the StrafeVelocityTuner autonomous follower OpMode. This runs the robot right at max
+ * This is the LateralVelocityTuner autonomous follower OpMode. This runs the robot left at max
  * power until it reaches some specified distance. It records the most recent velocities, and on
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
- * is, when paired with ForwardVelocityTuner, allows FollowerConstants to create a Vector that
+ * is, when paired with ForwardVelocityTuner, allows Constants to create a Vector that
  * empirically represents the direction your mecanum wheels actually prefer to go in, allowing for
  * more accurate following.
  *
@@ -441,7 +441,7 @@ class LateralVelocityTuner extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetryM.debug("The robot will run at 1 power until it reaches " + DISTANCE + " inches to the right.");
+        telemetryM.debug("The robot will run at 1 power until it reaches " + DISTANCE + " inches to the left.");
         telemetryM.debug("Make sure you have enough room, since the robot has inertia after cutting power.");
         telemetryM.debug("After running the distance, the robot will cut power from the drivetrain and display the strafe velocity.");
         telemetryM.debug("Press B on Gamepad 1 to stop.");
