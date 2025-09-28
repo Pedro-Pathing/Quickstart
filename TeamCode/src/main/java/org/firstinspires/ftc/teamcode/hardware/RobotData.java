@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -15,8 +16,9 @@ public class RobotData {
 
     public Pose currentPose = new Pose(0,0, Math.toRadians(0));
 
-
     public CameraSubsystem.Obelisk obelisk = CameraSubsystem.Obelisk.PPP;
+
+    public CameraSubsystem.ShootDistance shootDistance = CameraSubsystem.ShootDistance.OUTOFRANGE;
 
 
     public void write(Telemetry telemetry) {
@@ -32,9 +34,20 @@ public class RobotData {
 
         telemetry.addLine();
 
+        telemetry.addData("ALLIANCE", Globals.ALLIANCE);
+
+        telemetry.addLine();
+
         telemetry.addData("OBELISK",  this.obelisk);
 
+        telemetry.addLine();
+
+        telemetry.addData("DIST", this.shootDistance);
+
+
         telemetry.update();
+
+
     }
 
 
