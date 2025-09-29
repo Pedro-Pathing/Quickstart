@@ -68,7 +68,8 @@ public class LimeLight extends OpMode {
     }
 
     @Override
-    // loops after start press
+    // loops after star
+    // press
     public void loop() {
         if (gamepad2.start || gamepad1.start) return;
         double y = -gamepad1.left_stick_y;
@@ -117,6 +118,7 @@ public class LimeLight extends OpMode {
         */
 
         double robotYaw = pinpoint.getHeading(AngleUnit.DEGREES);
+        telemetry.addData("robotYaw", robotYaw);
         limelight.updateRobotOrientation(robotYaw);
         if (result != null && result.isValid()) {
             Pose3D botpose_mt2 = result.getBotpose_MT2();
