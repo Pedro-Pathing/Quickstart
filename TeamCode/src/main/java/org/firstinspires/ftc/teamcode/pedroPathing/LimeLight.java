@@ -52,18 +52,20 @@ public class LimeLight extends OpMode {
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.recalibrateIMU();
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
-        limelight.start();
 
-
+        limelight.pipelineSwitch(0); // Switch to pipeline number 0
     }
 
     @Override
     // runs on start press
     public void start() {
         // run everything to start positions
+        limelight.start();
 
     }
 
@@ -71,7 +73,7 @@ public class LimeLight extends OpMode {
     // loops after star
     // press
     public void loop() {
-        if (gamepad2.start || gamepad1.start) return;
+//        if (gamepad2.start || gamepad1.start) return;
         double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
@@ -89,7 +91,7 @@ public class LimeLight extends OpMode {
             motorBackRight.setPower(0.3 * (y + x - rx));
         }
 
-        limelight.pipelineSwitch(0); // Switch to pipeline number 0
+
 
         LLResult result = limelight.getLatestResult();
         if (result != null && result.isValid()) {
@@ -117,7 +119,7 @@ public class LimeLight extends OpMode {
         }
         */
 
-        double robotYaw = pinpoint.getHeading(AngleUnit.DEGREES);
+        double robotYaw = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
         telemetry.addData("robotYaw", robotYaw);
         limelight.updateRobotOrientation(robotYaw);
         if (result != null && result.isValid()) {
@@ -128,10 +130,8 @@ public class LimeLight extends OpMode {
                 telemetry.addData("MT2 Location:", "(" + a + ", " + b + ")");
             }
         }
+        pinpoint.update();
         telemetry.update();
-
     }
-
-
-    }
+}
 
