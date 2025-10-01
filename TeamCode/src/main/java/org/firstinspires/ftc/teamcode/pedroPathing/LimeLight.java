@@ -22,6 +22,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
+
 @TeleOp
 public class LimeLight extends OpMode {
     Gamepad lastGamepad1 = new Gamepad(), lastGamepad2 = new Gamepad();
@@ -57,6 +59,10 @@ public class LimeLight extends OpMode {
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
+        limelight.start();
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+
 
         limelight.pipelineSwitch(0); // Switch to pipeline number 0
     }
@@ -102,6 +108,18 @@ public class LimeLight extends OpMode {
             telemetry.addData("Target X", tx);
             telemetry.addData("Target Y", ty);
             telemetry.addData("Target Area", ta);
+            
+            // Get AprilTag ID using Fiducial Results
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+            telemetry.addData("AprilTags Detected", fiducialResults.size());
+            
+            for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                telemetry.addData("AprilTag ID", fr.getFiducialId());
+                telemetry.addData("Family", fr.getFamily());
+                telemetry.addData("Fiducial X", fr.getTargetXDegrees());
+                telemetry.addData("Fiducial Y", fr.getTargetYDegrees());
+            }
+            
         } else {
             telemetry.addData("Limelight", "No Targets");
         }
@@ -122,16 +140,27 @@ public class LimeLight extends OpMode {
         double robotYaw = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
         telemetry.addData("robotYaw", robotYaw);
         limelight.updateRobotOrientation(robotYaw);
+        
         if (result != null && result.isValid()) {
             Pose3D botpose_mt2 = result.getBotpose_MT2();
+            telemetry.addData("Botpose_MT2 exists", botpose_mt2 != null);
+            
             if (botpose_mt2 != null) {
                 double a = botpose_mt2.getPosition().x;
                 double b = botpose_mt2.getPosition().y;
-                telemetry.addData("MT2 Location:", "(" + a + ", " + b + ")");
+                double z = botpose_mt2.getPosition().z;
+                // Note: Pose3D might not have getHeading() method
+                telemetry.addData("MT2 Location:", "(" + a + ", " + b + ", " + z + ")");
+                // telemetry.addData("MT2 Heading:", heading);
+                
+                // Note: WPIBLUE and WPIRED methods don't exist in this API
+            } else {
+                telemetry.addData("Botpose_MT2", "NULL - Check pipeline configuration");
             }
         }
         pinpoint.update();
         telemetry.update();
     }
 }
+
 
