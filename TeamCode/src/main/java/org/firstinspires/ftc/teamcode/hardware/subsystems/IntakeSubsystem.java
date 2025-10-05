@@ -17,15 +17,12 @@ public class IntakeSubsystem extends RE_SubsystemBase {
     public enum IntakeState {
         IN,
         STOP,
-        OUT,
+        OUT
     }
 
-    public IntakeSubsystem(HardwareMap hardwareMap, String intakeMotorName, String ledsName) {
+    public IntakeSubsystem(HardwareMap hardwareMap, String intakeMotorName) {
         this.intakeMotor = hardwareMap.get(DcMotorEx.class, intakeMotorName);
         this.intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
-        // If using LEDs, uncomment:
-        // this.leds = hardwareMap.get(RevBlinkinLedDriver.class, ledsName);
 
         intakeState = IntakeState.STOP;
 
