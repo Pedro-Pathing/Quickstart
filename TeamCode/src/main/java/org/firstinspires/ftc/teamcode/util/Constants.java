@@ -23,4 +23,8 @@ public class Constants {
     // Quality Threshold: 2
     // Sort Mode: Largest
 
+    /* -------------------------------------------- INTAKE CONSTANTS -------------------------------------------- */
+
+    public static final double intakeInPower = 1.0;
+    public static final double intakeOutPower = -1.0;
 }
