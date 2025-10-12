@@ -20,8 +20,8 @@ public class IntakeSubsystem extends RE_SubsystemBase {
         OUT
     }
 
-    public IntakeSubsystem(HardwareMap hardwareMap, String intakeMotorName) {
-        this.intakeMotor = hardwareMap.get(DcMotorEx.class, intakeMotorName);
+    public IntakeSubsystem(HardwareMap hardwareMap, String roller) {
+        this.intakeMotor = hardwareMap.get(DcMotorEx.class, roller);
         this.intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         intakeState = IntakeState.STOP;

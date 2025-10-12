@@ -10,6 +10,13 @@ public class Configuration {
     public final String leftRear = "lr";
     public final String rightRear = "rr";
 
+    public final String intakeroller = "intakeroller";
+
+    public final String shootroller = "shootroller";
+    public final String stoproller = "stoproller";
+
+
+
 
     // Servos
 

@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.subsystems.CameraSubsystem;
+import org.firstinspires.ftc.teamcode.hardware.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.Globals;
 import org.firstinspires.ftc.teamcode.hardware.subsystems.IntakeSubsystem;
@@ -15,6 +16,10 @@ public class RobotData {
 
     public long loopTime = System.currentTimeMillis();
     public IntakeSubsystem.IntakeState intakeState = IntakeSubsystem.IntakeState.STOP;
+
+    public ShooterSubsystem.StopState stopState = ShooterSubsystem.StopState.STOP;
+
+    public ShooterSubsystem.ShootState shootState = ShooterSubsystem.ShootState.STOP;
 
     public Pose currentPose = new Pose(0,0, Math.toRadians(0));
 
