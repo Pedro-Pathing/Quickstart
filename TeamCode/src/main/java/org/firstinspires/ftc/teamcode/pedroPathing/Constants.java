@@ -29,9 +29,14 @@ public class Constants {
 
     public static PathConstraints pathConstraints = new PathConstraints(
             0.99,
-            100,
-            1,
-            0.5);
+            0.1,
+            0.1,
+            0.009,
+            50,
+            1.25,
+            10,
+            1
+    );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
