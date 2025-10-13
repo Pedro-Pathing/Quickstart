@@ -1,6 +1,4 @@
-package org.firstinspires.ftc.teamcode.LOADCode;
-
-import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
+package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
 
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
@@ -11,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name = "Example Robot-Centric TeleOp", group = "Main")
+@TeleOp(name = "Example Robot-Centric TeleOp", group = "TestTeleOp")
 public class TeleopTest_V1 extends OpMode {
     public static Follower follower;
     @IgnoreConfigurable

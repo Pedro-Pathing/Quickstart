@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.LOADCode;
+package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
 
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
@@ -35,7 +35,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -87,7 +86,7 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-@TeleOp(name="Field-Centric Tag Tracking", group = "Demo")
+@TeleOp(name="Field-Centric Tag Tracking", group = "TestTeleOp")
 public class FieldCentricTagTracking extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.
