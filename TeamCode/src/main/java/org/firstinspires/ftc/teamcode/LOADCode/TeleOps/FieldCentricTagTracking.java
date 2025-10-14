@@ -29,12 +29,15 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
 
+import android.view.textclassifier.TextClassifierEvent;
+
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -93,11 +96,11 @@ public class FieldCentricTagTracking extends LinearOpMode
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
-    final double TURN_GAIN   =  0.04  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    final double TURN_GAIN   =  0.02;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
     final double MAX_AUTO_TURN  = 1;   //  Clip the turn speed to this max value (adjust for your robot)
 
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
-    private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
+    private static final int DESIRED_TAG_ID = 24;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
@@ -117,6 +120,10 @@ public class FieldCentricTagTracking extends LinearOpMode
         double  drive;        // Desired forward power/speed (-1 to +1)
         double  strafe;        // Desired strafe power/speed (-1 to +1)
         double  turn;        // Desired turning power/speed (-1 to +1)
+        double target_turn = 0;
+        double angleToTag;
+
+        CRServo turret;
 
         // Initialize the Apriltag Detection process
         initAprilTag();
@@ -136,6 +143,8 @@ public class FieldCentricTagTracking extends LinearOpMode
 
         follower.startTeleopDrive();
         follower.update();
+
+        turret = hardwareMap.get(CRServo.class, "turret");
 
         while (opModeIsActive())
         {
@@ -165,39 +174,44 @@ public class FieldCentricTagTracking extends LinearOpMode
 
             // Tell the driver what we see, and what to do.
             if (targetFound) {
-                telemetry.addData("\n>","HOLD Left-Bumper to Drive to Target\n");
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
                 telemetry.addData("Bearing","%3.0f degrees", desiredTag.ftcPose.bearing);
                 telemetry.addData("Yaw","%3.0f degrees", desiredTag.ftcPose.yaw);
             } else {
-                telemetry.addData("\n>","Drive using joysticks to find valid target\n");
-            }
-
-            if (gamepad1.b && !oldToggleVal){
-                toggle = !toggle;
-                oldToggleVal = true;
-            }else if (!gamepad1.b && oldToggleVal){
-                oldToggleVal = false;
+                telemetry.addData("\n>","Drive using joysticks to find valid target or\n");
+                telemetry.addData("\n>", "use D-pad to turn camera to find target");
             }
 
             drive  = -gamepad1.left_stick_y;
             strafe = -gamepad1.left_stick_x;
+            turn = -gamepad1.right_stick_x;
+
+
 
             // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
-            if (toggle && targetFound) {
+            if (targetFound) {
 
                 // Determine heading (tag image rotation) error so we can use them to control the robot automatically.
                 double  headingError    = desiredTag.ftcPose.bearing;
 
+                angleToTag = Math.atan2(desiredTag.ftcPose.y,desiredTag.ftcPose.x) * (180/Math.PI); //Minus robot heading
+                // follower.getPose().getHeading(); // This gets the robot heading
+
                 // Use the turn "gain" to calculate how we want the robot to move.
-                turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
+                target_turn   = -Range.clip(headingError * TURN_GAIN, -1, 1) ;
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             } else {
 
                 // drive using manual POV Joystick mode.  Slow things down to make the robot more controllable.
-                turn   = -gamepad1.right_stick_x;
+                if (gamepad1.dpad_left){
+                    target_turn = -0.2;
+                }else if (gamepad1.dpad_right){
+                    target_turn = 0.2;
+                }else{
+                    target_turn = 0;
+                }
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
             telemetry.update();
@@ -205,6 +219,8 @@ public class FieldCentricTagTracking extends LinearOpMode
             // Apply desired axes motions to the drivetrain.
             follower.setTeleOpDrive(drive, strafe, turn, false);
             follower.update();
+            turret.setPower(target_turn);
+            telemetry.addData("Turret Speed:", target_turn);
             sleep(10);
         }
     }

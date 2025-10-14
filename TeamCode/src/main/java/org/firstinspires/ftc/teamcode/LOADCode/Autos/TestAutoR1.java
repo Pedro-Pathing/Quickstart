@@ -109,7 +109,7 @@ public class TestAutoR1 extends OpMode {
             */
 
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(grabPickup1,true);
                     setPathState(1);
@@ -117,7 +117,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(scorePickup,true);
                     setPathState(2);
@@ -125,7 +125,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 2:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(grabPickup2,true);
                     setPathState(3);
@@ -133,7 +133,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 3:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(scorePickup,true);
                     setPathState(4);
@@ -141,7 +141,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 4:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(grabPickup3,true);
                     setPathState(5);
@@ -149,7 +149,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 5:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup3Pose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(scorePickup, true);
                     setPathState(6);
@@ -157,7 +157,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 6:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup3Pose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(leave, true);
                     setPathState(7);
@@ -165,7 +165,7 @@ public class TestAutoR1 extends OpMode {
                 break;
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
-                if(pathTimer.getElapsedTimeSeconds() > 5) {
+                if(!follower.isBusy()) {
                     /* Set the state to a Case we won't use or define, so it just stops running an new paths */
                     setPathState(-1);
                 }
@@ -185,9 +185,6 @@ public class TestAutoR1 extends OpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
-
-        shooting = false;
-
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
@@ -217,11 +214,16 @@ public class TestAutoR1 extends OpMode {
 
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
-        telemetry.addData("shooting", shooting);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
         telemetry.update();
+
+        if (gamepad1.left_stick_y < -10){
+
+        }else if (gamepad1.left_stick_y > 10){
+
+        }
     }
 
     /** We do not use this because everything should automatically disable **/
