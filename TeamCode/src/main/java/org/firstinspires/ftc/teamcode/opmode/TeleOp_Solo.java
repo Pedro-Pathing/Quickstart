@@ -19,6 +19,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactInCommand;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactShootCommand;
+import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeStopCommand;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotData;
 
@@ -186,15 +187,19 @@ public class TeleOp_Solo extends CommandOpMode {
             CommandScheduler.getInstance().schedule(new ArtifactInCommand());
         }
 
+        if(leftBumper && !lastLeftBumper) {
+            CommandScheduler.getInstance().schedule((new IntakeStopCommand()));
+        }
+
         lastLeftTrigger = leftTrigger;
         lastRightTrigger = rightTrigger;
-//        lastIntakeDistance = intakeDistance;
+
 
         if (gamepad1.touchpad) {
             robot.follower.setPose(new Pose());
             gamepad1.rumble(500);
             gamepad1.setLedColor(0, 1, 0, 1000);
-//            CommandScheduler.getInstance().schedule(new NewSampleEjectCommand());
+
         }
 
 
