@@ -133,7 +133,7 @@ public class FieldCentricTagTracking extends LinearOpMode
 
         CRServo turret;
         ControlSystem turretPID = ControlSystem.builder()
-                .posPid(0, 0, 0)
+                .posPid(1, 0, 0)
                 .build();
         AnalogInput turretEncoder;
         double turretPos = 0;
