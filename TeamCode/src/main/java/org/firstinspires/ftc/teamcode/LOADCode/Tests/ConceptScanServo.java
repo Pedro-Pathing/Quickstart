@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode.LOADCode.Tests;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -60,7 +61,8 @@ public class ConceptScanServo extends LinearOpMode {
 
     // Define class members
     CRServo servo;
-    double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
+    AnalogInput turretEncoder;
+    double axonPos = 0; // Start at halfway position
     boolean rampUp = true;
 
 
@@ -70,6 +72,8 @@ public class ConceptScanServo extends LinearOpMode {
         // Connect to servo (Assume Robot Left Hand)
         // Change the text in quotes to match any servo name on your robot.
         servo = hardwareMap.get(CRServo.class, "turret");
+        turretEncoder = hardwareMap.get(AnalogInput.class,"AxonTurret");
+
 
         // Wait for the start button
         telemetry.addData(">", "Press Start to scan Servo." );
@@ -80,9 +84,10 @@ public class ConceptScanServo extends LinearOpMode {
         // Scan servo till stop pressed.
         while(opModeIsActive()){
 
-
+            axonPos = (turretEncoder.getVoltage() / 3.3) * 360;
 
             // Display the current value
+            telemetry.addData("Encoder Position", axonPos);
             telemetry.addData("Servo Position", "%5.2f", gamepad1.right_stick_x);
             telemetry.addData(">", "Press Stop to end test." );
             telemetry.update();

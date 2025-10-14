@@ -29,14 +29,17 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
 
+import android.service.controls.Control;
 import android.view.textclassifier.TextClassifierEvent;
 
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -51,6 +54,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -96,7 +102,7 @@ public class FieldCentricTagTracking extends LinearOpMode
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
-    final double TURN_GAIN   =  0.02;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    final double TURN_GAIN   =  0.0075;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
     final double MAX_AUTO_TURN  = 1;   //  Clip the turn speed to this max value (adjust for your robot)
 
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
@@ -107,6 +113,8 @@ public class FieldCentricTagTracking extends LinearOpMode
 
     private boolean toggle = false;
     private boolean oldToggleVal = false;
+
+    public Timer turretVelTimer;
 
     public static Follower follower;
     @IgnoreConfigurable
@@ -121,9 +129,17 @@ public class FieldCentricTagTracking extends LinearOpMode
         double  strafe;        // Desired strafe power/speed (-1 to +1)
         double  turn;        // Desired turning power/speed (-1 to +1)
         double target_turn = 0;
-        double angleToTag;
+        double angleToTag = 0;
 
         CRServo turret;
+        ControlSystem turretPID = ControlSystem.builder()
+                .posPid(0, 0, 0)
+                .build();
+        AnalogInput turretEncoder;
+        double turretPos = 0;
+        double oldTurretTime = 0;
+        double oldTurretPos = 0;
+        double turretVel = 0;
 
         // Initialize the Apriltag Detection process
         initAprilTag();
@@ -135,6 +151,8 @@ public class FieldCentricTagTracking extends LinearOpMode
         follower.setStartingPose(startPose);
         follower.update();
 
+        turretVelTimer = new Timer();
+
         // Wait for driver to press start
         telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
@@ -145,11 +163,14 @@ public class FieldCentricTagTracking extends LinearOpMode
         follower.update();
 
         turret = hardwareMap.get(CRServo.class, "turret");
+        turretEncoder = hardwareMap.get(AnalogInput.class,"AxonTurret");
 
         while (opModeIsActive())
         {
             targetFound = false;
             desiredTag  = null;
+
+            turretVelTimer.resetTimer();
 
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -217,10 +238,25 @@ public class FieldCentricTagTracking extends LinearOpMode
             telemetry.update();
 
             // Apply desired axes motions to the drivetrain.
-            follower.setTeleOpDrive(drive, strafe, turn, false);
+            follower.setTeleOpDrive(drive, strafe, turn, true);
             follower.update();
-            turret.setPower(target_turn);
-            telemetry.addData("Turret Speed:", target_turn);
+
+            double currentTime = turretVelTimer.getElapsedTime();
+
+            turretPID.setGoal(new KineticState(turretPos+angleToTag));
+
+            turretPos = (turretEncoder.getVoltage() / 3.3) * 360;
+            turretVel = (turretPos-oldTurretPos)/(currentTime-oldTurretTime);
+            telemetry.addData("Servo Power:", turretPID.calculate(new KineticState(turretPos, turretVel)));
+            turret.setPower(0);
+
+            oldTurretTime = currentTime;
+            oldTurretPos = turretPos;
+
+            telemetry.addData("Turret Pos:", turretPos);
+            telemetry.addData("Target Pos:", turretPos+angleToTag);
+            telemetry.addData("Turret Vel:", turretVel);
+            telemetry.addData("Angle To Tag:", angleToTag);
             sleep(10);
         }
     }
