@@ -139,6 +139,7 @@ public class FieldCentricTagTracking extends LinearOpMode
         double turretPos = 0;
         double oldTurretTime = 0;
         double oldTurretPos = 0;
+        double oldTurretVel = 0;
         double turretVel = 0;
 
         // Initialize the Apriltag Detection process
@@ -246,12 +247,21 @@ public class FieldCentricTagTracking extends LinearOpMode
             turretPID.setGoal(new KineticState(turretPos+angleToTag));
 
             turretPos = (turretEncoder.getVoltage() / 3.3) * 360;
-            turretVel = (turretPos-oldTurretPos)/(currentTime-oldTurretTime);
-            telemetry.addData("Servo Power:", turretPID.calculate(new KineticState(turretPos, turretVel)));
-            turret.setPower(0);
+            double timeDiff = currentTime - oldTurretTime;
+            if (timeDiff == 0){
+                turretVel = oldTurretVel;
+            }else{
+                turretVel = (turretPos - oldTurretPos) / timeDiff;
+            }
+            double turretPower = turretPID.calculate(new KineticState(turretPos, turretVel));
+            telemetry.addData("Servo Power:", turretPower);
+            if (gamepad1.b){
+                turret.setPower(turretPower);
+            }
 
             oldTurretTime = currentTime;
             oldTurretPos = turretPos;
+            oldTurretVel = turretVel;
 
             telemetry.addData("Turret Pos:", turretPos);
             telemetry.addData("Target Pos:", turretPos+angleToTag);
