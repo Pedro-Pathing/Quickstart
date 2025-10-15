@@ -179,7 +179,7 @@ public class TeleOp_Solo extends CommandOpMode {
         boolean leftTrigger = gamepad1.left_trigger > .5;
         boolean rightTrigger = gamepad1.right_trigger > .5;
 
-        if (leftTrigger && !lastLeftTrigger) {
+        if (rightTrigger && !lastRightTrigger) {
             CommandScheduler.getInstance().schedule(new ArtifactShootCommand());
         }
 
