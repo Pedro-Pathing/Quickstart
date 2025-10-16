@@ -50,8 +50,11 @@ public class TeleOp_Solo extends CommandOpMode {
     private GamepadEx g1;
 
     private Follower follower;
-    public static Pose startingPose; //See ExampleAuto to understand how to use this
+    public static Pose startingPose;
     private TelemetryManager telemetryM;
+    private Supplier<PathChain> goShootPath;
+    private boolean automatedDrive;
+
 
     boolean teleOpEnabled = false;
 
@@ -98,6 +101,11 @@ public class TeleOp_Solo extends CommandOpMode {
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        goShootPath = () -> follower.pathBuilder()
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(67, 67))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(67), 0.67))
+                .build();
 
 
     }
@@ -180,11 +188,15 @@ public class TeleOp_Solo extends CommandOpMode {
         boolean rightTrigger = gamepad1.right_trigger > .5;
 
         if (rightTrigger && !lastRightTrigger) {
+            follower.followPath(goShootPath.get());
+            automatedDrive = false;
             CommandScheduler.getInstance().schedule(new ArtifactShootCommand());
         }
 
         if (leftTrigger && !lastLeftTrigger) {
+            follower.startTeleopDrive();
             CommandScheduler.getInstance().schedule(new ArtifactInCommand());
+
         }
 
         if(leftBumper && !lastLeftBumper) {
