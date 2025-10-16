@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -28,6 +29,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
+@Configurable
 @TeleOp
 public class LimeLightLocalization extends OpMode {
     DcMotorEx motorFrontLeft;
