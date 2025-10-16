@@ -21,6 +21,8 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -77,7 +79,7 @@ public class LimeLightLocalization extends OpMode {
         limelight.pipelineSwitch(0); // Switch to pipeline number 0
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose());
+        follower.setStartingPose(startPose);
     }
 
     @Override
@@ -95,6 +97,9 @@ public class LimeLightLocalization extends OpMode {
         pinpoint.update();
         telemetry.update();
         follower.update();
+
+        Pose currentPose = follower.getPose();
+        telemetry.addData("Pedro Pose", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading())));
 
         Drawing.drawPoseHistory(follower.getPoseHistory());
         drawCurrent();
@@ -143,18 +148,6 @@ public class LimeLightLocalization extends OpMode {
             telemetry.addData("Limelight", "No Targets");
         }
 
-        /*
-        // Sending numbers to Python
-        double[] inputs = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
-        limelight.updatePythonInputs(inputs);
-
-        // Getting numbers from Python
-        double[] pythonOutputs = result.getPythonOutput();
-        if (pythonOutputs != null && pythonOutputs.length > 0) {
-            double firstOutput = pythonOutputs[0];
-            telemetry.addData("Python output:", firstOutput);
-        }
-        */
 
         double robotYaw = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
         telemetry.addData("robotYaw", robotYaw);
@@ -173,6 +166,20 @@ public class LimeLightLocalization extends OpMode {
                 // telemetry.addData("MT2 Heading:", heading);
 
                 // Note: WPIBLUE and WPIRED methods don't exist in this API
+                // Re-localize robot pose based on AprilTag field pose when detected
+                try {
+                    double headingDeg = botpose_mt2.getOrientation().getYaw(AngleUnit.DEGREES);
+                    double xInches = a * 39.3701;
+                    double yInches = b * 39.3701;
+
+                    // Update the pinpoint odometry pose (field-centric, in inches)
+                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, xInches, yInches, AngleUnit.DEGREES, headingDeg));
+
+                    // Keep Pedro follower in sync
+                    follower.setPose(new Pose(xInches, yInches, Math.toRadians(headingDeg)));
+
+                    telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
+                } catch (Exception ignored) { }
             } else {
                 telemetry.addData("Botpose_MT2", "NULL - Check pipeline configuration");
             }
