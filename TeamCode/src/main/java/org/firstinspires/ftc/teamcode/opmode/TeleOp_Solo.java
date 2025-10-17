@@ -103,8 +103,8 @@ public class TeleOp_Solo extends CommandOpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         goShootPath = () -> follower.pathBuilder()
-                .addPath(new Path(new BezierLine(follower::getPose, new Pose(67, 67))))
-                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(67), 0.67))
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(72, 72))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(125), 1))
                 .build();
 
 
