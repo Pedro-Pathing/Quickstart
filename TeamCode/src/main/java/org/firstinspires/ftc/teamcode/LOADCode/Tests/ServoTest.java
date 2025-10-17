@@ -29,12 +29,10 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.Servo;
 
 /*
  * This OpMode scans a single servo back and forward until Stop is pressed.
@@ -52,7 +50,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 @TeleOp(name = "Servo Test", group = "TestHardware")
 
-public class ConceptScanServo extends LinearOpMode {
+public class ServoTest extends LinearOpMode {
 
     static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
     static final int    CYCLE_MS    =   10;     // period of each cycle
