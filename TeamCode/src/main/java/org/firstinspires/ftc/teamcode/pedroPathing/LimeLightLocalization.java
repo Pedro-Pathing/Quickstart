@@ -5,28 +5,19 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-
-
-import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 
 @Configurable
@@ -38,7 +29,7 @@ public class LimeLightLocalization extends OpMode {
     DcMotorEx motorBackRight;
     Limelight3A limelight;
 
-    private final Pose startPose = new Pose(28.5, 128, Math.toRadians(180));
+    private final Pose startPose = new Pose(39, 33, Math.toRadians(180));
     private Follower follower;
     GoBildaPinpointDriver pinpoint;
 
@@ -175,10 +166,10 @@ public class LimeLightLocalization extends OpMode {
                     double yInches = b * 39.3701;
 
                     // Update the pinpoint odometry pose (field-centric, in inches)
-                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, xInches, yInches, AngleUnit.DEGREES, headingDeg));
-
-                    // Keep Pedro follower in sync
-                    follower.setPose(new Pose(xInches, yInches, Math.toRadians(headingDeg)));
+//                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, xInches, yInches, AngleUnit.DEGREES, headingDeg));
+//
+//                    // Keep Pedro follower in sync
+//                    follower.setPose(new Pose(xInches, yInches, Math.toRadians(headingDeg)));
 
                     telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
                 } catch (Exception ignored) { }
@@ -188,5 +179,3 @@ public class LimeLightLocalization extends OpMode {
         }
     }
 }
-
-
