@@ -42,14 +42,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import java.util.function.Supplier;
 
 
-@TeleOp (name = "Solo")
+@TeleOp (name = "SoloReal")
 public class TeleOp_Solo extends CommandOpMode {
 
     private final Robot robot = Robot.getInstance();
     private final RobotData data = Robot.getInstance().data;
     private GamepadEx g1;
 
-    private Follower follower;
     public static Pose startingPose;
     private TelemetryManager telemetryM;
     private Supplier<PathChain> goShootPath;
@@ -86,10 +85,6 @@ public class TeleOp_Solo extends CommandOpMode {
     boolean lastBack;
 
 
-    double lastIntakeSpeed;
-    double lastIntakeDistance;
-
-
     @Override
     public void initialize() {
 
@@ -97,16 +92,12 @@ public class TeleOp_Solo extends CommandOpMode {
 
         Globals.IS_AUTO = false;
 
-        follower = PedroPathingConstants.createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-        follower.update();
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-        goShootPath = () -> follower.pathBuilder()
-                .addPath(new Path(new BezierLine(follower::getPose, new Pose(72, 72))))
-                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(125), 1))
+        goShootPath = () -> robot.follower.pathBuilder()
+                .addPath(new Path(new BezierLine(robot.follower::getPose, new Pose(72, 72))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(robot.follower::getHeading, Math.toRadians(125), 1))
                 .build();
 
+        robot.initialize(hardwareMap, PanelsTelemetry.INSTANCE.getTelemetry());
 
     }
 
@@ -118,21 +109,17 @@ public class TeleOp_Solo extends CommandOpMode {
             CommandScheduler.getInstance().run();
 
             robot.periodic();
-
             robot.updateData();
             robot.write();
 
-            follower.setTeleOpDrive(
+            robot.follower.setTeleOpDrive(
                     -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
                     -gamepad1.right_stick_x,
-                    false // Robot Centric
+                    -gamepad1.left_stick_x,
+                    true // Robot Centric
             );
 
         }
-
-        boolean liftChangeJoystickUp = gamepad1.right_stick_y < -0.8;
-        boolean liftChangeJoystickDown = gamepad1.right_stick_y > 0.8;
 
 
         boolean a = g1.getButton(GamepadKeys.Button.A);
@@ -188,13 +175,13 @@ public class TeleOp_Solo extends CommandOpMode {
         boolean rightTrigger = gamepad1.right_trigger > .5;
 
         if (rightTrigger && !lastRightTrigger) {
-            follower.followPath(goShootPath.get());
-            automatedDrive = false;
+//            robot.follower.followPath(goShootPath.get());
+//            automatedDrive = false;
             CommandScheduler.getInstance().schedule(new ArtifactShootCommand());
         }
 
         if (leftTrigger && !lastLeftTrigger) {
-            follower.startTeleopDrive();
+            robot.follower.startTeleopDrive();
             CommandScheduler.getInstance().schedule(new ArtifactInCommand());
 
         }

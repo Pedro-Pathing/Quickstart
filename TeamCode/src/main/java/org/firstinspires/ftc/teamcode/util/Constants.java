@@ -25,11 +25,11 @@ public class Constants {
 
     /* -------------------------------------------- INTAKE CONSTANTS -------------------------------------------- */
 
-    public static final double intakeInPower = 1.0;
-    public static final double intakeOutPower = -1.0;
+    public static final double intakeInPower = 1;
+    public static final double intakeOutPower = -1;
 
     /* -------------------------------------------- SHOOT CONSTANTS -------------------------------------------- */
 
-    public static final double shootPower = 1.0;
-    public static final double readyPower = 1.0;
+    public static final double shootPower = 0.7;
+    public static final double readyPower = -1.0;
 }

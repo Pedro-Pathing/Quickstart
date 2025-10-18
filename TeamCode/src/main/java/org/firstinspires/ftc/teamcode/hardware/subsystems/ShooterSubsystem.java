@@ -37,6 +37,7 @@ public class ShooterSubsystem extends RE_SubsystemBase {
         this.stopMotor.setZeroPowerBehavior( DcMotor.ZeroPowerBehavior.BRAKE);
 
         shootState = ShootState.STOP;
+        stopState = StopState.STOP;
 
         Robot.getInstance().subsystems.add(this);
     }

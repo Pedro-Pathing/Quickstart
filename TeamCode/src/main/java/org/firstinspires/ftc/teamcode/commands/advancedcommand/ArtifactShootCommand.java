@@ -16,9 +16,16 @@ public class ArtifactShootCommand extends SequentialCommandGroup {
     public
     ArtifactShootCommand() {
         super(
-                new ShooterStateCommand(ShooterSubsystem.ShootState.SHOOT),
-                new WaitCommand(1000), // CHANGE THIS LATERRR
-                new StopStateCommand(ShooterSubsystem.StopState.READY)
+                new StopStateCommand(ShooterSubsystem.StopState.READY),
+                new WaitCommand(200),
+                new StopStateCommand(ShooterSubsystem.StopState.STOP),
+                new WaitCommand(2000),
+                new StopStateCommand(ShooterSubsystem.StopState.READY),
+                new WaitCommand(200),
+                new StopStateCommand(ShooterSubsystem.StopState.STOP)
+
+
+
         );
     }
 }

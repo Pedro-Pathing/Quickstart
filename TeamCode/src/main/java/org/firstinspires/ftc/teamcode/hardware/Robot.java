@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.opmode.TeleOp_Solo.startingPose;
+
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -11,13 +15,14 @@ import org.firstinspires.ftc.teamcode.hardware.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.hardware.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.PedroPathingConstants;
 import org.firstinspires.ftc.teamcode.util.Configuration;
+import org.firstinspires.ftc.teamcode.util.Globals;
 import org.firstinspires.ftc.teamcode.util.wrappers.RE_SubsystemBase;
 
 import java.util.ArrayList;
 
 public class Robot {
 
-    public Telemetry telemetry;
+    public TelemetryManager telemetry;
     public HardwareMap hardwareMap;
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -40,20 +45,23 @@ public class Robot {
 
     private static Robot instance = null;
 
-    public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
+    public void initialize(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.hardwareMap = hardwareMap;
         this.telemetry = telemetry;
 
         this.follower = PedroPathingConstants.createFollower(hardwareMap);
+        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        follower.update();
 
-        cameraSubsystem = new CameraSubsystem(this.hardwareMap, names.limelight);
+        if (!Globals.IS_AUTO) follower.startTeleopDrive();
+
+        subsystems = new ArrayList<>();
+
+//        cameraSubsystem = new CameraSubsystem(this.hardwareMap, names.limelight);
 
         intakeSubsystem = new IntakeSubsystem(this.hardwareMap, names.intakeroller);
 
         shooterSubsystem = new ShooterSubsystem(this.hardwareMap, names.shootroller, names.stoproller);
-
-
-        subsystems = new ArrayList<>();
     }
 
     public CameraSubsystem.Obelisk getObelisk() {

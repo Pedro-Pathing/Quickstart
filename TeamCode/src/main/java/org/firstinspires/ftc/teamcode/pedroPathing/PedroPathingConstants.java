@@ -10,7 +10,14 @@ import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.util.Configuration;
+
 public class PedroPathingConstants {
+
+    private static Configuration config = new Configuration();
+
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(16.2)
             .forwardZeroPowerAcceleration(-25.9346931313679598)
@@ -57,21 +64,26 @@ public class PedroPathingConstants {
             .drivePIDFSwitch(15)
             .centripetalScaling(0.0005);
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .leftFrontMotorName("motor_lf")
-            .leftRearMotorName("motor_lb")
-            .rightFrontMotorName("motor_rf")
-            .rightRearMotorName("motor_rb")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .leftFrontMotorName(config.leftFront)
+            .leftRearMotorName(config.leftRear)
+            .rightFrontMotorName(config.rightFront)
+            .rightRearMotorName(config.rightRear)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .xVelocity(78.261926752421046666666666666667)
             .yVelocity(61.494551922189565);
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(0.75)
             .strafePodX(-6.6)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+            .distanceUnit(DistanceUnit.INCH)
+            .hardwareMapName("pinpoint")
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
     /**
      These are the PathConstraints in order:
      tValueConstraint, velocityConstraint, translationalConstraint, headingConstraint, timeoutConstraint,
@@ -95,5 +107,7 @@ public class PedroPathingConstants {
                 .pinpointLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .build();
+
     }
+
 }
