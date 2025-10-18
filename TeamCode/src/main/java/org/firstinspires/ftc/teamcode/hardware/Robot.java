@@ -52,6 +52,7 @@ public class Robot {
         this.follower = PedroPathingConstants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
+        telemetry.update();
 
         if (!Globals.IS_AUTO) follower.startTeleopDrive();
 
