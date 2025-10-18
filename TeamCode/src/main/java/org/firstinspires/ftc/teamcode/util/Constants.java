@@ -30,6 +30,6 @@ public class Constants {
 
     /* -------------------------------------------- SHOOT CONSTANTS -------------------------------------------- */
 
-    public static final double shootPower = 0.7;
+    public static final double shootPower = 0.75;
     public static final double readyPower = -1.0;
 }

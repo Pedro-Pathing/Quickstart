@@ -19,7 +19,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactInCommand;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactShootCommand;
-import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeStopCommand;
+import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeOutCommand;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotData;
 
@@ -114,7 +114,7 @@ public class TeleOp_Solo extends CommandOpMode {
 
             robot.follower.setTeleOpDrive(
                     -gamepad1.left_stick_y,
-                    -gamepad1.right_stick_x,
+                    -gamepad1.right_stick_x/4,
                     -gamepad1.left_stick_x,
                     true // Robot Centric
             );
@@ -187,7 +187,7 @@ public class TeleOp_Solo extends CommandOpMode {
         }
 
         if(leftBumper && !lastLeftBumper) {
-            CommandScheduler.getInstance().schedule((new IntakeStopCommand()));
+            CommandScheduler.getInstance().schedule((new IntakeOutCommand()));
         }
 
         lastLeftTrigger = leftTrigger;

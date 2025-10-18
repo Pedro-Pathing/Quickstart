@@ -19,7 +19,8 @@ public class ArtifactInCommand extends SequentialCommandGroup {
     ArtifactInCommand() {
         super(
                 new IntakeStateCommand(IntakeSubsystem.IntakeState.IN),
-                new ShooterStateCommand(ShooterSubsystem.ShootState.SHOOT)
+                new ShooterStateCommand(ShooterSubsystem.ShootState.SHOOT),
+                new StopStateCommand(ShooterSubsystem.StopState.REVERSE)
         );
     }
 }

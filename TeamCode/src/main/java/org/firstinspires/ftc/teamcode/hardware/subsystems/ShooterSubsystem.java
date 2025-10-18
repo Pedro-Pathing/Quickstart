@@ -26,7 +26,8 @@ public class ShooterSubsystem extends RE_SubsystemBase {
 
     public enum StopState {
         READY,
-        STOP
+        STOP,
+        REVERSE
     }
 
     public ShooterSubsystem(HardwareMap hardwareMap, String shootroller, String stoproller) {
@@ -77,6 +78,8 @@ public class ShooterSubsystem extends RE_SubsystemBase {
             case STOP:
                 stopMotor.setPower(0);
                 break;
+            case REVERSE:
+                stopMotor.setPower(0.7);
         }
     }
 }

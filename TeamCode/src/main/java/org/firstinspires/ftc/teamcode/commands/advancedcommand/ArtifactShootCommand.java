@@ -18,11 +18,11 @@ public class ArtifactShootCommand extends SequentialCommandGroup {
         super(
                 new StopStateCommand(ShooterSubsystem.StopState.READY),
                 new WaitCommand(200),
-                new StopStateCommand(ShooterSubsystem.StopState.STOP),
+                new StopStateCommand(ShooterSubsystem.StopState.REVERSE),
                 new WaitCommand(2000),
                 new StopStateCommand(ShooterSubsystem.StopState.READY),
                 new WaitCommand(200),
-                new StopStateCommand(ShooterSubsystem.StopState.STOP)
+                new StopStateCommand(ShooterSubsystem.StopState.REVERSE)
 
 
 
