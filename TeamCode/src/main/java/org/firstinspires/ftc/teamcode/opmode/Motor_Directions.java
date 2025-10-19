@@ -26,9 +26,9 @@ public class Motor_Directions extends OpMode {
         backRightMotor = hardwareMap.get(DcMotorEx.class, config.rightRear);
 
         // Set motor directions (adjust these if needed)
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Set zero power behavior
