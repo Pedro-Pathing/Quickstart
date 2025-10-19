@@ -79,7 +79,7 @@ public class ShooterSubsystem extends RE_SubsystemBase {
                 stopMotor.setPower(0);
                 break;
             case REVERSE:
-                stopMotor.setPower(0.7);
+                stopMotor.setPower(Constants.reverseStopPower);
         }
     }
 }

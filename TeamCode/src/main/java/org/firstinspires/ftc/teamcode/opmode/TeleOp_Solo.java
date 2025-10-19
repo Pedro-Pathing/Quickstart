@@ -115,7 +115,7 @@ public class TeleOp_Solo extends CommandOpMode {
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x/4,
+                    -gamepad1.right_stick_x,
                     true // Robot Centric
             );
 

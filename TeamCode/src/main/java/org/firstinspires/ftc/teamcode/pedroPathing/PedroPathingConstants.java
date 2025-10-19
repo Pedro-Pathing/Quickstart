@@ -68,10 +68,10 @@ public class PedroPathingConstants {
             .leftRearMotorName(config.leftRear)
             .rightFrontMotorName(config.rightFront)
             .rightRearMotorName(config.rightRear)
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .xVelocity(78.261926752421046666666666666667)
             .yVelocity(61.494551922189565);
     public static PinpointConstants localizerConstants = new PinpointConstants()
