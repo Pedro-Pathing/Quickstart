@@ -186,7 +186,7 @@ public class TeleOp_Solo extends CommandOpMode {
 
         }
 
-        if(leftBumper && !lastLeftBumper) {
+        if(x && !lastX) {
             CommandScheduler.getInstance().schedule((new IntakeOutCommand()));
         }
 
