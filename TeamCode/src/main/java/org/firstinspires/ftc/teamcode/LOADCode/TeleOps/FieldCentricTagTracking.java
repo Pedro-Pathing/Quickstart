@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -128,19 +129,13 @@ public class FieldCentricTagTracking extends LinearOpMode
         double  drive;        // Desired forward power/speed (-1 to +1)
         double  strafe;        // Desired strafe power/speed (-1 to +1)
         double  turn;        // Desired turning power/speed (-1 to +1)
-        double target_turn = 0;
-        double angleToTag = 0;
+        double headingError = 0;
 
         CRServo turret;
-        ControlSystem turretPID = ControlSystem.builder()
-                .posPid(1, 0, 0)
-                .build();
         AnalogInput turretEncoder;
-        double turretPos = 0;
-        double oldTurretTime = 0;
-        double oldTurretPos = 0;
-        double oldTurretVel = 0;
-        double turretVel = 0;
+
+        double turretPos;
+        double turretPower = 0;
 
         // Initialize the Apriltag Detection process
         initAprilTag();
@@ -151,8 +146,6 @@ public class FieldCentricTagTracking extends LinearOpMode
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.update();
-
-        turretVelTimer = new Timer();
 
         // Wait for driver to press start
         telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
@@ -171,7 +164,8 @@ public class FieldCentricTagTracking extends LinearOpMode
             targetFound = false;
             desiredTag  = null;
 
-            turretVelTimer.resetTimer();
+            turretPos = (turretEncoder.getVoltage() / 3.3) * 360;
+
 
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -209,65 +203,34 @@ public class FieldCentricTagTracking extends LinearOpMode
             strafe = -gamepad1.left_stick_x;
             turn = -gamepad1.right_stick_x;
 
-
-
             // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
             if (targetFound) {
 
                 // Determine heading (tag image rotation) error so we can use them to control the robot automatically.
-                double  headingError    = desiredTag.ftcPose.bearing;
+                headingError = -desiredTag.ftcPose.bearing;
 
-                angleToTag = Math.atan2(desiredTag.ftcPose.y,desiredTag.ftcPose.x) * (180/Math.PI); //Minus robot heading
-                // follower.getPose().getHeading(); // This gets the robot heading
-
-                // Use the turn "gain" to calculate how we want the robot to move.
-                target_turn   = -Range.clip(headingError * TURN_GAIN, -1, 1) ;
-
+                turretPower = Math.pow(Math.min(Math.abs(headingError/25),1), 5) * headingError/Math.abs(headingError) * 0.75;
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             } else {
-
-                // drive using manual POV Joystick mode.  Slow things down to make the robot more controllable.
-                if (gamepad1.dpad_left){
-                    target_turn = -0.2;
-                }else if (gamepad1.dpad_right){
-                    target_turn = 0.2;
-                }else{
-                    target_turn = 0;
-                }
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
             telemetry.update();
 
             // Apply desired axes motions to the drivetrain.
-            follower.setTeleOpDrive(drive, strafe, turn, true);
+            follower.setTeleOpDrive(drive, strafe, turn/2, true);
             follower.update();
 
-            double currentTime = turretVelTimer.getElapsedTime();
-
-            turretPID.setGoal(new KineticState(turretPos+angleToTag));
-
-            turretPos = (turretEncoder.getVoltage() / 3.3) * 360;
-            double timeDiff = currentTime - oldTurretTime;
-            if (timeDiff == 0){
-                turretVel = oldTurretVel;
-            }else{
-                turretVel = (turretPos - oldTurretPos) / timeDiff;
-            }
-            double turretPower = turretPID.calculate(new KineticState(turretPos, turretVel));
-            telemetry.addData("Servo Power:", turretPower);
-            if (gamepad1.b){
+            if (gamepad1.b && targetFound){
                 turret.setPower(turretPower);
+            }else{
+                turret.setPower(0);
             }
 
-            oldTurretTime = currentTime;
-            oldTurretPos = turretPos;
-            oldTurretVel = turretVel;
+            telemetry.addData("Turret Power:", turretPower);
+            telemetry.addData("Heading Error:", headingError);
+            telemetry.addData("Absolute Angle:", turretPos);
 
-            telemetry.addData("Turret Pos:", turretPos);
-            telemetry.addData("Target Pos:", turretPos+angleToTag);
-            telemetry.addData("Turret Vel:", turretVel);
-            telemetry.addData("Angle To Tag:", angleToTag);
-            sleep(10);
+            sleep(1);
         }
     }
 
