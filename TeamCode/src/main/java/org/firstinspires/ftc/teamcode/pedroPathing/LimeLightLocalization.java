@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -65,14 +64,20 @@ public class LimeLightLocalization extends OpMode {
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
-        limelight.start();
-
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-
         limelight.pipelineSwitch(0); // Switch to pipeline number 0
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
+        follower.setPose(startPose);
+
+        // 2) Keep Pinpoint aligned to the same field pose
+        pinpoint.setPosition(new Pose2D(
+                DistanceUnit.INCH,
+                startPose.getX(),
+                startPose.getY(),
+                AngleUnit.DEGREES,
+                Math.toDegrees(startPose.getHeading())));
+
     }
 
     @Override
@@ -80,7 +85,6 @@ public class LimeLightLocalization extends OpMode {
     public void start() {
         // run everything to start positions
         limelight.start();
-
     }
 
     @Override
@@ -88,7 +92,6 @@ public class LimeLightLocalization extends OpMode {
     // press
     public void loop() {
         pinpoint.update();
-        telemetry.update();
         follower.update();
 
         Pose currentPose = follower.getPose();
@@ -117,30 +120,6 @@ public class LimeLightLocalization extends OpMode {
 
 
         LLResult result = limelight.getLatestResult();
-        if (result != null && result.isValid()) {
-            double tx = result.getTx(); // How far left or right the target is (degrees)
-            double ty = result.getTy(); // How far up or down the target is (degrees)
-            double ta = result.getTa(); // How big the target looks (0%-100% of the image)
-
-            telemetry.addData("Target X", tx);
-            telemetry.addData("Target Y", ty);
-            telemetry.addData("Target Area", ta);
-
-            // Get AprilTag ID using Fiducial Results
-            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
-            telemetry.addData("AprilTags Detected", fiducialResults.size());
-
-            for (LLResultTypes.FiducialResult fr : fiducialResults) {
-                telemetry.addData("AprilTag ID", fr.getFiducialId());
-                telemetry.addData("Family", fr.getFamily());
-                telemetry.addData("Fiducial X", fr.getTargetXDegrees());
-                telemetry.addData("Fiducial Y", fr.getTargetYDegrees());
-            }
-
-        } else {
-            telemetry.addData("Limelight", "No Targets");
-        }
-
 
         double robotYaw = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
         telemetry.addData("robotYaw", robotYaw);
@@ -176,6 +155,10 @@ public class LimeLightLocalization extends OpMode {
             } else {
                 telemetry.addData("Botpose_MT2", "NULL - Check pipeline configuration");
             }
+        } else {
+            telemetry.addData("Limelight", "No Targets");
         }
+
+        telemetry.update();
     }
 }
