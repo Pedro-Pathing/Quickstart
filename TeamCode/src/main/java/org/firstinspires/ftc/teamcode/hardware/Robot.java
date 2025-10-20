@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 public class Robot {
 
-    public TelemetryManager telemetry;
+    public Telemetry telemetry;
     public HardwareMap hardwareMap;
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -45,7 +45,7 @@ public class Robot {
 
     private static Robot instance = null;
 
-    public void initialize(HardwareMap hardwareMap, TelemetryManager telemetry) {
+    public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
         this.telemetry = telemetry;
 

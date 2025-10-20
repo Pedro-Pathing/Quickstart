@@ -29,7 +29,7 @@ public class RobotData {
     public CameraSubsystem.ShootDistance shootDistance = CameraSubsystem.ShootDistance.OUTOFRANGE;
 
 
-    public void write(TelemetryManager telemetry) {
+    public void write(Telemetry telemetry) {
 
         telemetry.addData("LOOP TIME", System.currentTimeMillis() - loopTime);
         loopTime = System.currentTimeMillis();

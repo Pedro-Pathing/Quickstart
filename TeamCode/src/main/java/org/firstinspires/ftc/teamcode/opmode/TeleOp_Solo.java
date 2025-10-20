@@ -92,12 +92,12 @@ public class TeleOp_Solo extends CommandOpMode {
 
         Globals.IS_AUTO = false;
 
-        goShootPath = () -> robot.follower.pathBuilder()
-                .addPath(new Path(new BezierLine(robot.follower::getPose, new Pose(72, 72))))
-                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(robot.follower::getHeading, Math.toRadians(125), 1))
-                .build();
+//        goShootPath = () -> follower.pathBuilder() //Lazy Curve Generation
+//                .addPath(new Path(new BezierLine(follower::getPose, new Pose(72, 72))))
+//                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(135), 0.8))
+//                .build();
 
-        robot.initialize(hardwareMap, PanelsTelemetry.INSTANCE.getTelemetry());
+        robot.initialize(hardwareMap, telemetry);
 
     }
 
@@ -181,7 +181,7 @@ public class TeleOp_Solo extends CommandOpMode {
         }
 
         if (leftTrigger && !lastLeftTrigger) {
-            robot.follower.startTeleopDrive();
+//            robot.follower.startTeleopDrive();
             CommandScheduler.getInstance().schedule(new ArtifactInCommand());
 
         }
