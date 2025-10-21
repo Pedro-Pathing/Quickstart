@@ -209,7 +209,11 @@ public class FieldCentricTagTracking extends LinearOpMode
                 // Determine heading (tag image rotation) error so we can use them to control the robot automatically.
                 headingError = -desiredTag.ftcPose.bearing;
 
-                turretPower = Math.pow(Math.min(Math.abs(headingError/25),1), 5) * headingError/Math.abs(headingError) * 0.75;
+                if (Math.signum(headingError) != 0) {
+                    turretPower = Math.pow(Math.min(Math.abs(headingError/25),1), 5) * Math.signum(headingError) * 0.75;
+                } else {
+                    turretPower = 0;
+                }
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             } else {
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
@@ -229,6 +233,8 @@ public class FieldCentricTagTracking extends LinearOpMode
             telemetry.addData("Turret Power:", turretPower);
             telemetry.addData("Heading Error:", headingError);
             telemetry.addData("Absolute Angle:", turretPos);
+
+            telemetry.addData("Ari Test Telemetry:",69420);
 
             sleep(1);
         }
