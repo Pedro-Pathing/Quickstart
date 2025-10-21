@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -29,6 +30,7 @@ public class LimeLightLocalization extends OpMode {
     Limelight3A limelight;
 
     private final Pose startPose = new Pose(39, 33, Math.toRadians(180));
+    private TelemetryManager telemetryM;
     private Follower follower;
     GoBildaPinpointDriver pinpoint;
 
@@ -68,7 +70,7 @@ public class LimeLightLocalization extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
-        follower.setPose(startPose);
+        follower.update();
 
         // 2) Keep Pinpoint aligned to the same field pose
         pinpoint.setPosition(new Pose2D(
@@ -85,10 +87,12 @@ public class LimeLightLocalization extends OpMode {
     public void start() {
         // run everything to start positions
         limelight.start();
+        follower.update();
+//        follower.startTeleopDrive();
     }
 
     @Override
-    // loops after star
+    // loops after start
     // press
     public void loop() {
         pinpoint.update();
@@ -117,8 +121,7 @@ public class LimeLightLocalization extends OpMode {
             motorFrontRight.setPower(0.3 * (y - x - rx));
             motorBackRight.setPower(0.3 * (y + x - rx));
         }
-
-
+        
         LLResult result = limelight.getLatestResult();
 
         double robotYaw = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
