@@ -210,7 +210,7 @@ public class FieldCentricTagTracking extends LinearOpMode
                 headingError = -desiredTag.ftcPose.bearing;
 
                 if (Math.signum(headingError) != 0) {
-                    turretPower = Math.pow(Math.min(Math.abs(headingError/25),1), 5) * Math.signum(headingError) * 0.75;
+                    turretPower = Math.pow(Math.min(Math.abs(headingError/20),1), 2) * Math.signum(headingError) * 0.8;
                 } else {
                     turretPower = 0;
                 }
