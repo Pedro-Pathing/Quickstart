@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -32,6 +31,7 @@ public class LimeLightLocalization extends OpMode {
     private final Pose startPose = new Pose(39, 33, Math.toRadians(180));
     private TelemetryManager telemetryM;
     private Follower follower;
+    private boolean isSeeded = false;
     GoBildaPinpointDriver pinpoint;
 
     public void drawCurrent() {
@@ -87,8 +87,6 @@ public class LimeLightLocalization extends OpMode {
     public void start() {
         // run everything to start positions
         limelight.start();
-        follower.update();
-//        follower.startTeleopDrive();
     }
 
     @Override
@@ -96,6 +94,14 @@ public class LimeLightLocalization extends OpMode {
     // press
     public void loop() {
         pinpoint.update();
+
+        if (!isSeeded) {
+            follower.setPose(startPose);
+            follower.update();
+            isSeeded = true;
+            return;
+        }
+
         follower.update();
 
         Pose currentPose = follower.getPose();
