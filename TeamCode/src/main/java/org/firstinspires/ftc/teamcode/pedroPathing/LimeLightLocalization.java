@@ -102,6 +102,10 @@ public class LimeLightLocalization extends OpMode {
             return;
         }
 
+        if (gamepad1.a) {
+            follower.setPose(startPose);
+            follower.update();
+        }
         follower.update();
 
         Pose currentPose = follower.getPose();
@@ -110,7 +114,7 @@ public class LimeLightLocalization extends OpMode {
         Drawing.drawPoseHistory(follower.getPoseHistory());
         drawCurrent();
 
-//        if (gamepad2.start || gamepad1.start) return;
+//       if (gamepad2.start || gamepad1.start) return;
         double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double rx = gamepad1.right_stick_x;
@@ -130,9 +134,10 @@ public class LimeLightLocalization extends OpMode {
         
         LLResult result = limelight.getLatestResult();
 
-        double robotYaw = pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
-        telemetry.addData("robotYaw", robotYaw);
-        limelight.updateRobotOrientation(robotYaw);
+        double ppYawDeg = pinpoint.getHeading(AngleUnit.DEGREES) - 180;
+
+        limelight.updateRobotOrientation(ppYawDeg);
+        telemetry.addData("ppYawDeg", ppYawDeg);
 
         if (result != null && result.isValid()) {
             Pose3D botpose_mt2 = result.getBotpose_MT2();
@@ -149,15 +154,12 @@ public class LimeLightLocalization extends OpMode {
                 // Note: WPIBLUE and WPIRED methods don't exist in this API
                 // Re-localize robot pose based on AprilTag field pose when detected
                 try {
-                    double headingDeg = botpose_mt2.getOrientation().getYaw(AngleUnit.DEGREES);
+                    double headingDeg = follower.getHeading();
                     double xInches = a * 39.3701;
                     double yInches = b * 39.3701;
 
-                    // Update the pinpoint odometry pose (field-centric, in inches)
-//                    pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, xInches, yInches, AngleUnit.DEGREES, headingDeg));
-//
-//                    // Keep Pedro follower in sync
-//                    follower.setPose(new Pose(xInches, yInches, Math.toRadians(headingDeg)));
+                    // Keep Pedro follower in sync
+                    follower.setPose(new Pose(xInches, yInches, Math.toRadians(headingDeg)));
 
                     telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
                 } catch (Exception ignored) { }
