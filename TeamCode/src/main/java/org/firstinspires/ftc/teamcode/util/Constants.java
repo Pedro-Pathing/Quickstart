@@ -50,4 +50,19 @@ public class Constants {
     public static double kP = 0.025;
     public static double kI = 0.0;
     public static double kD = 0.0015;
+
+    // Tunables for Turret
+    public static double deadbandDeg = 0.5;
+
+    //Higher = more responsive, lower = smoother
+    public static double errAlpha = 0.35;
+
+    // prevents wind-up
+    public static double maxIntegral = 30.0;
+
+    // cap for change per x
+    public static double maxDeriv = 320.0;
+
+    // limits the speed of the angle change in the turret
+    public static double maxStepDegPerSec = 480;
 }
