@@ -34,35 +34,23 @@ public class Constants {
     public static final double readyPower = -1.0;
     public static final double reverseStopPower = 1;
 
-    // range in term of degrees tune
-    public static final double minDeg = -120.0;
-    public static final double maxDeg =  120.0;
 
-    // range of the servo tune
-    public static final double minPos = 0.05;
-    public static final double maxPos = 0.95;
-
-
-    // this is the center
-    public static double center = 0.0;
-
-    // PID tunes start small i think
-    public static double kP = 0.025;
-    public static double kI = 0.0;
-    public static double kD = 0.0015;
-
-    // Tunables for Turret
-    public static double deadbandDeg = 0.5;
-
-    //Higher = more responsive, lower = smoother
+    /* -------------------------------------------- TURRET CONSTANTS -------------------------------------------- */
+    // Controller helper params
+    public static double deadbandDeg = 0.30;
     public static double errAlpha = 0.35;
 
-    // prevents wind-up
-    public static double maxIntegral = 30.0;
+    // Safety rails
+    public static double maxIntegral = 30.0;   // deg·s (anti-windup)
+    public static double maxDeriv = 320.0;  // deg/s (D clamp)
 
-    // cap for change per x
-    public static double maxDeriv = 320.0;
+    // CR servo output limits
+    public static double maxPower = 1.0;
+    public static double kS = 0.0;      //set to 0.03 is something is still messing up
 
-    // limits the speed of the angle change in the turret
-    public static double maxStepDegPerSec = 480;
+    // PID gains mapping error->power (tune these)
+    public static double kP_v = 0.020;
+    public static double kI_v = 0.000;
+    public static double kD_v = 0.0010;
 }
+
