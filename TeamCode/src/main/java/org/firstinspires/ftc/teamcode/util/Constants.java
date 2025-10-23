@@ -33,4 +33,21 @@ public class Constants {
     public static final double shootPower = 1;
     public static final double readyPower = -1.0;
     public static final double reverseStopPower = 1;
+
+    // range in term of degrees tune
+    public static final double minDeg = -120.0;
+    public static final double maxDeg =  120.0;
+
+    // range of the servo tune
+    public static final double minPos = 0.05;
+    public static final double maxPos = 0.95;
+
+
+    // this is the center
+    public static double center = 0.0;
+
+    // PID tunes start small i think
+    public static double kP = 0.025;
+    public static double kI = 0.0;
+    public static double kD = 0.0015;
 }
