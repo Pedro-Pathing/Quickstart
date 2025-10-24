@@ -134,27 +134,22 @@ public class LimeLightLocalization extends OpMode {
         
         LLResult result = limelight.getLatestResult();
 
-        double ppYawDeg = pinpoint.getHeading(AngleUnit.DEGREES) - 180;
-
-        limelight.updateRobotOrientation(ppYawDeg);
-        telemetry.addData("ppYawDeg", ppYawDeg);
-
         if (result != null && result.isValid()) {
-            Pose3D botpose_mt2 = result.getBotpose_MT2();
-            telemetry.addData("Botpose_MT2 exists", botpose_mt2 != null);
+            Pose3D botpose_mt1 = result.getBotpose();
+            telemetry.addData("Botpose_MT1 exists", botpose_mt1 != null);
 
-            if (botpose_mt2 != null) {
-                double a = botpose_mt2.getPosition().x;
-                double b = botpose_mt2.getPosition().y;
-                double z = botpose_mt2.getPosition().z;
+            if (botpose_mt1 != null) {
+                double a = botpose_mt1.getPosition().x;
+                double b = botpose_mt1.getPosition().y;
+                double z = botpose_mt1.getPosition().z;
                 // Note: Pose3D might not have getHeading() method
-                telemetry.addData("MT2 Location:", "(" + a + ", " + b + ", " + z + ")");
+                telemetry.addData("MT1 Location:", "(" + a + ", " + b + ", " + z + ")");
                 // telemetry.addData("MT2 Heading:", heading);
 
                 // Note: WPIBLUE and WPIRED methods don't exist in this API
                 // Re-localize robot pose based on AprilTag field pose when detected
                 try {
-                    double headingDeg = follower.getHeading();
+                    double headingDeg = Math.toDegrees(botpose_mt1.getOrientation().getPitch());
                     double xInches = a * 39.3701;
                     double yInches = b * 39.3701;
 
