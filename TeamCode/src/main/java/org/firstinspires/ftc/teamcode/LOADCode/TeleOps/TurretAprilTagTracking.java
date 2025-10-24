@@ -111,7 +111,7 @@ public class TurretAprilTagTracking extends LinearOpMode
         AnalogInput turretEncoder;
 
         double turretPos;           // Used to store the current angle of the turret
-        double turretPower = 0;     // Used to store the calculated power to output to the turret servo
+        double turretPower;     // Used to store the calculated power to output to the turret servo
 
         initAprilTag();             // Initialize the Apriltag Detection process
 
@@ -187,12 +187,11 @@ public class TurretAprilTagTracking extends LinearOpMode
                 } else {
                     turretPower = 0;
                 }
-
-                turret.setPower(turretPower);
-
             } else {
                 turretPower = 0;
             }
+
+            turret.setPower(turretPower);
 
             // Apply desired axes motions to the drivetrain.
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x/2, true);
