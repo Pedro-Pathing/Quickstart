@@ -1,0 +1,25 @@
+package org.firstinspires.ftc.teamcode.friends.teleOp;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp
+public class ServoTest extends LinearOpMode {
+    Servo servo;
+    int servoPosition = 0;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        servo = hardwareMap.get(Servo.class, "Servo");
+        waitForStart();
+        while(opModeIsActive()){
+            if(gamepad1.x){
+                servoPosition += 10;
+            }
+            servo.setPosition(servoPosition);
+
+            telemetry.addData("Position", servoPosition);
+        }
+    }
+}

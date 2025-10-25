@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp(name = "PICK MEEEEE")
-public class RobotCentricSampleCode extends LinearOpMode {
+public class SampleDriving extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         // Declare our motors

@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.friends.teleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 @TeleOp(name = "Motor Test")
@@ -32,10 +31,10 @@ public class MotorTest extends LinearOpMode {
             }
 
             if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-                power += 0.1;
+                power += 0.1f;
             }
             if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down){
-                power -= 0.1;
+                power -= 0.1f;
             }
 
             power = Math.min(1.0f, power);
