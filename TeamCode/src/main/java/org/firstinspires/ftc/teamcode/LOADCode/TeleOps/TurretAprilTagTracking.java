@@ -98,7 +98,7 @@ public class TurretAprilTagTracking extends LinearOpMode
     @IgnoreConfigurable
     static TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
 
-    // Start Pose of our robot. This can be changed or saved from the autonomous period.
+    // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(60,96, Math.toRadians(0));
 
     @Override public void runOpMode()
