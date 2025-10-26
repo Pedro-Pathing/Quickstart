@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.opsmodes.shared
 
 enum class PathState {
-    TELE,
+    WAIT,
     DRIVE_TO_SHOOT,
     SHOOT_START,
     SHOOT,

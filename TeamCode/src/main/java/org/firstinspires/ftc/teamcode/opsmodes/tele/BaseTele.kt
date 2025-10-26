@@ -1,34 +1,36 @@
-import com.bylazar.telemetry.PanelsTelemetry
+package org.firstinspires.ftc.teamcode.opsmodes.tele
+
 import com.pedropathing.follower.Follower
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.VoltageSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.teamcode.opsmodes.pedroPathing.Constants
+import org.firstinspires.ftc.teamcode.opsmodes.shared.Utils
 
-
-@TeleOp(name = "Hivemind - Bot Centric", group = "Bot")
-class BotCentricHivemindTeleOp : LinearOpMode() {
+open class BaseTele(val botCentric: Boolean = true) : LinearOpMode() {
 
     var isShooting: Boolean = false
     lateinit var follower: Follower
     lateinit var shootTimer: ElapsedTime
     lateinit var feeder: Servo
     lateinit var shooter: DcMotor
+    lateinit var voltageSensor: VoltageSensor
 
     override fun runOpMode() {
         feeder = hardwareMap.get(Servo::class.java, "feeder");
         shooter = hardwareMap.get(DcMotor::class.java, "shooter");
+        voltageSensor = hardwareMap.get(VoltageSensor::class.java, "Control Hub")
         follower = Constants.createFollower(hardwareMap)
         follower.setStartingPose(Pose())
         follower.update()
         shootTimer = ElapsedTime()
-        feeder.position = 1.0
         isShooting = false
 
         waitForStart()
+        feeder.position = 1.0
         follower.startTeleopDrive();
 
         while (opModeIsActive()) {
@@ -37,7 +39,7 @@ class BotCentricHivemindTeleOp : LinearOpMode() {
                 -gamepad1.left_stick_y.toDouble(),
                 -gamepad1.left_stick_x.toDouble(),
                 -gamepad1.right_stick_x.toDouble(),
-                true
+                botCentric
             )
             doShooting()
             idle()
@@ -46,11 +48,12 @@ class BotCentricHivemindTeleOp : LinearOpMode() {
 
     private fun doShooting() {
         var shooterPower = gamepad2.right_trigger.toDouble()
-        if (shooterPower > 0.75) {
-            shooterPower = 0.75
+        val desiredPower = Utils.getShootingPower(voltageSensor)
+        if (shooterPower > desiredPower) {
+            shooterPower = desiredPower
         }
         shooter.power = shooterPower
-        if (!isShooting && gamepad2.a && shooterPower > 0.5) {
+        if (!isShooting && gamepad2.a && shooter.power >= 0.75) {
             shootTimer.reset()
             isShooting = true
         }
