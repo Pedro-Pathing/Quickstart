@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.friends.ComputerVision;
+package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
