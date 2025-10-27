@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Locale;
 
 @TeleOp
-public class AprilTagDetectionTest extends LinearOpMode {
+public class AprilTagDetectionTestMovement extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
@@ -99,7 +99,8 @@ public class AprilTagDetectionTest extends LinearOpMode {
 
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata == null) continue;
-            if(detection.id == 21) processAprilTag(detection);
+            if(detection.id == 21)
+                processAprilTag(detection);
         }
 
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
@@ -130,5 +131,9 @@ public class AprilTagDetectionTest extends LinearOpMode {
         }
 
         if(servo.getPosition() == 0 || servo.getPosition() == 1) lastLookedRight = !lastLookedRight;
+    }
+
+    private void stopLookingForAprilTags(){
+        servo.setPosition(servo.getPosition());
     }
 }
