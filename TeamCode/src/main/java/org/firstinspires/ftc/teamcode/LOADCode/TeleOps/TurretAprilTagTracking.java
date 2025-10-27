@@ -96,7 +96,7 @@ public class TurretAprilTagTracking extends LinearOpMode
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     public static Follower follower;                 // Used for managing the PedroPathing path follower
     @IgnoreConfigurable
-    static TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
+    public TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(60,96, Math.toRadians(0));
@@ -133,7 +133,7 @@ public class TurretAprilTagTracking extends LinearOpMode
 
         // Fetch the actual hardware objects and store them in their respective variables
         turret = hardwareMap.get(CRServo.class, "turret");
-        turretEncoder = hardwareMap.get(AnalogInput.class,"AxonTurret");
+        turretEncoder = hardwareMap.get(AnalogInput.class,"turretEncoder");
 
         while (opModeIsActive())
         {
@@ -155,6 +155,8 @@ public class TurretAprilTagTracking extends LinearOpMode
                         // Yes, we want to use this tag.
                         targetFound = true;
                         desiredTag = detection;
+                        // Determine heading error so we can use them to control the robot automatically.
+                        headingError = -desiredTag.ftcPose.bearing;
                         break;  // don't look any further.
                     } else {
                         // This tag is in the library, but we do not want to track it right now.
@@ -178,20 +180,18 @@ public class TurretAprilTagTracking extends LinearOpMode
 
             // If B on Gamepad1 is being pressed, AND we have found the desired target, automatically aim the turret at the AprilTag.
             // Otherwise, stop moving
-            if (gamepad1.b && targetFound) {
-                // Determine heading error so we can use them to control the robot automatically.
-                headingError = -desiredTag.ftcPose.bearing;
-
-                if (Math.signum(headingError) != 0) {
-                    turretPower = Math.pow(Math.min(Math.abs(headingError/20),1), 2) * Math.signum(headingError) * 0.8;
+            if (gamepad1.b) {
+                if (Math.abs(headingError) >= 0.5) {
+                    turretPower = Math.pow(Math.min(Math.abs(headingError/7.5),1), 2) * Math.signum(headingError) * 0.2;
                 } else {
                     turretPower = 0;
                 }
             } else {
                 turretPower = 0;
             }
-
-            turret.setPower(turretPower);
+            if(gamepad1.b){
+                turret.setPower(turretPower);
+            }
 
             // Apply desired axes motions to the drivetrain.
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x/2, true);
@@ -201,8 +201,7 @@ public class TurretAprilTagTracking extends LinearOpMode
             telemetry.addData("Heading Error:", headingError);
             telemetry.addData("Absolute Angle:", turretPos);
 
-            telemetry.addData("Ari Test Telemetry:",69420);
-
+            telemetry.update();
             sleep(1);
         }
     }
