@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import android.annotation.SuppressLint;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -12,6 +14,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -33,6 +37,8 @@ public class LimeLightLocalization extends OpMode {
     private Follower follower;
     private boolean isSeeded = false;
     GoBildaPinpointDriver pinpoint;
+
+    public static int wait = 5;
 
     public void drawCurrent() {
         try {
@@ -89,6 +95,9 @@ public class LimeLightLocalization extends OpMode {
         limelight.start();
     }
 
+    ElapsedTime lastRecolaized = new ElapsedTime();
+
+    @SuppressLint("DefaultLocale")
     @Override
     // loops after start
     // press
@@ -131,32 +140,41 @@ public class LimeLightLocalization extends OpMode {
             motorFrontRight.setPower(0.3 * (y - x - rx));
             motorBackRight.setPower(0.3 * (y + x - rx));
         }
-        
+
+        double ppYaw = pinpoint.getHeading(AngleUnit.DEGREES);
+
+        limelight.updateRobotOrientation(ppYaw);
         LLResult result = limelight.getLatestResult();
 
         if (result != null && result.isValid()) {
-            Pose3D botpose_mt1 = result.getBotpose();
-            telemetry.addData("Botpose_MT1 exists", botpose_mt1 != null);
+            Pose3D botpose_mt2 = result.getBotpose_MT2();
+            telemetry.addData("Botpose_MT1 exists", botpose_mt2 != null);
 
-            if (botpose_mt1 != null) {
-                double a = botpose_mt1.getPosition().x;
-                double b = botpose_mt1.getPosition().y;
-                double z = botpose_mt1.getPosition().z;
+            if (botpose_mt2 != null) {
+                double a = botpose_mt2.getPosition().x;
+                double b = botpose_mt2.getPosition().y;
+                double z = botpose_mt2.getPosition().z;
                 // Note: Pose3D might not have getHeading() method
-                telemetry.addData("MT1 Location:", "(" + a + ", " + b + ", " + z + ")");
+                telemetry.addData("MT2 Location:", "(" + a + ", " + b + ", " + z + ")");
                 // telemetry.addData("MT2 Heading:", heading);
 
                 // Note: WPIBLUE and WPIRED methods don't exist in this API
                 // Re-localize robot pose based on AprilTag field pose when detected
                 try {
-                    double headingDeg = Math.toDegrees(botpose_mt1.getOrientation().getPitch());
+                    double headingDeg = Math.toDegrees(botpose_mt2.getOrientation().getPitch());
                     double xInches = a * 39.3701;
                     double yInches = b * 39.3701;
 
                     // Keep Pedro follower in sync
-                    follower.setPose(new Pose(xInches, yInches, Math.toRadians(headingDeg)));
+                    follower.setPose(new Pose(xInches, yInches, follower.getHeading()));
 
-                    telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
+                    if (lastRecolaized.seconds() >= wait) {
+                        telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
+                        lastRecolaized.reset();
+                    } else {
+                        telemetry.addData("Waiting to Re-localized, ", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), xInches, yInches, headingDeg));
+                    }
+
                 } catch (Exception ignored) { }
             } else {
                 telemetry.addData("Botpose_MT2", "NULL - Check pipeline configuration");
