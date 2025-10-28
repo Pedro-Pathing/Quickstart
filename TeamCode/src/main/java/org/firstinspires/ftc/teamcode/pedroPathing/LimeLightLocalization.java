@@ -168,9 +168,16 @@ public class LimeLightLocalization extends OpMode {
                     // Keep Pedro follower in sync
                     follower.setPose(new Pose(xInches, yInches, follower.getHeading()));
 
+                    boolean inCenter = false;
+
                     if (lastRecolaized.seconds() >= wait) {
-                        telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
-                        lastRecolaized.reset();
+                        if (inCenter) {
+                            telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
+                            lastRecolaized.reset();
+                        } else {
+                            telemetry.addData("April Tag not in clear view", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), xInches, yInches, headingDeg));
+                        }
+
                     } else {
                         telemetry.addData("Waiting to Re-localized, ", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), xInches, yInches, headingDeg));
                     }
