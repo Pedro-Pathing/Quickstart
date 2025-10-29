@@ -14,6 +14,8 @@ public class Main extends LinearOpMode {
 
         waitForStart();
 
+        if(isStopRequested()) return;
+
         if(opModeIsActive()){
             aprilTag.processCameraOutput();
             aprilTag.checkDetections();

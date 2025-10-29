@@ -4,11 +4,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-// Slow Mode
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 @TeleOp(name = "PICK MEEEEE")
 public class Driving extends LinearOpMode {
+
+    double speedModifier = 0.8;
+
     @Override
     public void runOpMode() throws InterruptedException {
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("FLM");
@@ -24,6 +26,14 @@ public class Driving extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
+
+            if(gamepad1.touchpad && speedModifier == 0.8){
+                speedModifier = 1.0;
+            }
+            else if(gamepad1.touchpad && speedModifier == 1.0){
+                speedModifier = 0.8;
+            }
+
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
@@ -37,10 +47,10 @@ public class Driving extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
-            frontLeftMotor.setPower(frontLeftPower);
-            backLeftMotor.setPower(backLeftPower);
-            frontRightMotor.setPower(frontRightPower);
-            backRightMotor.setPower(backRightPower);
+            frontLeftMotor.setPower(frontLeftPower * speedModifier);
+            backLeftMotor.setPower(backLeftPower * speedModifier);
+            frontRightMotor.setPower(frontRightPower * speedModifier);
+            backRightMotor.setPower(backRightPower * speedModifier);
         }
     }
 }
