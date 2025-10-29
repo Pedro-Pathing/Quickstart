@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+// Slow Mode
+
 @TeleOp(name = "PICK MEEEEE")
 public class Driving extends LinearOpMode {
     @Override

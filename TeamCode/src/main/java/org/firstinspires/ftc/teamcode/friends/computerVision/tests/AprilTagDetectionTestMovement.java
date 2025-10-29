@@ -132,8 +132,4 @@ public class AprilTagDetectionTestMovement extends LinearOpMode {
 
         if(servo.getPosition() == 0 || servo.getPosition() == 1) lastLookedRight = !lastLookedRight;
     }
-
-    private void stopLookingForAprilTags(){
-        servo.setPosition(servo.getPosition());
-    }
 }

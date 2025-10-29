@@ -15,7 +15,6 @@ import java.util.Locale;
 
 @TeleOp
 public class AprilTagDetectionTestStatic extends LinearOpMode {
-
     private static final boolean USE_WEBCAM = true;
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
