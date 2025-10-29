@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
+package org.firstinspires.ftc.teamcode.friends.computerVision.tests.BRUH;
 
 import android.util.Size;
 
@@ -15,7 +15,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AprilTagWebCam {
+public class
+AprilTagWebCam {
     private AprilTagProcessor aprilTagProcessor;
     private VisionPortal visionPortal;
     private List<AprilTagDetection> detectedTags = new ArrayList<>();
