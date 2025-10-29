@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
+package org.firstinspires.ftc.teamcode.friends.computerVision.tests.BRUH;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -19,7 +19,7 @@ public class AprilTagWebCamExample extends OpMode {
     public void loop(){
         // Update the vision portal
         aprilTagWebCam.update();
-        AprilTagDetection id20 = aprilTagWebCam.getTagByID(20);
-        aprilTagWebCam.displayDetectionTelemetry(id20);
+        AprilTagDetection id21 = aprilTagWebCam.getTagByID(21);
+        aprilTagWebCam.displayDetectionTelemetry(id21);
     }
 }
