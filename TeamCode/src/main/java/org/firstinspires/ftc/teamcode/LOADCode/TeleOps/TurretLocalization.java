@@ -217,7 +217,7 @@ public class TurretLocalization extends LinearOpMode
             // TODO We will work on Daniel's deadzone method next meeting, If that does not work, we will work on Ari's!
 
 
-            // Apply desired axes motions to the drivetrain.
+            // Apply desired axes motions to the drivetrain
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x/2, true);
             follower.update();
 
