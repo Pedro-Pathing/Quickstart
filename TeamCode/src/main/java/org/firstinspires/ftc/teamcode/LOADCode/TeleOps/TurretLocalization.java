@@ -113,6 +113,9 @@ public class TurretLocalization extends LinearOpMode
         double turretPos;           // Used to store the current angle of the turret
         double turretPower;     // Used to store the calculated power to output to the turret servo
         boolean runTurret = true;
+        double targetAngle;
+        double lastTurretPos;
+        int wraparoundTrigger = 0;
 
         int[] goalCoords = new int[2];
         if (DESIRED_TAG_ID == 24){
@@ -144,6 +147,7 @@ public class TurretLocalization extends LinearOpMode
         // Fetch the actual hardware objects and store them in their respective variables
         turret = hardwareMap.get(CRServo.class, "turret");
         turretEncoder = hardwareMap.get(AnalogInput.class,"turretEncoder");
+        lastTurretPos = Math.abs(((turretEncoder.getVoltage() / 3.3) * 360) - 360);
 
         while (opModeIsActive())
         {
@@ -188,35 +192,46 @@ public class TurretLocalization extends LinearOpMode
                 telemetry.addData("\n>","Drive using joysticks to find a valid target\n");
             }
 
-            double targetAngle;
+
             double[] robotPose = {follower.getPose().getX(), follower.getPose().getY()};
+
             targetAngle = Math.toDegrees(Math.atan2(goalCoords[1]-robotPose[1], goalCoords[0]-robotPose[0])) - Math.toDegrees(follower.getPose().getHeading());
             targetAngle = (180 + targetAngle) % 360;
 
             double angleDiff = (targetAngle - turretPos);
-            turretPower = -Math.pow(Math.min(Math.abs(angleDiff/60),1), 1.33) * Math.signum(angleDiff);
+            turretPower = -Math.pow(Math.min(Math.abs(angleDiff/60),1), (4f/3f)) * Math.signum(angleDiff);
+
+            if (Math.abs(turretPos-lastTurretPos) <= 10){
+                wraparoundTrigger += (int)Math.signum(turretPos - 180);
+            }
 
             if (gamepad1.bWasPressed()){
                 runTurret = !runTurret;
             }
-
             if(runTurret){
                 turret.setPower(turretPower);
             }else{
                 turret.setPower(0);
             }
 
+            // TODO We will work on Daniel's deadzone method next meeting, If that does not work, we will work on Ari's!
+
+
             // Apply desired axes motions to the drivetrain.
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x/2, true);
             follower.update();
+
+            lastTurretPos = turretPos;
 
             telemetry.addData("Target Angle:", targetAngle);
             telemetry.addData("Turret Angle:", turretPos);
             telemetry.addData("Turret Error:", angleDiff);
             telemetry.addData("Turret Power:", turretPower);
             telemetry.addData("Robot Heading:", Math.toDegrees(follower.getPose().getHeading()));
+            telemetry.addData("Wraparound Trigger This Time: ", wraparoundTrigger);
 
             telemetry.update();
+
         }
     }
 
