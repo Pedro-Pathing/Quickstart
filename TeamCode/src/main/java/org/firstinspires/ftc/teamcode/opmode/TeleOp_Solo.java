@@ -20,6 +20,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactInCommand;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactShootCommand;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeOutCommand;
+import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeStopCommand;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotData;
 
@@ -92,10 +93,10 @@ public class TeleOp_Solo extends CommandOpMode {
 
         Globals.IS_AUTO = false;
 
-//        goShootPath = () -> follower.pathBuilder() //Lazy Curve Generation
-//                .addPath(new Path(new BezierLine(follower::getPose, new Pose(72, 72))))
-//                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(135), 0.8))
-//                .build();
+        goShootPath = () -> follower.pathBuilder() //Lazy Curve Generation
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(72, 72))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(135), 0.8))
+                .build();
 
         robot.initialize(hardwareMap, telemetry);
 
@@ -175,15 +176,19 @@ public class TeleOp_Solo extends CommandOpMode {
         boolean rightTrigger = gamepad1.right_trigger > .5;
 
         if (rightTrigger && !lastRightTrigger) {
-//            robot.follower.followPath(goShootPath.get());
-//            automatedDrive = false;
+            robot.follower.followPath(goShootPath.get()); // remove if needed
+            automatedDrive = false;
             CommandScheduler.getInstance().schedule(new ArtifactShootCommand());
         }
 
         if (leftTrigger && !lastLeftTrigger) {
-//            robot.follower.startTeleopDrive();
+            robot.follower.startTeleopDrive();
             CommandScheduler.getInstance().schedule(new ArtifactInCommand());
 
+        }
+
+        if(leftBumper && !leftBumper) {
+            CommandScheduler.getInstance().schedule((new IntakeStopCommand()));
         }
 
         if(x && !lastX) {

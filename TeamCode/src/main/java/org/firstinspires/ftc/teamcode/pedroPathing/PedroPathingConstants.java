@@ -20,46 +20,47 @@ public class PedroPathingConstants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(16.2)
+            .centripetalScaling(1)
             .forwardZeroPowerAcceleration(-25.9346931313679598)
             .lateralZeroPowerAcceleration(-67.342491844080064)
             .translationalPIDFCoefficients(new PIDFCoefficients(
-                    0.03,
+                    0.16,
                     0,
-                    0,
-                    0.015
+                    0.02,
+                    0
             ))
             .translationalPIDFSwitch(4)
             .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(
-                    0.4,
+                    0.16,
                     0,
-                    0.005,
-                    0.0006
+                    0.02,
+                    0
             ))
             .headingPIDFCoefficients(new PIDFCoefficients(
                     0.8,
                     0,
-                    0,
-                    0.01
+                    0.06    ,
+                    0.02
             ))
             .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(
-                    2.5,
+                    0.8,
                     0,
-                    0.1,
-                    0.0005
+                    0.06,
+                    0.02
             ))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
-                    0.1,
+                    0.017,
                     0,
-                    0.00035,
+                    0.000001,
                     0.6,
-                    0.015
+                    0.002
             ))
             .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(
-                    0.02,
+                    0.017,
                     0,
-                    0.000005,
+                    0.000001,
                     0.6,
-                    0.01
+                    0.002
             ))
             .drivePIDFSwitch(15)
             .centripetalScaling(0.0005);
@@ -75,15 +76,14 @@ public class PedroPathingConstants {
             .xVelocity(78.261926752421046666666666666667)
             .yVelocity(61.494551922189565);
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(0.75)
-            .strafePodX(-6.6)
+            .forwardPodY(36.65/25.4)
+            .strafePodX(30.292/25.4)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
-            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+
     /**
      These are the PathConstraints in order:
      tValueConstraint, velocityConstraint, translationalConstraint, headingConstraint, timeoutConstraint,
