@@ -16,7 +16,7 @@ import java.util.Locale;
 
 public class AprilTagWebCam{
     ArrayList<AprilTagDetection> detectionsList = new ArrayList<>();
-    ArrayList<AprilTagDetection> currentDetections = new ArrayList<AprilTagDetection>();
+    ArrayList<AprilTagDetection> currentDetections;
     private AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
 
@@ -26,7 +26,7 @@ public class AprilTagWebCam{
                 hardwareMap.get(WebcamName.class, "Webcam"), aprilTag);
     }
     public void processCameraOutput(){
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        currentDetections = aprilTag.getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
 
         if(currentDetections.isEmpty()){
@@ -37,8 +37,8 @@ public class AprilTagWebCam{
         for(AprilTagDetection detection : currentDetections){
             if(detection.metadata == null) continue;
             else{
-                detectionsList.add(detection);
                 processAprilTag(detection);
+                detectionsList.add(detection);
             }
         }
     }

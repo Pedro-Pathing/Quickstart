@@ -14,9 +14,6 @@ public class ServoTest extends LinearOpMode {
         servo = hardwareMap.get(Servo.class, "Servo");
         waitForStart();
         while(opModeIsActive()){
-            if(gamepad1.x){
-                servoPosition += 10;
-            }
             servo.setPosition(servoPosition);
 
             telemetry.addData("Position", servoPosition);
