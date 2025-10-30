@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.util.Globals;
 
-@Autonomous(name = "Template Auto (PedroPathing 2025+)", preselectTeleOp = "TeleOp")
+@Autonomous(name = "Auto_9_0")
 public class Auto_9_0 extends LinearOpMode {
 
 
