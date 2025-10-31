@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -13,13 +14,13 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.Locale;
 
-@TeleOp
+@Disabled
 public class AprilTagDetectionTestMovement extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
-     * The variable to store our instance of the AprilTag processor.
+     * The variable to store our instance of the AprilTagCam processor.
      */
     private AprilTagProcessor aprilTag;
 
@@ -69,7 +70,7 @@ public class AprilTagDetectionTestMovement extends LinearOpMode {
     }
 
     /**
-     * Initialize the AprilTag processor.
+     * Initialize the AprilTagCam processor.
      */
     private void initAprilTag() {
 

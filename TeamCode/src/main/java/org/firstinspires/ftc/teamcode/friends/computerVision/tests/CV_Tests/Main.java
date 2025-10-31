@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp
 public class Main extends LinearOpMode {
 
-    AprilTagWebCam aprilTag = new AprilTagWebCam();
+    AprilTagCam aprilTag = new AprilTagCam();
 
     @Override
     public void runOpMode() throws InterruptedException {

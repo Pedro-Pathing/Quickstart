@@ -9,12 +9,11 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 // Step 1: Get the april tag detections without webcam
 
-public class AprilTagWebCam{
+public class AprilTagCam {
     ArrayList<AprilTagDetection> detectionsList = new ArrayList<>();
     ArrayList<AprilTagDetection> currentDetections;
     private AprilTagProcessor aprilTag;
