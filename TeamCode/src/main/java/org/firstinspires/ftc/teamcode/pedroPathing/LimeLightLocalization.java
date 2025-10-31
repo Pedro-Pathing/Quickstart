@@ -167,7 +167,7 @@ public class LimeLightLocalization extends OpMode {
                     double yInches = b * 39.3701;
 
                     // Keep Pedro follower in sync
-                    follower.setPose(new Pose(xInches, yInches, follower.getHeading()));
+//                    follower.setPose(new Pose(xInches, yInches, follower.getHeading()));
 
                     boolean clearView = false;
 
