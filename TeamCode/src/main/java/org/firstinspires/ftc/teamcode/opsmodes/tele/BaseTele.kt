@@ -43,6 +43,8 @@ open class BaseTele(val botCentric: Boolean = true) : LinearOpMode() {
             )
             doShooting()
             idle()
+            telemetry.addData("Shoot Power", shooter.power)
+            telemetry.update()
         }
     }
 
@@ -53,7 +55,7 @@ open class BaseTele(val botCentric: Boolean = true) : LinearOpMode() {
             shooterPower = desiredPower
         }
         shooter.power = shooterPower
-        if (!isShooting && gamepad2.a && shooter.power >= 0.75) {
+        if (!isShooting && gamepad2.a && shooter.power >= 0.30) {
             shootTimer.reset()
             isShooting = true
         }

@@ -5,16 +5,15 @@ import com.qualcomm.robotcore.hardware.VoltageSensor
 class Utils {
     companion object {
         fun getShootingPower(voltageSensor: VoltageSensor): Double {
-            var currentVoltage = voltageSensor.voltage
-
-            if (currentVoltage > 13.5) {
-                currentVoltage = 13.5
+            if (voltageSensor.voltage < 12.0) {
+                return 0.75
+            } else if (voltageSensor.voltage < 12.5) {
+                return 0.70
+            } else if (voltageSensor.voltage < 13.0) {
+                return 0.70
+            } else {
+                return .65
             }
-            else if (currentVoltage <= 12.5) {
-                currentVoltage = 12.5
-            }
-
-            return ((13.5 - currentVoltage) / 4) + .75
         }
     }
 }

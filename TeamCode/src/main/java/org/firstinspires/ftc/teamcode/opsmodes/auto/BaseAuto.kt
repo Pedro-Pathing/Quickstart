@@ -18,6 +18,7 @@ abstract class BaseAuto : LinearOpMode() {
 
     // Do not delay more than 15 seconds
     val AUTO_WAIT_TIME = 0.0
+    val REV_WAIT_TIME = 2.0
     val SHOOT_DELAY_TIME = 3.0
     var pathState = PathState.WAIT
     var shotNumber = 0
@@ -52,6 +53,8 @@ abstract class BaseAuto : LinearOpMode() {
             telemetryM.debug("velocity", follower.getVelocity())
 
             idle()
+            telemetry.addData("Shoot Power", shooter.power)
+            telemetry.update()
         }
     }
 
@@ -86,7 +89,15 @@ abstract class BaseAuto : LinearOpMode() {
                 if (shootTimer.time() <= AUTO_WAIT_TIME) {
                     return
                 } else {
+                    shootTimer.reset()
                     shooter.power = Utils.getShootingPower(voltageSensor)
+                    pathState = PathState.REV_SHOOT
+                }
+            }
+            PathState.REV_SHOOT -> {
+                if (shootTimer.time() <= REV_WAIT_TIME) {
+                    return
+                } else {
                     pathState = PathState.DRIVE_TO_SHOOT
                 }
             }

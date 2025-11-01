@@ -8,7 +8,7 @@ open class BlueBottomHivemindAuto : BaseAuto() {
     override fun buildPathList(): List<Pose> {
         return listOf(
             Pose(0.0, 0.0),
-            Pose(94.0, 0.0, Math.toRadians(45.0)),
+            Pose(90.0, 0.0, Math.toRadians(50.0)),
             Pose(120.0, 0.0, Math.toRadians(90.0))
         )
     }
@@ -31,7 +31,7 @@ open class BlueTopHivemindAuto : BaseAuto() {
     override fun buildPathList(): List<Pose> {
         return listOf(
             Pose(0.0, 0.0),
-            Pose(48.0, 0.0, Math.toRadians(180.0)),
+            Pose(46.0, 0.0, Math.toRadians(185.0)),
             Pose(24.0, 24.0, Math.toRadians(-135.0))
         )
     }
@@ -43,7 +43,7 @@ class RedTopHivemindAuto : BlueTopHivemindAuto() {
         val pathList = super.buildPathList()
         return listOf(
             pathList[0],
-            pathList[1],
+            Pose(pathList[1].x, pathList[1].y, -pathList[1].heading),
             Pose(pathList[2].x, -pathList[2].y, -pathList[2].heading),
         )
     }
