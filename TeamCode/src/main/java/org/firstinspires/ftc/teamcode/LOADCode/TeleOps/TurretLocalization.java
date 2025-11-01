@@ -50,6 +50,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
+
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
  * The code assumes a Holonomic (Mecanum or X Drive) Robot.
@@ -125,6 +128,10 @@ public class TurretLocalization extends LinearOpMode
             goalCoords[0] = 0;
             goalCoords[1] = 144;
         }
+
+        ControlSystem turretPID = ControlSystem.builder()
+                .posPid(0,0,0)
+                .build();
 
         initAprilTag();             // Initialize the Apriltag Detection process
 
@@ -203,6 +210,11 @@ public class TurretLocalization extends LinearOpMode
 
             if (Math.abs(turretPos-lastTurretPos) <= 10){
                 wraparoundTrigger += (int)Math.signum(turretPos - 180);
+            }
+
+            if (false){
+                turretPID.setGoal(new KineticState(targetAngle));
+                turretPower = turretPID.calculate(new KineticState(turretPos));
             }
 
             if (gamepad1.bWasPressed()){
