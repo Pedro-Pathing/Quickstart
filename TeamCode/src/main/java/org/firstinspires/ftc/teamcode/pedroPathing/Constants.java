@@ -13,7 +13,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(5); // Mass of Robot in KG
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints
+            (0.99, 100, 1, 1);
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .rightFrontMotorName("RFM")
@@ -34,9 +35,9 @@ public class Constants {
             .rightPodY(-1)
             .strafePodX(-2.5)
             //
-            .leftEncoder_HardwareMapName("leftFront")
-            .rightEncoder_HardwareMapName("rightRear")
-            .strafeEncoder_HardwareMapName("rightFront")
+            .leftEncoder_HardwareMapName("leftEncoder")
+            .rightEncoder_HardwareMapName("rightEncoder")
+            .strafeEncoder_HardwareMapName("strafeEncoder")
             .leftEncoderDirection(Encoder.FORWARD)
             .rightEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD);
