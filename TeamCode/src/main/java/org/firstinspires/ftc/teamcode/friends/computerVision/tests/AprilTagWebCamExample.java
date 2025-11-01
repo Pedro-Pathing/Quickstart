@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.friends.computerVision.tests.BRUH;
+package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -18,7 +17,6 @@ public class AprilTagWebCamExample extends OpMode {
 
     @Override
     public void loop(){
-        // Update the vision portal
         aprilTagWebCam.update();
         AprilTagDetection id21 = aprilTagWebCam.getTagByID(21);
         aprilTagWebCam.displayDetectionTelemetry(id21);

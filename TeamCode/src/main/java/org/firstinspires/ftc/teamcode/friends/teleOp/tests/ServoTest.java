@@ -15,6 +15,7 @@ public class ServoTest extends LinearOpMode {
         waitForStart();
         while(opModeIsActive()){
             servo.setPosition(servoPosition);
+            servo.setDirection(Servo.Direction.FORWARD);
 
             telemetry.addData("Position", servoPosition);
         }

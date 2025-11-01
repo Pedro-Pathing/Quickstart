@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.friends.computerVision.tests.BRUH;
+package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 
 import android.util.Size;
 
