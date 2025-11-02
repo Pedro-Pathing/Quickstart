@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.opmode.auto.AutonomousMethods.build
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.hardware.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.util.Globals;
 
 @Autonomous(name = "Auto_9_0")
+@Configurable
 public class Auto_9_0 extends LinearOpMode {
 
 
@@ -27,38 +29,38 @@ public class Auto_9_0 extends LinearOpMode {
     public static double startHeading = 144;
 
 
-    public static double shoot0X = 72;
-    public static double shoot0Y = 72;
-    public static double shoot0Heading = 135;
+    public static double shoot0X = 45;
+    public static double shoot0Y = 99;
+    public static double shoot0Heading = 145;
 
 
-    public static double intake1X = 30;
+    public static double intake1X = 25;
     public static double intake1Y = 84;
     public static double intake1Heading = 180;
 
 
-    public static double shoot1X = 72;
-    public static double shoot1Y = 72;
-    public static double shoot1Heading = 135;
+    public static double shoot1X = 45;
+    public static double shoot1Y = 99;
+    public static double shoot1Heading = 145;
 
 
-    public static double intake2X = 125;
-    public static double intake2Y = 30;
-    public static double intake2Heading = 90;
+    public static double intake2X = 30;
+    public static double intake2Y = 60;
+    public static double intake2Heading = 180;
 
 
-    public static double shoot2X = 72;
-    public static double shoot2Y = 72;
-    public static double shoot2Heading = 135;
+    public static double shoot2X = 45;
+    public static double shoot2Y = 99;
+    public static double shoot2Heading = 145;
 
 
-    public static double intake3X = 125;
-    public static double intake3Y = 30;
-    public static double intake3Heading = 90;
+    public static double intake3X = 30;
+    public static double intake3Y = 36;
+    public static double intake3Heading = 180;
 
-    public static double shoot3X = 72;
-    public static double shoot3Y = 72;
-    public static double shoot3Heading = 135;
+    public static double shoot3X = 45;
+    public static double shoot3Y = 99;
+    public static double shoot3Heading = 145;
 
 
     // control points for intaking
@@ -134,8 +136,10 @@ public class Auto_9_0 extends LinearOpMode {
                                 new ArtifactInCommand()
                         ),
 
-                        new WaitCommand(200), // to let the launcher charge up
+                        new WaitCommand(500), // to let the launcher charge up
 
+                        new ArtifactShootCommand(),
+                        new WaitCommand(750),
                         new ArtifactShootCommand(),
 
                         new PathCommand(intake1Path),
@@ -143,18 +147,26 @@ public class Auto_9_0 extends LinearOpMode {
                         new PathCommand(shoot1Path),
 
                         new ArtifactShootCommand(),
+                        new WaitCommand(750),
+                        new ArtifactShootCommand(),
 
                         new PathCommand(intake2Path),
 
                         new PathCommand(shoot2Path),
 
                         new ArtifactShootCommand(),
+                        new WaitCommand(750),
+                        new ArtifactShootCommand(),
+
 
                         new PathCommand(intake3Path),
 
                         new PathCommand(shoot3Path),
 
+                        new ArtifactShootCommand(),
+                        new WaitCommand(750),
                         new ArtifactShootCommand()
+
                 )
         );
 

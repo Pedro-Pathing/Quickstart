@@ -21,9 +21,13 @@ import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactInCommand
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.ArtifactShootCommand;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeOutCommand;
 import org.firstinspires.ftc.teamcode.commands.advancedcommand.IntakeStopCommand;
+import org.firstinspires.ftc.teamcode.commands.subsystem.IntakeStateCommand;
+import org.firstinspires.ftc.teamcode.commands.subsystem.ShooterStateCommand;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.hardware.RobotData;
 
+import org.firstinspires.ftc.teamcode.hardware.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.hardware.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.PedroPathingConstants;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.Globals;
@@ -155,6 +159,21 @@ public class TeleOp_Solo extends CommandOpMode {
 
 
 
+        if (a && !lastA) {
+            CommandScheduler.getInstance().schedule(new ShooterStateCommand(ShooterSubsystem.ShootState.SHOOT));
+        }
+
+        if (b && !lastB) {
+            CommandScheduler.getInstance().schedule(new ShooterStateCommand(ShooterSubsystem.ShootState.STOP));
+        }
+
+        if (leftBumper && !lastLeftBumper) {
+            CommandScheduler.getInstance().schedule((new IntakeStateCommand(IntakeSubsystem.IntakeState.STOP)));
+        }
+
+        if(x && !lastX) {
+            CommandScheduler.getInstance().schedule((new IntakeStateCommand(IntakeSubsystem.IntakeState.OUT)));
+        }
 
 
         lastA = a;
@@ -176,23 +195,15 @@ public class TeleOp_Solo extends CommandOpMode {
         boolean rightTrigger = gamepad1.right_trigger > .5;
 
         if (rightTrigger && !lastRightTrigger) {
-            robot.follower.followPath(goShootPath.get()); // remove if needed
-            automatedDrive = false;
+//            robot.follower.followPath(goShootPath.get()); // remove if needed
+//            automatedDrive = false;
             CommandScheduler.getInstance().schedule(new ArtifactShootCommand());
         }
 
         if (leftTrigger && !lastLeftTrigger) {
-            robot.follower.startTeleopDrive();
-            CommandScheduler.getInstance().schedule(new ArtifactInCommand());
+//            robot.follower.startTeleopDrive();
+            CommandScheduler.getInstance().schedule(new IntakeStateCommand(IntakeSubsystem.IntakeState.IN));
 
-        }
-
-        if(leftBumper && !leftBumper) {
-            CommandScheduler.getInstance().schedule((new IntakeStopCommand()));
-        }
-
-        if(x && !lastX) {
-            CommandScheduler.getInstance().schedule((new IntakeOutCommand()));
         }
 
         lastLeftTrigger = leftTrigger;

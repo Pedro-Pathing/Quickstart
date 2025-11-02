@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.util;
+import com.bylazar.configurables.annotations.Configurable;
+
 import org.firstinspires.ftc.teamcode.hardware.subsystems.CameraSubsystem;
 
+@Configurable
 public class Constants {
 
     /* -------------------------------------------- DRIVE CONSTANTS -------------------------------------------- */
@@ -25,8 +28,8 @@ public class Constants {
 
     /* -------------------------------------------- INTAKE CONSTANTS -------------------------------------------- */
 
-    public static final double intakeInPower = 0.75;
-    public static final double intakeOutPower = -1;
+    public static final double intakeInPower = -1;
+    public static final double intakeOutPower = 1;
 
     /* -------------------------------------------- SHOOT CONSTANTS -------------------------------------------- */
 

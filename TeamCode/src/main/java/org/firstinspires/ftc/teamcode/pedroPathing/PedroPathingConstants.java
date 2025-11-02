@@ -74,10 +74,11 @@ public class PedroPathingConstants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .xVelocity(78.261926752421046666666666666667)
-            .yVelocity(61.494551922189565);
+            .yVelocity(61.494551922189565)
+            .useBrakeModeInTeleOp(true);
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(36.65/25.4)
-            .strafePodX(30.292/25.4)
+            .forwardPodY(-36.65/25.4)
+            .strafePodX(-30.292/25.4)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .distanceUnit(DistanceUnit.INCH)
