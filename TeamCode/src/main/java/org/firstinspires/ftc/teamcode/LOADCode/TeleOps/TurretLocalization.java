@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -52,6 +53,8 @@ import java.util.concurrent.TimeUnit;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
+import dev.nextftc.control.feedback.PIDCoefficients;
+import kotlin.jvm.JvmField;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -89,17 +92,21 @@ import dev.nextftc.control.KineticState;
  * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
  *
  */
-
+@Configurable
 @TeleOp(name="Turret Localization", group = "TestTeleOp")
 public class TurretLocalization extends LinearOpMode
 {
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
-    private static final int DESIRED_TAG_ID = 24;    // Choose the tag you want to approach or set to -1 for ANY tag.
+    int DESIRED_TAG_ID = 24;    // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     public static Follower follower;                 // Used for managing the PedroPathing path follower
-    @IgnoreConfigurable
     public TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
+
+    //Turret PID coefficients
+    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.75, 0.005, 200);
+
+    public static int turretDeadZoneSize = 15;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
@@ -116,21 +123,14 @@ public class TurretLocalization extends LinearOpMode
         double turretPos;           // Used to store the current angle of the turret
         double turretPower;     // Used to store the calculated power to output to the turret servo
         boolean runTurret = true;
+        boolean useTurretPID = true;
         double targetAngle;
         double lastTurretPos;
         int wraparoundTrigger = 0;
-
         int[] goalCoords = new int[2];
-        if (DESIRED_TAG_ID == 24){
-            goalCoords[0] = 144;
-            goalCoords[1] = 144;
-        }else if (DESIRED_TAG_ID == 20){
-            goalCoords[0] = 0;
-            goalCoords[1] = 144;
-        }
 
         ControlSystem turretPID = ControlSystem.builder()
-                .posPid(0,0,0)
+                .posPid(new PIDCoefficients(turretCoefficients.kP/100000000, turretCoefficients.kI/100000000, turretCoefficients.kD/100000000))
                 .build();
 
         initAprilTag();             // Initialize the Apriltag Detection process
@@ -158,6 +158,23 @@ public class TurretLocalization extends LinearOpMode
 
         while (opModeIsActive())
         {
+
+            if (gamepad1.yWasPressed()){
+                if (DESIRED_TAG_ID == 24){
+                    DESIRED_TAG_ID = 20;
+                } else {
+                    DESIRED_TAG_ID = 24;
+                }
+            }
+
+            if (DESIRED_TAG_ID == 24){
+                goalCoords[0] = 144;
+                goalCoords[1] = 144;
+            }else if (DESIRED_TAG_ID == 20){
+                goalCoords[0] = 0;
+                goalCoords[1] = 144;
+            }
+
             // Used to indicate whether or not a valid AprilTag has been detected
             targetFound = false;
             // Used to hold the data for a detected AprilTag
@@ -190,6 +207,11 @@ public class TurretLocalization extends LinearOpMode
             }
 
             // Tell the driver what we see, and what to do.
+            if (DESIRED_TAG_ID == 24){
+                telemetry.addData("Goal Selected: ","Red");
+            } else {
+                telemetry.addData("Goal Selected: ","Blue");
+            }
             if (targetFound) {
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
@@ -199,22 +221,31 @@ public class TurretLocalization extends LinearOpMode
                 telemetry.addData("\n>","Drive using joysticks to find a valid target\n");
             }
 
+            // This block finds the robot position from it's odometry data and calculates the angle between the selected goal and the robot, adjusting the camera to match that angle
 
             double[] robotPose = {follower.getPose().getX(), follower.getPose().getY()};
-
             targetAngle = Math.toDegrees(Math.atan2(goalCoords[1]-robotPose[1], goalCoords[0]-robotPose[0])) - Math.toDegrees(follower.getPose().getHeading());
             targetAngle = (180 + targetAngle) % 360;
-
+            targetAngle = Math.min(Math.max(targetAngle, turretDeadZoneSize), 360-turretDeadZoneSize);
             double angleDiff = (targetAngle - turretPos);
             turretPower = -Math.pow(Math.min(Math.abs(angleDiff/60),1), (4f/3f)) * Math.signum(angleDiff);
 
-            if (Math.abs(turretPos-lastTurretPos) <= 10){
-                wraparoundTrigger += (int)Math.signum(turretPos - 180);
+            if (gamepad1.aWasPressed()){
+                useTurretPID = !useTurretPID;
+            }
+            if (useTurretPID){
+                turretPID.setGoal(new KineticState(targetAngle));
+                turretPower = -turretPID.calculate(new KineticState(turretPos));
+                telemetry.addData("Turret Control System:", "PID");
+            }else{
+                telemetry.addData("Turret Control System:", "Non-PID");
             }
 
-            if (false){
-                turretPID.setGoal(new KineticState(targetAngle));
-                turretPower = turretPID.calculate(new KineticState(turretPos));
+            if (Math.abs(turretPos-lastTurretPos) >= 30){
+                wraparoundTrigger += (int)Math.signum(turretPos - 180);
+            }
+            if (wraparoundTrigger != 0) {
+                //turretPower = Math.max(Math.min(-wraparoundTrigger, 0.1), -0.1);
             }
 
             if (gamepad1.bWasPressed()){
@@ -235,15 +266,18 @@ public class TurretLocalization extends LinearOpMode
 
             lastTurretPos = turretPos;
 
-            telemetry.addData("Target Angle:", targetAngle);
-            telemetry.addData("Turret Angle:", turretPos);
-            telemetry.addData("Turret Error:", angleDiff);
-            telemetry.addData("Turret Power:", turretPower);
-            telemetry.addData("Robot Heading:", Math.toDegrees(follower.getPose().getHeading()));
+            telemetry.addData("Target Angle", targetAngle);
+            telemetry.addData("Turret Angle", turretPos);
+            telemetry.addData("Turret Error", angleDiff);
+            telemetry.addData("Turret Power", turretPower);
+            telemetry.addData("Robot Heading", Math.toDegrees(follower.getPose().getHeading()));
             telemetry.addData("Wraparound Trigger This Time: ", wraparoundTrigger);
+            telemetry.addData("-", "---------------------------------------------");
+            telemetry.addData("kP", turretCoefficients.kP);
+            telemetry.addData("kI", turretCoefficients.kI);
+            telemetry.addData("kD", turretCoefficients.kD);
 
             telemetry.update();
-
         }
     }
 
