@@ -70,10 +70,10 @@ public class LoadHardwareClass {
      */
     public void init()    {
         // Define and initialize motors (note: need to use reference to actual OpMode).
-        frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "fl");
-        frontRight = myOpMode.hardwareMap.get(DcMotor.class, "fr");
-        backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "bl");
-        backRight  = myOpMode.hardwareMap.get(DcMotor.class, "br");
+        frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "FL");
+        frontRight = myOpMode.hardwareMap.get(DcMotor.class, "FR");
+        backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "BL");
+        backRight  = myOpMode.hardwareMap.get(DcMotor.class, "BR");
 
         // Set motor directions
         frontLeft.setDirection(DcMotor.Direction.REVERSE);

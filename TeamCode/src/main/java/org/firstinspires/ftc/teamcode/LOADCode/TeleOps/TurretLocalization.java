@@ -106,7 +106,7 @@ public class TurretLocalization extends LinearOpMode
     //Turret PID coefficients
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.75, 0.005, 200);
 
-    public static int turretDeadZoneSize = 15;
+    public static int turretDeadZoneSize = 5;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
@@ -123,7 +123,7 @@ public class TurretLocalization extends LinearOpMode
         double turretPos;           // Used to store the current angle of the turret
         double turretPower;     // Used to store the calculated power to output to the turret servo
         boolean runTurret = true;
-        boolean useTurretPID = true;
+        boolean useTurretPID = false;
         double targetAngle;
         double lastTurretPos;
         int wraparoundTrigger = 0;
@@ -241,11 +241,17 @@ public class TurretLocalization extends LinearOpMode
                 telemetry.addData("Turret Control System:", "Non-PID");
             }
 
-            if (Math.abs(turretPos-lastTurretPos) >= 30){
+            if (gamepad1.dpad_left){
+                turretPower = 0.4;
+            }else if (gamepad1.dpad_right){
+                turretPower = -0.4;
+            }
+
+            if ((Math.abs(turretPos-lastTurretPos) >= 120) && (turretPos<350 || turretPos>10)){
                 wraparoundTrigger += (int)Math.signum(turretPos - 180);
             }
             if (wraparoundTrigger != 0) {
-                //turretPower = Math.max(Math.min(-wraparoundTrigger, 0.1), -0.1);
+                turretPower = Math.max(Math.min(-wraparoundTrigger, 0.2), -0.2);
             }
 
             if (gamepad1.bWasPressed()){
@@ -261,7 +267,7 @@ public class TurretLocalization extends LinearOpMode
 
 
             // Apply desired axes motions to the drivetrain
-            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x/2, true);
+            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
             follower.update();
 
             lastTurretPos = turretPos;
