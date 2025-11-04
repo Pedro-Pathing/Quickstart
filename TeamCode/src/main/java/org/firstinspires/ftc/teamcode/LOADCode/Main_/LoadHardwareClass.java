@@ -97,10 +97,10 @@ public class LoadHardwareClass {
     public void mecanumDrive(double forward, double strafe, double rotate) {
         // This calculates the power needed for each wheel based on the amount of forward,
         // strafe right, and rotate
-        double frontLeftPower = forward + strafe + rotate;
-        double frontRightPower = forward - strafe - rotate;
-        double backRightPower = forward + strafe - rotate;
-        double backLeftPower = forward - strafe + rotate;
+        double frontLeftPower = -forward + strafe + rotate;
+        double frontRightPower = -forward - strafe - rotate;
+        double backRightPower = -forward + strafe - rotate;
+        double backLeftPower = -forward - strafe + rotate;
 
         double maxPower = 1.0;
 

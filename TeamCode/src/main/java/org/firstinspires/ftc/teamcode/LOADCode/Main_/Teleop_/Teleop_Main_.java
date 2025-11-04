@@ -76,12 +76,14 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.init();
 
             Robot.mecanumDrive(
-                    gamepad1.right_stick_y,
-                    gamepad1.right_stick_x,
-                    gamepad1.left_stick_x
+                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x
             );
 
+
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Version: ", "11/4/25");
             telemetry.update();
         }
     }
