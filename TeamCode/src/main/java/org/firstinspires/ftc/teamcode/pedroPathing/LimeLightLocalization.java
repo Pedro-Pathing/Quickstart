@@ -32,7 +32,7 @@ public class LimeLightLocalization extends OpMode {
     DcMotorEx motorBackRight;
     Limelight3A limelight;
 
-    private final Pose startPose = new Pose(39, 33, Math.toRadians(180));
+    private final Pose startPose = new Pose(108.939, 137.322, Math.toRadians(270));
     private TelemetryManager telemetryM;
     private Follower follower;
     private boolean isSeeded = false;
@@ -144,7 +144,7 @@ public class LimeLightLocalization extends OpMode {
         double ppYaw = pinpoint.getHeading(AngleUnit.DEGREES);
 
         telemetry.addData("ppYaw", ppYaw);
-        limelight.updateRobotOrientation(ppYaw);
+        limelight.updateRobotOrientation(ppYaw+90);
         LLResult result = limelight.getLatestResult();
 
         if (result != null && result.isValid()) {
@@ -163,23 +163,26 @@ public class LimeLightLocalization extends OpMode {
                 // Re-localize robot pose based on AprilTag field pose when detected
                 try {
                     double headingDeg = Math.toDegrees(botpose_mt2.getOrientation().getPitch());
-                    double xInches = a * 39.3701;
-                    double yInches = b * 39.3701;
+                    double LPxInches = a * 39.3701;
+                    double LPyInches = b * 39.3701;
+
+                    double PxInches = LPxInches+72;
+                    double PyInches = -LPyInches+72;
+
 
                     // Keep Pedro follower in sync
-//                    follower.setPose(new Pose(xInches, yInches, follower.getHeading()));
-
-                    boolean clearView = false;
+                    boolean clearView = true;
 
                     if (lastRecolaized.seconds() >= wait) {
                         if (clearView) {
-                            telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", xInches, yInches, headingDeg));
+                            telemetry.addData("Re-localized", String.format("x=%.2f in, y=%.2f in, h=%.1f deg", PxInches, PyInches, headingDeg));
+                            follower.setPose(new Pose(PxInches, PyInches, follower.getHeading()));
                             lastRecolaized.reset();
                         } else {
-                            telemetry.addData("April Tag not in clear view", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), xInches, yInches, headingDeg));
+                            telemetry.addData("April Tag not in clear view", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), PxInches, PyInches, headingDeg));
                         }
                     } else {
-                        telemetry.addData("Waiting to Re-localized, ", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), xInches, yInches, headingDeg));
+                        telemetry.addData("Waiting to Re-localized, ", String.format("wait=%.2f, x=%.2f in, y=%.2f in, h=%.1f deg", lastRecolaized.seconds(), PxInches, PyInches, headingDeg));
                     }
 
                 } catch (Exception ignored) { }
