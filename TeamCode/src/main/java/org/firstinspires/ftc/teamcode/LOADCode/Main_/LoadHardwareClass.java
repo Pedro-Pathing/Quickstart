@@ -35,22 +35,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 /*
- * This file works in conjunction with the External Hardware Class sample called: ConceptExternalHardwareClass.java
- * Please read the explanations in that Sample about how to use this class definition.
+ * This file is designed to work with our OpModes to handle all our hardware functionality to declutter our main scripts
  *
- * This file defines a Java Class that performs all the setup and configuration for a sample robot's hardware (motors and sensors).
- * It assumes three motors (left_drive, right_drive and arm) and two servos (left_hand and right_hand)
- *
- * This one file/class can be used by ALL of your OpModes without having to cut & paste the code each time.
- *
- * Where possible, the actual hardware objects are "abstracted" (or hidden) so the OpMode code just makes calls into the class,
- * rather than accessing the internal hardware directly. This is why the objects are declared "private".
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with *exactly the same name*.
- *
- * Or... In OnBot Java, add a new file named RobotHardware.java, select this sample, and select Not an OpMode.
- * Also add a new OpMode, select the sample ConceptExternalHardwareClass.java, and select TeleOp.
- *
+ * The logic goes in the OpModes and the hardware control is handled here.
  */
 
 public class LoadHardwareClass {
@@ -83,10 +70,10 @@ public class LoadHardwareClass {
      */
     public void init()    {
         // Define and initialize motors (note: need to use reference to actual OpMode).
-        frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = myOpMode.hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "backLeft");
-        backRight  = myOpMode.hardwareMap.get(DcMotor.class, "backRight");
+        frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "fl");
+        frontRight = myOpMode.hardwareMap.get(DcMotor.class, "fr");
+        backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "bl");
+        backRight  = myOpMode.hardwareMap.get(DcMotor.class, "br");
 
         // Set motor directions
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
