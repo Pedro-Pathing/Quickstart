@@ -14,17 +14,12 @@ import org.firstinspires.ftc.teamcode.hardware.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.Globals;
 
-public class ArtifactShootCommand extends SequentialCommandGroup {
+public class ArtifactLowerPowerShootCommand extends SequentialCommandGroup {
     public
-    ArtifactShootCommand() {
+    ArtifactLowerPowerShootCommand() {
         super(
-                new StopStateCommand(ShooterSubsystem.StopState.READY),
-                new WaitCommand(250),
-                new StopStateCommand(ShooterSubsystem.StopState.REVERSE)
-
-
-
-
+                new ShooterStateCommand(ShooterSubsystem.ShootState.LOWERPOWER),
+                new WaitCommand(100)
         );
     }
 }

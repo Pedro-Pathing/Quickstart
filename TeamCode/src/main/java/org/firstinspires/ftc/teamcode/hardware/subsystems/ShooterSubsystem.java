@@ -20,6 +20,7 @@ public class ShooterSubsystem extends RE_SubsystemBase {
     public StopState stopState;
 
     public enum ShootState {
+        LOWERPOWER,
         SHOOT,
         STOP
     }
@@ -63,6 +64,9 @@ public class ShooterSubsystem extends RE_SubsystemBase {
     @Override
     public void periodic() {
         switch (shootState) {
+
+            case LOWERPOWER:
+                shootMotor.setPower(0.85);
             case SHOOT:
                 shootMotor.setPower(Constants.shootPower);
                 break;

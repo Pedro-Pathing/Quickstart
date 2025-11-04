@@ -13,7 +13,7 @@ public class Constants {
     public static double pathEndYTolerance = 1;
     public static double pathEndHeadingTolerance = Math.toRadians(2);
 
-    public static boolean robotCentric = false;
+    public static boolean robotCentric = true;
 
     /* -------------------------------------------- CAMERA CONSTANTS -------------------------------------------- */
     //Pipeline: 0
@@ -28,14 +28,14 @@ public class Constants {
 
     /* -------------------------------------------- INTAKE CONSTANTS -------------------------------------------- */
 
-    public static final double intakeInPower = -1;
-    public static final double intakeOutPower = 1;
+    public static double intakeInPower = -1;
+    public static double intakeOutPower = 1;
 
     /* -------------------------------------------- SHOOT CONSTANTS -------------------------------------------- */
 
-    public static final double shootPower = 1;
-    public static final double readyPower = -1.0;
-    public static final double reverseStopPower = 1;
+    public static double shootPower = 1;
+    public static double readyPower = -1.0;
+    public static double reverseStopPower = 1;
 
 
     /* -------------------------------------------- TURRET CONSTANTS -------------------------------------------- */

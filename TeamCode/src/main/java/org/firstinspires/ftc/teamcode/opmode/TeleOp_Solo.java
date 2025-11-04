@@ -121,7 +121,7 @@ public class TeleOp_Solo extends CommandOpMode {
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
                     -gamepad1.right_stick_x/2,
-                    true // Robot Centric
+                    Constants.robotCentric // Robot Centric
             );
 
         }
@@ -171,7 +171,7 @@ public class TeleOp_Solo extends CommandOpMode {
             CommandScheduler.getInstance().schedule((new IntakeStateCommand(IntakeSubsystem.IntakeState.STOP)));
         }
 
-        if(x && !lastX) {
+        if(rightBumper && !rightBumper) {
             CommandScheduler.getInstance().schedule((new IntakeStateCommand(IntakeSubsystem.IntakeState.OUT)));
         }
 

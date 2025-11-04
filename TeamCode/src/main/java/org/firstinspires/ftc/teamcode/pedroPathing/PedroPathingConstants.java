@@ -96,7 +96,7 @@ public class PedroPathingConstants {
             0.1,
             0.1,
             0.009,
-            50,
+            250,
             1.25,
             10,
             1
