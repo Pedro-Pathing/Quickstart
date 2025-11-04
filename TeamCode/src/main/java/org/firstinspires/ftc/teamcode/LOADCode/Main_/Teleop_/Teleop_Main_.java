@@ -70,10 +70,9 @@ public class Teleop_Main_ extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        Robot.init();
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-            Robot.init();
 
             Robot.mecanumDrive(
                     gamepad1.left_stick_y,
