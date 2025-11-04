@@ -66,7 +66,7 @@ public class ShooterSubsystem extends RE_SubsystemBase {
         switch (shootState) {
 
             case LOWERPOWER:
-                shootMotor.setPower(0.85);
+                shootMotor.setPower(0.65);
             case SHOOT:
                 shootMotor.setPower(Constants.shootPower);
                 break;
