@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.LOADCode.Main_;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -40,6 +41,14 @@ import com.qualcomm.robotcore.util.Range;
  * The logic goes in the OpModes and the hardware control is handled here.
  */
 
+//TODO Abstract all the individual systems rather than the entire hardware
+/*
+Example: Abstract class for drivetrain, turret, intake, etc
+They could be all individually referenced in the main OpMode
+Drivetrain.doThing(args);
+Turret.doOtherThing(args);
+etc etc
+*/
 public class LoadHardwareClass {
 
     /* Declare OpMode members. */
@@ -52,9 +61,9 @@ public class LoadHardwareClass {
     private DcMotor backLeft = null;
     private DcMotor backRight = null;
     //Other
+    private DcMotorEx turretMotor = null;
 
-    // Public drive constants, empty for now
-
+    // Public drive constants
     public final double maxSpeed = 1.0; // make this slower for outreaches
 
     // Constructor that allows the OpMode to pass a reference to itself.
@@ -62,12 +71,6 @@ public class LoadHardwareClass {
         myOpMode = opmode;
     }
 
-    /**
-     * Initialize all the robot's hardware.
-     * This method must be called ONCE when the OpMode is initialized.
-     * <p>
-     * All of the hardware devices are accessed via the hardware map, and initialized.
-     */
     public void init()    {
         // Define and initialize motors (note: need to use reference to actual OpMode).
         frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "FL");
@@ -75,13 +78,15 @@ public class LoadHardwareClass {
         backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "BL");
         backRight  = myOpMode.hardwareMap.get(DcMotor.class, "BR");
 
+        turretMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "turretMotor");
+
         // Set motor directions
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.FORWARD);
 
-        // If the drivetrain motors have encoders, handle all that here
+        // If the motors have encoders, handle all that here
 
         // Define and initialize servos here
 
@@ -120,20 +125,23 @@ public class LoadHardwareClass {
                 maxSpeed * (backRightPower / maxPower)
         );
     }
-
-    /**
-     * Pass the requested wheel motor powers to the appropriate hardware drive motors.
-     *
-     * @param flPower     Fwd/Rev driving power (-1.0 to 1.0) +ve is forward
-     * @param frPower    Fwd/Rev driving power (-1.0 to 1.0) +ve is forward
-     * @param blPower     Fwd/Rev driving power (-1.0 to 1.0) +ve is forward
-     * @param brPower    Fwd/Rev driving power (-1.0 to 1.0) +ve is forward
-     */
     public void setDrivePower(double flPower, double frPower, double blPower, double brPower) {
         // Output the values to the motor drives.
         frontLeft.setPower(flPower);
         frontRight.setPower(frPower);
         backLeft.setPower(blPower);
         backRight.setPower(brPower);
+    }
+
+    public void setTurretPower(double power){
+        turretMotor.setPower(power);
+    }
+
+    public double getTurretPosition(){
+        return turretMotor.getCurrentPosition();
+    }
+
+    public double getTurretVelocity(){
+        return turretMotor.getVelocity();
     }
 }
