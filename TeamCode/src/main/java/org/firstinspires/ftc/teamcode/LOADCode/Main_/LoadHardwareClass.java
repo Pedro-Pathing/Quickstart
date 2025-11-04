@@ -35,7 +35,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 /*
- * This file is designed to work with our OpModes to handle all our hardware functionality to declutter our main scripts
+ * This file is designed to work with our OpModes to handle all our hardware functionality to de-clutter our main scripts
  *
  * The logic goes in the OpModes and the hardware control is handled here.
  */
@@ -83,8 +83,6 @@ public class LoadHardwareClass {
 
         // If the drivetrain motors have encoders, handle all that here
 
-
-
         // Define and initialize servos here
 
         //Set servo directions
@@ -93,7 +91,7 @@ public class LoadHardwareClass {
         myOpMode.telemetry.update();
     }
 
-
+    //TODO Add "PedroDriveTM" to replace the current Mecanum drive.
     public void mecanumDrive(double forward, double strafe, double rotate) {
         // This calculates the power needed for each wheel based on the amount of forward,
         // strafe right, and rotate
