@@ -27,15 +27,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
+package org.firstinspires.ftc.teamcode.LOADCode.Testing_.TeleOps;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -48,6 +50,11 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
+import dev.nextftc.control.feedback.PIDCoefficients;
+import kotlin.jvm.JvmField;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -84,73 +91,97 @@ import java.util.concurrent.TimeUnit;
  * Use DESIRED_DISTANCE to set how close you want the robot to get to the target.
  * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
  *
- * Use Android Studio to Copy this Class, and Paste it into the TeamCode/src/main/java/org/firstinspires/ftc/teamcode folder.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
- *
  */
-
-@TeleOp(name="Follow AprilTag", group = "TestTeleOp")
-public class PedroDriveToAprilTag extends LinearOpMode
+@Configurable
+@TeleOp(name="Turret Localization", group = "TestTeleOp")
+public class TurretLocalization extends LinearOpMode
 {
-    // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 60.0; //  this is how close the camera should get to the target (inches)
-
-    //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
-    //  applied to the drive motors to correct the error.
-    //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
-    final double SPEED_GAIN  =  0.04  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
-    final double STRAFE_GAIN =  0.04 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
-    final double TURN_GAIN   =  0.04  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
-
-    final double MAX_AUTO_SPEED = 1;   //  Clip the approach speed to this max value (adjust for your robot)
-    final double MAX_AUTO_STRAFE= 1;   //  Clip the strafing speed to this max value (adjust for your robot)
-    final double MAX_AUTO_TURN  = 1;   //  Clip the turn speed to this max value (adjust for your robot)
-
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
-    private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
+    int DESIRED_TAG_ID = 24;    // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
-    private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
+    public static Follower follower;                 // Used for managing the PedroPathing path follower
+    public TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
 
-    private boolean toggle = false;
-    private boolean oldToggleVal = false;
+    //Turret PID coefficients
+    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.75, 0.005, 200);
 
-    public static Follower follower;
-    @IgnoreConfigurable
-    static TelemetryManager telemetryM;
-    /** Start Pose of our robot. This can be changed or saved from the autonomous period. */
-    private final Pose startPose = new Pose(60,96, Math.toRadians(0));
+    public static int turretDeadZoneSize = 5;
+
+    // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
+    private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
 
     @Override public void runOpMode()
     {
-        boolean targetFound;    // Set to true when an AprilTag target is detected
-        double  drive;          // Desired forward power/speed (-1 to +1)
-        double  strafe;         // Desired strafe power/speed (-1 to +1)
-        double  turn;           // Desired turning power/speed (-1 to +1)
+        boolean targetFound;        // Set to true when an AprilTag target is detected
+        double headingError = 0;    // The error in degrees in the turret's angle
 
-        // Initialize the Apriltag Detection process
-        initAprilTag();
+        // Used to store the hardware objects for the robot
+        CRServo turret;
+        AnalogInput turretEncoder;
+
+        double turretPos;           // Used to store the current angle of the turret
+        double turretPower;     // Used to store the calculated power to output to the turret servo
+        boolean runTurret = true;
+        boolean useTurretPID = false;
+        double targetAngle;
+        double lastTurretPos;
+        int wraparoundTrigger = 0;
+        int[] goalCoords = new int[2];
+
+        ControlSystem turretPID = ControlSystem.builder()
+                .posPid(new PIDCoefficients(turretCoefficients.kP/100000000, turretCoefficients.kI/100000000, turretCoefficients.kD/100000000))
+                .build();
+
+        initAprilTag();             // Initialize the Apriltag Detection process
 
         if (USE_WEBCAM)
             setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
 
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startPose);
-        follower.update();
+        follower = Constants.createFollower(hardwareMap);   // Initializes the PedroPathing path follower
+        follower.setStartingPose(startPose);                // Sets the initial position of the robot on the field
+        follower.update();                                  // Applies the initialization
 
-        // Wait for driver to press start
         telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
-        waitForStart();
 
-        follower.startTeleopDrive();
-        follower.update();
+        waitForStart(); // Wait for driver to press start
+
+        follower.startTeleopDrive();    // Activate the manual drive function for the drivetrain
+        follower.update();              // Apply the activation
+
+        // Fetch the actual hardware objects and store them in their respective variables
+        turret = hardwareMap.get(CRServo.class, "turret");
+        turretEncoder = hardwareMap.get(AnalogInput.class,"turretEncoder");
+        lastTurretPos = Math.abs(((turretEncoder.getVoltage() / 3.3) * 360) - 360);
 
         while (opModeIsActive())
         {
+
+            if (gamepad1.yWasPressed()){
+                if (DESIRED_TAG_ID == 24){
+                    DESIRED_TAG_ID = 20;
+                } else {
+                    DESIRED_TAG_ID = 24;
+                }
+            }
+
+            if (DESIRED_TAG_ID == 24){
+                goalCoords[0] = 144;
+                goalCoords[1] = 144;
+            }else if (DESIRED_TAG_ID == 20){
+                goalCoords[0] = 0;
+                goalCoords[1] = 144;
+            }
+
+            // Used to indicate whether or not a valid AprilTag has been detected
             targetFound = false;
-            desiredTag  = null;
+            // Used to hold the data for a detected AprilTag
+            AprilTagDetection desiredTag = null;
+
+            // Read the Axon servo encoder position and convert it from a voltage to an angle in degrees
+            turretPos = Math.abs(((turretEncoder.getVoltage() / 3.3) * 360) - 360);
 
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -162,6 +193,8 @@ public class PedroDriveToAprilTag extends LinearOpMode
                         // Yes, we want to use this tag.
                         targetFound = true;
                         desiredTag = detection;
+                        // Determine heading error so we can use them to control the robot automatically.
+                        headingError = -desiredTag.ftcPose.bearing;
                         break;  // don't look any further.
                     } else {
                         // This tag is in the library, but we do not want to track it right now.
@@ -174,51 +207,83 @@ public class PedroDriveToAprilTag extends LinearOpMode
             }
 
             // Tell the driver what we see, and what to do.
+            if (DESIRED_TAG_ID == 24){
+                telemetry.addData("Goal Selected: ","Red");
+            } else {
+                telemetry.addData("Goal Selected: ","Blue");
+            }
             if (targetFound) {
-                telemetry.addData("\n>","HOLD Left-Bumper to Drive to Target\n");
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
                 telemetry.addData("Bearing","%3.0f degrees", desiredTag.ftcPose.bearing);
                 telemetry.addData("Yaw","%3.0f degrees", desiredTag.ftcPose.yaw);
             } else {
-                telemetry.addData("\n>","Drive using joysticks to find valid target\n");
+                telemetry.addData("\n>","Drive using joysticks to find a valid target\n");
             }
 
-            if (gamepad1.b && !oldToggleVal){
-                toggle = !toggle;
-                oldToggleVal = true;
-            }else if (!gamepad1.b && oldToggleVal){
-                oldToggleVal = false;
+            // This block finds the robot position from it's odometry data and calculates the angle between the selected goal and the robot, adjusting the camera to match that angle
+
+            double[] robotPose = {follower.getPose().getX(), follower.getPose().getY()};
+            targetAngle = Math.toDegrees(Math.atan2(goalCoords[1]-robotPose[1], goalCoords[0]-robotPose[0])) - Math.toDegrees(follower.getPose().getHeading());
+            targetAngle = (180 + targetAngle) % 360;
+            targetAngle = Math.min(Math.max(targetAngle, turretDeadZoneSize), 360-turretDeadZoneSize);
+            double angleDiff = (targetAngle - turretPos);
+            turretPower = -Math.pow(Math.min(Math.abs(angleDiff/60),1), (4f/3f)) * Math.signum(angleDiff);
+
+            if (gamepad1.aWasPressed()){
+                useTurretPID = !useTurretPID;
+            }
+            if (useTurretPID){
+                turretPID.setGoal(new KineticState(targetAngle));
+                turretPower = -turretPID.calculate(new KineticState(turretPos));
+                telemetry.addData("Turret Control System:", "PID");
+            }else{
+                telemetry.addData("Turret Control System:", "Non-PID");
             }
 
-            // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
-            if (toggle && targetFound) {
-
-                // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
-                double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
-                double  headingError    = desiredTag.ftcPose.bearing;
-                double  yawError        = desiredTag.ftcPose.yaw;
-
-                // Use the speed and turn "gains" to calculate how we want the robot to move.
-                drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-                turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
-                strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-
-                telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
-            } else {
-
-                // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
-                drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
-                strafe = -gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
-                turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
-                telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
+            if (gamepad1.dpad_left){
+                turretPower = 0.4;
+            }else if (gamepad1.dpad_right){
+                turretPower = -0.4;
             }
-            telemetry.update();
 
-            // Apply desired axes motions to the drivetrain.
-            follower.setTeleOpDrive(drive, strafe, turn, true);
+            if ((Math.abs(turretPos-lastTurretPos) >= 120) && (turretPos<350 || turretPos>10)){
+                wraparoundTrigger += (int)Math.signum(turretPos - 180);
+            }
+            if (wraparoundTrigger != 0) {
+                turretPower = Math.max(Math.min(-wraparoundTrigger, 0.2), -0.2);
+            }
+
+            if (gamepad1.bWasPressed()){
+                runTurret = !runTurret;
+            }
+            if(runTurret){
+                turret.setPower(turretPower);
+            }else{
+                turret.setPower(0);
+            }
+
+            // TODO We will work on Daniel's deadzone method next meeting, If that does not work, we will work on Ari's!
+
+
+            // Apply desired axes motions to the drivetrain
+            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
             follower.update();
-            sleep(10);
+
+            lastTurretPos = turretPos;
+
+            telemetry.addData("Target Angle", targetAngle);
+            telemetry.addData("Turret Angle", turretPos);
+            telemetry.addData("Turret Error", angleDiff);
+            telemetry.addData("Turret Power", turretPower);
+            telemetry.addData("Robot Heading", Math.toDegrees(follower.getPose().getHeading()));
+            telemetry.addData("Wraparound Trigger This Time: ", wraparoundTrigger);
+            telemetry.addData("-", "---------------------------------------------");
+            telemetry.addData("kP", turretCoefficients.kP);
+            telemetry.addData("kI", turretCoefficients.kI);
+            telemetry.addData("kD", turretCoefficients.kD);
+
+            telemetry.update();
         }
     }
 
@@ -236,7 +301,7 @@ public class PedroDriveToAprilTag extends LinearOpMode
         // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second
         // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second
         // Note: Decimation can be changed on-the-fly to adapt during a match.
-        aprilTag.setDecimation(2);
+        aprilTag.setDecimation(3);
 
         // Create the vision portal by using a builder.
         if (USE_WEBCAM) {

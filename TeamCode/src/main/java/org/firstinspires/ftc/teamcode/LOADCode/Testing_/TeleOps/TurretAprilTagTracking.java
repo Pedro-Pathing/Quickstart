@@ -27,9 +27,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.LOADCode.TeleOps;
+package org.firstinspires.ftc.teamcode.LOADCode.Testing_.TeleOps;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -50,11 +49,6 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import dev.nextftc.control.ControlSystem;
-import dev.nextftc.control.KineticState;
-import dev.nextftc.control.feedback.PIDCoefficients;
-import kotlin.jvm.JvmField;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -92,24 +86,20 @@ import kotlin.jvm.JvmField;
  * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
  *
  */
-@Configurable
-@TeleOp(name="Turret Localization", group = "TestTeleOp")
-public class TurretLocalization extends LinearOpMode
+
+@TeleOp(name="Turret April-Tag Tracking", group = "TestTeleOp")
+public class TurretAprilTagTracking extends LinearOpMode
 {
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
-    int DESIRED_TAG_ID = 24;    // Choose the tag you want to approach or set to -1 for ANY tag.
+    private static final int DESIRED_TAG_ID = 24;    // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     public static Follower follower;                 // Used for managing the PedroPathing path follower
+    @IgnoreConfigurable
     public TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
 
-    //Turret PID coefficients
-    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.75, 0.005, 200);
-
-    public static int turretDeadZoneSize = 5;
-
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
-    private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
+    private final Pose startPose = new Pose(60,96, Math.toRadians(0));
 
     @Override public void runOpMode()
     {
@@ -122,16 +112,6 @@ public class TurretLocalization extends LinearOpMode
 
         double turretPos;           // Used to store the current angle of the turret
         double turretPower;     // Used to store the calculated power to output to the turret servo
-        boolean runTurret = true;
-        boolean useTurretPID = false;
-        double targetAngle;
-        double lastTurretPos;
-        int wraparoundTrigger = 0;
-        int[] goalCoords = new int[2];
-
-        ControlSystem turretPID = ControlSystem.builder()
-                .posPid(new PIDCoefficients(turretCoefficients.kP/100000000, turretCoefficients.kI/100000000, turretCoefficients.kD/100000000))
-                .build();
 
         initAprilTag();             // Initialize the Apriltag Detection process
 
@@ -154,34 +134,16 @@ public class TurretLocalization extends LinearOpMode
         // Fetch the actual hardware objects and store them in their respective variables
         turret = hardwareMap.get(CRServo.class, "turret");
         turretEncoder = hardwareMap.get(AnalogInput.class,"turretEncoder");
-        lastTurretPos = Math.abs(((turretEncoder.getVoltage() / 3.3) * 360) - 360);
 
         while (opModeIsActive())
         {
-
-            if (gamepad1.yWasPressed()){
-                if (DESIRED_TAG_ID == 24){
-                    DESIRED_TAG_ID = 20;
-                } else {
-                    DESIRED_TAG_ID = 24;
-                }
-            }
-
-            if (DESIRED_TAG_ID == 24){
-                goalCoords[0] = 144;
-                goalCoords[1] = 144;
-            }else if (DESIRED_TAG_ID == 20){
-                goalCoords[0] = 0;
-                goalCoords[1] = 144;
-            }
-
             // Used to indicate whether or not a valid AprilTag has been detected
             targetFound = false;
             // Used to hold the data for a detected AprilTag
             AprilTagDetection desiredTag = null;
 
             // Read the Axon servo encoder position and convert it from a voltage to an angle in degrees
-            turretPos = Math.abs(((turretEncoder.getVoltage() / 3.3) * 360) - 360);
+            turretPos = (turretEncoder.getVoltage() / 3.3) * 360;
 
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -207,11 +169,6 @@ public class TurretLocalization extends LinearOpMode
             }
 
             // Tell the driver what we see, and what to do.
-            if (DESIRED_TAG_ID == 24){
-                telemetry.addData("Goal Selected: ","Red");
-            } else {
-                telemetry.addData("Goal Selected: ","Blue");
-            }
             if (targetFound) {
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
@@ -221,69 +178,31 @@ public class TurretLocalization extends LinearOpMode
                 telemetry.addData("\n>","Drive using joysticks to find a valid target\n");
             }
 
-            // This block finds the robot position from it's odometry data and calculates the angle between the selected goal and the robot, adjusting the camera to match that angle
-
-            double[] robotPose = {follower.getPose().getX(), follower.getPose().getY()};
-            targetAngle = Math.toDegrees(Math.atan2(goalCoords[1]-robotPose[1], goalCoords[0]-robotPose[0])) - Math.toDegrees(follower.getPose().getHeading());
-            targetAngle = (180 + targetAngle) % 360;
-            targetAngle = Math.min(Math.max(targetAngle, turretDeadZoneSize), 360-turretDeadZoneSize);
-            double angleDiff = (targetAngle - turretPos);
-            turretPower = -Math.pow(Math.min(Math.abs(angleDiff/60),1), (4f/3f)) * Math.signum(angleDiff);
-
-            if (gamepad1.aWasPressed()){
-                useTurretPID = !useTurretPID;
+            // If B on Gamepad1 is being pressed, AND we have found the desired target, automatically aim the turret at the AprilTag.
+            // Otherwise, stop moving
+            if (gamepad1.b) {
+                if (Math.abs(headingError) >= 0.5) {
+                    turretPower = Math.pow(Math.min(Math.abs(headingError/7.5),1), 2) * Math.signum(headingError) * 0.2;
+                } else {
+                    turretPower = 0;
+                }
+            } else {
+                turretPower = 0;
             }
-            if (useTurretPID){
-                turretPID.setGoal(new KineticState(targetAngle));
-                turretPower = -turretPID.calculate(new KineticState(turretPos));
-                telemetry.addData("Turret Control System:", "PID");
-            }else{
-                telemetry.addData("Turret Control System:", "Non-PID");
-            }
-
-            if (gamepad1.dpad_left){
-                turretPower = 0.4;
-            }else if (gamepad1.dpad_right){
-                turretPower = -0.4;
-            }
-
-            if ((Math.abs(turretPos-lastTurretPos) >= 120) && (turretPos<350 || turretPos>10)){
-                wraparoundTrigger += (int)Math.signum(turretPos - 180);
-            }
-            if (wraparoundTrigger != 0) {
-                turretPower = Math.max(Math.min(-wraparoundTrigger, 0.2), -0.2);
-            }
-
-            if (gamepad1.bWasPressed()){
-                runTurret = !runTurret;
-            }
-            if(runTurret){
+            if(gamepad1.b){
                 turret.setPower(turretPower);
-            }else{
-                turret.setPower(0);
             }
 
-            // TODO We will work on Daniel's deadzone method next meeting, If that does not work, we will work on Ari's!
-
-
-            // Apply desired axes motions to the drivetrain
-            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+            // Apply desired axes motions to the drivetrain.
+            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x/2, true);
             follower.update();
 
-            lastTurretPos = turretPos;
-
-            telemetry.addData("Target Angle", targetAngle);
-            telemetry.addData("Turret Angle", turretPos);
-            telemetry.addData("Turret Error", angleDiff);
-            telemetry.addData("Turret Power", turretPower);
-            telemetry.addData("Robot Heading", Math.toDegrees(follower.getPose().getHeading()));
-            telemetry.addData("Wraparound Trigger This Time: ", wraparoundTrigger);
-            telemetry.addData("-", "---------------------------------------------");
-            telemetry.addData("kP", turretCoefficients.kP);
-            telemetry.addData("kI", turretCoefficients.kI);
-            telemetry.addData("kD", turretCoefficients.kD);
+            telemetry.addData("Turret Power:", turretPower);
+            telemetry.addData("Heading Error:", headingError);
+            telemetry.addData("Absolute Angle:", turretPos);
 
             telemetry.update();
+            sleep(1);
         }
     }
 

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.LOADCode.Autos; // make sure this aligns with class location
+package org.firstinspires.ftc.teamcode.LOADCode.Testing_.Autos; // make sure this aligns with class location
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;

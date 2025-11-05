@@ -71,17 +71,23 @@ public class LoadHardwareClass {
 
     // Misc Constants
     public Follower follower = null;
-    public Pose initialPose = null;
+    public Pose initialPose = new Pose(0,0, 0);
 
     // Public drive constants
-    public final double maxSpeed = 1.0; // make this slower for outreaches
+    public double speedMultiplier = 1.0; // make this slower for outreaches
 
-    // Constructor that allows the OpMode to pass a reference to itself.
-    public LoadHardwareClass(LinearOpMode opmode, Pose pose) {
+    /**
+     * Constructor that allows the OpMode to pass a reference to itself.
+     * @param opmode The input for this parameter should almost always be "this".
+     */
+    public LoadHardwareClass(LinearOpMode opmode) {
         myOpMode = opmode;
-        initialPose = pose;
     }
 
+    /**
+     * Initializes all hardware for the robot.
+     * Must be called once at the start of each op-mode.
+     */
     public void init()    {
         // Define and initialize motors (note: need to use reference to actual OpMode).
         frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "FL");
@@ -113,7 +119,19 @@ public class LoadHardwareClass {
     }
 
     public class Drivetrain {
-        public void mecanumDrive(double forward, double strafe, double rotate) {
+        /**
+         * Implements a custom mecanum drive controller.
+         * Must be called every loop to function properly.
+         * @param Forward The joystick value for driving forward/backward
+         * @param Strafe The joystick value for strafing
+         * @param Rotate The joystick value to turn left/right
+         */
+        public void mecanumDrive(double Forward, double Strafe, double Rotate) {
+            // Puts the inputted joystick values into their own variable to allow for modification.
+            double forward = Forward * speedMultiplier;
+            double strafe = Strafe * speedMultiplier;
+            double rotate = Rotate * speedMultiplier;
+
             // This calculates the power needed for each wheel based on the amount of forward,
             // strafe right, and rotate
             double frontLeftPower = -forward + strafe + rotate;
@@ -135,16 +153,33 @@ public class LoadHardwareClass {
             // When a young child is driving the robot, we may not want to allow full
             // speed.
             setDrivePower(
-                    maxSpeed * (frontLeftPower / maxPower),
-                    maxSpeed * (frontRightPower / maxPower),
-                    maxSpeed * (backLeftPower / maxPower),
-                    maxSpeed * (backRightPower / maxPower)
+                    (frontLeftPower / maxPower),
+                    (frontRightPower / maxPower),
+                    (backLeftPower / maxPower),
+                    (backRightPower / maxPower)
             );
         }
-        public void pedroMecanumDrive(double forward, double strafe, double rotate, boolean robotCentricEnabled){
-            follower.setTeleOpDrive(forward, strafe, rotate, robotCentricEnabled);
+
+        /**
+         * Uses PedroPathing's follower class to implement a mecanum drive controller.
+         * Must be called every loop to function properly.
+         * @param forward The joystick value for driving forward/backward
+         * @param strafe The joystick value for strafing
+         * @param rotate The joystick value to turn left/right
+         * @param robotCentric If true, enables robot centric. If false, enables field centric.
+         */
+        public void pedroMecanumDrive(double forward, double strafe, double rotate, boolean robotCentric){
+            follower.setTeleOpDrive(
+                    forward * speedMultiplier,
+                    strafe * speedMultiplier,
+                    rotate * speedMultiplier,
+                    robotCentric);
             follower.update();
         }
+
+        /**
+         * Sets the output power of all four drivetrain motors.
+         */
         public void setDrivePower(double flPower, double frPower, double blPower, double brPower) {
             // Output the values to the motor drives.
             frontLeft.setPower(flPower);
@@ -159,32 +194,73 @@ public class LoadHardwareClass {
             // PID coefficients
             PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
             // Encoder ticks/rotation
-            // 1620rpm - 103.8
+            // 1620rpm - 103.8 ticks at the motor shaft
             double ticksPerRotation = 103.8;
 
+        /**
+         * @return The current position of the motor in encoder ticks. Can be any value.
+         */
         public double getTurretEncoderTicks(){
             return turretMotor.getCurrentPosition();
         }
 
+        /**
+         * @return The resolution of the turret's encoder in ticks/rotation.
+         */
+        public double getTurretEncoderResolution(){
+            return ticksPerRotation;
+        }
+
+        /**
+         * @param power A value between -1 and 1 to set the turret motor's power to.
+         */
         public void setTurretPower(double power){
             turretMotor.setPower(power);
         }
 
-        public double getTurretAngle(){
-            return (turretMotor.getCurrentPosition()/ticksPerRotation*360);
+        /**
+         * @return The angle of the turret in degrees. Can be any value.
+         */
+        public double getTurretAngleAbsolute(){
+            return (getTurretEncoderTicks()/ticksPerRotation*360);
         }
 
+        /**
+         * @return The angle of the turret in degrees. Can be any value between 0 and 360.
+         */
+        public double getTurretAngle(){
+            return getTurretAngleAbsolute()%360;
+        }
+
+        /**
+         * @return The velocity of the turret in encoder ticks/second.
+         */
         public double getTurretVelocity(){
             return turretMotor.getVelocity();
         }
 
+        /**
+         * @return The velocity of the turret in degrees/second.
+         */
+        public double getTurretVelocityDegrees(){
+            return (getTurretVelocity()/ticksPerRotation*360);
+        }
+
+        /**
+         * @return The power that the motor has been set to.
+         */
         public double getTurretPower(){
             return turretMotor.getPower();
         }
 
+        /**
+         * Uses a PID controller to move the turret to the desired position.
+         * Must be called every loop to function properly.
+         * @param angle The angle to move the turret to.
+         */
         public void setTurretAngle(double angle){
             ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
-            KineticState currentKineticState = new KineticState(getTurretAngle(), getTurretVelocity());
+            KineticState currentKineticState = new KineticState(getTurretAngleAbsolute(), getTurretVelocity());
             turretPID.setGoal(new KineticState(angle));
             setTurretPower(turretPID.calculate(currentKineticState));
         }

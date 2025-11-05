@@ -39,7 +39,6 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.LoadHardwareClass;
 //TODO, implement all our external libraries and functionality.
 
 @TeleOp(name="Teleop_Main_", group="TestTeleOp")
-//@Disabled
 public class Teleop_Main_ extends LinearOpMode {
 
     // Declare OpMode members.
@@ -53,20 +52,30 @@ public class Teleop_Main_ extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        LoadHardwareClass Robot = new LoadHardwareClass(this, startPose);
+        // Create a new instance of our Robot class
+        LoadHardwareClass Robot = new LoadHardwareClass(this);
+
+        // Instantiate the various hardware classes of the robot
         LoadHardwareClass.Drivetrain Drivetrain = Robot.new Drivetrain();
         LoadHardwareClass.Turret Turret = Robot.new Turret();
+
+        // Pass the starting pose of the robot to the Robot class
+        Robot.initialPose = startPose;
 
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
 
+        // This variable contains the target position for the turret.
         double target = 0;
 
+        // Initialize all hardware of the robot
         Robot.init();
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            // Pass the joystick positions to our mecanum drive controller
             Drivetrain.pedroMecanumDrive(
                     gamepad1.left_stick_y,
                     gamepad1.left_stick_x,
@@ -74,20 +83,20 @@ public class Teleop_Main_ extends LinearOpMode {
                     true
             );
 
-            if (gamepad1.b){
+            if (gamepad1.bWasPressed()){
                 target = 90;
-            }else if (gamepad1.y){
+            }else if (gamepad1.yWasPressed()){
                 target = 0;
-            }else if (gamepad1.a){
+            }else if (gamepad1.aWasPressed()){
                 target = 180;
-            }else if (gamepad1.x){
+            }else if (gamepad1.xWasPressed()){
                 target = 270;
             }
 
             Turret.setTurretAngle(target);
 
             telemetry.addData("Target:", target);
-            telemetry.addData("Angle", Turret.getTurretAngle());
+            telemetry.addData("Angle", Turret.getTurretAngleAbsolute());
             telemetry.addData("Set Power", Turret.getTurretPower());
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
