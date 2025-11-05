@@ -89,14 +89,14 @@ public class Teleop_Main_ extends LinearOpMode {
                 target = 270;
             }
 
-            Robot.turret.setTurretAngle(target);
+            Robot.turret.heading.setTargetAngle(target);
 
             Robot.intake.setPower(gamepad1.left_trigger);
 
             // Turret-related Telemetry
             telemetry.addData("Turret Target Angle:", target);
-            telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
-            telemetry.addData("Turret Set Power", Robot.turret.getTurretPower());
+            telemetry.addData("Turret Actual Angle", Robot.turret.heading.getAngleAbsolute());
+            telemetry.addData("Turret Set Power", Robot.turret.heading.getPower());
 
             // Intake-related Telemetry
             telemetry.addLine();

@@ -34,6 +34,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -65,12 +66,15 @@ public class LoadHardwareClass {
     private DcMotor frontRight = null;
     private DcMotor backLeft = null;
     private DcMotor backRight = null;
+    // Turret
+    private DcMotorEx turretRotationMotor = null;
+    private DcMotorEx turretFlywheel = null;
+    private Servo turretHoodServo = null;
     // Other
-    private DcMotorEx turretMotor = null;
     private DcMotorEx intakeMotor = null;
 
     // Misc Constants
-    public Follower follower = null;
+    private Follower follower = null;
     public Pose initialPose = new Pose(0,0, 0);
 
     // Public drive constants
@@ -97,34 +101,36 @@ public class LoadHardwareClass {
      * Must be called once at the start of each op-mode.
      */
     public void init()    {
-        // Define and initialize motors (note: need to use reference to actual OpMode).
-        frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "FL");
-        frontRight = myOpMode.hardwareMap.get(DcMotor.class, "FR");
-        backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "BL");
-        backRight  = myOpMode.hardwareMap.get(DcMotor.class, "BR");
+        // Define and initialize motors & servos (note: need to use reference to actual OpMode).
+            // Drivetrain
+            frontLeft  = myOpMode.hardwareMap.get(DcMotor.class, "FL");
+            frontRight = myOpMode.hardwareMap.get(DcMotor.class, "FR");
+            backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "BL");
+            backRight  = myOpMode.hardwareMap.get(DcMotor.class, "BR");
+            // Turret
+            turretRotationMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "turretRotation");
+            turretFlywheel = myOpMode.hardwareMap.get(DcMotorEx.class, "turretFlywheel");
+            turretHoodServo = myOpMode.hardwareMap.get(Servo.class, "turretHood");
+            // Intake
+            intakeMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "intake");
 
-        turretMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
-        intakeMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "intake");
-
-        // Set motor directions
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.FORWARD);
+        // Set motor/servo directions
+            // Drivetrain
+            frontLeft.setDirection(DcMotor.Direction.REVERSE);
+            frontRight.setDirection(DcMotor.Direction.FORWARD);
+            backLeft.setDirection(DcMotor.Direction.REVERSE);
+            backRight.setDirection(DcMotor.Direction.FORWARD);
 
         // If the motors have encoders, handle all that here
 
-        // Define and initialize servos here
-
-        // Set servo directions
-
         // PedroPathing initialization
-        follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
-        follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
-        follower.update();                                          // Applies the initialization
+            follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
+            follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
+            follower.update();                                          // Applies the initialization
 
-        myOpMode.telemetry.addData(">", "Hardware Initialized");
-        myOpMode.telemetry.update();
+        // Misc telemetry
+            myOpMode.telemetry.addData(">", "Hardware Initialized");
+            myOpMode.telemetry.update();
     }
 
     public class Drivetrain {
@@ -199,86 +205,83 @@ public class LoadHardwareClass {
     }
 
     public class Turret {
-        // Turret Constants
+        public final TurretHeading heading = new TurretHeading();
+
+        /**
+         * This class contains the controls and functions for the heading of the turret
+         */
+        public class TurretHeading {
+            // Turret Constants
             // PID coefficients
             PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
             // Encoder ticks/rotation
             // 1620rpm - 103.8 ticks at the motor shaft
             double ticksPerRotation = 103.8;
-
-        /**
-         * @return The current position of the turret motor in encoder ticks. Can be any value.
-         */
-        public double getEncoderTicks(){
-            return turretMotor.getCurrentPosition();
-        }
-
-        /**
-         * @return The resolution of the turret's encoder in ticks/rotation.
-         */
-        public double getEncoderResolution(){
-            return ticksPerRotation;
-        }
-
-        /**
-         * @param power A value between -1 and 1 that the turret motor's power will be set to.
-         */
-        public void setPower(double power){
-            turretMotor.setPower(power);
-        }
-
-        /**
-         * @return The angle of the turret in degrees. Can be any value.
-         */
-        public double getAngleAbsolute(){
-            return (getEncoderTicks()/ticksPerRotation*360);
-        }
-
-        /**
-         * @return The angle of the turret in degrees. Can be any value between 0 and 360.
-         */
-        public double getTurretAngle(){
-            return getAngleAbsolute()%360;
-        }
-
-        /**
-         * @return The velocity of the turret in encoder ticks/second.
-         */
-        public double getTurretVelocity(){
-            return turretMotor.getVelocity();
-        }
-
-        /**
-         * @return The velocity of the turret in degrees/second.
-         */
-        public double getTurretVelocityDegrees(){
-            return (getTurretVelocity()/ticksPerRotation*360);
-        }
-
-        /**
-         * @return The velocity of the turret in RPM.
-         */
-        public double getTurretVelocityRPM(){
-            return ((getTurretVelocity()*60)/ticksPerRotation);
-        }
-
-        /**
-         * @return The power that the turret motor has been set to.
-         */
-        public double getTurretPower(){
-            return turretMotor.getPower();
-        }
-
-        /**
-         * Uses a PID controller to move the turret to the desired position.
-         * Must be called every loop to function properly.
-         * @param angle The angle to move the turret to.
-         */
-        public void setTurretAngle(double angle){
-            ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
-            KineticState currentKineticState = new KineticState(getAngleAbsolute(), getTurretVelocity());
-            turretPID.setGoal(new KineticState(angle));
-            setPower(turretPID.calculate(currentKineticState));
+            /**
+             * @return The current position of the turret motor in encoder ticks. Can be any value.
+             */
+            public double getEncoderTicks(){
+                return turretRotationMotor.getCurrentPosition();
+            }
+            /**
+             * @return The resolution of the turret's encoder in ticks/rotation.
+             */
+            public double getEncoderResolution(){
+                return ticksPerRotation;
+            }
+            /**
+             * @param power A value between -1 and 1 that the turret motor's power will be set to.
+             */
+            public void setPower(double power){
+                turretRotationMotor.setPower(power);
+            }
+            /**
+             * @return The angle of the turret in degrees. Can be any value.
+             */
+            public double getAngleAbsolute(){
+                return (getEncoderTicks()/ticksPerRotation*360);
+            }
+            /**
+             * @return The angle of the turret in degrees. Can be any value between 0 and 360.
+             */
+            public double getAngle(){
+                return getAngleAbsolute()%360;
+            }
+            /**
+             * @return The velocity of the turret in encoder ticks/second.
+             */
+            public double getVelocity(){
+                return turretRotationMotor.getVelocity();
+            }
+            /**
+             * @return The velocity of the turret in degrees/second.
+             */
+            public double getVelocityDegrees(){
+                return (getVelocity()/ticksPerRotation*360);
+            }
+            /**
+             * @return The velocity of the turret in RPM.
+             */
+            public double getVelocityRPM(){
+                return ((getVelocity()*60)/ticksPerRotation);
+            }
+            /**
+             * @return The power that the turret motor has been set to.
+             */
+            public double getPower(){
+                return turretRotationMotor.getPower();
+            }
+            /**
+             * Uses a PID controller to move the turret to the desired position.
+             * Must be called every loop to function properly.
+             * @param angle The angle to move the turret to.
+             */
+            public void setTargetAngle(double angle){
+                ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
+                KineticState currentKineticState = new KineticState(getAngleAbsolute(), getVelocity());
+                turretPID.setGoal(new KineticState(angle));
+                setPower(turretPID.calculate(currentKineticState));
+            }
         }
     }
 
