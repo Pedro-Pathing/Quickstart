@@ -68,6 +68,7 @@ public class LoadHardwareClass {
     private DcMotor backRight = null;
     // Other
     private DcMotorEx turretMotor = null;
+    private DcMotorEx intakeMotor = null;
 
     // Misc Constants
     public Follower follower = null;
@@ -95,7 +96,8 @@ public class LoadHardwareClass {
         backLeft   = myOpMode.hardwareMap.get(DcMotor.class, "BL");
         backRight  = myOpMode.hardwareMap.get(DcMotor.class, "BR");
 
-        turretMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "turretMotor");
+        turretMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
+        intakeMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "intake");
 
         // Set motor directions
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -116,6 +118,42 @@ public class LoadHardwareClass {
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
+    }
+
+    public class Intake {
+        // Intake Constants
+            // Encoder ticks/rotation
+            // 1620rpm - 103.8 ticks at the motor shaft
+            double ticksPerRotation = 103.8;
+
+
+        /**
+         * @param power A value between -1 and 1 that the intake motor's power will be set to.
+         */
+        public void setPower(double power){
+            intakeMotor.setPower(power);
+        }
+
+        /**
+         * @return The power that the intake motor has been set to.
+         */
+        public double getPower(){
+            return intakeMotor.getPower();
+        }
+
+        /**
+         * @return The velocity of the turret in encoder ticks/second.
+         */
+        public double getTurretVelocity(){
+            return intakeMotor.getVelocity();
+        }
+
+        /**
+         * @return The velocity of the intake in RPM.
+         */
+        public double getTurretVelocityRPM(){
+            return ((getTurretVelocity()*60)/ticksPerRotation);
+        }
     }
 
     public class Drivetrain {
@@ -198,38 +236,38 @@ public class LoadHardwareClass {
             double ticksPerRotation = 103.8;
 
         /**
-         * @return The current position of the motor in encoder ticks. Can be any value.
+         * @return The current position of the turret motor in encoder ticks. Can be any value.
          */
-        public double getTurretEncoderTicks(){
+        public double getEncoderTicks(){
             return turretMotor.getCurrentPosition();
         }
 
         /**
          * @return The resolution of the turret's encoder in ticks/rotation.
          */
-        public double getTurretEncoderResolution(){
+        public double getEncoderResolution(){
             return ticksPerRotation;
         }
 
         /**
-         * @param power A value between -1 and 1 to set the turret motor's power to.
+         * @param power A value between -1 and 1 that the turret motor's power will be set to.
          */
-        public void setTurretPower(double power){
+        public void setPower(double power){
             turretMotor.setPower(power);
         }
 
         /**
          * @return The angle of the turret in degrees. Can be any value.
          */
-        public double getTurretAngleAbsolute(){
-            return (getTurretEncoderTicks()/ticksPerRotation*360);
+        public double getAngleAbsolute(){
+            return (getEncoderTicks()/ticksPerRotation*360);
         }
 
         /**
          * @return The angle of the turret in degrees. Can be any value between 0 and 360.
          */
         public double getTurretAngle(){
-            return getTurretAngleAbsolute()%360;
+            return getAngleAbsolute()%360;
         }
 
         /**
@@ -247,7 +285,14 @@ public class LoadHardwareClass {
         }
 
         /**
-         * @return The power that the motor has been set to.
+         * @return The velocity of the turret in RPM.
+         */
+        public double getTurretVelocityRPM(){
+            return ((getTurretVelocity()*60)/ticksPerRotation);
+        }
+
+        /**
+         * @return The power that the turret motor has been set to.
          */
         public double getTurretPower(){
             return turretMotor.getPower();
@@ -260,9 +305,9 @@ public class LoadHardwareClass {
          */
         public void setTurretAngle(double angle){
             ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
-            KineticState currentKineticState = new KineticState(getTurretAngleAbsolute(), getTurretVelocity());
+            KineticState currentKineticState = new KineticState(getAngleAbsolute(), getTurretVelocity());
             turretPID.setGoal(new KineticState(angle));
-            setTurretPower(turretPID.calculate(currentKineticState));
+            setPower(turretPID.calculate(currentKineticState));
         }
     }
 

@@ -58,6 +58,7 @@ public class Teleop_Main_ extends LinearOpMode {
         // Instantiate the various hardware classes of the robot
         LoadHardwareClass.Drivetrain Drivetrain = Robot.new Drivetrain();
         LoadHardwareClass.Turret Turret = Robot.new Turret();
+        LoadHardwareClass.Intake Intake = Robot.new Intake();
 
         // Pass the starting pose of the robot to the Robot class
         Robot.initialPose = startPose;
@@ -95,10 +96,20 @@ public class Teleop_Main_ extends LinearOpMode {
 
             Turret.setTurretAngle(target);
 
-            telemetry.addData("Target:", target);
-            telemetry.addData("Angle", Turret.getTurretAngleAbsolute());
-            telemetry.addData("Set Power", Turret.getTurretPower());
+            Intake.setPower(gamepad1.left_trigger);
 
+            // Turret-related Telemetry
+            telemetry.addData("Turret Target Angle:", target);
+            telemetry.addData("Turret Actual Angle", Turret.getAngleAbsolute());
+            telemetry.addData("Turret Set Power", Turret.getTurretPower());
+
+            // Intake-related Telemetry
+            telemetry.addLine();
+            telemetry.addData("Intake Set Power", Intake.getPower());
+            telemetry.addData("Intake RPM", Intake.getTurretVelocityRPM());
+
+            // System-related Telemetry
+            telemetry.addLine();
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Version: ", "11/4/25");
             telemetry.update();
