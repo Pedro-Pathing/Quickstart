@@ -37,6 +37,11 @@ public class Constants {
     public static double readyPower = -1.0;
     public static double reverseStopPower = 1;
 
+    public static double kP = 0.0004; // to make response faser
+    public static double kI = 0.00005; // for undershoot
+    public static double kD = 0.0; // dont change
+    public static double kF = 32767 / ((28 * 6000) / 60.0); // default must tune
+
 
     /* -------------------------------------------- TURRET CONSTANTS -------------------------------------------- */
     // Controller helper params
