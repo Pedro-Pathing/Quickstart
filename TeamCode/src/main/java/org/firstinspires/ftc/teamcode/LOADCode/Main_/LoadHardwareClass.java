@@ -29,9 +29,13 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
@@ -45,7 +49,7 @@ import dev.nextftc.control.feedback.PIDCoefficients;
 
 //TODO Abstract all the individual systems rather than the entire hardware
 /*
-Example: Abstract class for drivetrain, turret, intake, etc
+Example: Abstract class for drivetrain, Turret, intake, etc
 They could be all individually referenced in the main OpMode
 Drivetrain.doThing(args);
 Turret.doOtherThing(args);
@@ -65,19 +69,17 @@ public class LoadHardwareClass {
     // Other
     private DcMotorEx turretMotor = null;
 
+    // Misc Constants
+    public Follower follower = null;
+    public Pose initialPose = null;
+
     // Public drive constants
     public final double maxSpeed = 1.0; // make this slower for outreaches
 
-    // Turret Constants
-        // PID coefficients
-        PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
-        // Encoder ticks/rotation
-        // 1620rpm - 103.8
-        double ticksPerRotation = 103.8;
-
     // Constructor that allows the OpMode to pass a reference to itself.
-    public LoadHardwareClass(LinearOpMode opmode) {
+    public LoadHardwareClass(LinearOpMode opmode, Pose pose) {
         myOpMode = opmode;
+        initialPose = pose;
     }
 
     public void init()    {
@@ -101,72 +103,91 @@ public class LoadHardwareClass {
 
         // Set servo directions
 
+        // PedroPathing initialization
+        follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
+        follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
+        follower.update();                                          // Applies the initialization
+
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
     }
 
-    //TODO Add "PedroDriveTM" to replace the current Mecanum drive.
-    public void mecanumDrive(double forward, double strafe, double rotate) {
-        // This calculates the power needed for each wheel based on the amount of forward,
-        // strafe right, and rotate
-        double frontLeftPower = -forward + strafe + rotate;
-        double frontRightPower = -forward - strafe - rotate;
-        double backRightPower = -forward + strafe - rotate;
-        double backLeftPower = -forward - strafe + rotate;
+    public class Drivetrain {
+        public void mecanumDrive(double forward, double strafe, double rotate) {
+            // This calculates the power needed for each wheel based on the amount of forward,
+            // strafe right, and rotate
+            double frontLeftPower = -forward + strafe + rotate;
+            double frontRightPower = -forward - strafe - rotate;
+            double backRightPower = -forward + strafe - rotate;
+            double backLeftPower = -forward - strafe + rotate;
 
-        double maxPower = 1.0;
+            double maxPower = 1.0;
 
-        // This is needed to make sure we don't pass > 1.0 to any wheel
-        // It allows us to keep all of the motors in proportion to what they should
-        // be and not get clipped
-        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
-        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
-        maxPower = Math.max(maxPower, Math.abs(backRightPower));
-        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
+            // This is needed to make sure we don't pass > 1.0 to any wheel
+            // It allows us to keep all of the motors in proportion to what they should
+            // be and not get clipped
+            maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
+            maxPower = Math.max(maxPower, Math.abs(frontRightPower));
+            maxPower = Math.max(maxPower, Math.abs(backRightPower));
+            maxPower = Math.max(maxPower, Math.abs(backLeftPower));
 
-        // We multiply by maxSpeed so that it can be set lower for outreaches
-        // When a young child is driving the robot, we may not want to allow full
-        // speed.
-        setDrivePower(
-                maxSpeed * (frontLeftPower / maxPower),
-                maxSpeed * (frontRightPower / maxPower),
-                maxSpeed * (backLeftPower / maxPower),
-                maxSpeed * (backRightPower / maxPower)
-        );
-    }
-    public void setDrivePower(double flPower, double frPower, double blPower, double brPower) {
-        // Output the values to the motor drives.
-        frontLeft.setPower(flPower);
-        frontRight.setPower(frPower);
-        backLeft.setPower(blPower);
-        backRight.setPower(brPower);
-    }
-
-    public void setTurretPower(double power){
-        turretMotor.setPower(power);
-    }
-
-    public double getTurretEncoderTicks(){
-        return turretMotor.getCurrentPosition();
+            // We multiply by maxSpeed so that it can be set lower for outreaches
+            // When a young child is driving the robot, we may not want to allow full
+            // speed.
+            setDrivePower(
+                    maxSpeed * (frontLeftPower / maxPower),
+                    maxSpeed * (frontRightPower / maxPower),
+                    maxSpeed * (backLeftPower / maxPower),
+                    maxSpeed * (backRightPower / maxPower)
+            );
+        }
+        public void pedroMecanumDrive(double forward, double strafe, double rotate, boolean robotCentricEnabled){
+            follower.setTeleOpDrive(forward, strafe, rotate, robotCentricEnabled);
+            follower.update();
+        }
+        public void setDrivePower(double flPower, double frPower, double blPower, double brPower) {
+            // Output the values to the motor drives.
+            frontLeft.setPower(flPower);
+            frontRight.setPower(frPower);
+            backLeft.setPower(blPower);
+            backRight.setPower(brPower);
+        }
     }
 
-    public double getTurretAngle(){
-        return (turretMotor.getCurrentPosition()/ticksPerRotation*360);
-    }
+    public class Turret {
+        // Turret Constants
+            // PID coefficients
+            PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
+            // Encoder ticks/rotation
+            // 1620rpm - 103.8
+            double ticksPerRotation = 103.8;
 
-    public double getTurretVelocity(){
-        return turretMotor.getVelocity();
-    }
+        public double getTurretEncoderTicks(){
+            return turretMotor.getCurrentPosition();
+        }
 
-    public double getTurretPower(){
-        return turretMotor.getPower();
-    }
+        public void setTurretPower(double power){
+            turretMotor.setPower(power);
+        }
 
-    public void setTurretAngle(double angle){
-        ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
-        KineticState currentKineticState = new KineticState(getTurretAngle(), getTurretVelocity());
-        turretPID.setGoal(new KineticState(angle));
-        setTurretPower(turretPID.calculate(currentKineticState));
+        public double getTurretAngle(){
+            return (turretMotor.getCurrentPosition()/ticksPerRotation*360);
+        }
+
+        public double getTurretVelocity(){
+            return turretMotor.getVelocity();
+        }
+
+        public double getTurretPower(){
+            return turretMotor.getPower();
+        }
+
+        public void setTurretAngle(double angle){
+            ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
+            KineticState currentKineticState = new KineticState(getTurretAngle(), getTurretVelocity());
+            turretPID.setGoal(new KineticState(angle));
+            setTurretPower(turretPID.calculate(currentKineticState));
+        }
     }
 
 }

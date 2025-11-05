@@ -29,11 +29,10 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.LoadHardwareClass;
 
@@ -46,13 +45,17 @@ public class Teleop_Main_ extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
+    // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
+    private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        LoadHardwareClass Robot = new LoadHardwareClass(this);
+        LoadHardwareClass Robot = new LoadHardwareClass(this, startPose);
+        LoadHardwareClass.Drivetrain Drivetrain = Robot.new Drivetrain();
+        LoadHardwareClass.Turret Turret = Robot.new Turret();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -64,10 +67,11 @@ public class Teleop_Main_ extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            Robot.mecanumDrive(
+            Drivetrain.pedroMecanumDrive(
                     gamepad1.left_stick_y,
                     gamepad1.left_stick_x,
-                    gamepad1.right_stick_x
+                    gamepad1.right_stick_x,
+                    true
             );
 
             if (gamepad1.b){
@@ -80,11 +84,11 @@ public class Teleop_Main_ extends LinearOpMode {
                 target = 270;
             }
 
-            Robot.setTurretAngle(target);
+            Turret.setTurretAngle(target);
 
             telemetry.addData("Target:", target);
-            telemetry.addData("Angle", Robot.getTurretAngle());
-            telemetry.addData("Set Power", Robot.getTurretPower());
+            telemetry.addData("Angle", Turret.getTurretAngle());
+            telemetry.addData("Set Power", Turret.getTurretPower());
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Version: ", "11/4/25");
