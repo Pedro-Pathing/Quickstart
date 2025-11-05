@@ -32,8 +32,10 @@ package org.firstinspires.ftc.teamcode.LOADCode.Main_;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
+
+import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
+import dev.nextftc.control.feedback.PIDCoefficients;
 
 /*
  * This file is designed to work with our OpModes to handle all our hardware functionality to de-clutter our main scripts
@@ -60,11 +62,18 @@ public class LoadHardwareClass {
     private DcMotor frontRight = null;
     private DcMotor backLeft = null;
     private DcMotor backRight = null;
-    //Other
+    // Other
     private DcMotorEx turretMotor = null;
 
     // Public drive constants
     public final double maxSpeed = 1.0; // make this slower for outreaches
+
+    // Turret Constants
+        // PID coefficients
+        PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
+        // Encoder ticks/rotation
+        // 1620rpm - 103.8
+        double ticksPerRotation = 103.8;
 
     // Constructor that allows the OpMode to pass a reference to itself.
     public LoadHardwareClass(LinearOpMode opmode) {
@@ -90,7 +99,7 @@ public class LoadHardwareClass {
 
         // Define and initialize servos here
 
-        //Set servo directions
+        // Set servo directions
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
@@ -137,11 +146,27 @@ public class LoadHardwareClass {
         turretMotor.setPower(power);
     }
 
-    public double getTurretPosition(){
+    public double getTurretEncoderTicks(){
         return turretMotor.getCurrentPosition();
+    }
+
+    public double getTurretAngle(){
+        return (turretMotor.getCurrentPosition()/ticksPerRotation*360);
     }
 
     public double getTurretVelocity(){
         return turretMotor.getVelocity();
     }
+
+    public double getTurretPower(){
+        return turretMotor.getPower();
+    }
+
+    public void setTurretAngle(double angle){
+        ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
+        KineticState currentKineticState = new KineticState(getTurretAngle(), getTurretVelocity());
+        turretPID.setGoal(new KineticState(angle));
+        setTurretPower(turretPID.calculate(currentKineticState));
+    }
+
 }

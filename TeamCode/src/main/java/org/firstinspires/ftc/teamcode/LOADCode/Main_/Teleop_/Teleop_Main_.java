@@ -58,6 +58,8 @@ public class Teleop_Main_ extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        double target = 0;
+
         Robot.init();
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -67,6 +69,22 @@ public class Teleop_Main_ extends LinearOpMode {
                     gamepad1.left_stick_x,
                     gamepad1.right_stick_x
             );
+
+            if (gamepad1.b){
+                target = 90;
+            }else if (gamepad1.y){
+                target = 0;
+            }else if (gamepad1.a){
+                target = 180;
+            }else if (gamepad1.x){
+                target = 270;
+            }
+
+            Robot.setTurretAngle(target);
+
+            telemetry.addData("Target:", target);
+            telemetry.addData("Angle", Robot.getTurretAngle());
+            telemetry.addData("Set Power", Robot.getTurretPower());
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Version: ", "11/4/25");
