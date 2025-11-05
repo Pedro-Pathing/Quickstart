@@ -55,11 +55,6 @@ public class Teleop_Main_ extends LinearOpMode {
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
 
-        // Instantiate the various hardware classes of the robot
-        LoadHardwareClass.Drivetrain Drivetrain = Robot.new Drivetrain();
-        LoadHardwareClass.Turret Turret = Robot.new Turret();
-        LoadHardwareClass.Intake Intake = Robot.new Intake();
-
         // Pass the starting pose of the robot to the Robot class
         Robot.initialPose = startPose;
 
@@ -77,7 +72,7 @@ public class Teleop_Main_ extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Pass the joystick positions to our mecanum drive controller
-            Drivetrain.pedroMecanumDrive(
+            Robot.drivetrain.pedroMecanumDrive(
                     gamepad1.left_stick_y,
                     gamepad1.left_stick_x,
                     gamepad1.right_stick_x,
@@ -94,19 +89,19 @@ public class Teleop_Main_ extends LinearOpMode {
                 target = 270;
             }
 
-            Turret.setTurretAngle(target);
+            Robot.turret.setTurretAngle(target);
 
-            Intake.setPower(gamepad1.left_trigger);
+            Robot.intake.setPower(gamepad1.left_trigger);
 
             // Turret-related Telemetry
             telemetry.addData("Turret Target Angle:", target);
-            telemetry.addData("Turret Actual Angle", Turret.getAngleAbsolute());
-            telemetry.addData("Turret Set Power", Turret.getTurretPower());
+            telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
+            telemetry.addData("Turret Set Power", Robot.turret.getTurretPower());
 
             // Intake-related Telemetry
             telemetry.addLine();
-            telemetry.addData("Intake Set Power", Intake.getPower());
-            telemetry.addData("Intake RPM", Intake.getTurretVelocityRPM());
+            telemetry.addData("Intake Set Power", Robot.intake.getPower());
+            telemetry.addData("Intake RPM", Robot.intake.getTurretVelocityRPM());
 
             // System-related Telemetry
             telemetry.addLine();

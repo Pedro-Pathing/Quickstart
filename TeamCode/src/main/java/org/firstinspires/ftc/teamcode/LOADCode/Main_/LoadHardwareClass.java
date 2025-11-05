@@ -56,7 +56,6 @@ Turret.doOtherThing(args);
 etc etc
 */
 public class LoadHardwareClass {
-
     /* Declare OpMode members. */
     private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
 
@@ -77,12 +76,20 @@ public class LoadHardwareClass {
     // Public drive constants
     public double speedMultiplier = 1.0; // make this slower for outreaches
 
+    // Declare subclasses
+    public final Drivetrain drivetrain;
+    public final Turret turret;
+    public final Intake intake;
+
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
      * @param opmode The input for this parameter should almost always be "this".
      */
     public LoadHardwareClass(LinearOpMode opmode) {
         myOpMode = opmode;
+        this.turret = new Turret();
+        this.intake = new Intake();
+        this.drivetrain = new Drivetrain();
     }
 
     /**
@@ -118,42 +125,6 @@ public class LoadHardwareClass {
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
-    }
-
-    public class Intake {
-        // Intake Constants
-            // Encoder ticks/rotation
-            // 1620rpm - 103.8 ticks at the motor shaft
-            double ticksPerRotation = 103.8;
-
-
-        /**
-         * @param power A value between -1 and 1 that the intake motor's power will be set to.
-         */
-        public void setPower(double power){
-            intakeMotor.setPower(power);
-        }
-
-        /**
-         * @return The power that the intake motor has been set to.
-         */
-        public double getPower(){
-            return intakeMotor.getPower();
-        }
-
-        /**
-         * @return The velocity of the turret in encoder ticks/second.
-         */
-        public double getTurretVelocity(){
-            return intakeMotor.getVelocity();
-        }
-
-        /**
-         * @return The velocity of the intake in RPM.
-         */
-        public double getTurretVelocityRPM(){
-            return ((getTurretVelocity()*60)/ticksPerRotation);
-        }
     }
 
     public class Drivetrain {
@@ -308,6 +279,42 @@ public class LoadHardwareClass {
             KineticState currentKineticState = new KineticState(getAngleAbsolute(), getTurretVelocity());
             turretPID.setGoal(new KineticState(angle));
             setPower(turretPID.calculate(currentKineticState));
+        }
+    }
+
+    public class Intake {
+        // Intake Constants
+        // Encoder ticks/rotation
+        // 1620rpm - 103.8 ticks at the motor shaft
+        double ticksPerRotation = 103.8;
+
+
+        /**
+         * @param power A value between -1 and 1 that the intake motor's power will be set to.
+         */
+        public void setPower(double power){
+            intakeMotor.setPower(power);
+        }
+
+        /**
+         * @return The power that the intake motor has been set to.
+         */
+        public double getPower(){
+            return intakeMotor.getPower();
+        }
+
+        /**
+         * @return The velocity of the turret in encoder ticks/second.
+         */
+        public double getTurretVelocity(){
+            return intakeMotor.getVelocity();
+        }
+
+        /**
+         * @return The velocity of the intake in RPM.
+         */
+        public double getTurretVelocityRPM(){
+            return ((getTurretVelocity()*60)/ticksPerRotation);
         }
     }
 
