@@ -32,7 +32,7 @@ public class TurretSubsystem extends RE_SubsystemBase {
 
 
     private static final double TICKS_PER_REV = 1440.0;
-    private static final double GEAR_RATIO = 2.0;        // turret gear reduction (if any)
+    private static final double GEAR_RATIO = 208.0 / 60.0;
     private static final double TICKS_PER_DEGREE = (TICKS_PER_REV * GEAR_RATIO) / 360.0;
 
     private static final double LEFT_LIMIT_DEG = -90.0;
