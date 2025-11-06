@@ -55,9 +55,6 @@ public class Teleop_Main_ extends LinearOpMode {
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
 
-        // Pass the starting pose of the robot to the drivetrain subclass
-        Robot.drivetrain.setInitialPose(startPose);
-
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
@@ -66,7 +63,7 @@ public class Teleop_Main_ extends LinearOpMode {
         double target = 0;
 
         // Initialize all hardware of the robot
-        Robot.init();
+        Robot.init(startPose);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {

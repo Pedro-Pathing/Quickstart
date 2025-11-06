@@ -28,6 +28,7 @@
  */
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.DcMotorExClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.MecanumDrivetrainClass;
@@ -69,9 +70,9 @@ public class LoadHardwareClass {
      * Initializes all hardware for the robot.
      * Must be called once at the start of each op-mode.
      */
-    public void init()    {
+    public void init(Pose initialPose)    {
         // Initialize all subclasses
-        drivetrain.init(myOpMode);
+        drivetrain.init(myOpMode, initialPose);
         turret.init(myOpMode, "turret", 103.8);
         flywheel.init(myOpMode, "flywheel");
         intake.init(myOpMode, "intake");

@@ -14,24 +14,14 @@ public class MecanumDrivetrainClass {
 
     // Misc Constants
     private Follower follower = null;
-    private Pose initialPose = new Pose(0,0, 0);
-
-    /**
-     * Sets the initial position & heading of the robot.
-     * Must be run BEFORE the robot is intialized.
-     * Otherwise, it will default to (0,0,0).
-     * @param pose The position and heading that the robot starts at on the field.
-     */
-    public void setInitialPose (Pose pose){
-        initialPose = pose;
-    }
 
     /**
      * Initializes the PedroPathing follower.
      * Needs to be run once after all hardware is initialized.
      * @param myOpMode Allows the follower access to the robot hardware.
+     * @param initialPose The starting pose of the robot.
      */
-    public void init (@NonNull OpMode myOpMode){
+    public void init (@NonNull OpMode myOpMode, Pose initialPose){
         // PedroPathing initialization
         follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
         follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
