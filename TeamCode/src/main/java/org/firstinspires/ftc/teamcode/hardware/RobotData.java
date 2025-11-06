@@ -26,6 +26,9 @@ public class RobotData {
 
     public CameraSubsystem.Obelisk obelisk = CameraSubsystem.Obelisk.PPP;
 
+    public String turretState = "MANUAL";
+    public double turretAngleDeg = 0.0;
+
     public CameraSubsystem.ShootDistance shootDistance = CameraSubsystem.ShootDistance.OUTOFRANGE;
 
 

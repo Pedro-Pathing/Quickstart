@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.hardware.subsystems.CameraSubsystem;
 import org.firstinspires.ftc.teamcode.hardware.subsystems.TurretSubsystem;
 
-@TeleOp(name = "Turret Test (CR Servo)", group = "Test")
+@TeleOp(name = "Turret Test (DC Motor)", group = "Test")
 public class TurretTestOpMode extends OpMode {
 
     private CameraSubsystem camera;
@@ -14,27 +14,28 @@ public class TurretTestOpMode extends OpMode {
 
     private boolean autoAimEnabled = true;
 
-    // edge-detect state
+    // edge-detect state for buttons
     private boolean prevA, prevB;
     private boolean prevLeftBumper, prevRightBumper;
 
-    // manual control params (CR servo = power control)
-    private double manualMaxPower = 0.6;   // scale for right stick → power
-    private double nudgePower    = 0.4;    // bumper “burst” power
-    private long   nudgeUntilNs  = 0L;     // nudge end time (ns)
-    private double nudgeSign     = 0.0;    // -1 for LB, +1 for RB
+    // manual control params
+    private double manualMaxPower = 0.3;   // scale for right stick → power (reduced from 0.6)
+    private double nudgePower    = 0.4;   // bumper “burst” power
+    private long   nudgeUntilNs  = 0L;    // nudge end time (ns)
+    private double nudgeSign     = 0.0;   // -1 for LB, +1 for RB
 
     private long lastNanos;
 
     @Override
     public void init() {
         camera = new CameraSubsystem(hardwareMap, "limelight");
-        turret = new TurretSubsystem(hardwareMap, "turretServo", camera);
+        turret = new TurretSubsystem(hardwareMap, "turretMotor", camera);
 
         turret.enableAutoAim(autoAimEnabled);
 
         lastNanos = System.nanoTime();
-        telemetry.addLine("Turret Test (CR Servo): initialized");
+
+        telemetry.addLine("Turret Test (DC Motor): initialized");
         telemetry.addLine("A = AutoAim ON,  B = AutoAim OFF");
         telemetry.addLine("Right stick X = manual power (when AutoAim OFF)");
         telemetry.addLine("LB/RB = quick nudge burst (when AutoAim OFF)");
@@ -60,7 +61,6 @@ public class TurretTestOpMode extends OpMode {
         if (rising(gamepad1.b, prevB)) {
             autoAimEnabled = false;
             turret.enableAutoAim(false);
-            // stop the turret when exiting auto
             turret.setTurretPower(0.0);
             nudgeUntilNs = 0L;
             nudgeSign = 0.0;
@@ -97,13 +97,18 @@ public class TurretTestOpMode extends OpMode {
         telemetry.addData("Nudge active", now < nudgeUntilNs);
         telemetry.addData("Has Basket", camera.hasBasket());
         telemetry.addData("Yaw Error (deg)", "%.2f", camera.getBasketYawDeg());
-        telemetry.addData("Est Dist (m)", "%.2f", camera.getBasketDistanceM());
-        telemetry.addData("Shoot Range", camera.getShootDistance());
+        telemetry.addData("Shoot Range (m)", "%.2f", camera.getShootDistance());
+
+        // Turret angle only
+        telemetry.addData("Turret Angle (deg)", "%.2f", turret.getTurretAngleDeg());
+
         telemetry.update();
 
         // --- Update previous states ---
-        prevA = gamepad1.a; prevB = gamepad1.b;
-        prevLeftBumper = gamepad1.left_bumper; prevRightBumper = gamepad1.right_bumper;
+        prevA = gamepad1.a;
+        prevB = gamepad1.b;
+        prevLeftBumper = gamepad1.left_bumper;
+        prevRightBumper = gamepad1.right_bumper;
     }
 
     private boolean rising(boolean now, boolean prev) {

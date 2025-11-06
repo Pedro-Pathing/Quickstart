@@ -33,7 +33,7 @@ public class ShooterSubsystem extends RE_SubsystemBase {
 
 
 
-    private static final double tickPerRev = 28.0;
+    private static final double tickPerRev = 1440.0;
     private static final double maxRpm = 6000.0;
     private static final double maxTicksPerSecond = (tickPerRev * maxRpm) / 60.0;
 
