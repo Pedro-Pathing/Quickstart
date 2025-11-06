@@ -30,7 +30,6 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Testing_.TeleOps;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -54,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.control.feedback.PIDCoefficients;
-import kotlin.jvm.JvmField;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -103,7 +101,7 @@ public class TurretLocalization extends LinearOpMode
     public static Follower follower;                 // Used for managing the PedroPathing path follower
     public TelemetryManager telemetryM;              // Used for putting telemetry data on Panels
 
-    //Turret PID coefficients
+    //Turret PID pidCoefficients
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.75, 0.005, 200);
 
     public static int turretDeadZoneSize = 5;

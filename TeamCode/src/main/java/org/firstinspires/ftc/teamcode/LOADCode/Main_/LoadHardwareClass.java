@@ -52,6 +52,7 @@ public class LoadHardwareClass {
 
     // Subsystem configuration
     PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
+    PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
 
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
@@ -71,9 +72,14 @@ public class LoadHardwareClass {
     public void init()    {
         // Initialize all subclasses
         drivetrain.init(myOpMode);
-        turret.init(myOpMode, "turret");
+        turret.init(myOpMode, "turret", 103.8);
         flywheel.init(myOpMode, "flywheel");
         intake.init(myOpMode, "intake");
+
+        // Pass PID pidCoefficients to motor classes
+        turret.setPidCoefficients(turretCoefficients);
+        flywheel.setPidCoefficients(flywheelCoefficients);
+
         // Misc telemetry
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();

@@ -10,8 +10,8 @@ import dev.nextftc.control.KineticState;
 import dev.nextftc.control.feedback.PIDCoefficients;
 
 public class DcMotorExClass {
-    // PID coefficients
-    PIDCoefficients coefficients = new PIDCoefficients(0.005, 0, 0);
+    // PID pidCoefficients
+    PIDCoefficients pidCoefficients = new PIDCoefficients(0.005, 0, 0);
     // Encoder ticks/rotation
     // 1620rpm Gobilda - 103.8 ticks at the motor shaft
     double ticksPerRotation = 103.8;
@@ -41,6 +41,13 @@ public class DcMotorExClass {
         motorObject  = opmode.hardwareMap.get(DcMotorEx.class, motorName);
     }
 
+    /**
+     * Sets the value of the PID coefficients of the motor.
+     * @param coefficients The values to set the coefficients to.
+     */
+    public void setPidCoefficients(PIDCoefficients coefficients) {
+        pidCoefficients = coefficients;
+    }
     /**
      * @return The current position of the turret motor in encoder ticks. Can be any value.
      */
@@ -101,7 +108,7 @@ public class DcMotorExClass {
      * @param angle The angle in degrees to move the motor to. Can be any number.
      */
     public void setAngle(double angle){
-        ControlSystem turretPID = ControlSystem.builder().posPid(coefficients).build();
+        ControlSystem turretPID = ControlSystem.builder().posPid(pidCoefficients).build();
         KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
         turretPID.setGoal(new KineticState(angle));
         setPower(turretPID.calculate(currentKineticState));
@@ -113,7 +120,7 @@ public class DcMotorExClass {
      */
     public void setRPM(double rpm){
         double degreesPerSecond = rpm*6;
-        ControlSystem PID = ControlSystem.builder().velPid(coefficients).build();
+        ControlSystem PID = ControlSystem.builder().velPid(pidCoefficients).build();
         KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
         PID.setGoal(new KineticState(0, rpm));
         setPower(PID.calculate(currentKineticState));
