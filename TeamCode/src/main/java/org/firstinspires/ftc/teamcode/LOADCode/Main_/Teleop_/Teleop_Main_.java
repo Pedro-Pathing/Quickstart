@@ -55,8 +55,8 @@ public class Teleop_Main_ extends LinearOpMode {
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
 
-        // Pass the starting pose of the robot to the Robot class
-        Robot.initialPose = startPose;
+        // Pass the starting pose of the robot to the drivetrain subclass
+        Robot.drivetrain.setInitialPose(startPose);
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -89,9 +89,10 @@ public class Teleop_Main_ extends LinearOpMode {
                 target = 270;
             }
 
-            Robot.turret.setTurretAngle(target);
+            Robot.turret.setAngle(target);
 
             Robot.intake.setPower(gamepad1.left_trigger);
+            Robot.flywheel.setPower(gamepad1.right_trigger);
 
             // Turret-related Telemetry
             telemetry.addData("Turret Target Angle:", target);
