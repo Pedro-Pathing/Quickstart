@@ -32,6 +32,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.DcMotorExClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.MecanumDrivetrainClass;
 
+import dev.nextftc.control.feedback.PIDCoefficients;
+
 /*
  * This file is designed to work with our OpModes to handle all our hardware functionality to de-clutter our main scripts
  *
@@ -47,6 +49,9 @@ public class LoadHardwareClass {
     public final DcMotorExClass turret;
     public final DcMotorExClass flywheel;
     public final DcMotorExClass intake;
+
+    // Subsystem configuration
+    PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
 
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
