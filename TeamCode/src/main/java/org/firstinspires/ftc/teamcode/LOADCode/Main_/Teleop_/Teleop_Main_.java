@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Calculation_Classes.Turret_Heading;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.LoadHardwareClass;
 
 //TODO, implement all our external libraries and functionality.
@@ -54,6 +55,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
+        Turret_Heading targeting = new Turret_Heading();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -84,6 +86,10 @@ public class Teleop_Main_ extends LinearOpMode {
                 target = 180;
             }else if (gamepad1.xWasPressed()){
                 target = 270;
+            }else if (gamepad1.guide){
+                target = targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), true);
+            }else if (gamepad1.back){
+                target = targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), false);
             }
 
             Robot.turret.setAngle(target);

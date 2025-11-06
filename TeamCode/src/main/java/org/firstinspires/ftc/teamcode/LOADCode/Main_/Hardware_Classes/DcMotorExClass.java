@@ -134,7 +134,7 @@ public class DcMotorExClass {
                 .basicFF(ffCoefficients)
                 .build();
         KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
-        PID.setGoal(new KineticState(0, rpm));
+        PID.setGoal(new KineticState(0, degreesPerSecond));
         setPower(PID.calculate(currentKineticState));
     }
 }

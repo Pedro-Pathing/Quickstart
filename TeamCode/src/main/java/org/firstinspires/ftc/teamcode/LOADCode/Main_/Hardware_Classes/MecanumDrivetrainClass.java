@@ -13,7 +13,7 @@ public class MecanumDrivetrainClass {
     public double speedMultiplier = 1.0; // make this slower for outreaches
 
     // Misc Constants
-    private Follower follower = null;
+    public Follower follower = null;
 
     /**
      * Initializes the PedroPathing follower.

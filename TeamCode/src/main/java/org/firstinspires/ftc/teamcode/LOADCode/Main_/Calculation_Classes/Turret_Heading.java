@@ -29,6 +29,32 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Calculation_Classes;
 
-public class Turret_Heading {
+import com.pedropathing.geometry.Pose;
 
+public class Turret_Heading {
+    /**
+     * @param robotPose The pose of the robot, gotten from PedroPathing's localization
+     * @param targetRedGoal Set this to true to target the red goal, otherwise targets the blue goal.
+     * @return The angle to set the turret to in degrees.
+     */
+    public double calcLocalizer (Pose robotPose, boolean targetRedGoal){
+        Pose goalPose = new Pose(0,144,0);
+        if (targetRedGoal) {goalPose = new Pose(144, 144, 0);}
+
+
+        return Math.toDegrees(Math.atan2(
+                goalPose.getY()-robotPose.getY(),
+                goalPose.getX()-robotPose.getX()
+                )
+        ) - Math.toDegrees(robotPose.getHeading()) + 180;
+    }
+
+    /**
+     * @param robotPose The pose of the robot, gotten from PedroPathing's localization
+     * @param targetRedGoal Set this to true to target the red goal, otherwise targets the blue goal.
+     * @return The angle to set the turret to in degrees.
+     */
+    public double calcAprilTag (Pose robotPose, boolean targetRedGoal){
+        return 0;
+    }
 }
