@@ -96,12 +96,12 @@ public class Teleop_Main_ extends LinearOpMode {
             // Turret-related Telemetry
             telemetry.addData("Turret Target Angle:", target);
             telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
-            telemetry.addData("Turret Set Power", Robot.turret.getTurretPower());
+            telemetry.addData("Turret Set Power", Robot.turret.getPower());
 
             // Intake-related Telemetry
             telemetry.addLine();
             telemetry.addData("Intake Set Power", Robot.intake.getPower());
-            telemetry.addData("Intake RPM", Robot.intake.getTurretVelocityRPM());
+            telemetry.addData("Intake RPM", Robot.intake.getRPM());
 
             // System-related Telemetry
             telemetry.addLine();

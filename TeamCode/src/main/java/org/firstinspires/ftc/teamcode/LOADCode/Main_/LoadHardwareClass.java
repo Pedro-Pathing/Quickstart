@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.DcMotorExClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import dev.nextftc.control.ControlSystem;
@@ -67,6 +68,7 @@ public class LoadHardwareClass {
     private DcMotor backRight = null;
     // Other
     private DcMotorEx turretMotor = null;
+    private DcMotorEx flywheelMotor = null;
     private DcMotorEx intakeMotor = null;
 
     // Misc Constants
@@ -78,8 +80,9 @@ public class LoadHardwareClass {
 
     // Declare subclasses
     public final Drivetrain drivetrain;
-    public final Turret turret;
-    public final Intake intake;
+    public final DcMotorExClass turret;
+    public final DcMotorExClass flywheel;
+    public final DcMotorExClass intake;
 
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
@@ -87,8 +90,9 @@ public class LoadHardwareClass {
      */
     public LoadHardwareClass(LinearOpMode opmode) {
         myOpMode = opmode;
-        this.turret = new Turret();
-        this.intake = new Intake();
+        this.turret     = new DcMotorExClass(turretMotor);
+        this.flywheel   = new DcMotorExClass(flywheelMotor);
+        this.intake     = new DcMotorExClass(intakeMotor);
         this.drivetrain = new Drivetrain();
     }
 
@@ -104,6 +108,7 @@ public class LoadHardwareClass {
         backRight  = myOpMode.hardwareMap.get(DcMotor.class, "BR");
 
         turretMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
+        turretMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "flywheel");
         intakeMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "intake");
 
         // Set motor directions
@@ -197,125 +202,4 @@ public class LoadHardwareClass {
             backRight.setPower(brPower);
         }
     }
-
-    public class Turret {
-        // Turret Constants
-            // PID coefficients
-            PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
-            // Encoder ticks/rotation
-            // 1620rpm - 103.8 ticks at the motor shaft
-            double ticksPerRotation = 103.8;
-
-        /**
-         * @return The current position of the turret motor in encoder ticks. Can be any value.
-         */
-        public double getEncoderTicks(){
-            return turretMotor.getCurrentPosition();
-        }
-
-        /**
-         * @return The resolution of the turret's encoder in ticks/rotation.
-         */
-        public double getEncoderResolution(){
-            return ticksPerRotation;
-        }
-
-        /**
-         * @param power A value between -1 and 1 that the turret motor's power will be set to.
-         */
-        public void setPower(double power){
-            turretMotor.setPower(power);
-        }
-
-        /**
-         * @return The angle of the turret in degrees. Can be any value.
-         */
-        public double getAngleAbsolute(){
-            return (getEncoderTicks()/ticksPerRotation*360);
-        }
-
-        /**
-         * @return The angle of the turret in degrees. Can be any value between 0 and 360.
-         */
-        public double getTurretAngle(){
-            return getAngleAbsolute()%360;
-        }
-
-        /**
-         * @return The velocity of the turret in encoder ticks/second.
-         */
-        public double getTurretVelocity(){
-            return turretMotor.getVelocity();
-        }
-
-        /**
-         * @return The velocity of the turret in degrees/second.
-         */
-        public double getTurretVelocityDegrees(){
-            return (getTurretVelocity()/ticksPerRotation*360);
-        }
-
-        /**
-         * @return The velocity of the turret in RPM.
-         */
-        public double getTurretVelocityRPM(){
-            return ((getTurretVelocity()*60)/ticksPerRotation);
-        }
-
-        /**
-         * @return The power that the turret motor has been set to.
-         */
-        public double getTurretPower(){
-            return turretMotor.getPower();
-        }
-
-        /**
-         * Uses a PID controller to move the turret to the desired position.
-         * Must be called every loop to function properly.
-         * @param angle The angle to move the turret to.
-         */
-        public void setTurretAngle(double angle){
-            ControlSystem turretPID = ControlSystem.builder().posPid(turretCoefficients).build();
-            KineticState currentKineticState = new KineticState(getAngleAbsolute(), getTurretVelocity());
-            turretPID.setGoal(new KineticState(angle));
-            setPower(turretPID.calculate(currentKineticState));
-        }
-    }
-
-    public class Intake {
-        // Intake Constants
-        // Encoder ticks/rotation
-        // 1620rpm - 103.8 ticks at the motor shaft
-        double ticksPerRotation = 103.8;
-
-
-        /**
-         * @param power A value between -1 and 1 that the intake motor's power will be set to.
-         */
-        public void setPower(double power){
-            intakeMotor.setPower(power);
-        }
-
-        /**
-         * @return The power that the intake motor has been set to.
-         */
-        public double getPower(){
-            return intakeMotor.getPower();
-        }
-
-        /**
-         * @return The velocity of the turret in encoder ticks/second.
-         */
-        public double getTurretVelocity(){
-            return intakeMotor.getVelocity();
-        }
-
-        /**
-         * @return The velocity of the intake in RPM.
-         */
-        public double getTurretVelocityRPM(){
-            return ((getTurretVelocity()*60)/ticksPerRotation);
-        }
-    }
-
 }
