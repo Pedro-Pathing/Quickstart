@@ -8,10 +8,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.control.feedback.PIDCoefficients;
+import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
 public class DcMotorExClass {
     // PID pidCoefficients
-    PIDCoefficients pidCoefficients = new PIDCoefficients(0.005, 0, 0);
+    PIDCoefficients pidCoefficients = new PIDCoefficients(0, 0, 0);
+    BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
     // Encoder ticks/rotation
     // 1620rpm Gobilda - 103.8 ticks at the motor shaft
     double ticksPerRotation = 103.8;
@@ -47,6 +49,13 @@ public class DcMotorExClass {
      */
     public void setPidCoefficients(PIDCoefficients coefficients) {
         pidCoefficients = coefficients;
+    }
+    /**
+     * Sets the value of the FeedForward coefficients of the motor.
+     * @param coefficients The values to set the coefficients to.
+     */
+    public void setFFCoefficients(BasicFeedforwardParameters coefficients) {
+        ffCoefficients = coefficients;
     }
     /**
      * @return The current position of the turret motor in encoder ticks. Can be any value.
@@ -120,7 +129,10 @@ public class DcMotorExClass {
      */
     public void setRPM(double rpm){
         double degreesPerSecond = rpm*6;
-        ControlSystem PID = ControlSystem.builder().velPid(pidCoefficients).build();
+        ControlSystem PID = ControlSystem.builder()
+                .velPid(pidCoefficients)
+                .basicFF(ffCoefficients)
+                .build();
         KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
         PID.setGoal(new KineticState(0, rpm));
         setPower(PID.calculate(currentKineticState));

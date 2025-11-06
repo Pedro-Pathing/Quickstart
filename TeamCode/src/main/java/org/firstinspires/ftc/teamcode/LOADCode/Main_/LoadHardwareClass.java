@@ -34,6 +34,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.DcMotorExC
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.MecanumDrivetrainClass;
 
 import dev.nextftc.control.feedback.PIDCoefficients;
+import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
 /*
  * This file is designed to work with our OpModes to handle all our hardware functionality to de-clutter our main scripts
@@ -54,6 +55,7 @@ public class LoadHardwareClass {
     // Subsystem configuration
     PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
     PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
+    BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
 
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
@@ -80,6 +82,7 @@ public class LoadHardwareClass {
         // Pass PID pidCoefficients to motor classes
         turret.setPidCoefficients(turretCoefficients);
         flywheel.setPidCoefficients(flywheelCoefficients);
+        flywheel.setFFCoefficients(ffCoefficients);
 
         // Misc telemetry
         myOpMode.telemetry.addData(">", "Hardware Initialized");
