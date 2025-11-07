@@ -19,7 +19,6 @@ public class AprilTagWebCam {
     private AprilTagProcessor aprilTagProcessor;
     private VisionPortal visionPortal;
     private List<AprilTagDetection> detectedTags = new ArrayList<>();
-
     private Telemetry telemetry;
 
     public void init(HardwareMap hwMap, Telemetry telemetry){

@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 @TeleOp
-public class AprilTagWebCamExample extends OpMode {
+public class ATWC extends OpMode {
 
     AprilTagWebCam aprilTagWebCam = new AprilTagWebCam();
 
