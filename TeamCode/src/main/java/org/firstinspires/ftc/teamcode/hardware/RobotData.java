@@ -22,6 +22,9 @@ public class RobotData {
 
     public ShooterSubsystem.ShootState shootState = ShooterSubsystem.ShootState.STOP;
 
+    public double shootVelocity = 0;
+    public double shootTargetVelocity = 0;
+
     public Pose currentPose = new Pose(0,0, Math.toRadians(0));
 
     public CameraSubsystem.Obelisk obelisk = CameraSubsystem.Obelisk.PPP;
@@ -31,6 +34,8 @@ public class RobotData {
 
     public CameraSubsystem.ShootDistance shootDistance = CameraSubsystem.ShootDistance.OUTOFRANGE;
 
+
+    private static final double TICKS_PER_REV = 1440.0;
 
     public void write(Telemetry telemetry) {
 
@@ -46,6 +51,26 @@ public class RobotData {
         telemetry.addLine("");
 
         telemetry.addData("ALLIANCE", Globals.ALLIANCE);
+
+
+        double curRpm    = (shootVelocity / TICKS_PER_REV) * 60.0;
+        double targetRpm = (shootTargetVelocity / TICKS_PER_REV) * 60.0;
+
+        // Define a tolerance (either a constant or computed as a percent)
+        double tolTicksPerSec = Math.max(75, 0.05 * Math.abs(shootTargetVelocity)); // 5% or 75 tps minimum
+        boolean atSpeed = Math.abs(shootVelocity - shootTargetVelocity) <= tolTicksPerSec;
+
+        telemetry.addData("SHOOT STATE", this.shootState);
+        telemetry.addData("STOP STATE",  this.stopState);
+        telemetry.addLine("");
+
+        telemetry.addData("SHOOT v (tps)", "%.0f / %.0f", shootVelocity, shootTargetVelocity);
+        telemetry.addData("SHOOT v (rpm)", "%.0f / %.0f", curRpm, targetRpm);
+        telemetry.addData("AT SPEED", atSpeed ? "YES" : "NO");
+        telemetry.addData("TOL (tps)", "%.0f", tolTicksPerSec);
+        telemetry.addLine("");
+
+
 
         telemetry.addLine("");
 

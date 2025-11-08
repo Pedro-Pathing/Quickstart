@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.hardware.subsystems;
 
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.wrappers.RE_SubsystemBase;
@@ -32,6 +35,7 @@ public class ShooterSubsystem extends RE_SubsystemBase {
     public StopState stopState;
 
 
+    private PIDController shooterPID = new PIDController(0, 0, 0);
 
     private static final double tickPerRev = 1440.0;
     private static final double maxRpm = 6000.0;
@@ -49,9 +53,12 @@ public class ShooterSubsystem extends RE_SubsystemBase {
 
 
         shootMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shootMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shootMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(Constants.kP, Constants.kI, Constants.kD, Constants.kF));
+        shootMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        shootMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+//                new PIDFCoefficients(Constants.kP, Constants.kI, Constants.kD, Constants.kF));
+
+        shooterPID.setPID(Constants.kP, Constants.kI, Constants.kD);
+
 
         shootState = ShootState.STOP;
         stopState = StopState.STOP;
@@ -64,6 +71,9 @@ public class ShooterSubsystem extends RE_SubsystemBase {
     public void updateData() {
         Robot.getInstance().data.shootState = shootState;
         Robot.getInstance().data.stopState = stopState;
+
+        Robot.getInstance().data.shootVelocity = shootMotor.getVelocity();
+        Robot.getInstance().data.shootTargetVelocity = targetVelocity;
     }
 
     public void updateShootState(ShootState newState) {
@@ -76,6 +86,8 @@ public class ShooterSubsystem extends RE_SubsystemBase {
 
     @Override
     public void periodic() {
+
+        shooterPID.setPID(Constants.kP, Constants.kI, Constants.kD);
 
         switch (shootState) {
             case LOWERPOWER:
@@ -96,7 +108,14 @@ public class ShooterSubsystem extends RE_SubsystemBase {
         if (targetVelocity == 0) {
             shootMotor.setPower(0);
         } else {
-            shootMotor.setVelocity(targetVelocity);
+            double velocity = shootMotor.getVelocity();
+
+            double ff = Constants.kF * (targetVelocity / maxTicksPerSecond);
+            double output = shooterPID.calculate(velocity, targetVelocity) + ff;
+
+            output = Math.max(-1, Math.min(1, output));
+
+            shootMotor.setPower(output);
         }
 
 
