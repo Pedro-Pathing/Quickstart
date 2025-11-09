@@ -17,18 +17,20 @@ public class BlueFarAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
-    private int pathState;
+    private int pathState; 
 
-    private Path scorePreload;
+    private Path scorePreload, intakeStack1, turn;
     private DcMotorEx shooterMotor;
     private DcMotorEx intakeMotor;
     private DcMotorEx transferMotor;
     private CRServo turretCR;
 
-    private final Pose startPose = new Pose(135, 96, Math.toRadians(0));
-    private final Pose scorePose = new Pose(96, 96, Math.toRadians(0));
+    private final Pose startPose = new Pose(123, 123, Math.toRadians(37));
+    private final Pose scorePose = new Pose(84, 84, Math.toRadians(37));
 
-    private int shooterCloseRPM = 1000;
+    private final Pose intakePose1 = new Pose(133, 84, Math.toRadians(0));
+
+    private int shooterCloseRPM = 700;
     private double turretClosePosition = 0.25; // changed to double
 
     @Override
@@ -36,6 +38,7 @@ public class BlueFarAuto extends OpMode {
         // Timers
         pathTimer = new Timer();
         opmodeTimer = new Timer();
+        pathTimer.resetTimer();
         opmodeTimer.resetTimer();
 
         // Initialize motors and servos
@@ -65,11 +68,16 @@ public class BlueFarAuto extends OpMode {
     public void buildPaths() {
         scorePreload = new Path(new BezierLine(startPose, scorePose));
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+        turn = new Path(new BezierLine(scorePose, scorePose));
+        turn.setLinearHeadingInterpolation(scorePose.getHeading(), intakePose1.getHeading());
+        intakeStack1 = new Path(new BezierLine(scorePose, intakePose1));
+        intakeStack1.setLinearHeadingInterpolation(intakePose1.getHeading(), intakePose1.getHeading());
     }
 
     @Override
     public void start() {
         opmodeTimer.resetTimer();
+        pathTimer.resetTimer();
         setPathState(0);
     }
 
@@ -79,6 +87,7 @@ public class BlueFarAuto extends OpMode {
         autonomousPathUpdate();
 
         telemetry.addData("path state", pathState);
+        telemetry.addData("path timer", pathTimer.getElapsedTime());
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
@@ -89,27 +98,48 @@ public class BlueFarAuto extends OpMode {
         switch (pathState) {
             case 0:
                 follower.followPath(scorePreload);
+                shooterMotor.setVelocity(shooterCloseRPM);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    shooterMotor.setVelocity(shooterCloseRPM);
+                  shooterMotor.setVelocity(shooterCloseRPM);
+                  setPathState(2);
                 }
-                setPathState(2);
                 break;
             case 2:
-                if (shooterMotor.getVelocity() >= shooterCloseRPM){
+                if (shooterMotor.getVelocity() >= shooterCloseRPM) {
                     transferMotor.setPower(0.75);
                     intakeMotor.setPower(0.5);
+                    setPathState(3);
                 }
-                setPathState(-1);
                 break;
+            case 3:
+                if (pathTimer.getElapsedTime() > 5000){
+                    intakeMotor.setPower(0.5);
+                    follower.setMaxPower(0.25);
+                    follower.followPath(turn, true);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                    follower.followPath(intakeStack1, true);
+                    setPathState(6);
+                break;
+            case 6:
+                if (pathTimer.getElapsedTime() > 30000) {
+                    setPathState(-1);
+                }
+                break;
+
+
+
         }
     }
 
     public void setPathState(int pState) {
         pathState = pState;
-        pathTimer.resetTimer();
+       // pathTimer.resetTimer();
         follower.setMaxPower(0.8);
     }
     }
