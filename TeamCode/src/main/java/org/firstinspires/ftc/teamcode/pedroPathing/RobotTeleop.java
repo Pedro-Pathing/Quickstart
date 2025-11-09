@@ -30,6 +30,7 @@ public class RobotTeleop extends OpMode {
     private CRServo turretCR;
     private static final double TURRET_POWER = 0.45;
     private final Pose startPose = new Pose(0, 0, 0);
+
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
@@ -47,6 +48,7 @@ public class RobotTeleop extends OpMode {
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
         shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         shooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
         turretCR = hardwareMap.get(CRServo.class, "turretServo");
         turretCR.setPower(0.0); // start stopped
 
@@ -64,15 +66,17 @@ public class RobotTeleop extends OpMode {
 
         double xInput = Math.abs(gamepad1.left_stick_x) > DEAD_ZONE ? gamepad1.left_stick_x : 0;
         double yInput = Math.abs(gamepad1.left_stick_y) > DEAD_ZONE ? -gamepad1.left_stick_y : 0;
-        double turnInput = Math.abs(gamepad1.right_stick_x) > DEAD_ZONE ? gamepad1.right_stick_x : 0;
+        // NOTE: rotation is negated to match PedroPathing's TeleOp example (prevents reversed/odd rotation behavior)
+        double turnInput = Math.abs(gamepad1.right_stick_x) > DEAD_ZONE ? -gamepad1.right_stick_x : 0;
 
         double powerScale = gamepad1.right_trigger > 0.5 ? 0.25 : 1.0;
+
         follower.updateErrors();
         follower.updateVectors();
         follower.setTeleOpDrive(
                 yInput * powerScale,  // forward/backward
                 xInput * powerScale,  // strafe
-                turnInput * powerScale, // rotation
+                turnInput * powerScale, // rotation (negated)
                 true                   // robot-centric
         );
 
@@ -86,13 +90,13 @@ public class RobotTeleop extends OpMode {
         } else if (gamepad2.x) {
             shooterMotor.setVelocity(1035);
         } else if (gamepad2.y) {
-            shooterMotor.setVelocity(1200);
+            shooterMotor.setVelocity(-1200);
         }
 
-
+        // Turret control (fixed: check gamepad2 on both dpad sides)
         if (gamepad2.dpad_right && !gamepad2.dpad_left) {
-            turretCR.setPower(TURRET_POWER); // rotate right (adjust sign/positive depending on wiring)
-        } else if (gamepad2.dpad_left && !gamepad1.dpad_right) {
+            turretCR.setPower(TURRET_POWER); // rotate right
+        } else if (gamepad2.dpad_left && !gamepad2.dpad_right) {
             turretCR.setPower(-TURRET_POWER); // rotate left
         } else {
             turretCR.setPower(0.0); // stop when no dpad pressed or both pressed
@@ -111,8 +115,9 @@ public class RobotTeleop extends OpMode {
             transferMotor.setPower(0.75);
         }
         else if (gamepad2.dpad_down) {
-            intakeMotor.setPower(0.75);
             transferMotor.setPower(-0.75);
+            gamepad1.rumble(1000);
+            gamepad2.rumble(1000);
         }
         else {
             transferMotor.setPower(0.0);
