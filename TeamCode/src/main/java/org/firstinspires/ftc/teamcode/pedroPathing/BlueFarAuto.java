@@ -11,26 +11,18 @@ import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.CRServo;
-
+import org.firstinspires.ftc.teamcode.Robot;
 @Autonomous(name = "Example Auto", group = "Examples")
 public class BlueFarAuto extends OpMode {
-
+    private Robot robot;
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer;
-    private int pathState; 
-
+    private Timer pathTimer, opmodeTimer;
+    private int pathState;
     private Path scorePreload, intakeStack1, turn;
-    private DcMotorEx shooterMotor;
-    private DcMotorEx intakeMotor;
-    private DcMotorEx transferMotor;
-    private CRServo turretCR;
-
     private final Pose startPose = new Pose(123, 123, Math.toRadians(37));
     private final Pose scorePose = new Pose(84, 84, Math.toRadians(37));
 
     private final Pose intakePose1 = new Pose(133, 84, Math.toRadians(0));
-
-    private int shooterCloseRPM = 700;
     private double turretClosePosition = 0.25; // changed to double
 
     @Override
@@ -38,28 +30,10 @@ public class BlueFarAuto extends OpMode {
         // Timers
         pathTimer = new Timer();
         opmodeTimer = new Timer();
-        pathTimer.resetTimer();
-        opmodeTimer.resetTimer();
-
-        // Initialize motors and servos
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        intakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        transferMotor = hardwareMap.get(DcMotorEx.class, "transferMotor");
-        transferMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        transferMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
-        shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        shooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        turretCR = hardwareMap.get(CRServo.class, "turretServo");
-        turretCR.setPower(0.0); // start stopped
 
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
-
+        robot = new Robot(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
@@ -77,7 +51,6 @@ public class BlueFarAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        pathTimer.resetTimer();
         setPathState(0);
     }
 
@@ -97,37 +70,38 @@ public class BlueFarAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
+                robot.shooter.startCloseShoot(); // start shooter for close shots
                 follower.followPath(scorePreload);
-                shooterMotor.setVelocity(shooterCloseRPM);
                 setPathState(1);
                 break;
             case 1:
-                if (!follower.isBusy()) {
-                  shooterMotor.setVelocity(shooterCloseRPM);
+                if (!follower.isBusy() || pathTimer.getElapsedTime() > 5000) {
                   setPathState(2);
                 }
                 break;
             case 2:
-                if (shooterMotor.getVelocity() >= shooterCloseRPM) {
-                    transferMotor.setPower(0.75);
-                    intakeMotor.setPower(0.5);
+                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 3000) {
+                    robot.intake.intakeArtifacts(); // start intake to shoot
                     setPathState(3);
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTime() > 5000){
-                    intakeMotor.setPower(0.5);
+                if (pathTimer.getElapsedTime() > 3000){ //TBD: change 3 secs to shorter if possible
+                    robot.shooterMotor.setVelocity(0);
                     follower.setMaxPower(0.25);
                     follower.followPath(turn, true);
                     setPathState(5);
                 }
                 break;
             case 5:
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000)  {//TBD: change 2 secs to shorter if possible
                     follower.followPath(intakeStack1, true);
                     setPathState(6);
+                    }
                 break;
             case 6:
-                if (pathTimer.getElapsedTime() > 30000) {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {//TBD: change 2 secs to shorter if possible
+                    follower.setMaxPower(0.8);
                     setPathState(-1);
                 }
                 break;
@@ -139,7 +113,7 @@ public class BlueFarAuto extends OpMode {
 
     public void setPathState(int pState) {
         pathState = pState;
-       // pathTimer.resetTimer();
+        pathTimer.resetTimer();
         follower.setMaxPower(0.8);
     }
     }
