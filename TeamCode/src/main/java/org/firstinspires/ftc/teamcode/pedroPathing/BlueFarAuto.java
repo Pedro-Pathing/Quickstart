@@ -86,13 +86,13 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 2:
-                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 1000) {
+                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 3000) {
                     robot.intake.intakeArtifacts(); // start intake to shoot
                     setPathState(3);
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTime() >500){ //TBD: change 3 secs to shorter if possible
+                if (pathTimer.getElapsedTime() >2000){ //TBD: change 3 secs to shorter if possible
                     robot.shooter.stopFlyWheel();
                     robot.intake.intakeArtifactsOnlyIntake();
                     follower.setMaxPower(0.25);
