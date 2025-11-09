@@ -75,19 +75,20 @@ public class BlueFarAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (!follower.isBusy() || pathTimer.getElapsedTime() > 5000) {
+                if (!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
                   setPathState(2);
                 }
                 break;
             case 2:
-                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 3000) {
+                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 1000) {
                     robot.intake.intakeArtifacts(); // start intake to shoot
                     setPathState(3);
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTime() > 3000){ //TBD: change 3 secs to shorter if possible
-                    robot.shooterMotor.setVelocity(0);
+                if (pathTimer.getElapsedTime() > 1000){ //TBD: change 3 secs to shorter if possible
+                    robot.shooter.stopFlyWheel();
+                    robot.intake.intakeArtifactsOnlyIntake();
                     follower.setMaxPower(0.25);
                     follower.followPath(turn, true);
                     setPathState(5);
@@ -102,12 +103,9 @@ public class BlueFarAuto extends OpMode {
             case 6:
                 if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {//TBD: change 2 secs to shorter if possible
                     follower.setMaxPower(0.8);
-                    setPathState(-1);
+                    setPathState(7);
                 }
                 break;
-
-
-
         }
     }
 
@@ -116,4 +114,4 @@ public class BlueFarAuto extends OpMode {
         pathTimer.resetTimer();
         follower.setMaxPower(0.8);
     }
-    }
+}

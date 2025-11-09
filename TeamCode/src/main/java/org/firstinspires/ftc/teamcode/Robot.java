@@ -15,8 +15,6 @@ public class Robot {
 public Robot (HardwareMap hardwareMap) {
     intake = new Intake(hardwareMap);
     shooter = new Shooter(hardwareMap);
-
-
     turretCR = hardwareMap.get(CRServo.class, "turretServo");
     turretCR.setPower(0.0); // start stopped
     }

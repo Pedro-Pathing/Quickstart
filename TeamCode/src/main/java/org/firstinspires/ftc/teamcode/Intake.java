@@ -11,9 +11,11 @@ public class Intake {
 
     private final double SHOOTING_POWER = 0.5;
 
-    private final double TRANSFER_INTAKE_POWER = 0.4;
+    private final double TRANSFER_INTAKE_POWER = -0.4;
 
-    private final double TRANFER_SHOOTING_POWER = 0.75;
+    private final double TRANFER_SHOOTING_POWER = -0.75;
+
+    private final double TRANSFER_OFF = 0.0;
 
 
 
@@ -29,6 +31,11 @@ public class Intake {
     public void intakeArtifacts() {
         intakeMotor.setPower(INTAKE_POWER);
         transferMotor.setPower(TRANSFER_INTAKE_POWER);
+    }
+
+    public void intakeArtifactsOnlyIntake() {
+        intakeMotor.setPower(INTAKE_POWER);
+        transferMotor.setPower(TRANSFER_OFF);
     }
 
     public void shootArtifacts() {

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Shooter {
 
-    public final int shooterCloseRPM = 800;
+    public final int shooterCloseRPM = 900;
 
     public DcMotorEx shooterMotor;
     public Shooter(HardwareMap hardwareMap) {
