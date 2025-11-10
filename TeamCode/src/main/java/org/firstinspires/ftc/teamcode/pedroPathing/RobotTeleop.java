@@ -58,7 +58,10 @@ public class RobotTeleop extends OpMode {
 
     @Override
     public void start() {
+
         follower.startTeleopDrive();
+        follower.setMaxPower(1.0);
+
     }
 
     @Override

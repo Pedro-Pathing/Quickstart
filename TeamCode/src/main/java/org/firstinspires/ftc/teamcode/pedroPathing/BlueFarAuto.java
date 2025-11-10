@@ -16,14 +16,17 @@ public class BlueFarAuto extends OpMode {
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
-    private Path scorePreload, intakeStack1, turn, scoreStack1, openGate;
+    private Path scorePreload, intakeStack1, turn, scoreStack1, openGate, initialIntakeStack2, intakeStack2, reverseInitialIntakeStack2;
     private final Pose startPose = new Pose(123, 123, Math.toRadians(37));
     private final Pose scorePose = new Pose(84, 84, Math.toRadians(37));
 
     private final Pose intakePose1 = new Pose(133, 84, Math.toRadians(0));
 
     private final Pose openGatePose = new Pose(133, 70, Math.toRadians(0));
-    private final Pose openGateControlPoint = new Pose(100,76.5);
+    private final Pose openGateControlPoint = new Pose(90,76.5);
+    private final Pose initialIntakePose2 = new Pose(84, 60, Math.toRadians(0));
+    private final Pose intakePose2 = new Pose(133, 60, Math.toRadians(0));
+
     private double turretClosePosition = 0.25; // changed to double
 
     @Override
@@ -50,6 +53,12 @@ public class BlueFarAuto extends OpMode {
         openGate = new Path(new BezierCurve(intakePose1, openGateControlPoint, openGatePose));
         scoreStack1 = new Path(new BezierLine(openGatePose, scorePose));
         scoreStack1.setLinearHeadingInterpolation(openGatePose.getHeading(), scorePose.getHeading());
+        initialIntakeStack2 = new Path(new BezierLine(scorePose, initialIntakePose2));
+        initialIntakeStack2.setLinearHeadingInterpolation(scorePose.getHeading(), initialIntakePose2.getHeading());
+        intakeStack2 = new Path(new BezierLine(initialIntakePose2, intakePose2));
+        intakeStack2.setLinearHeadingInterpolation(initialIntakePose2.getHeading(), intakePose2.getHeading());
+        reverseInitialIntakeStack2 = new Path(new BezierLine(intakePose2, initialIntakePose2));
+        reverseInitialIntakeStack2.setLinearHeadingInterpolation(intakePose2.getHeading(), initialIntakePose2.getHeading());
 //
 
     }
@@ -119,22 +128,60 @@ public class BlueFarAuto extends OpMode {
                 break;
 
             case 8:
-                if (robot.shooter.reachCloseSpeed() && pathTimer.getElapsedTime() > 2000) {
+                if (robot.shooter.reachCloseSpeed() && pathTimer.getElapsedTime() > 3000) {
                     follower.followPath(scoreStack1, true);
                     setPathState(9);
                 }
                 break;
             case 9:
-                if(!follower.isBusy()) {
-                    robot.intake.intakeArtifacts();
+                if (!follower.isBusy() && pathTimer.getElapsedTime()>2000){
+                    robot.shooter.startCloseShoot();
                     setPathState(10);
                 }
+                break;
             case 10:
-                if (pathTimer.getElapsedTime() > 1500) {
+                if(!follower.isBusy() && pathTimer.getElapsedTime()>5000) {
+                    robot.intake.intakeArtifacts();
+                    setPathState(11);
+                }
+                break;
+            case 11:
+                if (pathTimer.getElapsedTime() > 5000) {
+                    setPathState(12);
+                }
+                break;
+            case 12:
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>2000) {
+                    robot.shooter.stopFlyWheel();
+                    follower.followPath(initialIntakeStack2);
+                    robot.intake.intakeArtifactsOnlyIntake();
+                    setPathState(13);
+                }
+                break;
+            case 13:
+                if (!follower.isBusy()) {
+                    follower.followPath(intakeStack2);
+                    setPathState(14);
+                }
+                break;
+            case 14:
+                if (!follower.isBusy()){
+                    follower.followPath(reverseInitialIntakeStack2);
+                    setPathState(15);
+                }
+                break;
+            case 15:
+                if (!follower.isBusy()){
+                    follower.followPath(scorePreload);
+                    robot.shooter.startCloseShoot();
+                    setPathState(16);
+                }
+                break;
+            case 16:
+                if (!follower.isBusy() && pathTimer.getElapsedTime()>3000){
+                    robot.intake.intakeArtifacts();
                     setPathState(-1);
                 }
-
-
         }
     }
 
