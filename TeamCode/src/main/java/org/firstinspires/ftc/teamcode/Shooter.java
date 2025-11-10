@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Shooter {
 
     public final int shooterCloseRPM = 900;
-    public final int shooterFarRPM = 1420;
+    public final int shooterFarRPM = 1500;
 
     public DcMotorEx shooterMotor;
     public Shooter(HardwareMap hardwareMap) {
@@ -29,6 +29,18 @@ public class Shooter {
         } else {
             return false;
         }
+    }
+
+    public boolean reachFarSpeed () {
+        if (shooterMotor.getVelocity() >= shooterFarRPM) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void startReverseShoot() {
+        shooterMotor.setVelocity(-shooterCloseRPM);
     }
 
     public void stopFlyWheel() {

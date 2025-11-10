@@ -42,8 +42,15 @@ public class Intake {
         intakeMotor.setPower(SHOOTING_POWER);
         transferMotor.setPower(TRANFER_SHOOTING_POWER);
     }
+    public void intakeStop(){
+        intakeMotor.setPower(0);
+        transferMotor.setPower(0);
+    }
 
-
+    public void transferOnly(){
+        intakeMotor.setPower(0);
+        transferMotor.setPower(0.75);
+    }
 
 
 }

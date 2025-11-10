@@ -66,6 +66,7 @@ public class BlueFarAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
+        follower.setMaxPower(0.8);
         setPathState(0);
     }
 
@@ -101,7 +102,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTime() >2000){ //TBD: change 3 secs to shorter if possible
+                if (pathTimer.getElapsedTime() > 2000){ //TBD: change 3 secs to shorter if possible
                     robot.shooter.stopFlyWheel();
                     robot.intake.intakeArtifactsOnlyIntake();
                     follower.setMaxPower(0.25);
@@ -128,57 +129,47 @@ public class BlueFarAuto extends OpMode {
                 break;
 
             case 8:
-                if (robot.shooter.reachCloseSpeed() && pathTimer.getElapsedTime() > 3000) {
+                if (!follower.isBusy() || pathTimer.getElapsedTime() > 3000) {
                     follower.followPath(scoreStack1, true);
                     setPathState(9);
                 }
                 break;
-            case 9:
-                if (!follower.isBusy() && pathTimer.getElapsedTime()>2000){
-                    robot.shooter.startCloseShoot();
-                    setPathState(10);
-                }
-                break;
-            case 10:
-                if(!follower.isBusy() && pathTimer.getElapsedTime()>5000) {
+            case 9: // shoot balls now
+                if ((!follower.isBusy() || pathTimer.getElapsedTime() > 2000) && robot.shooter.reachCloseSpeed()) {
                     robot.intake.intakeArtifacts();
                     setPathState(11);
                 }
                 break;
+
             case 11:
-                if (pathTimer.getElapsedTime() > 5000) {
+                if (pathTimer.getElapsedTime() > 3000) {
+                    robot.shooter.stopFlyWheel();
+                    follower.followPath(initialIntakeStack2);
+                    robot.intake.intakeArtifactsOnlyIntake();
                     setPathState(12);
                 }
                 break;
             case 12:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>2000) {
-                    robot.shooter.stopFlyWheel();
-                    follower.followPath(initialIntakeStack2);
-                    robot.intake.intakeArtifactsOnlyIntake();
-                    setPathState(13);
-                }
-                break;
-            case 13:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || pathTimer.getElapsedTime() > 5000) {
                     follower.followPath(intakeStack2);
                     setPathState(14);
                 }
                 break;
             case 14:
-                if (!follower.isBusy()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime() > 5000) {
                     follower.followPath(reverseInitialIntakeStack2);
                     setPathState(15);
                 }
                 break;
             case 15:
-                if (!follower.isBusy()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime() > 5000) {
                     follower.followPath(scorePreload);
                     robot.shooter.startCloseShoot();
                     setPathState(16);
                 }
                 break;
             case 16:
-                if (!follower.isBusy() && pathTimer.getElapsedTime()>3000){
+                if ((!follower.isBusy() || pathTimer.getElapsedTime() > 3000) && robot.shooter.reachCloseSpeed()) {
                     robot.intake.intakeArtifacts();
                     setPathState(-1);
                 }
@@ -188,6 +179,6 @@ public class BlueFarAuto extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
-        follower.setMaxPower(0.8);
+        //follower.setMaxPower(0.8);
     }
 }
