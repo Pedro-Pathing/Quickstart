@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Shooter {
 
     public final int shooterCloseRPM = 900;
+    public final int shooterFarRPM = 1420;
 
     public DcMotorEx shooterMotor;
     public Shooter(HardwareMap hardwareMap) {
@@ -17,6 +18,9 @@ public class Shooter {
 
     public void startCloseShoot() {
         shooterMotor.setVelocity(shooterCloseRPM); // converting RPM to ticks per second
+    }
+    public void startFarShoot() {
+        shooterMotor.setVelocity(shooterFarRPM);
     }
 
     public boolean reachCloseSpeed () {
