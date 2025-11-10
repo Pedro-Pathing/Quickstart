@@ -26,6 +26,9 @@ public class MecanumDrivetrainClass {
         follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
         follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
         follower.update();                                          // Applies the initialization
+
+        follower.startTeleopDrive();
+        follower.update();
     }
 
     /**
@@ -38,9 +41,9 @@ public class MecanumDrivetrainClass {
      */
     public void pedroMecanumDrive(double forward, double strafe, double rotate, boolean robotCentric){
         follower.setTeleOpDrive(
-                forward * speedMultiplier,
-                strafe * speedMultiplier,
-                rotate * speedMultiplier,
+                -forward * speedMultiplier,
+                -strafe * speedMultiplier,
+                -rotate * speedMultiplier,
                 robotCentric);
         follower.update();
     }

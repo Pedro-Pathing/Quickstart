@@ -33,6 +33,7 @@ import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -86,7 +87,7 @@ import java.util.concurrent.TimeUnit;
  * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
  *
  */
-
+@Disabled
 @TeleOp(name="Turret April-Tag Tracking", group = "TestTeleOp")
 public class TurretAprilTagTracking extends LinearOpMode
 {

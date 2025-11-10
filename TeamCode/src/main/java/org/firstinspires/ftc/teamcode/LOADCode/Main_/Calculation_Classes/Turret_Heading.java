@@ -41,11 +41,9 @@ public class Turret_Heading {
         Pose goalPose = new Pose(0,144,0);
         if (targetRedGoal) {goalPose = new Pose(144, 144, 0);}
 
-
         return Math.toDegrees(Math.atan2(
                 goalPose.getY()-robotPose.getY(),
-                goalPose.getX()-robotPose.getX()
-                )
+                goalPose.getX()-robotPose.getX())
         ) - Math.toDegrees(robotPose.getHeading()) + 180;
     }
 

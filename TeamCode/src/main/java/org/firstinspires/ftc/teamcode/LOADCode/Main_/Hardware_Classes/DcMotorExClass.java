@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import dev.nextftc.control.ControlSystem;
@@ -56,6 +57,13 @@ public class DcMotorExClass {
      */
     public void setFFCoefficients(BasicFeedforwardParameters coefficients) {
         ffCoefficients = coefficients;
+    }
+    /**
+     * Resets the internal encoder of the motor to zero.
+     */
+    public void resetEncoder(){
+        motorObject.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorObject.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     /**
      * @return The current position of the turret motor in encoder ticks. Can be any value.

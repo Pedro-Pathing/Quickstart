@@ -74,22 +74,24 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.drivetrain.pedroMecanumDrive(
                     gamepad1.left_stick_y,
                     gamepad1.left_stick_x,
-                    gamepad1.right_stick_x,
+                    gamepad1.right_stick_x/2,
                     true
             );
 
-            if (gamepad1.bWasPressed()){
+            if (gamepad2.bWasPressed()){
                 target = 90;
-            }else if (gamepad1.yWasPressed()){
+            }else if (gamepad2.yWasPressed()){
                 target = 0;
-            }else if (gamepad1.aWasPressed()){
+            }else if (gamepad2.aWasPressed()){
                 target = 180;
-            }else if (gamepad1.xWasPressed()){
+            }else if (gamepad2.xWasPressed()){
                 target = 270;
-            }else if (gamepad1.guide){
-                target = targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), true);
-            }else if (gamepad1.back){
-                target = targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), false);
+            }else if (gamepad2.guide){
+                target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), true)-540);
+            }else if (gamepad2.back){
+                target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), false)-540);
+            }else if (Math.abs(gamepad2.left_stick_x)>0.2 || Math.abs(gamepad2.left_stick_y)>0.2) {
+                target = Math.toDegrees(Math.atan2(gamepad2.left_stick_y, gamepad2.left_stick_x));
             }
 
             Robot.turret.setAngle(target);
@@ -97,10 +99,14 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.intake.setPower(gamepad1.left_trigger);
             Robot.flywheel.setPower(gamepad1.right_trigger);
 
+            Robot.updatePIDs();
+
             // Turret-related Telemetry
+            telemetry.addData("Turret PIDs", LoadHardwareClass.turretCoefficients);
             telemetry.addData("Turret Target Angle:", target);
             telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
             telemetry.addData("Turret Set Power", Robot.turret.getPower());
+            telemetry.addData("Turret RPM", Robot.turret.getRPM());
 
             // Intake-related Telemetry
             telemetry.addLine();

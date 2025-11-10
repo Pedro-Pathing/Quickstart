@@ -33,6 +33,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -90,6 +91,7 @@ import dev.nextftc.control.feedback.PIDCoefficients;
  * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
  *
  */
+@Disabled
 @Configurable
 @TeleOp(name="Turret Localization", group = "TestTeleOp")
 public class TurretLocalization extends LinearOpMode

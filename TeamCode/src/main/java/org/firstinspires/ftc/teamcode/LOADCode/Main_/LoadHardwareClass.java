@@ -28,6 +28,7 @@
  */
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.DcMotorExClass;
@@ -41,7 +42,7 @@ import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
  *
  * The logic goes in the OpModes and the hardware control is handled here.
  */
-
+@Configurable
 public class LoadHardwareClass {
     /* Declare OpMode members. */
     private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
@@ -53,9 +54,9 @@ public class LoadHardwareClass {
     public final DcMotorExClass intake;
 
     // Subsystem configuration
-    PIDCoefficients turretCoefficients = new PIDCoefficients(0.005, 0, 0);
-    PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
-    BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
+    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
+    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
+    public static BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
 
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
@@ -87,5 +88,12 @@ public class LoadHardwareClass {
         // Misc telemetry
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
+    }
+
+    public void updatePIDs(){
+        // Pass PID pidCoefficients to motor classes
+        turret.setPidCoefficients(turretCoefficients);
+        flywheel.setPidCoefficients(flywheelCoefficients);
+        flywheel.setFFCoefficients(ffCoefficients);
     }
 }
