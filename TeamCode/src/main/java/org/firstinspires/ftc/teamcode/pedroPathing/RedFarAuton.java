@@ -49,6 +49,7 @@ public class RedFarAuton extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
+        follower.setMaxPower(0.8);
         setPathState(0);
     }
 
@@ -73,7 +74,7 @@ public class RedFarAuton extends OpMode {
                 break;
             case 1:
                 if (robot.shooter.reachFarSpeed()) {
-                    robot.intake.intakeArtifacts();
+                    robot.intake.startIntakeAndTransfer();
 //                    if(pathTimer.getElapsedTime() > 2000) {
 //                        robot.intake.trans
 //                        robot.intake.intakeArtifactsOnlyIntake();
@@ -116,17 +117,14 @@ public class RedFarAuton extends OpMode {
                 break;
             case 5:
                 if(!follower.isBusy() || pathTimer.getElapsedTime() > 1000) {
-                    robot.intake.intakeArtifacts();
+                    robot.intake.startIntakeAndTransfer();
                     setPathState(-1);
             }
-
-
         }
     }
 
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
-        follower.setMaxPower(0.8);
     }
 }
