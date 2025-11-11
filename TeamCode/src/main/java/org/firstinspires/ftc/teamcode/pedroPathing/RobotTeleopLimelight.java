@@ -36,7 +36,7 @@ public class RobotTeleopLimelight extends OpMode {
     // Limelight
     private Limelight3A limelight;
     private static final int TARGET_TAG_ID = 24;
-    private static final int PIPELINE_ID = 8;
+    private static final int PIPELINE_ID = 2;
 
     private final Pose startPose = new Pose(0, 0, 0);
 
