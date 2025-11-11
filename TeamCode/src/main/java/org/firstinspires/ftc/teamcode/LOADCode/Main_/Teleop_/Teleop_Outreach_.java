@@ -39,8 +39,8 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.LoadHardwareClass;
 
 //TODO, implement all our external libraries and functionality.
 
-@TeleOp(name="Teleop_Main_", group="TeleOp")
-public class Teleop_Main_ extends LinearOpMode {
+@TeleOp(name="Teleop_Outreach_", group="TeleOp")
+public class Teleop_Outreach_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -55,14 +55,10 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
-        Turret_Heading targeting = new Turret_Heading();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
-
-        // This variable contains the target position for the turret.
-        double target = 0;
 
         // Initialize all hardware of the robot
         Robot.init(startPose);
@@ -72,46 +68,11 @@ public class Teleop_Main_ extends LinearOpMode {
 
             // Pass the joystick positions to our mecanum drive controller
             Robot.drivetrain.pedroMecanumDrive(
-                    gamepad1.left_stick_y,
-                    gamepad1.left_stick_x,
+                    gamepad1.left_stick_y/2,
+                    gamepad1.left_stick_x/2,
                     gamepad1.right_stick_x/2,
                     true
             );
-
-            if (gamepad2.bWasPressed()){
-                target = 90;
-            }else if (gamepad2.yWasPressed()){
-                target = 0;
-            }else if (gamepad2.aWasPressed()){
-                target = 180;
-            }else if (gamepad2.xWasPressed()){
-                target = 270;
-            }else if (gamepad2.guide){
-                target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), true)-540);
-            }else if (gamepad2.back){
-                target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), false)-540);
-            }else if (Math.abs(gamepad2.left_stick_x)>0.2 || Math.abs(gamepad2.left_stick_y)>0.2) {
-                target = Math.toDegrees(Math.atan2(gamepad2.left_stick_y, gamepad2.left_stick_x));
-            }
-
-            Robot.turret.setAngle(target);
-
-            Robot.intake.setPower(gamepad1.left_trigger);
-            Robot.flywheel.setPower(gamepad1.right_trigger);
-
-            Robot.updatePIDs();
-
-            // Turret-related Telemetry
-            telemetry.addData("Turret PIDs", LoadHardwareClass.turretCoefficients);
-            telemetry.addData("Turret Target Angle:", target);
-            telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
-            telemetry.addData("Turret Set Power", Robot.turret.getPower());
-            telemetry.addData("Turret RPM", Robot.turret.getRPM());
-
-            // Intake-related Telemetry
-            telemetry.addLine();
-            telemetry.addData("Intake Set Power", Robot.intake.getPower());
-            telemetry.addData("Intake RPM", Robot.intake.getRPM());
 
             // System-related Telemetry
             telemetry.addLine();

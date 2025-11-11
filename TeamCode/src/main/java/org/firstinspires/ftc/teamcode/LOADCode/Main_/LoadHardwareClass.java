@@ -96,4 +96,6 @@ public class LoadHardwareClass {
         flywheel.setPidCoefficients(flywheelCoefficients);
         flywheel.setFFCoefficients(ffCoefficients);
     }
+
+
 }
