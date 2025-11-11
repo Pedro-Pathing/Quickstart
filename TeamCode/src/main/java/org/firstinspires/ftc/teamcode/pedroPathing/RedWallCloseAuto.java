@@ -50,6 +50,8 @@ public class RedWallCloseAuto extends OpMode {
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
         openGate = new Path(new BezierCurve(intakePose1, openGateControlPoint, openGatePose));
         intakeStack1 = new Path(new BezierCurve(startPose, intakePose1Control1, intakePose1Contol2, intakePose1));
+        scoreStack1 = new Path(new BezierLine(intakePose1, scorePose));
+        scoreStack1.setLinearHeadingInterpolation(intakePose1.getHeading(), scorePose.getHeading());
 //
 
     }
@@ -95,9 +97,31 @@ public class RedWallCloseAuto extends OpMode {
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTime()>2000)
-                follower.followPath(intakeStack1);
-                setPathState(-1);
+                if (pathTimer.getElapsedTime()>2000) {
+                    follower.followPath(intakeStack1);
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000){
+                    robot.shooter.startAutoCloseShoot();
+                    follower.followPath(scoreStack1);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000){
+                    robot.intake.startIntakeAndTransfer();
+                    setPathState(6);
+                }
+                break;
+            case 6:
+                if (pathTimer.getElapsedTime()>2000) {
+                    robot.shooter.stopShoot();
+                    robot.intake.stopTransfer();
+                    robot.intake.startIntakeOnly();
+                    setPathState(7);
+                }
                 break;
         }
     }
