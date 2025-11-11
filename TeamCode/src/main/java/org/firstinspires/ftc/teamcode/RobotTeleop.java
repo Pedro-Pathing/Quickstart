@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 /**
  * Standard Robot TeleOp for FTC using Pedro Pathing.
@@ -21,12 +21,8 @@ import com.pedropathing.geometry.Pose;
 public class RobotTeleop extends OpMode {
 
     private Follower follower;
+    private Robot robot;
     private static final double DEAD_ZONE = 0.1;
-
-    private DcMotorEx shooterMotor;
-    private DcMotorEx intakeMotor;
-    private DcMotorEx transferMotor;
-
     private CRServo turretCR;
     private static final double TURRET_POWER = 0.45;
     private final Pose startPose = new Pose(0, 0, 0);
@@ -37,17 +33,7 @@ public class RobotTeleop extends OpMode {
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
 
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        intakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        transferMotor = hardwareMap.get(DcMotorEx.class, "transferMotor");
-        transferMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        transferMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
-        shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        shooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        robot = new Robot(hardwareMap);
 
         turretCR = hardwareMap.get(CRServo.class, "turretServo");
         turretCR.setPower(0.0); // start stopped
@@ -61,13 +47,50 @@ public class RobotTeleop extends OpMode {
 
         follower.startTeleopDrive();
         follower.setMaxPower(1.0);
-
     }
+
+    private boolean is_CloseShot() {
+        return gamepad2.b;
+    }
+
+    private boolean is_FarShot() {
+        return gamepad2.x;
+    }
+
+    private boolean is_Intaking() {
+        return gamepad2.left_bumper;
+    }
+
+    private boolean is_Transfering() {
+        return gamepad2.dpad_up;
+    }
+
+    private boolean is_HumanPlayer() {
+        return gamepad2.y;
+    }
+
+    private boolean is_FlywheelOff() {
+        return gamepad2.x;
+    }
+
+//    private boolean is_TurretLeft() {
+//        return gamepad2.dpad_left;
+//    }
+//
+//    private boolean is_TurretRight() {
+//        return gamepad2.dpad_right;
+//    }
+
+    private boolean is_MidRangeShot() {
+        return gamepad2.a;
+    }
+
+
 
     @Override
     public void loop() {
 
-        double xInput = Math.abs(gamepad1.left_stick_x) > DEAD_ZONE ? gamepad1.left_stick_x : 0;
+        double xInput = Math.abs(gamepad1.left_stick_x) > DEAD_ZONE ? -gamepad1.left_stick_x : 0;
         double yInput = Math.abs(gamepad1.left_stick_y) > DEAD_ZONE ? -gamepad1.left_stick_y : 0;
         // NOTE: rotation is negated to match PedroPathing's TeleOp example (prevents reversed/odd rotation behavior)
         double turnInput = Math.abs(gamepad1.right_stick_x) > DEAD_ZONE ? -gamepad1.right_stick_x : 0;
@@ -85,16 +108,34 @@ public class RobotTeleop extends OpMode {
 
         follower.update();
 
-        // Shooter RPM presets
-        if (gamepad2.b) {
-            shooterMotor.setVelocity(1420);
-        } else if (gamepad2.a) {
-            shooterMotor.setVelocity(0);
-        } else if (gamepad2.x) {
-            shooterMotor.setVelocity(1035);
-        } else if (gamepad2.y) {
-            shooterMotor.setVelocity(-1200);
+        if (is_CloseShot()) {
+            robot.shooter.startCloseShoot();
+        } else if (is_FarShot()) {
+            robot.shooter.startFarShoot();
+        } else if (is_MidRangeShot()) {
+            robot.shooter.startMidShoot();
+        } else if (is_HumanPlayer()) {
+            robot.shooter.startHumanShoot();
+        } else if (is_FlywheelOff()){
+            robot.shooter.stopShoot();
         }
+
+         if (is_Intaking()) {
+            robot.intake.startIntakeOnly();
+        } else {
+            robot.intake.stopIntake();
+         }
+
+          if (is_Transfering()) {
+            robot.intake.startTransferOnly();
+            gamepad1.rumble(1000);
+            gamepad2.rumble(1000);
+        }
+        else {
+            robot.intake.stopTransfer();
+        }
+
+
 
         // Turret control (fixed: check gamepad2 on both dpad sides)
         if (gamepad2.dpad_right && !gamepad2.dpad_left) {
@@ -105,31 +146,10 @@ public class RobotTeleop extends OpMode {
             turretCR.setPower(0.0); // stop when no dpad pressed or both pressed
         }
 
-        // Intake / transfer
-        if (gamepad2.right_bumper) {
-            intakeMotor.setPower(0.5);
-        } else if (gamepad2.left_bumper) {
-            intakeMotor.setPower(-0.5);
-        } else {
-            intakeMotor.setPower(0.0);
-        }
-
-        if (gamepad2.dpad_up) {
-            transferMotor.setPower(0.75);
-        }
-        else if (gamepad2.dpad_down) {
-            transferMotor.setPower(-0.75);
-            gamepad1.rumble(1000);
-            gamepad2.rumble(1000);
-        }
-        else {
-            transferMotor.setPower(0.0);
-        }
 
         telemetry.addData("Drive X", xInput);
         telemetry.addData("Drive Y", yInput);
         telemetry.addData("Turn", turnInput);
-        telemetry.addData("Shooter RPM", shooterMotor.getVelocity());
         telemetry.addData("Turret Power", turretCR.getPower());
         telemetry.addData("Pose X", follower.getPose().getX());
         telemetry.addData("Pose Y", follower.getPose().getY());
@@ -139,9 +159,9 @@ public class RobotTeleop extends OpMode {
 
     @Override
     public void stop() {
-        shooterMotor.setPower(0);
-        intakeMotor.setPower(0);
-        transferMotor.setPower(0);
+        robot.shooter.stopShoot();
+        robot.intake.stopIntake();
+        robot.intake.stopTransfer();
         if (turretCR != null) turretCR.setPower(0.0);
     }
 }

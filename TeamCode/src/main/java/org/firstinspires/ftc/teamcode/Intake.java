@@ -11,6 +11,8 @@ public class Intake {
 
     private final double SHOOTING_POWER = 0.5;
 
+    private final double INTAKE_OFF = 0.0;
+
     private final double TRANSFER_INTAKE_POWER = -0.4;
 
     private final double TRANFER_SHOOTING_POWER = -0.75;
@@ -28,14 +30,17 @@ public class Intake {
         transferMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         transferMotor.setDirection(DcMotorSimple.Direction.FORWARD);
     }
-    public void intakeArtifacts() {
+    public void startIntakeAndTransfer() {
         intakeMotor.setPower(INTAKE_POWER);
         transferMotor.setPower(TRANSFER_INTAKE_POWER);
     }
 
-    public void intakeArtifactsOnlyIntake() {
+    public void startTransferOnly() {
+        transferMotor.setPower(TRANSFER_INTAKE_POWER);
+    }
+
+    public void startIntakeOnly() {
         intakeMotor.setPower(INTAKE_POWER);
-        transferMotor.setPower(TRANSFER_OFF);
     }
 
     public void shootArtifacts() {
@@ -46,10 +51,16 @@ public class Intake {
         intakeMotor.setPower(0);
         transferMotor.setPower(0);
     }
-
-    public void transferOnly(){
+    public void transferOnly() {
         intakeMotor.setPower(0);
         transferMotor.setPower(0.75);
+    }
+    public void stopIntake() {
+        intakeMotor.setPower(INTAKE_OFF);
+    }
+
+    public void stopTransfer() {
+        transferMotor.setPower(TRANSFER_OFF);
     }
 
 

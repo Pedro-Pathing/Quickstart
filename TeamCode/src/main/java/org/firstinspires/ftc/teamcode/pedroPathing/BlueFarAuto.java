@@ -97,14 +97,14 @@ public class BlueFarAuto extends OpMode {
                 break;
             case 2:
                 if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 3000) {
-                    robot.intake.intakeArtifacts(); // start intake to shoot
+                    robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(3);
                 }
                 break;
             case 3:
                 if (pathTimer.getElapsedTime() > 2000){ //TBD: change 3 secs to shorter if possible
                     robot.shooter.stopFlyWheel();
-                    robot.intake.intakeArtifactsOnlyIntake();
+                    robot.intake.startIntakeOnly();
                     follower.setMaxPower(0.25);
                     follower.followPath(turn, true);
                     setPathState(5);
@@ -136,7 +136,7 @@ public class BlueFarAuto extends OpMode {
                 break;
             case 9: // shoot balls now
                 if ((!follower.isBusy() || pathTimer.getElapsedTime() > 2000) && robot.shooter.reachCloseSpeed()) {
-                    robot.intake.intakeArtifacts();
+                    robot.intake.startIntakeAndTransfer();
                     setPathState(11);
                 }
                 break;
@@ -145,7 +145,7 @@ public class BlueFarAuto extends OpMode {
                 if (pathTimer.getElapsedTime() > 3000) {
                     robot.shooter.stopFlyWheel();
                     follower.followPath(initialIntakeStack2);
-                    robot.intake.intakeArtifactsOnlyIntake();
+                    robot.intake.startIntakeOnly();
                     setPathState(12);
                 }
                 break;
@@ -170,7 +170,7 @@ public class BlueFarAuto extends OpMode {
                 break;
             case 16:
                 if ((!follower.isBusy() || pathTimer.getElapsedTime() > 3000) && robot.shooter.reachCloseSpeed()) {
-                    robot.intake.intakeArtifacts();
+                    robot.intake.startIntakeAndTransfer();
                     setPathState(-1);
                 }
         }
@@ -179,6 +179,5 @@ public class BlueFarAuto extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
-        //follower.setMaxPower(0.8);
     }
 }

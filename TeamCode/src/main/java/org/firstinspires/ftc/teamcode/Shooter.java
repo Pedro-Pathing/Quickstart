@@ -7,6 +7,9 @@ public class Shooter {
 
     public final int shooterCloseRPM = 900;
     public final int shooterFarRPM = 1500;
+    public final int shooterMidRPM = 1100;
+    public final int shooterHumanRPM = -1200;
+    public final int shooterOffRPM = 0;
 
     public DcMotorEx shooterMotor;
     public Shooter(HardwareMap hardwareMap) {
@@ -19,8 +22,21 @@ public class Shooter {
     public void startCloseShoot() {
         shooterMotor.setVelocity(shooterCloseRPM); // converting RPM to ticks per second
     }
+
     public void startFarShoot() {
-        shooterMotor.setVelocity(shooterFarRPM);
+        shooterMotor.setVelocity(shooterFarRPM); // converting RPM to ticks per second
+    }
+
+    public void startMidShoot() {
+        shooterMotor.setVelocity(shooterMidRPM); // converting RPM to ticks per second
+    }
+
+    public void startHumanShoot() {
+        shooterMotor.setVelocity(shooterHumanRPM); // converting RPM to ticks per second
+    }
+
+    public void stopShoot() {
+        shooterMotor.setVelocity(shooterOffRPM); // converting RPM to ticks per second
     }
 
     public boolean reachCloseSpeed () {
