@@ -17,11 +17,12 @@ public class RedFarAuto extends OpMode {
     private Timer pathTimer, opmodeTimer;
     private int pathState;
     private Path getFirstPattern, shootStack1;
-    private final Pose startPose = new Pose(441, 8, Math.toRadians(0));
+    private final Pose startPose = new Pose(80, 8, Math.toRadians(0));
     private final Pose firstPattern = new Pose(133, 84, Math.toRadians(0));
     private final Pose secondPattern = new Pose(133, 60, Math.toRadians(0));
-    private final Pose thirdPattern = new Pose(133, 36, Math.toRadians(0));
-    private final Pose shootingPose = new Pose(56, 12, Math.toRadians(0));
+    private final Pose thirdPattern = new Pose(128.5, 35, Math.toRadians(0));
+    private final Pose controlPoint1 = new Pose(83, 40, Math.toRadians(0));
+    private final Pose shootingPose = new Pose(80, 8, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -38,8 +39,10 @@ public class RedFarAuto extends OpMode {
     }
 
     public void buildPaths() {
-        getFirstPattern = new Path(new BezierLine(startPose, thirdPattern));
+        getFirstPattern = new Path(new BezierCurve(startPose, controlPoint1, thirdPattern));
+        getFirstPattern.setConstantHeadingInterpolation(startPose.getHeading());
         shootStack1 = new Path(new BezierLine(thirdPattern, shootingPose));
+        shootStack1.setConstantHeadingInterpolation(thirdPattern.getHeading());
 //
 
     }
@@ -71,14 +74,14 @@ public class RedFarAuto extends OpMode {
                 break;
             case 1:
                 if (robot.shooter.reachFarSpeed() || pathTimer.getElapsedTime() > 4000) {
-                    robot.intake.intakeArtifacts();
+                    robot.intake.shootArtifacts();
                     setPathState(2);
                 }
                 break;
             case 2:
                 if (pathTimer.getElapsedTime() > 2000){ //TBD: change 3 secs to shorter if possible
                     robot.shooter.stopFlyWheel();
-                    robot.intake.intakeArtifactsOnlyIntake();
+                    robot.intake.stopTransfer();
                     follower.setMaxPower(0.25);
                     follower.followPath(getFirstPattern, true);
                     setPathState(3);

@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
-@Autonomous(name = "Red Far Auto", group = "Examples")
+@Autonomous(name = "RedFarAuto", group = "Examples")
 public class RedFarAuton extends OpMode {
     private Robot robot;
     private Follower follower;
