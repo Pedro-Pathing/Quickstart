@@ -96,7 +96,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 2:
-                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 3000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 3000) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(3);
                 }
@@ -135,7 +135,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 9: // shoot balls now
-                if ((!follower.isBusy() || pathTimer.getElapsedTime() > 2000) && robot.shooter.reachCloseSpeed()) {
+                if ((!follower.isBusy() || pathTimer.getElapsedTime() > 2000) && robot.shooter.reachedSpeed()) {
                     robot.intake.startIntakeAndTransfer();
                     setPathState(11);
                 }
@@ -169,7 +169,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 16:
-                if ((!follower.isBusy() || pathTimer.getElapsedTime() > 3000) && robot.shooter.reachCloseSpeed()) {
+                if ((!follower.isBusy() || pathTimer.getElapsedTime() > 3000) && robot.shooter.reachedSpeed()) {
                     robot.intake.startIntakeAndTransfer();
                     setPathState(-1);
                 }

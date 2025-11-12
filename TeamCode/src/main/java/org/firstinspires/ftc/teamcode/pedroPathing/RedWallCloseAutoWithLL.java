@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
-@Autonomous(name = "Red Wall Close Auto", group = "Examples")
+@Autonomous(name = "Red Wall Close Auto With LL", group = "Examples")
 public class RedWallCloseAutoWithLL extends OpMode {
     private Robot robot;
     private Follower follower;
@@ -96,7 +96,7 @@ public class RedWallCloseAutoWithLL extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 5000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(2);
                 }
@@ -144,7 +144,7 @@ public class RedWallCloseAutoWithLL extends OpMode {
                 }
                 break;
             case 8:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachedSpeed()){
                     follower.followPath(scoreStack2);
                     setPathState(9);
                 }
@@ -177,7 +177,7 @@ public class RedWallCloseAutoWithLL extends OpMode {
                 }
                 break;
             case 13:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachedSpeed()){
                     robot.intake.startIntakeAndTransfer();
                     setPathState(14);
                 }
