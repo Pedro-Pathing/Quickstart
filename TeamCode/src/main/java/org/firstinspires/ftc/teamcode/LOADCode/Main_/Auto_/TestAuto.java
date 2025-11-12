@@ -8,6 +8,8 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.skeletonarmy.marrow.prompts.OptionPrompt;
+import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -19,6 +21,15 @@ public class TestAuto extends OpMode {
 
     private int pathState;
     private boolean shooting;
+
+    Prompter prompter = null;
+
+    enum Alliance {
+        RED,
+        BLUE
+    }
+
+    Alliance alliance = null;
 
     private final Pose startPose = new Pose(87, 8.8, Math.toRadians(90)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(86, 22, Math.toRadians(80)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
@@ -190,11 +201,21 @@ public class TestAuto extends OpMode {
         buildPaths();
         follower.setStartingPose(startPose);
 
+        prompter = new Prompter(this);
+        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Alliance.RED, Alliance.BLUE));
+        prompter.onComplete(() -> {
+                    alliance = prompter.get("alliance");
+                    telemetry.addData("Selection", "Complete");
+                }
+        );
+
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
-    public void init_loop() {}
+    public void init_loop() {
+        prompter.run();
+    }
 
     /** This method is called once at the start of the OpMode.
      * It runs all the setup actions, including building paths and starting the path system **/
@@ -210,7 +231,9 @@ public class TestAuto extends OpMode {
 
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
-        autonomousPathUpdate();
+        //autonomousPathUpdate();
+
+        telemetry.addData("Alliance", alliance);
 
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
@@ -218,12 +241,6 @@ public class TestAuto extends OpMode {
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
         telemetry.update();
-
-        if (gamepad1.left_stick_y < -10){
-
-        }else if (gamepad1.left_stick_y > 10){
-
-        }
     }
 
     /** We do not use this because everything should automatically disable **/
