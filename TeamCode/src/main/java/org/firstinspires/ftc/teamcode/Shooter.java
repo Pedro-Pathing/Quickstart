@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Shooter {
 
-    public final int shooterCloseRPM = 900;
-    public final int shooterFarRPM = 1400;
-    public final int shooterMidRPM = 1100;
+    public final int shooterCloseRPM = 1000;
+    public final int shooterFarRPM = 1375;
+    public final int shooterMidRPM = 1125;
     public final int shooterHumanRPM = -1200;
     public final int shooterOffRPM = 0;
     public final int autoClose = 800;
@@ -46,6 +46,13 @@ public class Shooter {
 
     public boolean reachCloseSpeed () {
         if (shooterMotor.getVelocity() >= shooterCloseRPM) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public boolean reachMidSpeed () {
+        if (shooterMotor.getVelocity() >= shooterMidRPM) {
             return true;
         } else {
             return false;

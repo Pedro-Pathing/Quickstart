@@ -17,29 +17,29 @@ import org.firstinspires.ftc.teamcode.Robot;
 
 import java.util.List;
 
-@Autonomous(name = "Red Wall Close Auto", group = "Examples")
-public class RedWallCloseAuto extends OpMode {
+@Autonomous(name = "Blue Wall Close Auto", group = "Examples")
+public class BlueWallCloseAuto extends OpMode {
     private Robot robot;
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
     private Path scorePreload, intakeStack1, turn, scoreStack1, openGate, initialIntakeStack2, intakeStack2, reverseInitialIntakeStack2, scoreStack2, intakeStack3, scoreStack3;
-    private final Pose startPose = new Pose(88, 135, Math.toRadians(270));
-    private final Pose intakePose1Control1 = new Pose(88, 72);
-    private final Pose intakePose1Contol2 = new Pose(77,85);
-    private final Pose scorePose = new Pose(84, 84, Math.toRadians(37));
+    private final Pose startPose = new Pose(55, 135, Math.toRadians(270));
+    private final Pose intakePose1Control1 = new Pose(44, 72);
+    private final Pose intakePose1Contol2 = new Pose(74,85);
+    private final Pose scorePose = new Pose(47, 96, Math.toRadians(323));
 
-    private final Pose intakePose1 = new Pose(133, 84, Math.toRadians(0));
+    private final Pose intakePose1 = new Pose(12, 84, Math.toRadians(180));
 
-    private final Pose openGatePose = new Pose(133, 70, Math.toRadians(0));
+    private final Pose openGatePose = new Pose(133, 70, Math.toRadians(180));
     private final Pose openGateControlPoint = new Pose(90,76.5);
-    private final Pose initialIntakePose2 = new Pose(84, 60, Math.toRadians(0));
-    private final Pose intakePose2Control1 = new Pose(90, 46);
-    private final Pose intakePose2Control2 = new Pose(77, 62);
-    private final Pose intakePose2 = new Pose(133, 60, Math.toRadians(0));
-    private final Pose intakePose3Control1 = new Pose(88, 19);
-    private final Pose intakePose3Control2 = new Pose(77, 38);
-    private final Pose intakePose3 = new Pose(133, 36, Math.toRadians(0));
+    private final Pose initialIntakePose2 = new Pose(84, 60, Math.toRadians(180));
+    private final Pose intakePose2Control1 = new Pose(38, 51);
+    private final Pose intakePose2Control2 = new Pose(61, 60);
+    private final Pose intakePose2 = new Pose(9, 60, Math.toRadians(180));
+    private final Pose intakePose3Control1 = new Pose(41, 16);
+    private final Pose intakePose3Control2 = new Pose(63, 39);
+    private final Pose intakePose3 = new Pose(9, 36, Math.toRadians(180));
     private CRServo turretCR;
 
     // Turret PID constants - TUNED for smooth tracking
@@ -214,7 +214,7 @@ public class RedWallCloseAuto extends OpMode {
             lastError = 0;
             filteredTx = 0;
         }
-            follower.update();
+        follower.update();
         autonomousPathUpdate();
 
         telemetry.addData("path state", pathState);
