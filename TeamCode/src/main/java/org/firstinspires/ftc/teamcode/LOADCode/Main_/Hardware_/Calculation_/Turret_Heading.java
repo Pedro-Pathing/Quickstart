@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.LOADCode.Main_.Calculation_Classes;
+package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Calculation_;
 
 import com.pedropathing.geometry.Pose;
 

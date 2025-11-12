@@ -27,12 +27,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.LOADCode.Main_;
+package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.DcMotorExClass;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes.MecanumDrivetrainClass;
+
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.DcMotorExClass;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 
 import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
@@ -45,7 +46,7 @@ import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 @Configurable
 public class LoadHardwareClass {
     /* Declare OpMode members. */
-    private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
+    private final LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Declare subclasses
     public final MecanumDrivetrainClass drivetrain;

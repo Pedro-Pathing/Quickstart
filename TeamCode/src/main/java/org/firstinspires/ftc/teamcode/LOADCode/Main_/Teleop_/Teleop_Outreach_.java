@@ -34,8 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Calculation_Classes.Turret_Heading;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.LoadHardwareClass;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 //TODO, implement all our external libraries and functionality.
 

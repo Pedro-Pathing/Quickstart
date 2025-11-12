@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_Classes;
+package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_;
 
 import androidx.annotation.NonNull;
 
