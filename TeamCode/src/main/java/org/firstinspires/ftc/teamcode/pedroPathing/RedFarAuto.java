@@ -16,13 +16,18 @@ public class RedFarAuto extends OpMode {
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
-    private Path getFirstPattern, shootStack1;
-    private final Pose startPose = new Pose(80, 8, Math.toRadians(0));
-    private final Pose firstPattern = new Pose(133, 84, Math.toRadians(0));
-    private final Pose secondPattern = new Pose(133, 60, Math.toRadians(0));
-    private final Pose thirdPattern = new Pose(128.5, 35, Math.toRadians(0));
-    private final Pose controlPoint1 = new Pose(83, 40, Math.toRadians(0));
-    private final Pose shootingPose = new Pose(80, 8, Math.toRadians(0));
+    private Path getFirstPattern, shootStack1, getSecondPattern, shootStack2, getThirdPattern, shootStack3;
+    private final Pose startPose = new Pose(73.5, 13, Math.toRadians(0));
+    private final Pose firstPattern = new Pose(129, 93, Math.toRadians(0));
+    private final Pose controlPoint5 = new Pose(87, 116, Math.toRadians(0));
+    private final Pose controlPoint6 = new Pose(68.5, 85, Math.toRadians(0));
+    private final Pose secondPattern = new Pose(135, 68.5, Math.toRadians(0));
+    private final Pose controlPoint3 = new Pose(80.7, 76, Math.toRadians(0));
+    private final Pose controlPoint4 = new Pose(65.7, 67, Math.toRadians(0));
+    private final Pose thirdPattern = new Pose(132.5, 44, Math.toRadians(0));
+    private final Pose controlPoint1 = new Pose(83, 55, Math.toRadians(0));
+    private final Pose controlPoint2 = new Pose(69,43,Math.toRadians(0));
+    private final Pose shootingPose = new Pose(72.5, 14, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -39,10 +44,18 @@ public class RedFarAuto extends OpMode {
     }
 
     public void buildPaths() {
-        getFirstPattern = new Path(new BezierCurve(startPose, controlPoint1, thirdPattern));
-        getFirstPattern.setConstantHeadingInterpolation(startPose.getHeading());
+        getThirdPattern = new Path(new BezierCurve(startPose, controlPoint1, controlPoint2, thirdPattern));
+        getThirdPattern.setConstantHeadingInterpolation(startPose.getHeading());
         shootStack1 = new Path(new BezierLine(thirdPattern, shootingPose));
         shootStack1.setConstantHeadingInterpolation(thirdPattern.getHeading());
+        getSecondPattern = new Path(new BezierCurve(shootingPose, controlPoint3, controlPoint4, secondPattern));
+        getSecondPattern.setConstantHeadingInterpolation(shootingPose.getHeading());
+        shootStack2 = new Path(new BezierLine(secondPattern, shootingPose));
+        shootStack2.setConstantHeadingInterpolation(secondPattern.getHeading());
+        getFirstPattern = new Path(new BezierCurve(shootingPose, controlPoint5, controlPoint6, firstPattern));
+        getFirstPattern.setConstantHeadingInterpolation(shootingPose.getHeading());
+        shootStack3 = new Path(new BezierCurve(firstPattern, controlPoint6,controlPoint5, shootingPose));
+        shootStack3.setConstantHeadingInterpolation(firstPattern.getHeading());
 //
 
     }
@@ -69,7 +82,7 @@ public class RedFarAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                robot.shooter.startFarShoot(); // start shooter for close shots
+                robot.shooter.startFarShoot();
                 setPathState(1);
                 break;
             case 1:
@@ -79,27 +92,88 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTime() > 2000){ //TBD: change 3 secs to shorter if possible
+                if (pathTimer.getElapsedTime() > 2000){
                     robot.shooter.stopFlyWheel();
                     robot.intake.stopTransfer();
                     follower.setMaxPower(0.25);
-                    follower.followPath(getFirstPattern, true);
+                    follower.followPath(getThirdPattern, true);
                     setPathState(3);
                 }
                 break;
             case 3:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000)  {//TBD: change 2 secs to shorter if possible
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000)  {
                     follower.followPath(shootStack1, true);
                     setPathState(4);
                 }
                 break;
             case 4:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {//TBD: change 2 secs to shorter if possible
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
                     follower.setMaxPower(0.8);
                     robot.shooter.startFarShoot();
-                    setPathState(-1);
+                    setPathState(5);
                 }
                 break;
+            case 5:
+                if (robot.shooter.reachFarSpeed() || pathTimer.getElapsedTime() > 4000) {
+                    robot.intake.shootArtifacts();
+                    setPathState(6);
+                }
+                break;
+            case 6:
+                if (pathTimer.getElapsedTime() > 2000){
+                    robot.shooter.stopFlyWheel();
+                    robot.intake.stopTransfer();
+                    follower.setMaxPower(0.25);
+                    follower.followPath(getSecondPattern, true);
+                    setPathState(7);
+                }
+                break;
+            case 7:
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000)  {
+                    follower.followPath(shootStack2, true);
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
+                    follower.setMaxPower(0.8);
+                    robot.shooter.startFarShoot();
+                    setPathState(9);
+                }
+            case 9:
+                if (robot.shooter.reachFarSpeed()) {
+                    robot.intake.shootArtifacts();
+                    setPathState(10);
+                }
+            case 10:
+                if (pathTimer.getElapsedTime() > 4000){
+                    robot.shooter.stopFlyWheel();
+                    robot.intake.stopTransfer();
+                    follower.setMaxPower(0.25);
+                    follower.followPath(getFirstPattern, true);
+                    setPathState(11);
+                }
+                break;
+            case 11:
+                if(!follower.isBusy())  {
+                    follower.followPath(shootStack3, true);
+                    setPathState(12);
+                }
+                break;
+            case 12:
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
+                    follower.setMaxPower(0.8);
+                    robot.shooter.startFarShoot();
+                    setPathState(13);
+                }
+            case 13:
+                if (robot.shooter.reachFarSpeed() || pathTimer.getElapsedTime() > 4000) {
+                    robot.intake.shootArtifacts();
+                    setPathState(-1);
+                }
+
+
+
 
 
         }

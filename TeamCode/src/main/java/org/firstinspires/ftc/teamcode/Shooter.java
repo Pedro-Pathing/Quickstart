@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Shooter {
 
     public final int shooterCloseRPM = 900;
-    public final int shooterFarRPM = 1420;
+    public final int shooterFarRPM = 1400;
     public final int shooterMidRPM = 1100;
     public final int shooterHumanRPM = -1200;
     public final int shooterOffRPM = 0;

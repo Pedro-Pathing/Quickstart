@@ -121,7 +121,7 @@ public class RobotTeleopLimelight extends OpMode {
         } else if (gamepad1.b) {
             shooterMotor.setVelocity(0);
         } else if (gamepad1.x) {
-            shooterMotor.setVelocity(1035);
+            shooterMotor.setVelocity(1000);
         } else if (gamepad1.y) {
             shooterMotor.setVelocity(1200);
         }
@@ -231,7 +231,7 @@ public class RobotTeleopLimelight extends OpMode {
 
         // -------------------- INTAKE + TRANSFER --------------------
         intakeMotor.setPower(gamepad1.right_bumper ? 0.5 : 0.0);
-        transferMotor.setPower(gamepad1.left_bumper ? 0.5 : 0.0);
+        transferMotor.setPower(gamepad1.left_bumper ? -0.75 : 0.0);
 
         // -------------------- TELEMETRY --------------------
         telemetry.addData("Shooter RPM", "%.0f", shooterMotor.getVelocity());
