@@ -21,14 +21,18 @@ public class RobotTeleop extends OpMode {
 
     private Follower follower;
     private Robot robot;
+    private Vision vision;
     private static final double DEAD_ZONE = 0.1;
     private CRServo turretCR;
+    private static final double TURRET_DEADZONE = 0.3; // Tighter alignment threshold
+
     private final Pose startPose = new Pose(0, 0, 0);
 
     private Pose currentPose = new Pose(0,0,0);
 
     @Override
     public void init() {
+        vision = new Vision(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
@@ -111,6 +115,14 @@ public class RobotTeleop extends OpMode {
         );
 
         follower.update();
+        vision.update();
+
+        // Apply deadzone for lock-on
+        double turretPower = vision.trackTarget(true);
+        if (turretPower > 0.0) {
+            turretCR.setPower(turretPower);
+            telemetry.addData("Turret Status", "🔄 TRACKING");
+        }
 
         if (is_CloseShot()) {
             robot.shooter.startCloseShoot();
