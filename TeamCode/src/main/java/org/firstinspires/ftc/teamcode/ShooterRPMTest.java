@@ -67,7 +67,6 @@ public class ShooterRPMTest extends OpMode {
         } else if (gamepad2.left_bumper) {
             robot.intake.startIntakeOnly();
         } else {
-            robot.intake.stopTransfer();
             robot.intake.stopIntake();
         }
 

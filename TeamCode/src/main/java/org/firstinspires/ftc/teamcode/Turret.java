@@ -25,4 +25,8 @@ public class Turret {
     public void stopTurret() {
         turretCR.setPower(TURRET_STOP); // stop turret
     }
+
+    public void setTurretPower(double power) {
+        turretCR.setPower(power);
+    }
 }

@@ -6,6 +6,8 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import com.pedropathing.util.Timer;
+
 
 /**
  * Standard Robot TeleOp for FTC using Pedro Pathing.
@@ -18,37 +20,34 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  */
 @TeleOp(name = "RobotTeleop", group = "Examples")
 public class RobotTeleop extends OpMode {
-
+    private Timer timer;
     private Follower follower;
     private Robot robot;
-    private Vision vision;
     private static final double DEAD_ZONE = 0.1;
-    private CRServo turretCR;
     private static final double TURRET_DEADZONE = 0.3; // Tighter alignment threshold
 
     private final Pose startPose = new Pose(0, 0, 0);
 
     private Pose currentPose = new Pose(0,0,0);
 
+    private boolean is_RapidFireOn = false;
+    private boolean targetTracking_enabled = true;
+
     @Override
     public void init() {
-        vision = new Vision(hardwareMap);
+        timer = new Timer();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
 
         robot = new Robot(hardwareMap);
-
-        turretCR = hardwareMap.get(CRServo.class, "turretServo");
-        turretCR.setPower(0.0); // start stopped
-
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
     }
 
     @Override
     public void start() {
-
+        timer.resetTimer();
         follower.startTeleopDrive();
         follower.setMaxPower(1.0);
     }
@@ -70,11 +69,11 @@ public class RobotTeleop extends OpMode {
     }
 
     private boolean is_HumanPlayer() {
-        return gamepad2.y;
+        return gamepad1.a;
     }
 
     private boolean is_FlywheelOff() {
-        return gamepad2.x;
+        return gamepad2.y;
     }
 
 //    private boolean is_TurretLeft() {
@@ -115,14 +114,12 @@ public class RobotTeleop extends OpMode {
         );
 
         follower.update();
-        vision.update();
 
-        // Apply deadzone for lock-on
-        double turretPower = vision.trackTarget(true);
-        if (turretPower > 0.0) {
-            turretCR.setPower(turretPower);
-            telemetry.addData("Turret Status", "🔄 TRACKING");
+        if (targetTracking_enabled) {
+            robot.vision.update();
         }
+
+
 
         if (is_CloseShot()) {
             robot.shooter.startCloseShoot();
@@ -144,22 +141,20 @@ public class RobotTeleop extends OpMode {
 
           if (is_Shooting()) {
               if (robot.shooter.reachedSpeed()) {
-                  robot.intake.startTransferOnly();
+                  if (is_RapidFireOn) {
+                      robot.intake.startIntakeAndTransfer();
+                  } else {
+                      robot.intake.startTransferOnly();
+                  }
                   gamepad1.rumble(1000);
                   gamepad2.rumble(1000);
               }
-        }
-        else {
+          } else {
             robot.intake.stopTransfer();
-        }
+          }
 
-        if (is_ShootingRapidFire()) {
-                robot.intake.startIntakeAndTransfer();
-                gamepad1.rumble(500);
-                gamepad2.rumble(500);
-        } else {
-            robot.intake.stopTransfer();
-            robot.intake.stopIntake();
+        if (is_ShootingRapidFire() && timer.getElapsedTime() > 500) {
+                is_RapidFireOn = !is_RapidFireOn;
         }
 
 
@@ -175,11 +170,11 @@ public class RobotTeleop extends OpMode {
 
         currentPose = follower.getPose();
         robot.shooter.shooterLightUpdate();
-
+        telemetry.addData("Rapid Fire On: ", is_RapidFireOn);
         telemetry.addData("Drive X", xInput);
         telemetry.addData("Drive Y", yInput);
         telemetry.addData("Turn", turnInput);
-        telemetry.addData("Turret Power", turretCR.getPower());
+        //telemetry.addData("Turret Power", turretCR.getPower());
         telemetry.addData("Pose X", follower.getPose().getX());
         telemetry.addData("Pose Y", follower.getPose().getY());
         telemetry.addData("Heading (deg)", Math.toDegrees(follower.getPose().getHeading()));
@@ -191,6 +186,6 @@ public class RobotTeleop extends OpMode {
         robot.shooter.stopShoot();
         robot.intake.stopIntake();
         robot.intake.stopTransfer();
-        if (turretCR != null) turretCR.setPower(0.0);
+        //if (turretCR != null) turretCR.setPower(0.0);
     }
 }

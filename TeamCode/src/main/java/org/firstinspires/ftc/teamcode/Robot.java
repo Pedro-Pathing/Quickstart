@@ -12,12 +12,14 @@ public class Robot {
     public Intake intake;
     public Shooter shooter;
     public Turret turret;
+    public Vision vision;
 
 
-public Robot (HardwareMap hardwareMap) {
-    intake = new Intake(hardwareMap);
-    shooter = new Shooter(hardwareMap);
-    turret = new Turret(hardwareMap);
+    public Robot (HardwareMap hardwareMap) {
+        intake = new Intake(hardwareMap);
+        shooter = new Shooter(hardwareMap);
+        turret = new Turret(hardwareMap);
+        vision = new Vision(hardwareMap, turret);
     }
 
 }
