@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
-@Autonomous(name = "Red Wall Close Auto", group = "Examples")
+@Autonomous(name = "Red Wall Close Auto With LL", group = "Examples")
 public class RedWallCloseAutoWithLL extends OpMode {
     private Robot robot;
     private Follower follower;
