@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -6,10 +7,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Shooter {
 
     public final int shooterCloseRPM = 900;
-    public final int shooterFarRPM = 1500;
+    public final int shooterFarRPM = 1400;
     public final int shooterMidRPM = 1100;
     public final int shooterHumanRPM = -1200;
     public final int shooterOffRPM = 0;
+    public final int autoClose = 800;
 
     public DcMotorEx shooterMotor;
     public Shooter(HardwareMap hardwareMap) {
@@ -21,6 +23,9 @@ public class Shooter {
 
     public void startCloseShoot() {
         shooterMotor.setVelocity(shooterCloseRPM); // converting RPM to ticks per second
+    }
+    public void startAutoCloseShoot() {
+        shooterMotor.setVelocity(autoClose); // converting RPM to ticks per second
     }
 
     public void startFarShoot() {
@@ -36,7 +41,7 @@ public class Shooter {
     }
 
     public void stopShoot() {
-        shooterMotor.setVelocity(shooterOffRPM); // converting RPM to ticks per second
+        shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // converting RPM to ticks per second
     }
 
     public boolean reachCloseSpeed () {
