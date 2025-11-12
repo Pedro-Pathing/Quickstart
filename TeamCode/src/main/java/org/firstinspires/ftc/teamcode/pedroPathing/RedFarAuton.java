@@ -73,7 +73,7 @@ public class RedFarAuton extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachFarSpeed()) {
+                if (robot.shooter.reachedSpeed()) {
                     robot.intake.startIntakeAndTransfer();
 //                    if(pathTimer.getElapsedTime() > 2000) {
 //                        robot.intake.trans
