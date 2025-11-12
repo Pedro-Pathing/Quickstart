@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 
 /**
  * Standard Robot TeleOp for FTC using Pedro Pathing.
@@ -24,8 +23,9 @@ public class RobotTeleop extends OpMode {
     private Robot robot;
     private static final double DEAD_ZONE = 0.1;
     private CRServo turretCR;
-    private static final double TURRET_POWER = 0.45;
     private final Pose startPose = new Pose(0, 0, 0);
+
+    private Pose currentPose = new Pose(0,0,0);
 
     @Override
     public void init() {
@@ -61,7 +61,7 @@ public class RobotTeleop extends OpMode {
         return gamepad2.left_bumper;
     }
 
-    private boolean is_Transfering() {
+    private boolean is_Shooting() {
         return gamepad2.dpad_up;
     }
 
@@ -83,6 +83,10 @@ public class RobotTeleop extends OpMode {
 
     private boolean is_MidRangeShot() {
         return gamepad2.a;
+    }
+
+    private boolean is_ShootingRapidFire() {
+        return gamepad2.dpad_down;
     }
 
 
@@ -115,7 +119,7 @@ public class RobotTeleop extends OpMode {
         } else if (is_MidRangeShot()) {
             robot.shooter.startMidShoot();
         } else if (is_HumanPlayer()) {
-            robot.shooter.startHumanShoot();
+            robot.shooter.startHumanIntake();
         } else if (is_FlywheelOff()){
             robot.shooter.stopShoot();
         }
@@ -126,26 +130,39 @@ public class RobotTeleop extends OpMode {
             robot.intake.stopIntake();
          }
 
-          if (is_Transfering()) {
-            robot.intake.startTransferOnly();
-            gamepad1.rumble(1000);
-            gamepad2.rumble(1000);
+          if (is_Shooting()) {
+              if (robot.shooter.reachedSpeed()) {
+                  robot.intake.startTransferOnly();
+                  gamepad1.rumble(1000);
+                  gamepad2.rumble(1000);
+              }
         }
         else {
             robot.intake.stopTransfer();
+        }
+
+        if (is_ShootingRapidFire()) {
+                robot.intake.startIntakeAndTransfer();
+                gamepad1.rumble(500);
+                gamepad2.rumble(500);
+        } else {
+            robot.intake.stopTransfer();
+            robot.intake.stopIntake();
         }
 
 
 
         // Turret control (fixed: check gamepad2 on both dpad sides)
         if (gamepad2.dpad_right && !gamepad2.dpad_left) {
-            turretCR.setPower(TURRET_POWER); // rotate right
+            robot.turret.goRight(); // rotate right
         } else if (gamepad2.dpad_left && !gamepad2.dpad_right) {
-            turretCR.setPower(-TURRET_POWER); // rotate left
+            robot.turret.goLeft(); // rotate left
         } else {
-            turretCR.setPower(0.0); // stop when no dpad pressed or both pressed
+            robot.turret.stopTurret();
         }
 
+        currentPose = follower.getPose();
+        robot.shooter.shooterLightUpdate();
 
         telemetry.addData("Drive X", xInput);
         telemetry.addData("Drive Y", yInput);

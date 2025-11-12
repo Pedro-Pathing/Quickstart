@@ -238,7 +238,7 @@ public class RedWallCloseAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 5000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(2);
                 }
@@ -286,7 +286,7 @@ public class RedWallCloseAuto extends OpMode {
                 }
                 break;
             case 8:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachedSpeed()){
                     follower.followPath(scoreStack2);
                     setPathState(9);
                 }
@@ -319,7 +319,7 @@ public class RedWallCloseAuto extends OpMode {
                 }
                 break;
             case 13:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachedSpeed()){
                     robot.intake.startIntakeAndTransfer();
                     setPathState(14);
                 }

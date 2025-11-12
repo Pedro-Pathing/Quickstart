@@ -1,0 +1,21 @@
+Control Hub:
+
+Motors:
+0: leftFront
+1: leftRear
+2: rightFront
+3: rightRear
+
+Servos:
+5: turretServo
+
+Expansion Hub:
+
+Servo:
+0: shooterLight
+
+Motors:
+1: transferMotor
+2: intakeMotor
+3: shooterMotor
+

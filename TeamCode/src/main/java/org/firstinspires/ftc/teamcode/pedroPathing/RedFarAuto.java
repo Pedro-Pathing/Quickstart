@@ -86,7 +86,7 @@ public class RedFarAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachFarSpeed() || pathTimer.getElapsedTime() > 4000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 4000) {
                     robot.intake.shootArtifacts();
                     setPathState(2);
                 }
@@ -114,7 +114,7 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 5:
-                if (robot.shooter.reachFarSpeed() || pathTimer.getElapsedTime() > 4000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 4000) {
                     robot.intake.shootArtifacts();
                     setPathState(6);
                 }
@@ -141,7 +141,7 @@ public class RedFarAuto extends OpMode {
                     setPathState(9);
                 }
             case 9:
-                if (robot.shooter.reachFarSpeed()) {
+                if (robot.shooter.reachedSpeed()) {
                     robot.intake.shootArtifacts();
                     setPathState(10);
                 }
@@ -167,7 +167,7 @@ public class RedFarAuto extends OpMode {
                     setPathState(13);
                 }
             case 13:
-                if (robot.shooter.reachFarSpeed() || pathTimer.getElapsedTime() > 4000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 4000) {
                     robot.intake.shootArtifacts();
                     setPathState(-1);
                 }
