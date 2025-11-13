@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -65,5 +67,31 @@ public class RobotTele extends OpMode{
 
         lastGamepad1.copy(gamepad1);
         lastGamepad2.copy(gamepad2);
+
+        if (gamepad2.b) {
+            bot.intake.setPower(0.5);
+        }
+
+        if (gamepad2.a) {
+            bot.launcher1.setPower(1);
+            bot.launcher2.setPower(1);
+        }
+
+        boolean bumped = false;
+        boolean notBumped = true;
+
+        if (gamepad2.x && !bumped && notBumped) {
+            bot.bumper.setPosition(bot.bumperUp);
+            bumped = true;
+            notBumped = false;
+        }
+        else if (gamepad2.x && bumped && !notBumped) {
+            bot.bumper.setPosition(bot.bumperRest);
+            bumped = false;
+            notBumped = true;
+        }
+
+
+
     }
 }
