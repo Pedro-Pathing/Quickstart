@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 /**
@@ -24,6 +25,8 @@ public class RobotTeleop extends OpMode {
 
     private Follower follower;
     private Robot robot;
+
+    private Vision vision;
     private TurretTracker turretTracker;
     private static final double DEAD_ZONE = 0.1;
     private static final double TURRET_DEADZONE = 0.3; // Tighter alignment threshold
@@ -35,6 +38,8 @@ public class RobotTeleop extends OpMode {
     private boolean is_RapidFireOn = false;
     private boolean targetTracking_enabled = true;
 
+
+
     @Override
     public void init() {
         timer = new Timer();
@@ -43,7 +48,8 @@ public class RobotTeleop extends OpMode {
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
         robot = new Robot(hardwareMap, telemetry);
-        turretTracker = new TurretTracker(robot);
+//        turretTracker = new TurretTracker(robot);
+        vision = new Vision(hardwareMap, robot.turret);
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
     }
@@ -53,7 +59,6 @@ public class RobotTeleop extends OpMode {
         timer.resetTimer();
         follower.startTeleopDrive();
         follower.setMaxPower(1.0);
-        turretTracker.start();
     }
 
 //    private boolean is_CloseShot() {return gamepad2.b; }
@@ -110,12 +115,12 @@ public class RobotTeleop extends OpMode {
                 yInput * powerScale,  // forward/backward
                 xInput * powerScale,  // strafe
                 turnInput * powerScale, // rotation (negated)
-                true                   // robot-centric
+                true                     // robot-centric
         );
 
         follower.update();
         if (targetTracking_enabled) {
-            turretTracker.update(follower.getPose());
+            vision.update();
         }
 
         if (is_FarShot()) {
