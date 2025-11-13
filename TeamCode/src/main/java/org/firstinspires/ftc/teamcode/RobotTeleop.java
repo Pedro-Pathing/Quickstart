@@ -33,7 +33,7 @@ public class RobotTeleop extends OpMode {
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
 
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
 
         turretCR = hardwareMap.get(CRServo.class, "turretServo");
         turretCR.setPower(0.0); // start stopped

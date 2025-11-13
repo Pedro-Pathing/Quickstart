@@ -81,7 +81,7 @@ public class BlueWallCloseAuto extends OpMode {
 
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
@@ -238,7 +238,7 @@ public class BlueWallCloseAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 5000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(2);
                 }

@@ -44,7 +44,7 @@ public class RedWallCloseAutoWithLL extends OpMode {
 
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
