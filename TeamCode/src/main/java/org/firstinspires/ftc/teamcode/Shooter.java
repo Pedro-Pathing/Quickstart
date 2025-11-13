@@ -70,6 +70,13 @@ public class Shooter {
             return false;
         }
     }
+    public boolean reachCloseSpeed () {
+        if (shooterMotor.getVelocity() >= shooterCloseRPM) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     public void shooterLightUpdate() {
         if(currentRPM == 0){

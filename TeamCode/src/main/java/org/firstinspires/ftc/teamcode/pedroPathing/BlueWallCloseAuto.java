@@ -24,10 +24,10 @@ public class BlueWallCloseAuto extends OpMode {
     private Timer pathTimer, opmodeTimer;
     private int pathState;
     private Path scorePreload, intakeStack1, turn, scoreStack1, openGate, initialIntakeStack2, intakeStack2, reverseInitialIntakeStack2, scoreStack2, intakeStack3, scoreStack3;
-    private final Pose startPose = new Pose(55, 135, Math.toRadians(270));
+    private final Pose startPose = new Pose(31, 135, Math.toRadians(90));
     private final Pose intakePose1Control1 = new Pose(44, 72);
     private final Pose intakePose1Contol2 = new Pose(74,85);
-    private final Pose scorePose = new Pose(47, 96, Math.toRadians(323));
+    private final Pose scorePose = new Pose(47, 96, Math.toRadians(143));
 
     private final Pose intakePose1 = new Pose(12, 84, Math.toRadians(180));
 
@@ -69,7 +69,7 @@ public class BlueWallCloseAuto extends OpMode {
     // Limelight
     private Limelight3A limelight;
     private static final int TARGET_TAG_ID = 24;
-    private static final int PIPELINE_ID = 2;
+    private static final int PIPELINE_ID_BLUE = 8;
 
     private double turretClosePosition = 0.25; // changed to double
 
@@ -89,7 +89,7 @@ public class BlueWallCloseAuto extends OpMode {
         turretCR.setPower(0.0);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(PIPELINE_ID);
+        limelight.pipelineSwitch(PIPELINE_ID_BLUE);
         limelight.start();
         lastLoopTime = System.nanoTime();
     }
@@ -234,11 +234,12 @@ public class BlueWallCloseAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
+                follower.followPath(scorePreload);
                 robot.shooter.startAutoCloseShoot(); // start shooter for close shots
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000 && !follower.isBusy()) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(2);
                 }

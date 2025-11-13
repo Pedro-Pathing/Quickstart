@@ -24,7 +24,7 @@ public class RedWallCloseAuto extends OpMode {
     private Timer pathTimer, opmodeTimer;
     private int pathState;
     private Path scorePreload, intakeStack1, turn, scoreStack1, openGate, initialIntakeStack2, intakeStack2, reverseInitialIntakeStack2, scoreStack2, intakeStack3, scoreStack3;
-    private final Pose startPose = new Pose(88, 135, Math.toRadians(270));
+    private final Pose startPose = new Pose(113, 135, Math.toRadians(90));
     private final Pose intakePose1Control1 = new Pose(88, 72);
     private final Pose intakePose1Contol2 = new Pose(77,85);
     private final Pose scorePose = new Pose(84, 84, Math.toRadians(37));
@@ -69,7 +69,7 @@ public class RedWallCloseAuto extends OpMode {
     // Limelight
     private Limelight3A limelight;
     private static final int TARGET_TAG_ID = 24;
-    private static final int PIPELINE_ID = 2;
+    private static final int PIPELINE_ID_RED = 2;
 
     private double turretClosePosition = 0.25; // changed to double
 
@@ -89,7 +89,7 @@ public class RedWallCloseAuto extends OpMode {
         turretCR.setPower(0.0);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(PIPELINE_ID);
+        limelight.pipelineSwitch(PIPELINE_ID_RED);
         limelight.start();
         lastLoopTime = System.nanoTime();
     }
@@ -234,11 +234,12 @@ public class RedWallCloseAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                robot.shooter.startAutoCloseShoot(); // start shooter for close shots
+                follower.followPath(scorePreload);
+                robot.shooter.startCloseShoot(); // start shooter for close shots
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000) {
+                if (!follower.isBusy() && (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 5000)) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(2);
                 }
@@ -259,13 +260,13 @@ public class RedWallCloseAuto extends OpMode {
                 break;
             case 4:
                 if (!follower.isBusy() || pathTimer.getElapsedTime()>4000){
-                    robot.shooter.startMidShoot();
+                    robot.shooter.startCloseShoot();
                     follower.followPath(scoreStack1);
                     setPathState(5);
                 }
                 break;
             case 5:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachMidSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
                     robot.intake.startIntakeAndTransfer(); //Shoot to score
                     setPathState(6);
                 }
@@ -281,12 +282,12 @@ public class RedWallCloseAuto extends OpMode {
             case 7:
                 if (pathTimer.getElapsedTime()>2000){
                     follower.followPath(intakeStack2);
-                    robot.shooter.startMidShoot();
+                    robot.shooter.startCloseShoot();
                     setPathState(8);
                 }
                 break;
             case 8:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachedSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
                     follower.followPath(scoreStack2);
                     setPathState(9);
                 }
@@ -313,13 +314,13 @@ public class RedWallCloseAuto extends OpMode {
                 break;
             case 12:
                 if (!follower.isBusy() || pathTimer.getElapsedTime()>4000){
-                    robot.shooter.startMidShoot();
+                    robot.shooter.startCloseShoot();
                     follower.followPath(scoreStack3);
                     setPathState(13);
                 }
                 break;
             case 13:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachedSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
                     robot.intake.startIntakeAndTransfer();
                     setPathState(14);
                 }
