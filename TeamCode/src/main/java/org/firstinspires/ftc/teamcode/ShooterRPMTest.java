@@ -21,7 +21,7 @@ public class ShooterRPMTest extends OpMode {
 
     @Override
     public void init() {
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
         shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         shooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -67,7 +67,6 @@ public class ShooterRPMTest extends OpMode {
         } else if (gamepad2.left_bumper) {
             robot.intake.startIntakeOnly();
         } else {
-            robot.intake.stopTransfer();
             robot.intake.stopIntake();
         }
 
