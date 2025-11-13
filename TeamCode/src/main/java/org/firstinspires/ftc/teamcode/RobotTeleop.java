@@ -23,6 +23,7 @@ public class RobotTeleop extends OpMode {
     private Timer timer;
     private Follower follower;
     private Robot robot;
+    private TurretTracker turretTracker;
     private static final double DEAD_ZONE = 0.1;
     private static final double TURRET_DEADZONE = 0.3; // Tighter alignment threshold
 
@@ -39,8 +40,8 @@ public class RobotTeleop extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
-
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
+        turretTracker = new TurretTracker(robot);
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
     }
@@ -50,6 +51,7 @@ public class RobotTeleop extends OpMode {
         timer.resetTimer();
         follower.startTeleopDrive();
         follower.setMaxPower(1.0);
+        turretTracker.start();
     }
 
     private boolean is_CloseShot() {
@@ -114,12 +116,9 @@ public class RobotTeleop extends OpMode {
         );
 
         follower.update();
-
         if (targetTracking_enabled) {
-            robot.vision.update();
+            turretTracker.update(follower.getPose());
         }
-
-
 
         if (is_CloseShot()) {
             robot.shooter.startCloseShoot();
@@ -186,6 +185,5 @@ public class RobotTeleop extends OpMode {
         robot.shooter.stopShoot();
         robot.intake.stopIntake();
         robot.intake.stopTransfer();
-        //if (turretCR != null) turretCR.setPower(0.0);
     }
 }
