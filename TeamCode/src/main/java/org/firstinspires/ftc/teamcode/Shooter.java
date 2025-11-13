@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 public class Shooter {
 
-    public final int shooterCloseRPM = 1000;
+    public final int shooterCloseRPM = 1050;
     public final int shooterFarRPM = 1375;
     public final int shooterMidRPM = 1125;
     public final int shooterHumanRPM = -1200;
