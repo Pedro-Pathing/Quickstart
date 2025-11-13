@@ -39,6 +39,7 @@ public class RobotTeleop extends OpMode {
     @Override
     public void init() {
         timer = new Timer();
+        rapidTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
@@ -86,9 +87,7 @@ public class RobotTeleop extends OpMode {
 //        return gamepad2.dpad_right;
 //    }
 
-    private boolean is_MidRangeShot() {
-        return gamepad2.y;
-    }
+    private boolean is_MidRangeShot() {return gamepad2.y;}
 
     private boolean is_ShootingRapidFire() {
         return gamepad2.b;
@@ -120,9 +119,7 @@ public class RobotTeleop extends OpMode {
             turretTracker.update(follower.getPose());
         }
 
-//        if (is_CloseShot()) {
-//            robot.shooter.startCloseShoot();}
-            else if (is_FarShot()) {
+        if (is_FarShot()) {
             robot.shooter.startFarShoot();
         } else if (is_MidRangeShot()) {
             robot.shooter.startMidShoot();
@@ -140,7 +137,7 @@ public class RobotTeleop extends OpMode {
 
         if (is_ShootingRapidFire() && !is_RapidFireOn) {
             is_RapidFireOn = true;
-            robot.shooter.startCloseShoot();
+            robot.shooter.startMidShoot();
             rapidTimer.resetTimer();
         }
         if (is_RapidFireOn) {
@@ -149,7 +146,7 @@ public class RobotTeleop extends OpMode {
                 gamepad1.rumble(1000);
                 gamepad2.rumble(1000);
             }
-            if (rapidTimer.getElapsedTime() >= 3000) {
+            if (rapidTimer.getElapsedTime() >= 5750) {
                 robot.shooter.stopFlyWheel();
                 robot.intake.intakeStop();
                 robot.intake.stopTransfer();
