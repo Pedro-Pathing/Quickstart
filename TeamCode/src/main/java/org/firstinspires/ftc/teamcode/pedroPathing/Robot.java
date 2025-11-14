@@ -19,9 +19,18 @@ public class Robot {
 
     public ServoImplEx bumper;
 
+    double velocity;
 
     public static double bumperRest;
     public static double bumperUp;
+    public static double intakePower = 0.5;
+    public static int OnRPM = 6000;
+
+
+
+
+    public static double TICKS_PER_REV = 28;
+
 
     public Robot (HardwareMap hardwareMap) {
 
@@ -58,6 +67,18 @@ public class Robot {
         bumper = hardwareMap.get(ServoImplEx.class, "bumper");
 
     }
+
+    public double RPMtoVelocity (int targetRPM) {
+        return (targetRPM * TICKS_PER_REV)/60;
+    }
+
+    public void RPMshooter(int RPM) {
+        velocity = RPMtoVelocity(RPM);
+        launcher1.setVelocity(velocity);
+        launcher2.setVelocity(velocity);
+    }
+
+
 
 
 
