@@ -235,11 +235,11 @@ public class BlueWallCloseAuto extends OpMode {
         switch (pathState) {
             case 0:
                 follower.followPath(scorePreload);
-                robot.shooter.startAutoCloseShoot(); // start shooter for close shots
+                robot.shooter.startCloseShoot(); // start shooter for close shots
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 5000 && !follower.isBusy()) {
+                if (robot.shooter.reachCloseSpeed() || pathTimer.getElapsedTime() > 5000 && !follower.isBusy()) {
                     robot.intake.startIntakeAndTransfer(); // start intake to shoot
                     setPathState(2);
                 }
@@ -260,13 +260,13 @@ public class BlueWallCloseAuto extends OpMode {
                 break;
             case 4:
                 if (!follower.isBusy() || pathTimer.getElapsedTime()>4000){
-                    robot.shooter.startMidShoot();
+                    robot.shooter.startCloseShoot();
                     follower.followPath(scoreStack1);
                     setPathState(5);
                 }
                 break;
             case 5:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachMidSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
                     robot.intake.startIntakeAndTransfer(); //Shoot to score
                     setPathState(6);
                 }
@@ -282,12 +282,12 @@ public class BlueWallCloseAuto extends OpMode {
             case 7:
                 if (pathTimer.getElapsedTime()>2000){
                     follower.followPath(intakeStack2);
-                    robot.shooter.startMidShoot();
+                    robot.shooter.startCloseShoot();
                     setPathState(8);
                 }
                 break;
             case 8:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachMidSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
                     follower.followPath(scoreStack2);
                     setPathState(9);
                 }
@@ -309,18 +309,18 @@ public class BlueWallCloseAuto extends OpMode {
             case 11:
                 if (pathTimer.getElapsedTime()>2000){
                     follower.followPath(intakeStack3);
-                    setPathState(12);
+                    setPathState(-1);
                 }
                 break;
             case 12:
                 if (!follower.isBusy() || pathTimer.getElapsedTime()>4000){
-                    robot.shooter.startMidShoot();
+                    robot.shooter.startCloseShoot();
                     follower.followPath(scoreStack3);
                     setPathState(13);
                 }
                 break;
             case 13:
-                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachMidSpeed()){
+                if (!follower.isBusy() || pathTimer.getElapsedTime()>4000 && robot.shooter.reachCloseSpeed()){
                     robot.intake.startIntakeAndTransfer();
                     setPathState(14);
                 }
