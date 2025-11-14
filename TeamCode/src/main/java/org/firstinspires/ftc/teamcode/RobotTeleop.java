@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 /**
@@ -21,8 +21,12 @@ import com.pedropathing.util.Timer;
 @TeleOp(name = "RobotTeleop", group = "Examples")
 public class RobotTeleop extends OpMode {
     private Timer timer;
+    private Timer rapidTimer;
+
     private Follower follower;
     private Robot robot;
+
+    private Vision vision;
     private TurretTracker turretTracker;
     private static final double DEAD_ZONE = 0.1;
     private static final double TURRET_DEADZONE = 0.3; // Tighter alignment threshold
@@ -34,14 +38,18 @@ public class RobotTeleop extends OpMode {
     private boolean is_RapidFireOn = false;
     private boolean targetTracking_enabled = true;
 
+
+
     @Override
     public void init() {
         timer = new Timer();
+        rapidTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
         robot = new Robot(hardwareMap, telemetry);
-        turretTracker = new TurretTracker(robot);
+//        turretTracker = new TurretTracker(robot);
+        vision = new Vision(hardwareMap, robot.turret);
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
     }
@@ -51,12 +59,9 @@ public class RobotTeleop extends OpMode {
         timer.resetTimer();
         follower.startTeleopDrive();
         follower.setMaxPower(1.0);
-        turretTracker.start();
     }
 
-    private boolean is_CloseShot() {
-        return gamepad2.b;
-    }
+//    private boolean is_CloseShot() {return gamepad2.b; }
 
     private boolean is_FarShot() {
         return gamepad2.x;
@@ -67,7 +72,7 @@ public class RobotTeleop extends OpMode {
     }
 
     private boolean is_Shooting() {
-        return gamepad2.dpad_up;
+        return gamepad2.right_bumper;
     }
 
     private boolean is_HumanPlayer() {
@@ -75,7 +80,7 @@ public class RobotTeleop extends OpMode {
     }
 
     private boolean is_FlywheelOff() {
-        return gamepad2.y;
+        return gamepad2.a;
     }
 
 //    private boolean is_TurretLeft() {
@@ -86,12 +91,10 @@ public class RobotTeleop extends OpMode {
 //        return gamepad2.dpad_right;
 //    }
 
-    private boolean is_MidRangeShot() {
-        return gamepad2.a;
-    }
+    private boolean is_ShootingRapidFireCloseRange() {return gamepad2.b;}
 
-    private boolean is_ShootingRapidFire() {
-        return gamepad2.dpad_down;
+    private boolean is_ShootingRapidFireMidRange() {
+        return gamepad2.y;
     }
 
 
@@ -112,20 +115,18 @@ public class RobotTeleop extends OpMode {
                 yInput * powerScale,  // forward/backward
                 xInput * powerScale,  // strafe
                 turnInput * powerScale, // rotation (negated)
-                true                   // robot-centric
+                true                     // robot-centric
         );
 
         follower.update();
         if (targetTracking_enabled) {
-            turretTracker.update(follower.getPose());
+            vision.update();
         }
 
-        if (is_CloseShot()) {
-            robot.shooter.startCloseShoot();
-        } else if (is_FarShot()) {
+        if (is_FarShot()) {
             robot.shooter.startFarShoot();
-        } else if (is_MidRangeShot()) {
-            robot.shooter.startMidShoot();
+        } else if (is_ShootingRapidFireCloseRange()) {
+            robot.shooter.startCloseShoot();
         } else if (is_HumanPlayer()) {
             robot.shooter.startHumanIntake();
         } else if (is_FlywheelOff()){
@@ -138,24 +139,63 @@ public class RobotTeleop extends OpMode {
             robot.intake.stopIntake();
          }
 
-          if (is_Shooting()) {
-              if (robot.shooter.reachedSpeed()) {
-                  if (is_RapidFireOn) {
-                      robot.intake.startIntakeAndTransfer();
-                  } else {
-                      robot.intake.startTransferOnly();
-                  }
-                  gamepad1.rumble(1000);
-                  gamepad2.rumble(1000);
-              }
-          } else {
-            robot.intake.stopTransfer();
-          }
-
-        if (is_ShootingRapidFire() && timer.getElapsedTime() > 500) {
-                is_RapidFireOn = !is_RapidFireOn;
+        if (is_ShootingRapidFireMidRange() && !is_RapidFireOn) {
+            is_RapidFireOn = true;
+            robot.shooter.startMidShoot();
+            rapidTimer.resetTimer();
+        }
+        if (is_RapidFireOn) {
+            if (robot.shooter.reachedSpeed()) {
+                robot.intake.shootArtifacts();
+                gamepad1.rumble(1000);
+                gamepad2.rumble(1000);
+            }
+            if (rapidTimer.getElapsedTime() >= 5750) {
+                robot.shooter.stopFlyWheel();
+                robot.intake.intakeStop();
+                robot.intake.stopTransfer();
+                is_RapidFireOn = false;
+            }
+        } else {
+            if (is_Shooting()) {
+                if (robot.shooter.reachedSpeed()) {
+                    robot.intake.startTransferOnly();
+                    gamepad1.rumble(1000);
+                    gamepad2.rumble(1000);
+                }
+            } else {
+                robot.intake.stopTransfer();
+            }
         }
 
+        if (is_ShootingRapidFireCloseRange() && !is_RapidFireOn) {
+            is_RapidFireOn = true;
+            robot.shooter.startCloseShoot();
+            rapidTimer.resetTimer();
+        }
+        if (is_RapidFireOn) {
+            if (robot.shooter.reachedSpeed()) {
+                robot.intake.shootArtifacts();
+                gamepad1.rumble(1000);
+                gamepad2.rumble(1000);
+            }
+            if (rapidTimer.getElapsedTime() >= 5750) {
+                robot.shooter.stopFlyWheel();
+                robot.intake.intakeStop();
+                robot.intake.stopTransfer();
+                is_RapidFireOn = false;
+            }
+        } else {
+            if (is_Shooting()) {
+                if (robot.shooter.reachedSpeed()) {
+                    robot.intake.startTransferOnly();
+                    gamepad1.rumble(1000);
+                    gamepad2.rumble(1000);
+                }
+            } else {
+                robot.intake.stopTransfer();
+            }
+        }
 
 
         // Turret control (fixed: check gamepad2 on both dpad sides)

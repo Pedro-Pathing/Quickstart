@@ -16,5 +16,6 @@ public class Robot {
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
+        this.telemetry = telemetry;
     }
 }
