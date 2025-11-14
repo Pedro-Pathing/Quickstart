@@ -9,6 +9,7 @@ public class Shooter {
 
     public final int shooterCloseRPM = 1000;
     public final int shooterFarRPM = 1375;
+    public final int autonShooterFarRPM = 1375;
     public final int shooterMidRPM = 1125;
     public final int shooterHumanRPM = -1200;
     public final int shooterOffRPM = 0;
@@ -32,7 +33,13 @@ public class Shooter {
         shooterMotor.setVelocity(shooterCloseRPM); // converting RPM to ticks per second
     }
     public void startAutoCloseShoot() {
+        currentRPM = autoClose;
         shooterMotor.setVelocity(autoClose); // converting RPM to ticks per second
+    }
+
+    public void startAutonFarShoot() {
+        currentRPM = autonShooterFarRPM;
+        shooterMotor.setVelocity(autonShooterFarRPM);
     }
 
     public void startFarShoot() {
@@ -46,6 +53,7 @@ public class Shooter {
     }
 
     public void startHumanIntake() {
+        currentRPM = shooterHumanRPM;
         shooterMotor.setVelocity(shooterHumanRPM); // converting RPM to ticks per second
     }
 
@@ -82,6 +90,7 @@ public class Shooter {
             shooterLight.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
         }
     }
+
 
 
     public void startReverseShoot() {
