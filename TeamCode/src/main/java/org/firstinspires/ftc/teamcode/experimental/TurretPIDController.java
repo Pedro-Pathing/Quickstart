@@ -45,6 +45,7 @@ public class TurretPIDController {
 
     public TurretPIDController(Robot robot) {
         timer.reset(); // Start the timer for delta time calculation
+        this.robot = robot;
     }
 
     /**
