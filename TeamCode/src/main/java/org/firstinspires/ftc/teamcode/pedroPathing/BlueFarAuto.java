@@ -27,7 +27,7 @@ public class BlueFarAuto extends OpMode {
     private final Pose firstPatternPickUp = new Pose(0, 83.5, Math.toRadians(180));
     private final Pose controlPoint5 = new Pose(55, 89);
     private final Pose controlPoint6 = new Pose(77.5, 84.7);
-    private final Pose secondPattern = new Pose(46, 58.7, Math.toRadians(180));
+    private final Pose secondPattern = new Pose(46, 59, Math.toRadians(180));
     private final Pose secondPatternPickUp = new Pose(0, 59, Math.toRadians(180));
     private final Pose controlPoint3 = new Pose(63.6, 62.5);
     private final Pose controlPoint4 = new Pose(78.1, 60.1);
@@ -100,7 +100,7 @@ public class BlueFarAuto extends OpMode {
         shootStack1 = new Path(new BezierLine(thirdPattern, shootingPose));
         shootStack1.setConstantHeadingInterpolation(shootingPose.getHeading());
 
-        goToSecondPattern = new Path(new BezierCurve(shootingPose, controlPoint3, controlPoint4, secondPattern));
+        goToSecondPattern = new Path(new BezierLine(shootingPose, secondPattern));
         goToSecondPattern.setLinearHeadingInterpolation(shootingPose.getHeading(), secondPattern.getHeading());
 
         getSecondPattern = new Path(new BezierLine(secondPattern, secondPatternPickUp));
@@ -109,13 +109,13 @@ public class BlueFarAuto extends OpMode {
         shootStack2 = new Path(new BezierLine(secondPattern, shootingPose));
         shootStack2.setConstantHeadingInterpolation(shootingPose.getHeading());
 
-        goToFirstPattern = new Path(new BezierCurve(shootingPose, controlPoint5, controlPoint6, firstPattern));
+        goToFirstPattern = new Path(new BezierLine(shootingPose, firstPattern));
         goToFirstPattern.setLinearHeadingInterpolation(shootingPose.getHeading(), thirdPattern.getHeading());
 
         getFirstPattern = new Path(new BezierLine(firstPattern, firstPatternPickUp));
         getFirstPattern.setConstantHeadingInterpolation(firstPatternPickUp.getHeading());
 
-        shootStack3 = new Path(new BezierCurve(firstPattern, controlPoint6,controlPoint5, shootingPose));
+        shootStack3 = new Path(new BezierLine(firstPattern, shootingPose));
         shootStack3.setConstantHeadingInterpolation(shootingPose.getHeading());
 
         endingAuton = new Path(new BezierLine(shootingPose, finalPose));
