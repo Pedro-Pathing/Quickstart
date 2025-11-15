@@ -253,7 +253,7 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTime() > 4000){ //decrease if necessary
+                if (pathTimer.getElapsedTime() > 3000){ //decrease if necessary
                     robot.shooter.stopFlyWheel();
                     robot.intake.stopTransfer();
                     follower.followPath(goToThirdPattern, true);
@@ -267,7 +267,7 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 3:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000)  {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 1500)  {
                     follower.followPath(shootStack1, true);
                     setPathState(4);
                 }
@@ -293,7 +293,7 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 61:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 1000) {
                     follower.followPath(getSecondPattern, true);
                     setPathState(7);
                 }
@@ -305,14 +305,14 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 8:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 3000) {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2500) {
                     robot.shooter.startAutonFarShoot();
                     setPathState(9);
                 }
             case 9:
-                if (robot.shooter.reachedSpeed()|| pathTimer.getElapsedTime() > 4000) {
+                if (robot.shooter.reachedSpeed()|| pathTimer.getElapsedTime() > 3000) {
                     robot.intake.shootArtifacts();
-                   setPathState(10);
+                    setPathState(10);
                 }
                 break;
             case 10:
@@ -324,27 +324,10 @@ public class RedFarAuto extends OpMode {
                 }
                 break;
             case 11:
-                if(pathTimer.getElapsedTime() > 2000)  {
+                if(pathTimer.getElapsedTime() > 1000)  {
                     setPathState(-1);
                 }
                 break;
-            case 12:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 4000) {
-                    robot.shooter.startAutonFarShoot();
-                    setPathState(13);
-                }
-                break;
-            case 13:
-                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 4000) {
-                    robot.intake.shootArtifacts();
-                    setPathState(-1);
-                }
-                break;
-
-
-
-
-
         }
     }
 
