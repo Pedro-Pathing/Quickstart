@@ -27,7 +27,7 @@ public class RedWallCloseAuto extends OpMode {
     private final Pose startPose = new Pose(113, 135, Math.toRadians(90));
     private final Pose intakePose1Control1 = new Pose(88, 72);
     private final Pose intakePose1Contol2 = new Pose(77,85);
-    private final Pose scorePose = new Pose(84, 84, Math.toRadians(37));
+    private final Pose scorePose = new Pose(87, 87, Math.toRadians(37)); //84,84
 
     private final Pose intakePose1 = new Pose(133, 84, Math.toRadians(0));
 
@@ -222,7 +222,7 @@ public class RedWallCloseAuto extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.addData("Shooter RPM: ", robot.shooter.getShooterRPM());
+//        telemetry.addData("Shooter RPM: ", robot.shooter.getShooterRPM());
         // -------------------- TELEMETRY --------------------
         telemetry.addData("Pose X", "%.2f", follower.getPose().getX());
         telemetry.addData("Pose Y", "%.2f", follower.getPose().getY());
@@ -284,7 +284,7 @@ public class RedWallCloseAuto extends OpMode {
                 break;
             case 7:
                 if (pathTimer.getElapsedTime()>500){
-                    robot.shooter.startCloseShoot();
+                    robot.shooter.startAutoMidShoot();
                     setPathState(8);
                 }
                 break;
@@ -295,7 +295,7 @@ public class RedWallCloseAuto extends OpMode {
                 }
                 break;
             case 9:
-                if ((!follower.isBusy() || pathTimer.getElapsedTime()>4000) && robot.shooter.reachCloseSpeed()){
+                if ((!follower.isBusy() || pathTimer.getElapsedTime()>4000) && robot.shooter.reachAutoMidSpeed()){
                     robot.intake.startIntakeAndTransfer(); //shoot to score
                     setPathState(10);
                 }
