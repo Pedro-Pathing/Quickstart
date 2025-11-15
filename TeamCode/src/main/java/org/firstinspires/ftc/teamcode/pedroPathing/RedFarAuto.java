@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 
 import java.util.List;
 
-@Autonomous(name = "Red Far Auto", group = "Examples")
+@Autonomous(name = "Red Far Auto", group = "Competition", preselectTeleOp="RobotTeleop")
 public class RedFarAuto extends OpMode {
     private Robot robot;
     private Follower follower;
