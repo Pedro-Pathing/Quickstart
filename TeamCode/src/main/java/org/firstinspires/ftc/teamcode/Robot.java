@@ -6,6 +6,14 @@ import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Turret;
 
 public class Robot {
+
+    public static final int BLUE_TARGET_TAG_ID = 20;
+    public static final int PIPELINE_ID_BLUE = 8;
+    public static final int RED_TARGET_TAG_ID = 24;
+    public static final int PIPELINE_ID_RED = 2;
+    public static int current_pipeline_id = PIPELINE_ID_RED;
+    public static int current_tag_id = RED_TARGET_TAG_ID;
+
     public Intake intake;
     public Shooter shooter;
     public Turret turret;

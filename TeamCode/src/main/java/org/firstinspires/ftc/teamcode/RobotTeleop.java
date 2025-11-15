@@ -6,7 +6,6 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 /**
@@ -38,18 +37,30 @@ public class RobotTeleop extends OpMode {
     private boolean is_RapidFireOn = false;
     private boolean targetTracking_enabled = true;
 
+    private String currentAlliance = "RED";
 
 
     @Override
     public void init() {
+
         timer = new Timer();
         rapidTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
         robot = new Robot(hardwareMap, telemetry);
+        if(gamepad1.y) {
+            Robot.current_pipeline_id = Robot.PIPELINE_ID_BLUE;
+            Robot.current_tag_id = Robot.BLUE_TARGET_TAG_ID;
+            currentAlliance = "BLUE";
+        }
+        else{
+            Robot.current_pipeline_id = Robot.PIPELINE_ID_RED;
+            Robot.current_tag_id = Robot.RED_TARGET_TAG_ID;
+        }
 //        turretTracker = new TurretTracker(robot);
-        vision = new Vision(hardwareMap, robot.turret);
+        vision = new Vision(hardwareMap, robot);
+        telemetry.addData("Current Alliance: ", currentAlliance);
         telemetry.addLine("RobotTeleop Initialized (CRServo turret)");
         telemetry.update();
     }
@@ -209,6 +220,7 @@ public class RobotTeleop extends OpMode {
 
         currentPose = follower.getPose();
         robot.shooter.shooterLightUpdate();
+        telemetry.addData("Current Alliance: ", currentAlliance);
         telemetry.addData("Rapid Fire On: ", is_RapidFireOn);
         telemetry.addData("Drive X", xInput);
         telemetry.addData("Drive Y", yInput);

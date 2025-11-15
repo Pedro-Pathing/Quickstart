@@ -1,23 +1,18 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.pedropathing.follower.Follower;
-import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
 import java.util.List;
 
 
 public class Vision {
+    private Robot robot;
     private Limelight3A limelight;
     private Turret turret;
-    private static final int TARGET_TAG_ID = 24;
-    private static final int PIPELINE_ID = 2;
     private long lastLoopTime = 0;
 
     private double lastError = 0.0;
@@ -43,12 +38,13 @@ public class Vision {
     // Low-pass filter for smoothing
     private static final double FILTER_ALPHA = 0.7; // 0=all history, 1=no filtering
 
-    public Vision (HardwareMap hardwareMap, Turret turret) {
+    public Vision (HardwareMap hardwareMap, Robot robot) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(PIPELINE_ID);
+        limelight.pipelineSwitch(Robot.current_pipeline_id);
         limelight.start();
         lastLoopTime = System.nanoTime();
-        this.turret = turret;
+        this.turret = robot.turret;
+        this.robot = robot;
     }
 
     public void update() {
@@ -68,7 +64,7 @@ public class Vision {
 
             if (fiducials != null && !fiducials.isEmpty()) {
                 for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                    if (fiducial.getFiducialId() == TARGET_TAG_ID) {
+                    if (fiducial.getFiducialId() == Robot.current_tag_id) {
                         tx = fiducial.getTargetXDegrees();
                         detectedTagID = fiducial.getFiducialId();
                         trackingTag = true;
