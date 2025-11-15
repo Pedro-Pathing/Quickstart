@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.experimental;
 
+import org.firstinspires.ftc.teamcode.Robot;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -11,21 +12,16 @@ import java.util.List;
  */
 public class LimelightTracker {
     private Limelight3A limelight;
-    private final int targetTagId;
     private double currentTx = 0.0;
     private boolean isTargetFound = false;
     private int detectedTagID = -1;
+    private Robot robot;
 
     /**
-     * @param hardwareMap The OpMode's hardware map.
-     * @param llName The name of the Limelight in the configuration.
-     * @param pipelineId The ID of the Limelight pipeline to use.
-     * @param targetTagId The specific AprilTag ID to track (e.g., 24).
      */
-    public LimelightTracker(HardwareMap hardwareMap, String llName, int pipelineId, int targetTagId) {
-        this.targetTagId = targetTagId;
-        limelight = hardwareMap.get(Limelight3A.class, llName);
-        limelight.pipelineSwitch(pipelineId);
+    public LimelightTracker(Robot robot) {
+        limelight = robot.hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(Robot.pipeline_id);
         limelight.start();
     }
 
@@ -46,7 +42,7 @@ public class LimelightTracker {
                 detectedTagID = fiducials.get(0).getFiducialId();
 
                 for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                    if (fiducial.getFiducialId() == targetTagId) {
+                    if (fiducial.getFiducialId() == Robot.target_tag_id) {
                         currentTx = fiducial.getTargetXDegrees();
                         isTargetFound = true;
                         detectedTagID = fiducial.getFiducialId();
