@@ -32,10 +32,9 @@ package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.CRServoClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.DcMotorExClass;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 
 import dev.nextftc.control.feedback.PIDCoefficients;
@@ -55,8 +54,7 @@ public class LoadHardwareClass {
     public final MecanumDrivetrainClass drivetrain;
     public final DcMotorExClass turret;
     public final DcMotorExClass flywheel;
-    public final DcMotorExClass intake;
-    public final CRServoClass belt;
+    public final Intake intake;
 
     // Subsystem configuration
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
@@ -72,8 +70,7 @@ public class LoadHardwareClass {
         this.drivetrain = new MecanumDrivetrainClass();
         this.turret     = new DcMotorExClass();
         this.flywheel   = new DcMotorExClass();
-        this.intake     = new DcMotorExClass();
-        this.belt       = new CRServoClass();
+        this.intake     = new Intake();
     }
     /**
      * Initializes all hardware for the robot.
@@ -84,11 +81,7 @@ public class LoadHardwareClass {
         drivetrain.init(myOpMode, initialPose);
         turret.init(myOpMode, "turret", 103.8);
         flywheel.init(myOpMode, "flywheel");
-        intake.init(myOpMode, "intake");
-        belt.init(myOpMode, "belt");
-
-        // Misc configuration
-        intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.init(myOpMode);
 
         // Pass PID pidCoefficients to motor classes
         turret.setPidCoefficients(turretCoefficients);

@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Calculation_.Turret_Heading;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
@@ -95,12 +96,14 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.turret.setAngle(target);
 
             if (gamepad2.a){
-                Robot.intake.setPower(-1);
+                Robot.intake.setMode(Intake.Mode.INTAKE);
+            }else if (gamepad2.b){
+                Robot.intake.setMode(Intake.Mode.SHOOTING);
             }else if (gamepad2.x){
-                Robot.intake.setPower(1);
+                Robot.intake.setMode(Intake.Mode.REVERSE);
+            }else{
+                Robot.intake.setMode(Intake.Mode.OFF);
             }
-
-            Robot.belt.setPower(gamepad2.left_trigger);
 
             Robot.updatePIDs();
 
@@ -112,16 +115,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
             // Intake-related Telemetry
             telemetry.addLine();
-            telemetry.addData("Intake Status", () -> {
-                if(Robot.intake.getPower() == 1){
-                    return "Outtaking";
-                }else if (Robot.intake.getPower() == -1){
-                    return "Intaking";
-                }else{
-                    return "Off";
-                }
-            });
-            telemetry.addData("Intake RPM", Robot.intake.getRPM());
+            telemetry.addData("Intake Status", Robot.intake.getMode());
 
             // System-related Telemetry
             telemetry.addLine();
