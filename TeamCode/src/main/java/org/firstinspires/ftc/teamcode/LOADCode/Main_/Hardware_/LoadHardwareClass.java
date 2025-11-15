@@ -33,12 +33,9 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.DcMotorExClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
-
-import dev.nextftc.control.feedback.PIDCoefficients;
-import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
 /*
  * This file is designed to work with our OpModes to handle all our hardware functionality to de-clutter our main scripts
@@ -52,14 +49,15 @@ public class LoadHardwareClass {
 
     // Declare subclasses
     public final MecanumDrivetrainClass drivetrain;
-    public final DcMotorExClass turret;
-    public final DcMotorExClass flywheel;
+    public final Turret turret;
     public final Intake intake;
 
-    // Subsystem configuration
-    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
-    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
-    public static BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
+    // Declare various enums & other variables that are useful across files
+    public static Alliance selectedAlliance = null;
+    public enum Alliance {
+        RED,
+        BLUE
+    }
 
     /**
      * Constructor that allows the OpMode to pass a reference to itself.
@@ -68,8 +66,7 @@ public class LoadHardwareClass {
     public LoadHardwareClass(OpMode opmode) {
         myOpMode = opmode;
         this.drivetrain = new MecanumDrivetrainClass();
-        this.turret     = new DcMotorExClass();
-        this.flywheel   = new DcMotorExClass();
+        this.turret     = new Turret();
         this.intake     = new Intake();
     }
     /**
@@ -79,24 +76,11 @@ public class LoadHardwareClass {
     public void init(Pose initialPose)    {
         // Initialize all subclasses
         drivetrain.init(myOpMode, initialPose);
-        turret.init(myOpMode, "turret", 103.8);
-        flywheel.init(myOpMode, "flywheel");
+        turret.init(myOpMode);
         intake.init(myOpMode);
-
-        // Pass PID pidCoefficients to motor classes
-        turret.setPidCoefficients(turretCoefficients);
-        flywheel.setPidCoefficients(flywheelCoefficients);
-        flywheel.setFFCoefficients(ffCoefficients);
 
         // Misc telemetry
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
-    }
-
-    public void updatePIDs(){
-        // Pass PID pidCoefficients to motor classes
-        turret.setPidCoefficients(turretCoefficients);
-        flywheel.setPidCoefficients(flywheelCoefficients);
-        flywheel.setFFCoefficients(ffCoefficients);
     }
 }

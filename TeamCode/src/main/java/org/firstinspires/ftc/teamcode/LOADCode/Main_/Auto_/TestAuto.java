@@ -11,9 +11,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "TestAutoR1", group = "TestAuto")
+@Autonomous(name = "TestAutoR1", group = "TestAuto", preselectTeleOp="Teleop_Main_")
 public class TestAuto extends OpMode {
 
     private Follower follower;
@@ -24,12 +25,8 @@ public class TestAuto extends OpMode {
 
     Prompter prompter = null;
 
-    enum Alliance {
-        RED,
-        BLUE
-    }
-
-    Alliance alliance = null;
+    // Create a new instance of our Robot class
+    LoadHardwareClass Robot = new LoadHardwareClass(this);
 
     private final Pose startPose = new Pose(87, 8.8, Math.toRadians(90)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(86, 22, Math.toRadians(80)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
@@ -202,13 +199,12 @@ public class TestAuto extends OpMode {
         follower.setStartingPose(startPose);
 
         prompter = new Prompter(this);
-        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Alliance.RED, Alliance.BLUE));
+        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE));
         prompter.onComplete(() -> {
-                    alliance = prompter.get("alliance");
+                    LoadHardwareClass.selectedAlliance = prompter.get("alliance");
                     telemetry.addData("Selection", "Complete");
                 }
         );
-
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
@@ -233,7 +229,7 @@ public class TestAuto extends OpMode {
         follower.update();
         //autonomousPathUpdate();
 
-        telemetry.addData("Alliance", alliance);
+        telemetry.addData("Alliance", LoadHardwareClass.selectedAlliance);
 
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);

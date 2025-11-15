@@ -8,8 +8,6 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generi
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.DcMotorExClass;
 
 public class Intake {
-    private static OpMode opMode;
-
     private final DcMotorExClass intake = new DcMotorExClass();
     private final CRServoClass belt = new CRServoClass();
 
@@ -21,9 +19,8 @@ public class Intake {
     }
 
     public void init(OpMode opmode){
-        opMode = opmode;
-        intake.init(opMode, "intake");
-        belt.init(opMode, "belt");
+        intake.init(opmode, "intake");
+        belt.init(opmode, "belt");
 
         intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);

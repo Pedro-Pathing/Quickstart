@@ -33,9 +33,10 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.skeletonarmy.marrow.prompts.OptionPrompt;
+import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Calculation_.Turret_Heading;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 //TODO, implement all our external libraries and functionality.
@@ -45,6 +46,8 @@ public class Teleop_Main_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+
+    Prompter prompter = null;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
@@ -56,14 +59,27 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
-        Turret_Heading targeting = new Turret_Heading();
+
+        // Create a new prompter for selecting alliance
+        prompter = new Prompter(this);
+        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE));
+        prompter.onComplete(() -> {
+                    LoadHardwareClass.selectedAlliance = prompter.get("alliance");
+                    telemetry.addData("Selection", "Complete");
+                }
+        );
+
+        // Runs repeatedly while in init
+        while (opModeInInit()){
+            // If an auto was not run, run the prompter to select the correct alliance
+            if (LoadHardwareClass.selectedAlliance == null){
+                prompter.run();
+            }
+        }
 
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
-
-        // This variable contains the target position for the turret.
-        double target = 0;
 
         // Initialize all hardware of the robot
         Robot.init(startPose);
@@ -86,14 +102,13 @@ public class Teleop_Main_ extends LinearOpMode {
             );
 
             if (gamepad2.guide){
-                target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), true)-540);
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
             }else if (gamepad2.back){
-                target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), false)-540);
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
             }else if (Math.abs(gamepad2.left_stick_x)>0.2 || Math.abs(gamepad2.left_stick_y)>0.2) {
-                target = Math.toDegrees(Math.atan2(gamepad2.left_stick_y, gamepad2.left_stick_x));
+                Robot.turret.rotation.setAngle(
+                        Math.toDegrees(Math.atan2(gamepad2.left_stick_y, gamepad2.left_stick_x)));
             }
-
-            Robot.turret.setAngle(target);
 
             if (gamepad2.a){
                 Robot.intake.setMode(Intake.Mode.INTAKE);
@@ -105,13 +120,11 @@ public class Teleop_Main_ extends LinearOpMode {
                 Robot.intake.setMode(Intake.Mode.OFF);
             }
 
-            Robot.updatePIDs();
+            Robot.turret.updatePIDs();
 
             // Turret-related Telemetry
-            telemetry.addData("Turret PIDs", LoadHardwareClass.turretCoefficients);
-            telemetry.addData("Turret Target Angle:", target);
-            telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
-            telemetry.addData("Turret Set Power", Robot.turret.getPower());
+            telemetry.addData("Turret Target Angle:", Robot.turret.rotation.target);
+            telemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
 
             // Intake-related Telemetry
             telemetry.addLine();

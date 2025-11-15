@@ -18,7 +18,9 @@ public class DcMotorExClass {
     BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
     // Encoder ticks/rotation
     // 1620rpm Gobilda - 103.8 ticks at the motor shaft
-    double ticksPerRotation = 103.8;
+    public double ticksPerRotation = 103.8;
+    // Target position/velocity of the motor
+    public double target = 0;
     // Motor object
     private DcMotorEx motorObject = null;
 
@@ -93,12 +95,6 @@ public class DcMotorExClass {
         return motorObject.getCurrentPosition();
     }
     /**
-     * @return The resolution of the turret's encoder in ticks/rotation.
-     */
-    public double getEncoderResolution(){
-        return ticksPerRotation;
-    }
-    /**
      * @param power A value between -1 and 1 that the turret motor's power will be set to.
      */
     public void setPower(double power){
@@ -146,9 +142,10 @@ public class DcMotorExClass {
      * @param angle The angle in degrees to move the motor to. Can be any number.
      */
     public void setAngle(double angle){
+        target = angle;
         ControlSystem turretPID = ControlSystem.builder().posPid(pidCoefficients).build();
         KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
-        turretPID.setGoal(new KineticState(angle));
+        turretPID.setGoal(new KineticState(target));
         setPower(turretPID.calculate(currentKineticState));
     }
     /**
@@ -157,7 +154,8 @@ public class DcMotorExClass {
      * @param rpm The RPM to accelerate the motor to. Can be any number
      */
     public void setRPM(double rpm){
-        double degreesPerSecond = rpm*6;
+        target = rpm;
+        double degreesPerSecond = target*6;
         ControlSystem PID = ControlSystem.builder()
                 .velPid(pidCoefficients)
                 .basicFF(ffCoefficients)
