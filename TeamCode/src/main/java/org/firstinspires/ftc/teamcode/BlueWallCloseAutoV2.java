@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.experimental.TurretPIDController;
 
 import java.util.List;
 
-@Autonomous(name = "Blue Wall Close Auto", group = "Competition", preselectTeleOp="RobotTeleop")
+@Autonomous(name = "Blue Wall Close Auto V2", group = "Competition", preselectTeleOp="RobotTeleop")
 public class BlueWallCloseAutoV2 extends OpMode {
     private Robot robot;
     private Follower follower;
@@ -29,8 +29,8 @@ public class BlueWallCloseAutoV2 extends OpMode {
     private TurretPIDController turretController;
     private Path scorePreload, intakeStack1, turn, scoreStack1, openGate, initialIntakeStack2, intakeStack2, reverseInitialIntakeStack2, scoreStack2, intakeStack3, scoreStack3;
     private final Pose startPose = new Pose(31, 135, Math.toRadians(90));
-    private final Pose intakePose1Control1 = new Pose(44, 80);
-    private final Pose intakePose1Contol2 = new Pose(50,84);
+    private final Pose intakePose1Control1 = new Pose(66, 80);
+    private final Pose intakePose1Contol2 = new Pose(52,85);
     private final Pose scorePose = new Pose(58, 86, Math.toRadians(143));
 
     private final Pose intakePose1 = new Pose(12, 84, Math.toRadians(180));
@@ -267,6 +267,7 @@ public class BlueWallCloseAutoV2 extends OpMode {
                     robot.shooter.stopShoot();
                     robot.intake.stopTransfer();
                     robot.intake.startIntakeOnly();
+
                     follower.followPath(intakeStack1);
                     setPathState(4);
                 }
@@ -295,7 +296,7 @@ public class BlueWallCloseAutoV2 extends OpMode {
                 break;
             case 7:
                 if (pathTimer.getElapsedTime()>500){
-                    robot.shooter.startCloseShoot();
+                    robot.shooter.startAutoMidShoot();
                     setPathState(8);
                 }
                 break;
@@ -306,7 +307,7 @@ public class BlueWallCloseAutoV2 extends OpMode {
                 }
                 break;
             case 9:
-                if ((!follower.isBusy() || pathTimer.getElapsedTime()>4000) && robot.shooter.reachCloseSpeed()){
+                if ((!follower.isBusy() || pathTimer.getElapsedTime()>4000) && robot.shooter.reachAutoMidSpeed()){
                     robot.intake.startIntakeAndTransfer(); //shoot to score
                     setPathState(10);
                 }

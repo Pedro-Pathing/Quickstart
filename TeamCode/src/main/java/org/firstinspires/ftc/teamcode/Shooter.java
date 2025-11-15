@@ -7,9 +7,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 public class Shooter {
 
-    public final int shooterCloseRPM = 950;
+    public final int shooterCloseRPM = 970; //950
     public final int shooterFarRPM = 1375;
     public final int autonShooterFarRPM = 1370;
+    public final int autonMidRPM = 1050;
     public final int shooterMidRPM = 975;
     public final int shooterHumanRPM = -1200;
     public final int shooterOffRPM = 0;
@@ -35,6 +36,10 @@ public class Shooter {
     public void startAutoCloseShoot() {
         currentRPM = autoClose;
         shooterMotor.setVelocity(autoClose); // converting RPM to ticks per second
+    }
+    public void startAutoMidShoot() {
+        currentRPM = autonMidRPM;
+        shooterMotor.setVelocity(autonMidRPM); // converting RPM to ticks per second
     }
 
     public void startAutonFarShoot() {
@@ -73,6 +78,13 @@ public class Shooter {
     }
     public boolean reachMidSpeed () {
         if (shooterMotor.getVelocity() >= shooterMidRPM) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public boolean reachAutoMidSpeed () {
+        if (shooterMotor.getVelocity() >= autonMidRPM) {
             return true;
         } else {
             return false;
