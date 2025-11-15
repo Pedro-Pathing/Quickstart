@@ -65,6 +65,7 @@ public class Tuning extends SelectableOpMode {
                 p.add("Translational Tuner", TranslationalTuner::new);
                 p.add("Heading Tuner", HeadingTuner::new);
                 p.add("Drive Tuner", DriveTuner::new);
+                p.add("Line Tuner", Line::new);
                 p.add("Centripetal Tuner", CentripetalTuner::new);
             });
             s.folder("Tests", p -> {
