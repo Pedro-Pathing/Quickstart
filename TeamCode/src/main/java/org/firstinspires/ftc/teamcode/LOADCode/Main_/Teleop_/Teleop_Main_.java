@@ -70,6 +70,12 @@ public class Teleop_Main_ extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            if (gamepad1.left_trigger > 0.5){
+                Robot.drivetrain.speedMultiplier = 0.2;
+            }else{
+                Robot.drivetrain.speedMultiplier = 1;
+            }
+
             // Pass the joystick positions to our mecanum drive controller
             Robot.drivetrain.pedroMecanumDrive(
                     gamepad1.left_stick_y,
@@ -78,15 +84,7 @@ public class Teleop_Main_ extends LinearOpMode {
                     true
             );
 
-            if (gamepad2.bWasPressed()){
-                target = 90;
-            }else if (gamepad2.yWasPressed()){
-                target = 0;
-            }else if (gamepad2.aWasPressed()){
-                target = 180;
-            }else if (gamepad2.xWasPressed()){
-                target = 270;
-            }else if (gamepad2.guide){
+            if (gamepad2.guide){
                 target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), true)-540);
             }else if (gamepad2.back){
                 target = Math.abs(targeting.calcLocalizer(Robot.drivetrain.follower.getPose(), false)-540);
@@ -96,8 +94,13 @@ public class Teleop_Main_ extends LinearOpMode {
 
             Robot.turret.setAngle(target);
 
-            Robot.intake.setPower(gamepad1.left_trigger);
-            Robot.flywheel.setPower(gamepad1.right_trigger);
+            if (gamepad2.a){
+                Robot.intake.setPower(-1);
+            }else if (gamepad2.x){
+                Robot.intake.setPower(1);
+            }
+
+            Robot.belt.setPower(gamepad2.left_trigger);
 
             Robot.updatePIDs();
 
@@ -106,11 +109,18 @@ public class Teleop_Main_ extends LinearOpMode {
             telemetry.addData("Turret Target Angle:", target);
             telemetry.addData("Turret Actual Angle", Robot.turret.getAngleAbsolute());
             telemetry.addData("Turret Set Power", Robot.turret.getPower());
-            telemetry.addData("Turret RPM", Robot.turret.getRPM());
 
             // Intake-related Telemetry
             telemetry.addLine();
-            telemetry.addData("Intake Set Power", Robot.intake.getPower());
+            telemetry.addData("Intake Status", () -> {
+                if(Robot.intake.getPower() == 1){
+                    return "Outtaking";
+                }else if (Robot.intake.getPower() == -1){
+                    return "Intaking";
+                }else{
+                    return "Off";
+                }
+            });
             telemetry.addData("Intake RPM", Robot.intake.getRPM());
 
             // System-related Telemetry

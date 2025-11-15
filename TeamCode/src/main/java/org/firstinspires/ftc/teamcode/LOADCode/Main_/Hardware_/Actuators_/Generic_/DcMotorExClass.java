@@ -1,10 +1,11 @@
-package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_;
+package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_;
 
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
@@ -64,6 +65,26 @@ public class DcMotorExClass {
     public void resetEncoder(){
         motorObject.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorObject.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    /**
+     * Sets the runMode of the motor.
+     * @param runMode The mode to set the motor to.
+     */
+    public void setRunMode(DcMotor.RunMode runMode){
+        motorObject.setMode(runMode);
+    }
+    /**
+     * Sets the zeroPowerBehaviour of the motor.
+     * @param behaviour The behaviour to apply to the motor.
+     */
+    public void setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior behaviour){
+        motorObject.setZeroPowerBehavior(behaviour);
+    }
+    /**
+     * @param direction The direction to set the motor to.
+     */
+    public void setDirection(DcMotorSimple.Direction direction){
+        motorObject.setDirection(direction);
     }
     /**
      * @return The current position of the turret motor in encoder ticks. Can be any value.

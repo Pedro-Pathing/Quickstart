@@ -28,11 +28,14 @@
  */
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.DcMotorExClass;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.CRServoClass;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.DcMotorExClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 
 import dev.nextftc.control.feedback.PIDCoefficients;
@@ -46,13 +49,14 @@ import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 @Configurable
 public class LoadHardwareClass {
     /* Declare OpMode members. */
-    private final LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
+    private final OpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Declare subclasses
     public final MecanumDrivetrainClass drivetrain;
     public final DcMotorExClass turret;
     public final DcMotorExClass flywheel;
     public final DcMotorExClass intake;
+    public final CRServoClass belt;
 
     // Subsystem configuration
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
@@ -63,12 +67,13 @@ public class LoadHardwareClass {
      * Constructor that allows the OpMode to pass a reference to itself.
      * @param opmode The input for this parameter should almost always be "this".
      */
-    public LoadHardwareClass(LinearOpMode opmode) {
+    public LoadHardwareClass(OpMode opmode) {
         myOpMode = opmode;
         this.drivetrain = new MecanumDrivetrainClass();
         this.turret     = new DcMotorExClass();
         this.flywheel   = new DcMotorExClass();
         this.intake     = new DcMotorExClass();
+        this.belt       = new CRServoClass();
     }
     /**
      * Initializes all hardware for the robot.
@@ -80,6 +85,10 @@ public class LoadHardwareClass {
         turret.init(myOpMode, "turret", 103.8);
         flywheel.init(myOpMode, "flywheel");
         intake.init(myOpMode, "intake");
+        belt.init(myOpMode, "belt");
+
+        // Misc configuration
+        intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Pass PID pidCoefficients to motor classes
         turret.setPidCoefficients(turretCoefficients);
@@ -97,6 +106,4 @@ public class LoadHardwareClass {
         flywheel.setPidCoefficients(flywheelCoefficients);
         flywheel.setFFCoefficients(ffCoefficients);
     }
-
-
 }
