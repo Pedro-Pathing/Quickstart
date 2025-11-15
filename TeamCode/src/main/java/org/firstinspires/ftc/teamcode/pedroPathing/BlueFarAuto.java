@@ -244,7 +244,7 @@ public class BlueFarAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 4000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 3000) {
                     robot.intake.shootArtifacts();
                     setPathState(2);
                 }
@@ -313,7 +313,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 10:
-                if (pathTimer.getElapsedTime() > 5000){
+                if (pathTimer.getElapsedTime() > 2500){
                     robot.shooter.stopFlyWheel();
                     robot.intake.stopTransfer();
                     follower.followPath(endingAuton, true);
