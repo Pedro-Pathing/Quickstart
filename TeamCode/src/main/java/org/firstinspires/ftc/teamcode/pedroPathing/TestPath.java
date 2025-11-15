@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 
-@Autonomous(name = "SampleAutoPush", group = "Competition", preselectTeleOp="SciRavens-TeleOp")
+@Autonomous(name = "SampleAutoPush", group = "Examples")
 public class TestPath extends OpMode{
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;

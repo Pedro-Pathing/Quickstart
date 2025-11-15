@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
-@Autonomous(name = "Example Auto", group = "Examples")
+@Autonomous(name = "Blue Far Auto", group = "Competition", preselectTeleOp="RobotTeleop")
 public class BlueFarAuto extends OpMode {
     private Robot robot;
     private Follower follower;

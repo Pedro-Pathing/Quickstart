@@ -17,7 +17,7 @@ import com.pedropathing.util.Timer;
  * Version:
  *   3.1, 10/2025
  */
-@TeleOp(name = "RobotTeleop", group = "Examples")
+@TeleOp(name = "RobotTeleop", group = "Competition")
 public class RobotTeleop extends OpMode {
     private Timer timer;
     private Timer rapidTimer;
