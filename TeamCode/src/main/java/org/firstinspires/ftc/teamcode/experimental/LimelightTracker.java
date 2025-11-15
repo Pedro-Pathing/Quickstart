@@ -21,7 +21,7 @@ public class LimelightTracker {
      */
     public LimelightTracker(Robot robot) {
         limelight = robot.hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(Robot.pipeline_id);
+        limelight.pipelineSwitch(Robot.current_pipeline_id);
         limelight.start();
     }
 
@@ -42,7 +42,7 @@ public class LimelightTracker {
                 detectedTagID = fiducials.get(0).getFiducialId();
 
                 for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                    if (fiducial.getFiducialId() == Robot.target_tag_id) {
+                    if (fiducial.getFiducialId() == Robot.current_tag_id) {
                         currentTx = fiducial.getTargetXDegrees();
                         isTargetFound = true;
                         detectedTagID = fiducial.getFiducialId();
