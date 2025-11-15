@@ -20,21 +20,23 @@ public class BlueFarAuto extends OpMode {
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
-    private Path goToFirstPattern, shootStack1, goToSecondPattern, shootStack2, goToThirdPattern, shootStack3, getFirstPattern, getSecondPattern, getThirdPattern;
-    private final Pose startPose = new Pose(54.5, 8, Math.toRadians(180));
+    private Path goToFirstPattern, shootStack1, goToSecondPattern, shootStack2, goToThirdPattern,
+            shootStack3, getFirstPattern, getSecondPattern, getThirdPattern, endingAuton;
+    private final Pose startPose = new Pose(46, 8, Math.toRadians(180));
     private final Pose firstPattern = new Pose(49, 83.4, Math.toRadians(180));
     private final Pose firstPatternPickUp = new Pose(0, 83.5, Math.toRadians(180));
     private final Pose controlPoint5 = new Pose(55, 89);
     private final Pose controlPoint6 = new Pose(77.5, 84.7);
-    private final Pose secondPattern = new Pose(59.3, 58.7, Math.toRadians(180));
-    private final Pose secondPatternPickUp = new Pose(6, 59, Math.toRadians(180));
+    private final Pose secondPattern = new Pose(46, 58.7, Math.toRadians(180));
+    private final Pose secondPatternPickUp = new Pose(0, 59, Math.toRadians(180));
     private final Pose controlPoint3 = new Pose(63.6, 62.5);
     private final Pose controlPoint4 = new Pose(78.1, 60.1);
-    private final Pose thirdPattern = new Pose(54.5, 35, Math.toRadians(180));
-    private final Pose thirdPatternPickUp = new Pose(6, 35, Math.toRadians(180));
+    private final Pose thirdPattern = new Pose(46, 35, Math.toRadians(180));
+    private final Pose thirdPatternPickUp = new Pose(0, 35, Math.toRadians(180));
     private final Pose controlPoint1 = new Pose(66.2, 44);
     private final Pose controlPoint2 = new Pose(72.1,32.3);
-    private final Pose shootingPose = new Pose(59.3, 7, Math.toRadians(180));
+    private final Pose shootingPose = new Pose(46, 7, Math.toRadians(180));
+    private final Pose finalPose = new Pose(24, 10, Math.toRadians(0));
     private CRServo turretCR;
 
     // Turret PID constants - TUNED for smooth tracking
@@ -115,7 +117,9 @@ public class BlueFarAuto extends OpMode {
 
         shootStack3 = new Path(new BezierCurve(firstPattern, controlPoint6,controlPoint5, shootingPose));
         shootStack3.setConstantHeadingInterpolation(shootingPose.getHeading());
-//
+
+        endingAuton = new Path(new BezierLine(shootingPose, finalPose));
+        endingAuton.setConstantHeadingInterpolation(shootingPose.getHeading());
 
     }
 
@@ -246,7 +250,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTime() > 5000){ //decrease if necessary
+                if (pathTimer.getElapsedTime() > 4000){ //decrease if necessary
                     robot.shooter.stopFlyWheel();
                     robot.intake.stopTransfer();
                     follower.followPath(goToThirdPattern, true);
@@ -254,7 +258,7 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 21:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 1000) {
                     follower.followPath(getThirdPattern, true);
                     setPathState(3);
                 }
@@ -266,19 +270,19 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 4:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 3000) {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 1000) {
                     robot.shooter.startAutonFarShoot();
                     setPathState(5);
                 }
                 break;
             case 5:
-                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 4000) {
+                if (robot.shooter.reachedSpeed() || pathTimer.getElapsedTime() > 3000) {
                     robot.intake.shootArtifacts();
                     setPathState(6);
                 }
                 break;
             case 6:
-                if (pathTimer.getElapsedTime() > 4000){
+                if (pathTimer.getElapsedTime() > 3000){
                     robot.shooter.stopFlyWheel();
                     robot.intake.stopTransfer();
                     follower.followPath(goToSecondPattern, true);
@@ -286,13 +290,13 @@ public class BlueFarAuto extends OpMode {
                 }
                 break;
             case 61:
-                if(pathTimer.getElapsedTime() > 3000) {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000) {
                     follower.followPath(getSecondPattern, true);
-                    setPathState(61);
+                    setPathState(7);
                 }
                 break;
             case 7:
-                if(!follower.isBusy() || pathTimer.getElapsedTime() > 4000)  {
+                if(!follower.isBusy() || pathTimer.getElapsedTime() > 2000)  {
                     follower.followPath(shootStack2, true);
                     setPathState(8);
                 }
@@ -312,7 +316,7 @@ public class BlueFarAuto extends OpMode {
                 if (pathTimer.getElapsedTime() > 5000){
                     robot.shooter.stopFlyWheel();
                     robot.intake.stopTransfer();
-                    //follower.followPath(goToFirstPattern, true);
+                    follower.followPath(endingAuton, true);
                     setPathState(-1);
                 }
                 break;

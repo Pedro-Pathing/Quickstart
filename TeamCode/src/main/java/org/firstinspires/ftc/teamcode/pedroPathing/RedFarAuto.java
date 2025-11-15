@@ -274,7 +274,7 @@ public class RedFarAuto extends OpMode {
                 break;
             case 4:
                 if(!follower.isBusy() || pathTimer.getElapsedTime() > 1000) {
-                    robot.shooter.startFarShoot();
+                    robot.shooter.startAutonFarShoot();
                     setPathState(5);
                 }
                 break;
@@ -306,7 +306,7 @@ public class RedFarAuto extends OpMode {
                 break;
             case 8:
                 if(!follower.isBusy() || pathTimer.getElapsedTime() > 3000) {
-                    robot.shooter.startFarShoot();
+                    robot.shooter.startAutonFarShoot();
                     setPathState(9);
                 }
             case 9:
