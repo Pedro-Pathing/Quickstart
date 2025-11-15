@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.experimental;
 import org.firstinspires.ftc.teamcode.Robot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 

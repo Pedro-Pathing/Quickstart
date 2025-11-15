@@ -4,18 +4,16 @@ import org.firstinspires.ftc.teamcode.Robot;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import java.util.List;
 
 /**
  * Handles communication with the Limelight 3A to acquire target data.
  */
 public class LimelightTracker {
-    private Limelight3A limelight;
+    private final Limelight3A limelight;
     private double currentTx = 0.0;
     private boolean isTargetFound = false;
     private int detectedTagID = -1;
-    private Robot robot;
 
     /**
      */
