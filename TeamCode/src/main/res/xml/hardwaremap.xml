@@ -7,9 +7,11 @@
             <goBILDA5202SeriesMotor name="motorExp2" port="2" />
             <goBILDA5202SeriesMotor name="motorExp3" port="3" />
             <Servo name="servoExp0" port="0" />
+            <Servo name="servoExp0" port="1" />
             <Servo name="servoExp2" port="2" />
+            <Servo name="servoExp0" port="3" />
             <Servo name="servoExp4" port="4" />
-            <ContinuousRotationServo name="servo6" port="6" />
+            <ContinuousRotationServo name="servoExp5" port="5" />
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
             <goBILDA5202SeriesMotor name="motor0" port="0" />
@@ -17,9 +19,11 @@
             <goBILDA5202SeriesMotor name="motor2" port="2" />
             <goBILDA5202SeriesMotor name="motor3" port="3" />
             <Servo name="servo0" port="0" />
+            <Servo name="servo1" port="1" />
             <Servo name="servo2" port="2" />
+            <Servo name="servo3" port="3" />
             <Servo name="servo4" port="4" />
-            <ContinuousRotationServo name="servo6" port="6" />
+            <ContinuousRotationServo name="servo5" port="5" />
             <REVHubPinpointOdometry name="pinpoint" bus="1" />
         </LynxModule>
     </LynxUsbDevice>
