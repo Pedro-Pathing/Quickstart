@@ -60,7 +60,18 @@ setup() {
 connect() {
   echo "connecting to $ROBOT_IP..."
   adb connect $ROBOT_IP
+
+  if [ $? -ne 0 ]; then
+    echo "failed to connect to $ROBOT_IP"
+    return 1
+  fi
+
+  echo "pushing hardware configuration..."
+  adb push hardwaremap.xml /sdcard/FIRST/xml/hardwaremap.xml
+
+  echo "done. Config uploaded and RC app restarted."
 }
+
 
 disconnect() {
   echo "Disconnecting from all adb devices..."

@@ -25,7 +25,6 @@ public class TestSingleMotorTeleOp extends OpMode {
         // Store motors currently accessible from the HardwareMap
         motors.clear();
         motors.addAll(hardwareMap.getAll(DcMotor.class));
-
         telemetry.addData("motor count", motors.size());
         for (DcMotor m : motors) {
             telemetry.addData("found motors", m.getDeviceName());
