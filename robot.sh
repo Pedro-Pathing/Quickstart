@@ -66,10 +66,6 @@ connect() {
     return 1
   fi
 
-  echo "pushing hardware configuration..."
-  adb push TeamCode/src/main/res/xml/hardwaremap.xml /sdcard/FIRST/xml/
-  echo "done. config uploaded"
-
 }
 
 
