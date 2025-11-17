@@ -16,7 +16,7 @@ public class Turret {
     public final DcMotorExClass flywheel = new DcMotorExClass();
     public final ServoClass hood = new ServoClass();
 
-    Turret_Heading targeting = new Turret_Heading();
+    private final Turret_Heading targeting = new Turret_Heading();
 
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
     public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
@@ -44,5 +44,9 @@ public class Turret {
 
     public void updateAimbot(Pose robotPose, boolean goal){
         rotation.setAngle(targeting.calcLocalizer(robotPose, goal));
+    }
+
+    public void setFlywheelRPM(double rpm){
+        flywheel.setRPM(rpm);
     }
 }

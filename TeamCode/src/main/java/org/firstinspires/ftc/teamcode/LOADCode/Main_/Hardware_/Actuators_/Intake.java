@@ -12,9 +12,9 @@ public class Intake {
     private final CRServoClass belt = new CRServoClass();
 
     public enum Mode {
-        INTAKE,
+        INTAKING,
         SHOOTING,
-        REVERSE,
+        REVERSING,
         OFF
     }
 
@@ -27,13 +27,13 @@ public class Intake {
     }
 
     public void setMode(Mode direction){
-        if (direction == Mode.INTAKE){
+        if (direction == Mode.INTAKING){
             intake.setPower(1);
             belt.setPower(1);
         }else if (direction == Mode.SHOOTING){
             intake.setPower(0);
             belt.setPower(1);
-        }else if (direction == Mode.REVERSE){
+        }else if (direction == Mode.REVERSING){
             intake.setPower(-1);
             belt.setPower(-1);
         }else{
@@ -46,11 +46,11 @@ public class Intake {
         double intakePower = intake.getPower();
         double beltPower = belt.getPower();
         if (intakePower == 1 && beltPower == 1){
-            return Mode.INTAKE;
+            return Mode.INTAKING;
         }else if (intakePower == 0 && beltPower == 1){
             return Mode.SHOOTING;
         }else if (intakePower == -1 && beltPower == -1){
-            return Mode.REVERSE;
+            return Mode.REVERSING;
         }else{
             return Mode.OFF;
         }

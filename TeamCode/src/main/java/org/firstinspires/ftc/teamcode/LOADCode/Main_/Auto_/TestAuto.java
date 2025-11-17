@@ -100,10 +100,16 @@ public class TestAuto extends OpMode {
                 .build();
     }
 
-    public void delay(int time){
-        Timer wait = new Timer();
-        wait.resetTimer();
-        while (wait.getElapsedTime() < time){}
+    /**
+     * Copied over from LinearOpMode.
+     * @param milliseconds The number of milliseconds to sleep.
+     */
+    public final void sleep(long milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     public void autonomousPathUpdate() {

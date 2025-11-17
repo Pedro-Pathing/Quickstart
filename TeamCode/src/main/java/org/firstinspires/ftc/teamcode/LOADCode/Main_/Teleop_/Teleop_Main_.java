@@ -111,11 +111,11 @@ public class Teleop_Main_ extends LinearOpMode {
             }
 
             if (gamepad2.a){
-                Robot.intake.setMode(Intake.Mode.INTAKE);
+                Robot.intake.setMode(Intake.Mode.INTAKING);
             }else if (gamepad2.b){
                 Robot.intake.setMode(Intake.Mode.SHOOTING);
             }else if (gamepad2.x){
-                Robot.intake.setMode(Intake.Mode.REVERSE);
+                Robot.intake.setMode(Intake.Mode.REVERSING);
             }else{
                 Robot.intake.setMode(Intake.Mode.OFF);
             }
