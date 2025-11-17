@@ -9,7 +9,7 @@ usage() {
   echo
   echo "Commands:"
   echo "  setup       installs homebrew (if needed), installs adb, and makes script global"
-  echo "  connect     connects to the Robot Hub ($ROBOT_IP)."
+  echo "  connect     connects to the Robot Hub ($ROBOT_IP) and enforces hardwaremap"
   echo "  disconnect  disconnects from all adb devices"
   echo "  help        shows help"
 }
@@ -67,9 +67,9 @@ connect() {
   fi
 
   echo "pushing hardware configuration..."
-  adb push hardwaremap.xml /sdcard/FIRST/xml/hardwaremap.xml
+  adb push TeamCode/src/main/res/xml/hardwaremap.xml /sdcard/FIRST/xml/
+  echo "done. config uploaded"
 
-  echo "done. Config uploaded and RC app restarted."
 }
 
 
