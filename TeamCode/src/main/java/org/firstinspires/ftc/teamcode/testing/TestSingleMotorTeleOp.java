@@ -23,12 +23,14 @@ public class TestSingleMotorTeleOp extends OpMode {
     @Override
     public void init() {
         // Store motors currently accessible from the HardwareMap
-        motors.addAll(
-                hardwareMap.dcMotor.entrySet()
-                        .stream()
-                        .map(Map.Entry::getValue)
-                        .collect(java.util.stream.Collectors.toList())
-        );
+        motors.clear();
+        motors.addAll(hardwareMap.getAll(DcMotor.class));
+
+        telemetry.addData("motor count", motors.size());
+        for (DcMotor m : motors) {
+            telemetry.addData("found motors", m.getDeviceName());
+        }
+        telemetry.update();
     }
 
     @Override
