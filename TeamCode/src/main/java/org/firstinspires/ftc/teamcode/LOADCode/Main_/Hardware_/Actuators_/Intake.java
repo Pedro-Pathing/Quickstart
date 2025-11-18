@@ -24,6 +24,8 @@ public class Intake {
 
         intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        belt.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setMode(Mode direction){

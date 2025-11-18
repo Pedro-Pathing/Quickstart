@@ -86,18 +86,19 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-            if (gamepad1.left_trigger > 0.5){
-                Robot.drivetrain.speedMultiplier = 0.2;
-            }else{
-                Robot.drivetrain.speedMultiplier = 1;
+            Robot.drivetrain.speedMultiplier = 0.75;
+            if (gamepad1.left_trigger >= 0.5) {
+                Robot.drivetrain.speedMultiplier -= 0.25;
+            }
+            if (gamepad1.right_trigger >= 0.5){
+                Robot.drivetrain.speedMultiplier += 0.25;
             }
 
             // Pass the joystick positions to our mecanum drive controller
             Robot.drivetrain.pedroMecanumDrive(
-                    gamepad1.left_stick_y,
-                    gamepad1.left_stick_x,
-                    gamepad1.right_stick_x/2,
+                    Math.pow(gamepad1.left_stick_y,2),
+                    Math.pow(gamepad1.left_stick_x,2),
+                    Math.pow(gamepad1.right_stick_x/2,2),
                     true
             );
 
