@@ -18,7 +18,7 @@ public class Constants {
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
-                //.pinpointLocalizer(localizerConstants) TODO: tune pinpoints
+                .pinpointLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
                 .build();
@@ -27,9 +27,9 @@ public class Constants {
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .rightFrontMotorName("motor0")
-            .rightRearMotorName("motor0")
-            .leftFrontMotorName("motor1")
-            .leftRearMotorName("motor2")
+            .rightRearMotorName("motor1")
+            .leftFrontMotorName("motor2")
+            .leftRearMotorName("motor3")
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
+@TeleOp(name="MainTeleOp", group="TeleOp")
 public class MainTeleOp extends NextFTCOpMode {
     {
         addComponents(
@@ -23,8 +25,8 @@ public class MainTeleOp extends NextFTCOpMode {
                         Drive.INSTANCE,
                         Intake.INSTANCE,
                         Outtake.INSTANCE
-                ),
-                new PedroComponent(Constants::createFollower)
+                )
+                //new PedroComponent(Constants::createFollower)
         );
     }
 
