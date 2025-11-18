@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.subsystems.SubsystemGroup;
 
 public class Robot extends SubsystemGroup {
@@ -12,4 +13,13 @@ public class Robot extends SubsystemGroup {
                 Outtake.INSTANCE
         );
     }
+
+    @Override
+    public void initialize() {
+    }
+
+    @Override
+    public void periodic() {
+    }
+
 }

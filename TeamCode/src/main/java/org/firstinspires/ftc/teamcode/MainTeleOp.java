@@ -7,6 +7,9 @@ import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.subsystems.Drive;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
 public class MainTeleOp extends NextFTCOpMode {
@@ -15,7 +18,12 @@ public class MainTeleOp extends NextFTCOpMode {
                 BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
                 CommandManager.INSTANCE,
-                new SubsystemComponent(Robot.INSTANCE),
+                new SubsystemComponent(
+                        Robot.INSTANCE,
+                        Drive.INSTANCE,
+                        Intake.INSTANCE,
+                        Outtake.INSTANCE
+                ),
                 new PedroComponent(Constants::createFollower)
         );
     }

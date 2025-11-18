@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @TeleOp(name="Motor Power", group="Test OpModes")
 public class TestSingleMotorTeleOp extends OpMode {
