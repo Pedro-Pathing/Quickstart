@@ -10,14 +10,14 @@ public class servoControl {
     }
 
     public void servoPower(double power) {
-        robot.ballServo1.setPower(power);
-        robot.ballServo2.setPower(power);
+        robot.mid1.setPower(power);
+        robot.mid2.setPower(power);
     }
 
 
 
     public void servoStop() {
-        robot.ballServo1.setPower(0);
-        robot.ballServo2.setPower(0);
+        robot.mid1.setPower(0);
+        robot.mid2.setPower(0);
     }
 }

@@ -51,7 +51,7 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("RX drive", rx);
             }
 
-            if (a) {
+            if (gamepad1.y) {
                 imu.resetYaw();
                 telemetry.addData("Yaw reset", rx);
             }

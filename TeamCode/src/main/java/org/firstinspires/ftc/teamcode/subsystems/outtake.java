@@ -17,7 +17,7 @@ public class outtake {
         if (running) return;
         running = true;
         spinStartTime = System.currentTimeMillis();
-        robot.outtake.setPower(1);
+        robot.outtake.setPower(0.75);
     }
 
     public boolean isAtMaxRPM() {
