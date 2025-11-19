@@ -60,6 +60,18 @@ public class LoadHardwareClass {
     }
 
     /**
+     * Copied from LinearOpMode.
+     * @param milliseconds The number of milliseconds to sleep.
+     */
+    public final void sleep(long milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
      * Constructor that allows the OpMode to pass a reference to itself.
      * @param opmode The input for this parameter should almost always be "this".
      */

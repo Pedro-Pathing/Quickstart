@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -14,6 +15,7 @@ public class MecanumDrivetrainClass {
 
     // Misc Constants
     public Follower follower = null;
+    public Pedro_Paths paths = null;
 
     /**
      * Initializes the PedroPathing follower.
@@ -24,6 +26,7 @@ public class MecanumDrivetrainClass {
     public void init (@NonNull OpMode myOpMode, Pose initialPose){
         // PedroPathing initialization
         follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
+        paths = new Pedro_Paths(follower);
         follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
         follower.update();                                          // Applies the initialization
 
@@ -53,5 +56,13 @@ public class MecanumDrivetrainClass {
                 -rotate * speedMultiplier,
                 robotCentric);
         follower.update();
+    }
+
+    public void runPath(PathChain path, boolean holdEndpoint){
+        follower.followPath(path, holdEndpoint);
+    }
+
+    public boolean pathComplete(){
+        return !follower.isBusy();
     }
 }
