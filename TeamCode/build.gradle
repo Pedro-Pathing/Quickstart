@@ -11,15 +11,35 @@
 
 // Custom definitions may go here
 
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
+}
+
+
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
+    }
+}
+
+repositories {
+    maven {
+        url = "https://repo.dairy.foundation/releases"
     }
 }
 
@@ -32,5 +52,9 @@ dependencies {
     implementation 'dev.nextftc:hardware:1.0.1'
     implementation 'dev.nextftc.extensions:pedro:1.0.0'
 
-
+    /*
+    the dependency below breaks Panels features (starting + stopping opmodes, configurables)
+    the telemetry, field, graph will all still work (allegedly, hopefully, not sure)
+     */
+    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
 }
