@@ -18,10 +18,15 @@ public class Pedro_Paths {
     // Start Poses
     public Pose startPose1 = new Pose(112, 136.6, Math.toRadians(270));
     public Pose startPose2 = new Pose(88, 7.4, Math.toRadians(90));
+    // Shooting Poses
+    public Pose shootingPose3 = new Pose(85, 15, Math.toRadians(60));
 
     // Define all path variables
     public PathChain startPose1_to_preload1, startPose1_to_preload2, startPose1_to_preload3;
     public PathChain startPose2_to_preload1, startPose2_to_preload2, startPose2_to_preload3;
+    public PathChain preload1_to_shooting1, preload1_to_shooting2, preload1_to_shooting3;
+    public PathChain preload2_to_shooting1, preload2_to_shooting2, preload2_to_shooting3;
+    public PathChain preload3_to_shooting1, preload3_to_shooting2, preload3_to_shooting3;
 
     public Pose autoMirror(Pose pose, LoadHardwareClass.Alliance alliance){
         int mult = 1;
@@ -42,18 +47,18 @@ public class Pedro_Paths {
         // All paths are for the RED side of the field. they will be mirrored if necessary.
 
         // Start Pose 1 to Preloads
-        startPose1_to_preload3 = follower.pathBuilder()
+        startPose1_to_preload1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(startPose1, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
-                        autoMirror(new Pose(89.000, 30.000), alliance),
-                        autoMirror(new Pose(95.000, 35.500), alliance),
-                        autoMirror(new Pose(110.000, 35.500), alliance)
+                        autoMirror(new Pose(89.000, 78.000), alliance),
+                        autoMirror(new Pose(95.000, 83.500), alliance),
+                        autoMirror(new Pose(110.000, 83.500), alliance)
                 ))
                 .setLinearHeadingInterpolation(startPose1.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
-                        autoMirror(new Pose(110.000, 35.500), alliance),
-                        autoMirror(new Pose(132.000, 35.500), alliance)
+                        autoMirror(new Pose(110.000, 83.500), alliance),
+                        autoMirror(new Pose(132.000, 83.500), alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
@@ -72,35 +77,34 @@ public class Pedro_Paths {
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
-        startPose1_to_preload1 = follower.pathBuilder()
+        startPose1_to_preload3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(startPose1, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
-                        autoMirror(new Pose(89.000, 78.000), alliance),
-                        autoMirror(new Pose(95.000, 83.500), alliance),
-                        autoMirror(new Pose(110.000, 83.500), alliance)
+                        autoMirror(new Pose(89.000, 30.000), alliance),
+                        autoMirror(new Pose(95.000, 35.500), alliance),
+                        autoMirror(new Pose(110.000, 35.500), alliance)
                 ))
                 .setLinearHeadingInterpolation(startPose1.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
-                        autoMirror(new Pose(110.000, 83.500), alliance),
-                        autoMirror(new Pose(132.000, 83.500), alliance)
+                        autoMirror(new Pose(110.000, 35.500), alliance),
+                        autoMirror(new Pose(132.000, 35.500), alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
 
         // Start Pose 2 to Preloads
-        startPose2_to_preload3 = follower.pathBuilder()
+        startPose2_to_preload1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(startPose2, alliance),
-                        autoMirror(new Pose(89.000, 136.600), alliance),
-                        autoMirror(new Pose(89.000, 41.000), alliance),
-                        autoMirror(new Pose(95.000, 35.500), alliance),
-                        autoMirror(new Pose(110.000, 35.500), alliance)
+                        autoMirror(new Pose(89.000, 89.000), alliance),
+                        autoMirror(new Pose(95.000, 83.500), alliance),
+                        autoMirror(new Pose(110.000, 83.500), alliance)
                 ))
                 .setLinearHeadingInterpolation(startPose2.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
-                        autoMirror(new Pose(110.000, 35.500), alliance),
-                        autoMirror(new Pose(132.000, 35.500), alliance)
+                        autoMirror(new Pose(110.000, 83.500), alliance),
+                        autoMirror(new Pose(132.000, 83.500), alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
@@ -119,19 +123,30 @@ public class Pedro_Paths {
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
-        startPose2_to_preload1 = follower.pathBuilder()
+        startPose2_to_preload3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(startPose2, alliance),
-                        autoMirror(new Pose(89.000, 89.000), alliance),
-                        autoMirror(new Pose(95.000, 83.500), alliance),
-                        autoMirror(new Pose(110.000, 83.500), alliance)
+                        autoMirror(new Pose(89.000, 136.600), alliance),
+                        autoMirror(new Pose(89.000, 41.000), alliance),
+                        autoMirror(new Pose(95.000, 35.500), alliance),
+                        autoMirror(new Pose(110.000, 35.500), alliance)
                 ))
                 .setLinearHeadingInterpolation(startPose2.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
-                        autoMirror(new Pose(110.000, 83.500), alliance),
-                        autoMirror(new Pose(132.000, 83.500), alliance)
+                        autoMirror(new Pose(110.000, 35.500), alliance),
+                        autoMirror(new Pose(132.000, 35.500), alliance)
                 ))
                 .setTangentHeadingInterpolation()
+                .build();
+
+        // Preload 1 to Shooting Pose 3
+        preload1_to_shooting3 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        new Pose(132.000, 59.500),
+                        new Pose(90.000, 59.500),
+                        shootingPose3
+                ))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(60))
                 .build();
     }
 
