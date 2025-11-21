@@ -65,10 +65,16 @@ public class Auto_Main_ extends OpMode {
         }
     }
 
+    /**
+     * Waits for the current stage of the auto to be done and then runs the next stage.
+     */
     private void waitForPathCompletion(){
         if (Robot.drivetrain.pathComplete()){autoState++;}
     }
 
+     /**
+     * Template auto
+     */
     private void TEMPLATE_A() {
         switch (autoState){
             case 0:

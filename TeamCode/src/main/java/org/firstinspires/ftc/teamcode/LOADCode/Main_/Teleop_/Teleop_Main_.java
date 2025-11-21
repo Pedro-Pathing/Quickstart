@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.Drivetrain;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -37,15 +39,18 @@ import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 //TODO, implement all our external libraries and functionality.
-
+@Configurable
 @TeleOp(name="Teleop_Main_", group="TeleOp")
 public class Teleop_Main_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+
+    public static double driveExponent = 2;
 
     Prompter prompter = null;
 
@@ -86,19 +91,23 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            Robot.drivetrain.speedMultiplier = 0.75;
+            Robot.drivetrain.speedMultiplier = 0.66;
             if (gamepad1.left_trigger >= 0.5) {
-                Robot.drivetrain.speedMultiplier -= 0.25;
+                Robot.drivetrain.speedMultiplier -= 0.33;
             }
             if (gamepad1.right_trigger >= 0.5){
-                Robot.drivetrain.speedMultiplier += 0.25;
+                Robot.drivetrain.speedMultiplier += 0.33;
             }
 
             // Pass the joystick positions to our mecanum drive controller
+            double turnMult = 2;
+            if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
+                turnMult = 1;
+            }
             Robot.drivetrain.pedroMecanumDrive(
-                    Math.pow(gamepad1.left_stick_y,2),
-                    Math.pow(gamepad1.left_stick_x,2),
-                    Math.pow(gamepad1.right_stick_x/2,2),
+                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x/turnMult,
                     true
             );
 
@@ -121,8 +130,15 @@ public class Teleop_Main_ extends LinearOpMode {
                 Robot.intake.setMode(Intake.Mode.OFF);
             }
 
+            if (gamepad2.b){
+                Robot.turret.setGate(Turret.gatestate.OPEN);
+            }else{
+                Robot.turret.setGate(Turret.gatestate.CLOSED);
+            }
+
             Robot.turret.updatePIDs();
 
+            telemetry.addData("SpeedMult", Robot.drivetrain.speedMultiplier);
             // Turret-related Telemetry
             telemetry.addData("Turret Target Angle:", Robot.turret.rotation.target);
             telemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
