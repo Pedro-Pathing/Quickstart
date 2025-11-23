@@ -13,9 +13,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.util.Hardware;
 
-@Autonomous(name = "Blue1", group = "Autonomous")
+@Autonomous(name = "FarLaunchBlue", group = "Autonomous")
 @Configurable // Panels
-public class Blue1 extends OpMode {
+public class FarLaunchBlue extends OpMode {
 
     Hardware robot = new Hardware();
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
@@ -30,7 +30,7 @@ public class Blue1 extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(21.749, 126.110, Math.toRadians(323)));
+        follower.setStartingPose(new Pose(62.616, 9.822, Math.toRadians(90)));
 
         paths = new Paths(follower); // Build paths
         actionTimer = new Timer(); // Initialize timer
@@ -65,17 +65,17 @@ public class Blue1 extends OpMode {
             Path1 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(21.749, 126.110), new Pose(80.682, 61.739))
+                            new BezierLine(new Pose(62.616, 9.822), new Pose(72.263, 71.562))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(323), Math.toRadians(135))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(135))
                     .build();
 
             Path2 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(80.682, 61.739), new Pose(72.088, 99.625))
+                            new BezierLine(new Pose(72.263, 71.562), new Pose(42.270, 59.108))
                     )
-                    .setConstantHeadingInterpolation(Math.toRadians(90))
+                    .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                     .build();
         }
     }
@@ -95,7 +95,7 @@ public class Blue1 extends OpMode {
                 }
                 break;
 
-            case 2: // Wait 1 second delay
+            case 2: // Wait 2 second delay
                 if (actionTimer.getElapsedTimeSeconds() > 2) {
                     robot.mid1.setPower(1); // Set mid1 to 1
                     robot.mid2.setPower(1); // Set mid2 to 1
@@ -104,15 +104,15 @@ public class Blue1 extends OpMode {
                 }
                 break;
 
-            case 3: // Wait 0.5 second delay after mid motors
+            case 3: // Wait 1 second delay after mid motors
                 if (actionTimer.getElapsedTimeSeconds() > 1) {
-                    robot.intake.setPower(1); // Start intake at -1 power
+                    robot.intake.setPower(1); // Start intake at 1 power
                     actionTimer.resetTimer(); // Reset timer for intake delay
                     pathState = 4;
                 }
                 break;
 
-            case 4: // Wait 0.5 second delay with intake running
+            case 4: // Wait 1 second delay with intake running
                 if (actionTimer.getElapsedTimeSeconds() > 1) {
                     pathState = 5;
                 }
@@ -120,7 +120,7 @@ public class Blue1 extends OpMode {
 
             case 5: // Start following Path2
                 follower.followPath(paths.Path2);
-                robot.intake.setPower(1); // Change intake to 1 during Path2
+                robot.intake.setPower(1); // Keep intake at 1 during Path2
                 pathState = 6;
                 break;
 
