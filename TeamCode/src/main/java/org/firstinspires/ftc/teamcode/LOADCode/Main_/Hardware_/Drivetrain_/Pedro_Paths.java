@@ -33,6 +33,9 @@ public class Pedro_Paths {
     public PathChain preload1_to_shooting1, preload1_to_shooting2, preload1_to_shooting3;
     public PathChain preload2_to_shooting1, preload2_to_shooting2, preload2_to_shooting3;
     public PathChain preload3_to_shooting1, preload3_to_shooting2, preload3_to_shooting3;
+    public PathChain shooting1_to_preload1, shooting1_to_preload2, shooting1_to_preload3;
+    public PathChain shooting2_to_preload1, shooting2_to_preload2, shooting2_to_preload3;
+    public PathChain shooting3_to_preload1, shooting3_to_preload2, shooting3_to_preload3;
 
     public Pose autoMirror(Pose pose, LoadHardwareClass.Alliance alliance){
         int mult = 1;
@@ -164,7 +167,7 @@ public class Pedro_Paths {
                 .build();
     }
     public void buildPreload2ToShootings(LoadHardwareClass.Alliance alliance){
-        preload1_to_shooting1 = follower.pathBuilder()
+        preload2_to_shooting1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(preloadPose2, alliance),
                         autoMirror(new Pose(65,59.5), alliance),
@@ -172,7 +175,7 @@ public class Pedro_Paths {
                 ))
                 .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose1.getHeading())
                 .build();
-        preload1_to_shooting2 = follower.pathBuilder()
+        preload2_to_shooting2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(preloadPose2, alliance),
                         autoMirror(new Pose(65,59.5), alliance),
@@ -180,7 +183,7 @@ public class Pedro_Paths {
                 ))
                 .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose2.getHeading())
                 .build();
-        preload1_to_shooting3 = follower.pathBuilder()
+        preload2_to_shooting3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(preloadPose2, alliance),
                         autoMirror(new Pose(90.000, 59.500), alliance),
@@ -190,29 +193,55 @@ public class Pedro_Paths {
                 .build();
     }
     public void buildPreload3ToShootings(LoadHardwareClass.Alliance alliance){
-        preload1_to_shooting1 = follower.pathBuilder()
+        preload3_to_shooting1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(preloadPose2, alliance),
-                        autoMirror(new Pose(65,59.5), alliance),
+                        autoMirror(new Pose(75,30), alliance),
+                        autoMirror(new Pose(80,100), alliance),
                         autoMirror(shootingPose1, alliance)
                 ))
                 .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose1.getHeading())
                 .build();
-        preload1_to_shooting2 = follower.pathBuilder()
+        preload3_to_shooting2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(preloadPose2, alliance),
-                        autoMirror(new Pose(65,59.5), alliance),
+                        autoMirror(new Pose(85,32), alliance),
                         autoMirror(shootingPose2, alliance)
                 ))
                 .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose2.getHeading())
                 .build();
-        preload1_to_shooting3 = follower.pathBuilder()
+        preload3_to_shooting3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         autoMirror(preloadPose2, alliance),
-                        autoMirror(new Pose(90.000, 59.500), alliance),
                         autoMirror(shootingPose3, alliance)
                 ))
                 .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose3.getHeading())
+                .build();
+    }
+    public void buildShooting1ToPreloads(LoadHardwareClass.Alliance alliance){
+        shooting1_to_preload1 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(shootingPose1, alliance),
+                        autoMirror(new Pose(60, 80), alliance),
+                        autoMirror(preloadPose1, alliance)
+                ))
+                .setLinearHeadingInterpolation(shootingPose1.getHeading(), preloadPose1.getHeading())
+                .build();
+        shooting1_to_preload2 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(shootingPose1, alliance),
+                        autoMirror(new Pose(60, 55), alliance),
+                        autoMirror(preloadPose2, alliance)
+                ))
+                .setLinearHeadingInterpolation(shootingPose1.getHeading(), preloadPose2.getHeading())
+                .build();
+        shooting1_to_preload3 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(shootingPose1, alliance),
+                        autoMirror(new Pose(60, 27), alliance),
+                        autoMirror(preloadPose3, alliance)
+                ))
+                .setLinearHeadingInterpolation(shootingPose1.getHeading(), preloadPose3.getHeading())
                 .build();
     }
 
@@ -221,11 +250,12 @@ public class Pedro_Paths {
      */
     public void buildPaths(LoadHardwareClass.Alliance alliance){
         // All paths are for the RED side of the field. they will be mirrored if necessary.
-
         buildStart1ToPreloads(alliance);
         buildStart2ToPreloads(alliance);
         buildPreload1ToShootings(alliance);
         buildPreload2ToShootings(alliance);
+        buildPreload3ToShootings(alliance);
+        buildShooting1ToPreloads(alliance);
     }
 
     /**
