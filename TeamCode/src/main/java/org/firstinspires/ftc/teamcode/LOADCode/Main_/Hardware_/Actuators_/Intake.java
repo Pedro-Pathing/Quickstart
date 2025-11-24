@@ -4,12 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.CRServoClass;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.DcMotorExClass;
 
 public class Intake {
-    private final DcMotorExClass intake = new DcMotorExClass();
-    private final CRServoClass belt = new CRServoClass();
+    private final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
+    private final Devices.CRServoClass belt = new Devices.CRServoClass();
 
     public enum Mode {
         INTAKING,

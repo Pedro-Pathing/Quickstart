@@ -4,20 +4,16 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.DcMotorExClass;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Generic_.ServoClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Calculation_.Turret_Heading;
-
-import java.util.Optional;
 
 import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
 public class Turret {
-    public final DcMotorExClass rotation = new DcMotorExClass();
-    public final DcMotorExClass flywheel = new DcMotorExClass();
-    public final ServoClass hood = new ServoClass();
-    public final ServoClass gate = new ServoClass();
+    public final Devices.DcMotorExClass rotation = new Devices.DcMotorExClass();
+    public final Devices.DcMotorExClass flywheel = new Devices.DcMotorExClass();
+    public final Devices.ServoClass hood = new Devices.ServoClass();
+    public final Devices.ServoClass gate = new Devices.ServoClass();
 
     private final Turret_Heading targeting = new Turret_Heading();
 
