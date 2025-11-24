@@ -43,6 +43,10 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 //TODO, implement all our external libraries and functionality.
+
+//TODO, add 2 generic autos for preloads and shooting and stuff
+
+//TODO, Implement controls graph
 @Configurable
 @TeleOp(name="Teleop_Main_", group="TeleOp")
 public class Teleop_Main_ extends LinearOpMode {
