@@ -53,8 +53,12 @@ public class Turret {
         flywheel.setFFCoefficients(ffCoefficients);
     }
 
-    public void updateAimbot(Pose robotPose, boolean goal){
-        rotation.setAngle(targeting.calcLocalizer(robotPose, goal));
+    /**
+     * @param robotPose The pose of the robot, gotten from PedroPathing's localization
+     * @param targetRedGoal Set this to true to target the red goal, otherwise targets the blue goal.
+     */
+    public void updateAimbot(Pose robotPose, boolean targetRedGoal){
+        rotation.setAngle(targeting.calcLocalizer(robotPose, targetRedGoal));
     }
 
     public void setGate(gatestate state){

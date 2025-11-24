@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Auto_;
 
+import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
+
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
@@ -46,7 +48,7 @@ public class Auto_Main_ extends OpMode {
                         Auto.LOAD_ROBOTICS_B
                 ));
         prompter.onComplete(() -> {
-                    LoadHardwareClass.selectedAlliance = prompter.get("alliance");
+                    selectedAlliance = prompter.get("alliance");
                     selectedAuto = prompter.get("auto");
                     telemetry.addData("Selection", "Complete");
                 }
@@ -62,6 +64,13 @@ public class Auto_Main_ extends OpMode {
                 return;
             default:
                 TEMPLATE_A();
+        }
+        switch (selectedAlliance) {
+            case RED:
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
+                return;
+            case BLUE:
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
         }
     }
 
