@@ -57,13 +57,14 @@ public class Teleop_Main_ extends LinearOpMode {
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
 
+    // Create a new instance of our Robot class
+    LoadHardwareClass Robot = new LoadHardwareClass(this);
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Create a new instance of our Robot class
-        LoadHardwareClass Robot = new LoadHardwareClass(this);
 
         // Create a new prompter for selecting alliance
         prompter = new Prompter(this);
@@ -91,50 +92,9 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            Robot.drivetrain.speedMultiplier = 0.66;
-            if (gamepad1.left_trigger >= 0.5) {
-                Robot.drivetrain.speedMultiplier -= 0.33;
-            }
-            if (gamepad1.right_trigger >= 0.5){
-                Robot.drivetrain.speedMultiplier += 0.33;
-            }
 
-            // Pass the joystick positions to our mecanum drive controller
-            double turnMult = 2;
-            if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
-                turnMult = 1;
-            }
-            Robot.drivetrain.pedroMecanumDrive(
-                    gamepad1.left_stick_y,
-                    gamepad1.left_stick_x,
-                    gamepad1.right_stick_x/turnMult,
-                    true
-            );
-
-            if (gamepad2.guide){
-                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
-            }else if (gamepad2.back){
-                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
-            }else if (Math.abs(gamepad2.left_stick_x)>0.2 || Math.abs(gamepad2.left_stick_y)>0.2) {
-                Robot.turret.rotation.setAngle(
-                        Math.toDegrees(Math.atan2(gamepad2.left_stick_y, gamepad2.left_stick_x)));
-            }
-
-            if (gamepad2.a){
-                Robot.intake.setMode(Intake.Mode.INTAKING);
-            }else if (gamepad2.b){
-                Robot.intake.setMode(Intake.Mode.SHOOTING);
-            }else if (gamepad2.x){
-                Robot.intake.setMode(Intake.Mode.REVERSING);
-            }else{
-                Robot.intake.setMode(Intake.Mode.OFF);
-            }
-
-            if (gamepad2.b){
-                Robot.turret.setGate(Turret.gatestate.OPEN);
-            }else{
-                Robot.turret.setGate(Turret.gatestate.CLOSED);
-            }
+            Gamepad1();
+            Gamepad2();
 
             Robot.turret.updatePIDs();
 
@@ -152,7 +112,112 @@ public class Teleop_Main_ extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Version: ", "11/4/25");
             telemetry.update();
-            //TODO, Add a more advanced telemetry handler for better organization, readability, and debugging
+
         }
+    }
+    /**
+     * <h1>Gamepad 1 Controls (Ari's Pick V1)</h1>
+     * <ul>
+     *     <li><b>Analog Inputs</b><ul>
+     *         <li>Left Stick:<ul>
+     *             <li>X: <code>Rotate Left/Right</code></li>
+     *             <li>Y: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Right Stick:<ul>
+     *             <li>X: <code>Strafe Left/Right</code></li>
+     *             <li>Y: <code>Drive Forwards/Backwards</code></li>
+     *         </ul></li>
+     *         <li>Left Trigger: <code>Slow Mod</code></li>
+     *         <li>Right Trigger: <code>Quick Mod</code></li>
+     *     </ul></li>
+     *
+     *     <li><b>Button Inputs</b></li><ul>
+     *         <li>Letter Buttons:<ul>
+     *             <li>A: <code>N/A</code></li>
+     *             <li>B: <code>N/A</code></li>
+     *             <li>X: <code>N/A</code></li>
+     *             <li>Y: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Letter Buttons:<ul>
+     *             <li>DpadUp: <code>N/A</code></li>
+     *             <li>DpadDown: <code>N/A</code></li>
+     *             <li>DpadLeft: <code>N/A</code></li>
+     *             <li>DpadRight: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Bumpers:<ul>
+     *             <li>Left Bumper: <code>N/A</code></li>
+     *             <li>Right Bumper: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Stick Buttons:<ul>
+     *             <li>Left Stick Button: <code>N/A</code></li>
+     *             <li>Right Stick Button: <code>N/A</code></li>
+     *         </ul></li>
+     *     </ul>
+     * </ul>
+     */
+    public void Gamepad1(){
+
+        Robot.drivetrain.speedMultiplier = 0.66;
+        if (gamepad1.left_trigger >= 0.5) {
+            Robot.drivetrain.speedMultiplier -= 0.33;
+        }
+        if (gamepad1.right_trigger >= 0.5){
+            Robot.drivetrain.speedMultiplier += 0.33;
+        }
+
+        double turnMult = 2;
+        if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
+            turnMult = 1;
+        }
+        Robot.drivetrain.pedroMecanumDrive(
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                gamepad1.right_stick_x/turnMult,
+                true
+        );
+    }
+
+    /**
+     * <h1>Gamepad 2 Controls (Dylan's Pick V1)</h1>
+     * <ul>
+     *     <li><b>Analog Inputs</b><ul>
+     *         <li>Left Stick:<ul>
+     *             <li>X: <code>N/A</code></li>
+     *             <li>Y: <code>Intake Direction/Power</code></li>
+     *         </ul></li>
+     *         <li>Right Stick:<ul>
+     *             <li>X: <code>Turret Angle Override</code></li>
+     *             <li>Y: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Left Trigger: <code>N/A</code></li>
+     *         <li>Right Trigger: <code>N/A</code></li>
+     *     </ul></li>
+     *
+     *     <li><b>Button Inputs</b></li><ul>
+     *         <li>Letter Buttons:<ul>
+     *             <li>A: <code>N/A</code></li>
+     *             <li>B: <code>Shoot</code></li>
+     *             <li>X: <code>N/A</code></li>
+     *             <li>Y: <code>Flywheel Toggle</code></li>
+     *         </ul></li>
+     *         <li>Letter Buttons:<ul>
+     *             <li>DpadUp: <code>Hood Up Override</code></li>
+     *             <li>DpadDown: <code>Hood Down Override</code></li>
+     *             <li>DpadLeft: <code>N/A</code></li>
+     *             <li>DpadRight: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Bumpers:<ul>
+     *             <li>Left Bumper: <code>Transfer Belt Out</code></li>
+     *             <li>Right Bumper: <code>Transfer Belt In</code></li>
+     *         </ul></li>
+     *         <li>Stick Buttons:<ul>
+     *             <li>Left Stick Button: <code>N/A</code></li>
+     *             <li>Right Stick Button: <code>N/A</code></li>
+     *         </ul></li>
+     *     </ul>
+     * </ul>
+     */
+    public void Gamepad2(){
+
     }
 }

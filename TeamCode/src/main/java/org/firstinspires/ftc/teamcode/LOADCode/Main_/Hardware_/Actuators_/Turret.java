@@ -28,7 +28,7 @@ public class Turret {
     }
 
     public void init(OpMode opmode){
-        rotation.init(opmode, "turret", 103.8);
+        rotation.init(opmode, "turret", 145.1); //Previously 103.8
         flywheel.init(opmode, "flywheel");
         hood.init(opmode, "hood");
         gate.init(opmode, "gate");
