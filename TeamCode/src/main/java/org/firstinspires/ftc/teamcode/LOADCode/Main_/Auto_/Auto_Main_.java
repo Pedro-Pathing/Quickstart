@@ -7,7 +7,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
+
+import dev.nextftc.core.commands.Command;
 
 public class Auto_Main_ extends OpMode {
 
@@ -29,6 +32,7 @@ public class Auto_Main_ extends OpMode {
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
+    Commands Command = new Commands(Robot);
 
     @Override
     public void init() {
@@ -97,5 +101,6 @@ public class Auto_Main_ extends OpMode {
                 Robot.drivetrain.runPath(Robot.drivetrain.paths.startPose1_to_preload1, true);
                 waitForPathCompletion();
         }
+        Commands.runPath(Robot, Robot.drivetrain.paths.startPose1_to_preload1, true);
     }
 }
