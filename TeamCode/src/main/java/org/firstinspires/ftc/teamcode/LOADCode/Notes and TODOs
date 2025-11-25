@@ -11,3 +11,5 @@
 //TODO, Add proper functionality for manual turret control to Turret.java
 
 //TODO, Shoot mode state machine Off->On->LastShot->Delay->Off etc. cycled with B button on Gamepad2
+
+//TODO, add the new code structure graph, control graph, and gamepad HTML to the development branch Readme
