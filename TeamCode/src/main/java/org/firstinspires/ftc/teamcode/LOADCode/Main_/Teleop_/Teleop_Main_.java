@@ -235,6 +235,14 @@ public class Teleop_Main_ extends LinearOpMode {
         //To be added after manual control is finished
 
         //Flywheel Toggle Control (Y Button)
+        if (gamepad2.yWasPressed()){
+            if (Robot.turret.getFlywheel() == Turret.flywheelstate.OFF){
+                Robot.turret.setFlywheel(Turret.flywheelstate.RUNNING);
+            } else {
+                Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
+            }
+        }
+
 
     }
 }

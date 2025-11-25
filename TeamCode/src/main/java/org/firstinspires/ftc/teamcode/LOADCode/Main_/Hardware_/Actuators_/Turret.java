@@ -27,6 +27,11 @@ public class Turret {
         CLOSED,
     }
 
+    public enum flywheelstate {
+        RUNNING,
+        OFF
+    }
+
     public void init(OpMode opmode){
         rotation.init(opmode, "turret", 145.1); //Previously 103.8
         flywheel.init(opmode, "flywheel");
@@ -58,11 +63,27 @@ public class Turret {
         rotation.setAngle(calcLocalizer(robotPose, targetRedGoal));
     }
 
+
     public void setGate(gatestate state){
         if (state == gatestate.OPEN){
             gate.setAngle(0.5);
         }else if (state == gatestate.CLOSED){
             gate.setAngle(0.25);
+        }
+    }
+
+    /**
+     * Outputs one of the following modes
+     * <ul>
+     *     <li><code>gatestate.OPEN</code></li>
+     *     <li><code>gatestate.CLOSED</code></li>
+     * </ul>
+     */
+    public gatestate getGate(){
+        if (gate.getAngle() == 0.5){
+            return gatestate.OPEN;
+        } else {
+            return gatestate.CLOSED;
         }
     }
 
@@ -76,7 +97,41 @@ public class Turret {
         ) - Math.toDegrees(robotPose.getHeading()) + 180;
     }
 
+    /**
+     * @param rpm
+     * RPM Range [0,6000]
+     */
     public void setFlywheelRPM(double rpm){
         flywheel.setRPM(rpm);
+    }
+
+    /**
+     * @return double <b>flywheel.getRPM();</b> - RPM Range [0,6000]
+     */
+    public double getFlywheelRPM(){
+        return flywheel.getRPM();
+    }
+
+    public void setFlywheel(flywheelstate state){
+        if (state == flywheelstate.RUNNING){
+            setFlywheelRPM(6000);
+        } else if (state == flywheelstate.OFF){
+            setFlywheelRPM(0);
+        }
+    }
+
+    /**
+     * Outputs one of the following modes
+     * <ul>
+     *     <li><code>flywheelstate.OFF</code></li>
+     *     <li><code>flywheelstate.RUNNING</code></li>
+     * </ul>
+     */
+    public flywheelstate getFlywheel(){
+        if (getFlywheelRPM() == 0.0){
+            return flywheelstate.OFF;
+        } else {
+            return flywheelstate.RUNNING;
+        }
     }
 }
