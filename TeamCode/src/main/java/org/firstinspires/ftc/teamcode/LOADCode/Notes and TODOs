@@ -7,3 +7,5 @@
 //DONE, Consolidate the generic actuator functionalities folder into one file
 
 //TODO, Add a more advanced telemetry handler for better organization, readability, and debugging
+
+//TODO, Add proper functionaltiy for manual turret control to Turret.java

@@ -26,6 +26,16 @@ public class Intake {
         belt.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
+    /**
+     * @param direction
+     * Takes the following inputs
+     * <ul>
+     *     <li><code>Mode.INTAKING</code></li>
+     *     <li><code>Mode.SHOOTING</code></li>
+     *     <li><code>Mode.REVERSING</code></li>
+     *     <li><code>Mode.OFF</code></li>
+     * </ul>
+     */
     public void setMode(Mode direction){
         if (direction == Mode.INTAKING){
             intake.setPower(1);
@@ -42,6 +52,15 @@ public class Intake {
         }
     }
 
+    /**
+     * Outputs one of the following modes
+     * <ul>
+     *     <li><code>Mode.INTAKING</code></li>
+     *     <li><code>Mode.SHOOTING</code></li>
+     *     <li><code>Mode.REVERSING</code></li>
+     *     <li><code>Mode.OFF</code></li>
+     * </ul>
+     */
     public Mode getMode(){
         double intakePower = intake.getPower();
         double beltPower = belt.getPower();

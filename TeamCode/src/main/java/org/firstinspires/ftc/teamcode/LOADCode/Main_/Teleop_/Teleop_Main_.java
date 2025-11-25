@@ -218,6 +218,23 @@ public class Teleop_Main_ extends LinearOpMode {
      * </ul>
      */
     public void Gamepad2(){
+        double DylanStickDeadzones = 0.2;
+
+        //Intake Controls (Left Stick Y)
+        if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones){
+            if (gamepad2.left_stick_y > 0){ // OUT (Digital)
+                Robot.intake.setMode(Intake.Mode.REVERSING);
+            } else { // IN (Digital)
+                Robot.intake.setMode(Intake.Mode.INTAKING);
+            }
+        } else { // OFF
+            Robot.intake.setMode(Intake.Mode.OFF);
+        }
+
+        //Turret Angle Controls (Right Stick X)
+        //To be added after manual control is finished
+
+        //Flywheel Toggle Control (Y Button)
 
     }
 }
