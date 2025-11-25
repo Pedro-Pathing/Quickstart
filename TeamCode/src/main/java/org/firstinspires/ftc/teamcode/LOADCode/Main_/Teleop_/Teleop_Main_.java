@@ -243,6 +243,8 @@ public class Teleop_Main_ extends LinearOpMode {
             }
         }
 
+        //Shoot (B Button Press)
+
 
     }
 }
