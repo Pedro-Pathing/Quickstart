@@ -64,7 +64,7 @@ public class Auto_Main_ extends OpMode {
             case LOAD_ROBOTICS_B:
                 return;
             default:
-                TEMPLATE_A();
+                LEAVE_START_POS();
         }
         switch (selectedAlliance) {
             case RED:
@@ -83,9 +83,9 @@ public class Auto_Main_ extends OpMode {
     }
 
      /**
-     * Template auto
+     * This auto starts at the far zone and goes to the human player leave zone
      */
-    private void TEMPLATE_A() {
+    private void LEAVE_START_POS() {
         switch (autoState){
             case 0:
                 Robot.drivetrain.runPath(Robot.drivetrain.paths.startPose1_to_preload1, true);
