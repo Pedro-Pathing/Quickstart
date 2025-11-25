@@ -53,6 +53,7 @@ public class Auto_Main_ extends OpMode {
                     telemetry.addData("Selection", "Complete");
                 }
         );
+        Robot.drivetrain.paths.buildPaths(selectedAlliance);
     }
 
     @Override
