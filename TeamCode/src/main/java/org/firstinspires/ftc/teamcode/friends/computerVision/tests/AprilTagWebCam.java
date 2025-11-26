@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 import android.util.Size;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -18,6 +19,7 @@ import java.util.List;
 public class AprilTagWebCam {
     private AprilTagProcessor aprilTagProcessor;
     private VisionPortal visionPortal;
+    private Servo servo;
     private List<AprilTagDetection> detectedTags = new ArrayList<>();
     private Telemetry telemetry;
 
@@ -38,15 +40,12 @@ public class AprilTagWebCam {
         builder.addProcessor(aprilTagProcessor);
         visionPortal = builder.build();
     }
-
     public void update(){
         detectedTags = aprilTagProcessor.getDetections();
     }
-
     public List<AprilTagDetection> getDetectedTags(){
         return detectedTags;
     }
-
     public void displayDetectionTelemetry(AprilTagDetection detectedID) {
         if (detectedID == null) {
             return;
@@ -62,7 +61,6 @@ public class AprilTagWebCam {
             telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detectedID.center.x, detectedID.center.y));
         }
     }
-
     public AprilTagDetection getTagByID(int ID){
         for(AprilTagDetection detection : detectedTags){
             if(detection.id == ID){
@@ -71,7 +69,6 @@ public class AprilTagWebCam {
         }
         return null;
     }
-
     public void stop(){
         if(visionPortal != null){
             visionPortal.close();

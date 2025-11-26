@@ -8,17 +8,18 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 @TeleOp
 public class ATWC extends OpMode {
 
-    AprilTagWebCam aprilTagWebCam = new AprilTagWebCam();
+    AprilTagWebCam ATWC = new AprilTagWebCam();
 
     @Override
     public void init(){
-        aprilTagWebCam.init(hardwareMap, telemetry);
+        ATWC.init(hardwareMap, telemetry);
     }
 
     @Override
     public void loop(){
-        aprilTagWebCam.update();
-        AprilTagDetection id21 = aprilTagWebCam.getTagByID(21);
-        aprilTagWebCam.displayDetectionTelemetry(id21);
+        ATWC.update();
+        AprilTagDetection id21 = ATWC.getTagByID(21);
+        ATWC.displayDetectionTelemetry(id21);
+        ATWC.stop();
     }
 }
