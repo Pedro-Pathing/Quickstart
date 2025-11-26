@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret
 
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.LambdaCommand;
+import dev.nextftc.extensions.pedro.FollowPath;
 
 public class Commands {
 
@@ -14,12 +15,11 @@ public class Commands {
     public static Object turretSystem = null;
     public static Object intakeSystem = null;
 
-    public static Command runPath(LoadHardwareClass Robot, PathChain path, boolean holdEnd) {
-        return new LambdaCommand("runPedroPath(" + path + ", " + holdEnd + ")")
-                .setInterruptible(false)
-                .setStart(() -> Robot.drivetrain.runPath(path, holdEnd))
-                .setUpdate(() -> Robot.drivetrain.runPath(path, holdEnd))
-                .setIsDone(Robot.drivetrain::pathComplete);
+    public static Command runPath(PathChain path, boolean holdEnd) {
+        return new FollowPath(path, holdEnd);
+    }
+    public static Command runPath(PathChain path, boolean holdEnd, double maxPower) {
+        return new FollowPath(path, holdEnd, maxPower);
     }
 
     public static Command setFlywheelState(LoadHardwareClass Robot, Turret.flywheelstate state) {

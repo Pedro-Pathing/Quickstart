@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class Intake {
     private final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
     private final Devices.CRServoClass belt = new Devices.CRServoClass();
+    private final Devices.ServoClass transfer = new Devices.ServoClass();
 
     public enum Mode {
         INTAKING,
@@ -16,9 +17,15 @@ public class Intake {
         OFF
     }
 
+    public enum transferState {
+        UP,
+        DOWN
+    }
+
     public void init(OpMode opmode){
         intake.init(opmode, "intake");
         belt.init(opmode, "belt");
+        transfer.init(opmode, "transfer");
 
         intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -72,6 +79,17 @@ public class Intake {
             return Mode.REVERSING;
         }else{
             return Mode.OFF;
+        }
+    }
+
+    public void setTransfer(transferState state) {
+        switch (state){
+            case UP:
+                transfer.setAngle(0);
+                return;
+            case DOWN:
+                transfer.setAngle(90);
+                return;
         }
     }
 }

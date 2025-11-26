@@ -4,25 +4,26 @@ import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwa
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import dev.nextftc.extensions.pedro.PedroComponent;
+import dev.nextftc.ftc.NextFTCOpMode;
 
 @Autonomous(name = "Auto_Main_", group = "Main", preselectTeleOp="Teleop_Main_")
-public class Auto_Main_ extends OpMode {
+public class Auto_Main_ extends NextFTCOpMode {
 
     // Define other PedroPathing constants
     private final Pose startPose = new Pose(87, 8.8, Math.toRadians(90)); // Start Pose of our robot.
 
     private enum Auto {
-        test,
+        LEAVE_NEAR_LAUNCH,
         LEAVE_FAR_HP
     }
-
-    private int autoState = 0;
 
     private Auto selectedAuto = null;
 
@@ -33,9 +34,13 @@ public class Auto_Main_ extends OpMode {
     LoadHardwareClass Robot = new LoadHardwareClass(this);
 
     @Override
-    public void init() {
+    public void onInit() {
         // Initialize all hardware of the robot
         Robot.init(startPose);
+
+        addComponents(
+                new PedroComponent(Constants::createFollower)
+        );
 
         prompter = new Prompter(this);
         prompter.prompt("alliance",
@@ -45,7 +50,7 @@ public class Auto_Main_ extends OpMode {
                 ));
         prompter.prompt("auto",
                 new OptionPrompt<>("Select Auto",
-                        Auto.test,
+                        Auto.LEAVE_NEAR_LAUNCH,
                         Auto.LEAVE_FAR_HP
                 ));
         prompter.onComplete(() -> {
@@ -58,21 +63,21 @@ public class Auto_Main_ extends OpMode {
     }
 
     @Override
-    public void init_loop() {
+    public void onWaitForStart() {
         prompter.run();
     }
 
     @Override
-    public void start() {
+    public void onStartButtonPressed() {
         // Initialize all hardware of the robot
-        Robot.init(startPose);
+        Robot.init(startPose, PedroComponent.follower());
     }
 
     @Override
-    public void loop() {
+    public void onUpdate() {
         switch (selectedAuto) {
-            case test:
-                test();
+            case LEAVE_NEAR_LAUNCH:
+                Leave_Near_Launch();
                 return;
             case LEAVE_FAR_HP:
                 Leave_Far_HP();
@@ -88,21 +93,14 @@ public class Auto_Main_ extends OpMode {
         }
 
         telemetry.addData("selectedAuto", selectedAuto);
-        telemetry.addData("follower", Robot.drivetrain.follower.getCurrentPath());
+        telemetry.addData("currentPose", Robot.drivetrain.follower.getPose());
         telemetry.update();
-    }
-
-    /**
-     * Waits for the current stage of the auto to be done and then runs the next stage.
-     */
-    private void waitForPathCompletion(){
-        if (Robot.drivetrain.pathComplete()){autoState++;}
     }
 
     /**
      * This auto starts at the far zone,
      * shoots it's preloads after 5 seconds,
-     * and goes to the human player leave zone.
+     * and goes to the leave zone next to the human player zone.
      */
     private void Leave_Far_HP() {
         //Commands.setFlywheelState(Robot, Turret.flywheelstate.ON).schedule();
@@ -110,10 +108,20 @@ public class Auto_Main_ extends OpMode {
 //                new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
 //                new Delay(5)
 //        );
-        Commands.runPath(Robot, Robot.drivetrain.paths.start2_to_leave3, true).schedule();
+        Commands.runPath(Robot.drivetrain.paths.start2_to_leave3, true).schedule();
     }
 
-    private void test() {
-        Robot.drivetrain.runPath(Robot.drivetrain.paths.start2_to_leave3, true);
+    /**
+     * This auto starts at the near zone,
+     * shoots it's preloads after 5 seconds,
+     * and goes to the leave pose that is in the launch zone.
+     */
+    private void Leave_Near_Launch() {
+        //Commands.setFlywheelState(Robot, Turret.flywheelstate.ON).schedule();
+//        new ParallelGroup(
+//                new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
+//                new Delay(5)
+//        );
+        Commands.runPath(Robot.drivetrain.paths.start1_to_leave1, true).schedule();
     }
 }

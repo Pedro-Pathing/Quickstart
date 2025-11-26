@@ -34,6 +34,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.skeletonarmy.marrow.TimerEx;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
@@ -49,7 +50,10 @@ public class Teleop_Main_ extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
-    public static double driveExponent = 2;
+    // Variables for storing data for the second gamepad controls
+    public static double DylanStickDeadzones = 0.2;
+    public int shootingState = 0;
+    public TimerEx shootingDelay = new TimerEx(1);
 
     Prompter prompter = null;
 
@@ -217,7 +221,6 @@ public class Teleop_Main_ extends LinearOpMode {
      * </ul>
      */
     public void Gamepad2(){
-        double DylanStickDeadzones = 0.2;
 
         //Intake Controls (Left Stick Y)
         if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones){
@@ -243,7 +246,36 @@ public class Teleop_Main_ extends LinearOpMode {
         }
 
         //Shoot (B Button Press)
-        //Statemachine cycle goes here
+        // Increment the shooting state
+        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > 5900){shootingState++;}
+        switch (shootingState){
+            case 0:
+                telemetry.addData("Shooting State", "OFF");
+                return;
+            case 1:
+                Robot.intake.setMode(Intake.Mode.INTAKING);
+                Robot.turret.setGate(Turret.gatestate.OPEN);
+                telemetry.addData("Shooting State", "STARTED");
+                return;
+            case 2:
+                Robot.intake.setMode(Intake.Mode.SHOOTING);
+                Robot.intake.setTransfer(Intake.transferState.UP);
+                shootingDelay.restart();
+                shootingState++;
+                telemetry.addData("Shooting State", "TRANSFERRED");
+                return;
+            case 3:
+                if (shootingDelay.isDone()){shootingState++;}
+                telemetry.addData("Shooting State", "DELAY");
+                return;
+            case 4:
+                Robot.turret.setFlywheelRPM(0);
+                Robot.turret.setGate(Turret.gatestate.CLOSED);
+                Robot.intake.setMode(Intake.Mode.OFF);
+                Robot.intake.setTransfer(Intake.transferState.DOWN);
+                telemetry.addData("Shooting State", "RESET");
+                shootingState = 0;
+        }
 
 
     }
