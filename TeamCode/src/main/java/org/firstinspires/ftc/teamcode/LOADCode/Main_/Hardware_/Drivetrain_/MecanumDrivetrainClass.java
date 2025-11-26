@@ -35,13 +35,6 @@ public class MecanumDrivetrainClass {
     }
 
     /**
-     * @return Pedropathing's follower object
-     */
-    public Follower getFollower() {
-        return follower;
-    }
-
-    /**
      * Uses PedroPathing's follower class to implement a mecanum drive controller.
      * Must be called every loop to function properly.
      * @param forward The joystick value for driving forward/backward
@@ -60,6 +53,7 @@ public class MecanumDrivetrainClass {
 
     public void runPath(PathChain path, boolean holdEndpoint){
         follower.followPath(path, holdEndpoint);
+        follower.update();
     }
 
     public boolean pathComplete(){

@@ -28,7 +28,7 @@ public class Turret {
     }
 
     public enum flywheelstate {
-        RUNNING,
+        ON,
         OFF
     }
 
@@ -113,7 +113,7 @@ public class Turret {
     }
 
     public void setFlywheel(flywheelstate state){
-        if (state == flywheelstate.RUNNING){
+        if (state == flywheelstate.ON){
             setFlywheelRPM(6000);
         } else if (state == flywheelstate.OFF){
             setFlywheelRPM(0);
@@ -131,7 +131,7 @@ public class Turret {
         if (getFlywheelRPM() == 0.0){
             return flywheelstate.OFF;
         } else {
-            return flywheelstate.RUNNING;
+            return flywheelstate.ON;
         }
     }
 }

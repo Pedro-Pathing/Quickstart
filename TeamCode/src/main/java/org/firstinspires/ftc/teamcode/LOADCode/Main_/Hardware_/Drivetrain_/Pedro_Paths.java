@@ -47,6 +47,9 @@ public class Pedro_Paths {
     public PathChain shooting1_to_leave1, shooting1_to_leave2;
     public PathChain shooting2_to_leave1, shooting2_to_leave2;
     public PathChain shooting3_to_leave2, shooting3_to_leave3;
+    // Start Positions to Leave Positions
+    public PathChain start1_to_leave1, start1_to_leave2;
+    public PathChain start2_to_leave2, start2_to_leave3;
 
     public Pose autoMirror(Pose pose, LoadHardwareClass.Alliance alliance){
         int mult = 1;
@@ -354,6 +357,38 @@ public class Pedro_Paths {
                 .setConstantHeadingInterpolation(shootingPose3.getHeading())
                 .build();
     }
+    public void buildStart1ToLeaves(LoadHardwareClass.Alliance alliance){
+        start1_to_leave1 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(startPose1, alliance),
+                        autoMirror(leavePose1, alliance)
+                ))
+                .setConstantHeadingInterpolation(startPose1.getHeading())
+                .build();
+        start1_to_leave2 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(startPose1, alliance),
+                        autoMirror(leavePose3, alliance)
+                ))
+                .setConstantHeadingInterpolation(startPose1.getHeading())
+                .build();
+    }
+    public void buildStart2ToLeaves(LoadHardwareClass.Alliance alliance){
+        start2_to_leave2 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(startPose2, alliance),
+                        autoMirror(leavePose1, alliance)
+                ))
+                .setConstantHeadingInterpolation(startPose2.getHeading())
+                .build();
+        start2_to_leave3 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        autoMirror(startPose2, alliance),
+                        autoMirror(leavePose3, alliance)
+                ))
+                .setConstantHeadingInterpolation(startPose2.getHeading())
+                .build();
+    }
 
     /**
      * Builds all the paths, mirroring them to the other side of the field if necessary
@@ -371,10 +406,13 @@ public class Pedro_Paths {
         buildShooting1ToPreloads(alliance);
         buildShooting2ToPreloads(alliance);
         buildShooting3ToPreloads(alliance);
-        // paths going from each shooting position to the leave positions.
+        // Paths going from each shooting position to the leave positions.
         buildShooting1ToLeaves(alliance);
         buildShooting2ToLeaves(alliance);
         buildShooting3ToLeaves(alliance);
+        // Paths going from the start positions to the leave positions
+        buildStart1ToLeaves(alliance);
+        buildStart2ToLeaves(alliance);
     }
 
     /**

@@ -182,7 +182,7 @@ public class Devices {
             setPower(turretPID.calculate(currentKineticState));
         }
         /**
-         * Uses a PID controller to accelerate the motor to the desired RPM
+         * Uses a PID controller to accelerate the motor to the desired RPM.
          * Must be called every loop to function properly.
          * @param rpm The RPM to accelerate the motor to. Can be any number
          */

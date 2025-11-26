@@ -30,7 +30,6 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.pedropathing.Drivetrain;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -237,7 +236,7 @@ public class Teleop_Main_ extends LinearOpMode {
         //Flywheel Toggle Control (Y Button)
         if (gamepad2.yWasPressed()){
             if (Robot.turret.getFlywheel() == Turret.flywheelstate.OFF){
-                Robot.turret.setFlywheel(Turret.flywheelstate.RUNNING);
+                Robot.turret.setFlywheel(Turret.flywheelstate.ON);
             } else {
                 Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
             }
