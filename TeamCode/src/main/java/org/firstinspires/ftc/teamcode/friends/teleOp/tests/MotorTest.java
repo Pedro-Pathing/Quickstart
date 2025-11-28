@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 @TeleOp(name = "Motor Test")
-public class MotorTest extends LinearOpMode {
+public class  MotorTest extends LinearOpMode {
     private static float power = 0.0f;
 
     @Override
