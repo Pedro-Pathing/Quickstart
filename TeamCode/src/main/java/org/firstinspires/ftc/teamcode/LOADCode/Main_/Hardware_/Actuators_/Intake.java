@@ -6,9 +6,10 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
 public class Intake {
-    private final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
-    private final Devices.CRServoClass belt = new Devices.CRServoClass();
-    private final Devices.ServoClass transfer = new Devices.ServoClass();
+    // RESET THESE TO PRIVATE AFTER DECEMBER 6TH!
+    public final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
+    public final Devices.CRServoClass belt = new Devices.CRServoClass();
+    public final Devices.ServoClass transfer = new Devices.ServoClass();
 
     public enum Mode {
         INTAKING,
