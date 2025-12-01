@@ -4,6 +4,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
@@ -15,6 +16,9 @@ public class Pedro_Paths {
     /**
      * Define primary poses to be used in paths
       */
+    // Dummy Stand-In Poses
+    public Pose dummyStartPose = new Pose(0,0,0);
+    public Pose dummyMoveRPPose = new Pose(0,28,0);
     // Start Poses
     public Pose startPose1 = new Pose(112, 136.6, Math.toRadians(270));
     public Pose startPose2 = new Pose(88, 7.4, Math.toRadians(90));
@@ -32,6 +36,8 @@ public class Pedro_Paths {
     public Pose leavePose3 = new Pose(115,20);
 
     // Define all path variables
+    // Dummy Paths
+    public PathChain basicMoveRPPath;
     // Start Poses to Preloads
     public PathChain startPose1_to_preload1, startPose1_to_preload2, startPose1_to_preload3;
     public PathChain startPose2_to_preload1, startPose2_to_preload2, startPose2_to_preload3;
@@ -63,6 +69,16 @@ public class Pedro_Paths {
         );
     }
 
+    /**
+     * <h1>DON'T EVER USE THIS PATH!!!</h1>
+     * This path is ONLY for the December 6th scrimmage, for movement RP bonus only!
+     */
+    public void buildMoveRPPath(){
+        basicMoveRPPath = follower.pathBuilder()
+                .addPath(new BezierLine(dummyStartPose,dummyMoveRPPose))
+                .setLinearHeadingInterpolation(dummyStartPose.getHeading(), dummyMoveRPPose.getHeading())
+                .build();
+    }
     public void buildStart1ToPreloads(LoadHardwareClass.Alliance alliance) {
         startPose1_to_preload1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
@@ -395,6 +411,7 @@ public class Pedro_Paths {
      */
     public void buildPaths(LoadHardwareClass.Alliance alliance){
         /// All paths are for the RED side of the field. they will be mirrored if necessary.
+        buildMoveRPPath();
         // Paths going from each start position to each of the preloads.
         buildStart1ToPreloads(alliance);
         buildStart2ToPreloads(alliance);

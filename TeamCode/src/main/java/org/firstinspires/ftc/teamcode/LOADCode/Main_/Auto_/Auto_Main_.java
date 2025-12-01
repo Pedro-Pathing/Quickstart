@@ -28,7 +28,8 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     private enum Auto {
         LEAVE_NEAR_LAUNCH,
-        LEAVE_FAR_HP
+        LEAVE_FAR_HP,
+        MOVEMENT_RP_DEC6
     }
 
     private Auto selectedAuto = null;
@@ -57,7 +58,8 @@ public class Auto_Main_ extends NextFTCOpMode {
         prompter.prompt("auto",
                 new OptionPrompt<>("Select Auto",
                         Auto.LEAVE_NEAR_LAUNCH,
-                        Auto.LEAVE_FAR_HP
+                        Auto.LEAVE_FAR_HP,
+                        Auto.MOVEMENT_RP_DEC6
                 ));
         prompter.onComplete(() -> {
                     selectedAlliance = prompter.get("alliance");
@@ -87,6 +89,9 @@ public class Auto_Main_ extends NextFTCOpMode {
                 return;
             case LEAVE_FAR_HP:
                 Leave_Far_HP();
+                return;
+            case MOVEMENT_RP_DEC6:
+                BasicMoveRP();
                 return;
         }
         switch (selectedAlliance) {
@@ -127,7 +132,7 @@ public class Auto_Main_ extends NextFTCOpMode {
                 Commands.setIntakeMode(Robot, Intake.Mode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
                 Commands.runPath(Robot.drivetrain.paths.start2_to_leave3, true, 0.6)
-        );
+        ).schedule();
     }
 
     /**
@@ -154,6 +159,12 @@ public class Auto_Main_ extends NextFTCOpMode {
                 Commands.setIntakeMode(Robot, Intake.Mode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
                 Commands.runPath(Robot.drivetrain.paths.start1_to_leave1, true, 0.6)
-        );
+        ).schedule();
+    }
+
+    private void BasicMoveRP(){
+        new SequentialGroup(
+                Commands.runPath(Robot.drivetrain.paths.basicMoveRPPath,true,0.6)
+        ).schedule();
     }
 }
