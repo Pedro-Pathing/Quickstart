@@ -29,6 +29,10 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
+import android.provider.Settings;
+
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -43,6 +47,7 @@ public class Teleop_Outreach_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private TelemetryManager.TelemetryWrapper panelsTelemetry = PanelsTelemetry.INSTANCE.getFtcTelemetry();
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
@@ -72,6 +77,20 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     gamepad1.right_stick_x/2,
                     true
             );
+            if (gamepad1.b){
+                Robot.turret.setFlywheelRPM(6000);
+            }else if (gamepad1.y){
+                Robot.turret.setFlywheelRPM(500);
+            }else{
+                Robot.turret.setFlywheelRPM(0);
+            }
+
+            Robot.turret.updatePIDs();
+
+            telemetry.addData("FlywheelState", Robot.turret.getFlywheel());
+            telemetry.addData("FlywheelRPM", Robot.turret.getFlywheelRPM());
+            panelsTelemetry.addData("FlywheelRPM", Robot.turret.getFlywheelRPM());
+
 
             // System-related Telemetry
             telemetry.addLine();
