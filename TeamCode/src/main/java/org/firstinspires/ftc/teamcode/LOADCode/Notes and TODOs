@@ -15,6 +15,8 @@
 //DONE, Shoot mode state machine Off->On->LastShot->Delay->ResetActuators->Off etc. cycled with B button on Gamepad2
 //NOTE: Let's not actually use this at the first scrimmage
 
-//TODO,
+//TODO, Reset the belt, intake, & transfer kicker back to private after December 6th
 
 //TODO, add the new code structure graph, control graph, and gamepad HTML to the development branch Readme
+
+//TODO, Finish translating Dylan's December 6th controls into the program.
