@@ -20,8 +20,8 @@ public class Turret {
     public final Devices.ServoClass gate = new Devices.ServoClass();
 
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
-    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0, 0.1);
-    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.005,0,0);
+    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0.0001, 0.0001);
+    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.00002899,0,0);
 
     public enum gatestate {
         OPEN,

@@ -29,8 +29,6 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
-import android.provider.Settings;
-
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
@@ -47,7 +45,7 @@ public class Teleop_Outreach_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private TelemetryManager.TelemetryWrapper panelsTelemetry = PanelsTelemetry.INSTANCE.getFtcTelemetry();
+    private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
@@ -77,18 +75,17 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     gamepad1.right_stick_x/2,
                     true
             );
-            if (gamepad1.b){
-                Robot.turret.setFlywheelRPM(6000);
-            }else if (gamepad1.y){
-                Robot.turret.setFlywheelRPM(500);
+            if (gamepad1.x){
+                Robot.turret.setFlywheelRPM(5485.714285714286);
+                panelsTelemetry.addData("SetRPM", 5485.714285714286);
             }else{
                 Robot.turret.setFlywheelRPM(0);
+                panelsTelemetry.addData("SetRPM", 0);
             }
 
             Robot.turret.updatePIDs();
 
             telemetry.addData("FlywheelState", Robot.turret.getFlywheel());
-            telemetry.addData("FlywheelRPM", Robot.turret.getFlywheelRPM());
             panelsTelemetry.addData("FlywheelRPM", Robot.turret.getFlywheelRPM());
 
 
@@ -97,6 +94,7 @@ public class Teleop_Outreach_ extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Version: ", "11/4/25");
             telemetry.update();
+            panelsTelemetry.update(telemetry);
             //TODO, Add a more advanced telemetry handler for better organization, readability, and debugging
         }
     }
