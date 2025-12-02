@@ -123,7 +123,9 @@ abstract class BaseAuto : LinearOpMode() {
                         shotNumber++
                     }
                 } else {
-                    pathState = PathState.DRIVE_TO_END
+                    if (shootTimer.time() > 9.0) {
+                        pathState = PathState.DRIVE_TO_END
+                    }
                 }
             }
 

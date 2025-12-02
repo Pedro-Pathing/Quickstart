@@ -7,10 +7,10 @@ class Utils {
         fun getShootingPower(voltageSensor: VoltageSensor): Double {
             if (voltageSensor.voltage < 12.0) {
                 return 0.75
-            } else if (voltageSensor.voltage < 12.5) {
+            } else if (voltageSensor.voltage < 12.3) {
                 return 0.70
             } else if (voltageSensor.voltage < 13.0) {
-                return 0.70
+                return 0.65
             } else {
                 return .65
             }

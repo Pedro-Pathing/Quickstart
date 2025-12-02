@@ -31,7 +31,7 @@ open class BlueTopHivemindAuto : BaseAuto() {
     override fun buildPathList(): List<Pose> {
         return listOf(
             Pose(0.0, 0.0),
-            Pose(46.0, 0.0, Math.toRadians(185.0)),
+            Pose(38.0, 0.0, Math.toRadians(185.0)),
             Pose(24.0, 24.0, Math.toRadians(-135.0))
         )
     }
