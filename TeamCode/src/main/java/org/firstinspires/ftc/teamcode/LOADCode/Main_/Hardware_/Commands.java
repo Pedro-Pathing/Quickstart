@@ -17,7 +17,7 @@ public class Commands {
     public static Object intakeSystem = null;
 
     public static Command runPath(PathChain path, boolean holdEnd) {
-        return new FollowPath(path, holdEnd);
+        return new FollowPath(path, holdEnd).requires(driveSystem);
     }
     public static Command runPath(PathChain path, boolean holdEnd, double maxPower) {
         return new FollowPath(path, holdEnd, maxPower).requires(driveSystem);

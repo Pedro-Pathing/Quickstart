@@ -121,6 +121,9 @@ public class Devices {
         public void setDirection(DcMotorSimple.Direction direction){
             motorObject.setDirection(direction);
         }
+        public void setEncoderTicks(int ticks){
+            motorObject.setTargetPosition(ticks);
+        }
         /**
          * @return The current position of the turret motor in encoder ticks. Can be any value.
          */

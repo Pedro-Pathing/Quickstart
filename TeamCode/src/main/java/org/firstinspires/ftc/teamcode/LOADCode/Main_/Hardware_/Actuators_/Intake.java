@@ -89,8 +89,7 @@ public class Intake {
                 transfer.setAngle(0);
                 return;
             case DOWN:
-                transfer.setAngle(90);
-                return;
+                transfer.setAngle(.05);
         }
     }
 }

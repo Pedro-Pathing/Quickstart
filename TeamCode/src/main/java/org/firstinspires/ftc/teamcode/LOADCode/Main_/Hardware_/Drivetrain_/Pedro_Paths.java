@@ -4,7 +4,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
@@ -75,7 +74,7 @@ public class Pedro_Paths {
      */
     public void buildMoveRPPath(){
         basicMoveRPPath = follower.pathBuilder()
-                .addPath(new BezierLine(dummyStartPose,dummyMoveRPPose))
+                .addPath(new BezierCurve(dummyStartPose,dummyMoveRPPose))
                 .setLinearHeadingInterpolation(dummyStartPose.getHeading(), dummyMoveRPPose.getHeading())
                 .build();
     }

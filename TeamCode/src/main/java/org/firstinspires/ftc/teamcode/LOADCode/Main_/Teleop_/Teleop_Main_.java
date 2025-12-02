@@ -30,6 +30,8 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -49,6 +51,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     // Variables for storing data for the second gamepad controls
     public static double DylanStickDeadzones = 0.2;
@@ -97,18 +100,29 @@ public class Teleop_Main_ extends LinearOpMode {
         while (opModeIsActive()) {
 
             Gamepad1();
-            Gamepad2();
+            Gamepad2Dec6();
 
             Robot.turret.updatePIDs();
 
             telemetry.addData("SpeedMult", Robot.drivetrain.speedMultiplier);
+            telemetry.addLine();
             // Turret-related Telemetry
             telemetry.addData("Turret Target Angle:", Robot.turret.rotation.target);
             telemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
 
+            telemetry.addLine();
+            panelsTelemetry.addData("Flywheel Target Speed", Robot.turret.flywheel.target);
+            panelsTelemetry.addData("Flywheel Actual Speed", Robot.turret.getFlywheelRPM());
+            telemetry.addData("Flywheel Target Speed", Robot.turret.flywheel.target);
+            telemetry.addData("Flywheel Actual Speed", Robot.turret.getFlywheelRPM());
+
+            telemetry.addLine();
+            telemetry.addData("Belt Power", Robot.intake.belt.getPower());
+
+
             // Intake-related Telemetry
             telemetry.addLine();
-            telemetry.addData("Intake Status", Robot.intake.getMode());
+            telemetry.addData("Intake Status", Robot.intake.intake.getPower());
 
             // System-related Telemetry
             telemetry.addLine();
@@ -329,15 +343,26 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.intake.intake.setPower(0);
         }
 
-        //Transfer Belt (ABS Left Stick X)
-        if (Math.abs(gamepad2.left_stick_x) >= DylanStickDeadzones) {
-            Robot.intake.belt.setPower(Math.abs(gamepad2.left_stick_x));
+        //Transfer Belt (ABS Right Stick Y)
+        if (Math.abs(gamepad2.right_stick_y) >= DylanStickDeadzones) {
+            Robot.intake.belt.setPower(Math.abs(gamepad2.right_stick_y));
         } else { // OFF
             Robot.intake.belt.setPower(0);
         }
 
-        //Turret Angle Controls (Right Stick X)
-        //To be added after manual control is finished
+        // Gate control
+        if (Robot.turret.getFlywheelRPM() > 3000){
+            Robot.turret.setGate(Turret.gatestate.OPEN);
+        }else{
+            Robot.turret.setGate(Turret.gatestate.CLOSED);
+        }
+
+        // Transfer control
+        if (gamepad2.b){
+            Robot.intake.setTransfer(Intake.transferState.UP);
+        }else{
+            Robot.intake.setTransfer(Intake.transferState.DOWN);
+        }
 
         //Flywheel Toggle Control (Y Button)
         if (gamepad2.yWasPressed()){
@@ -348,39 +373,5 @@ public class Teleop_Main_ extends LinearOpMode {
             }
         }
         Robot.turret.updateFlywheel();
-
-        //Kicker Flapper (B Button Press)
-        // Increment the shooting state
-        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > 5900){shootingState++;}
-        switch (shootingState){
-            case 0:
-                telemetry.addData("Shooting State", "OFF");
-                return;
-            case 1:
-                Robot.intake.setMode(Intake.Mode.INTAKING);
-                Robot.turret.setGate(Turret.gatestate.OPEN);
-                telemetry.addData("Shooting State", "STARTED");
-                return;
-            case 2:
-                Robot.intake.setMode(Intake.Mode.SHOOTING);
-                Robot.intake.setTransfer(Intake.transferState.UP);
-                shootingDelay.restart();
-                shootingState++;
-                telemetry.addData("Shooting State", "TRANSFERRED");
-                return;
-            case 3:
-                if (shootingDelay.isDone()){shootingState++;}
-                telemetry.addData("Shooting State", "DELAY");
-                return;
-            case 4:
-                Robot.turret.setFlywheelRPM(0);
-                Robot.turret.setGate(Turret.gatestate.CLOSED);
-                Robot.intake.setMode(Intake.Mode.OFF);
-                Robot.intake.setTransfer(Intake.transferState.DOWN);
-                telemetry.addData("Shooting State", "RESET");
-                shootingState = 0;
-        }
-
-
     }
 }

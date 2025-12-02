@@ -85,7 +85,7 @@ public class Teleop_Outreach_ extends LinearOpMode {
 
             Robot.turret.updatePIDs();
 
-            telemetry.addData("FlywheelState", Robot.turret.getFlywheel());
+            telemetry.addData("FlywheelState", Robot.turret.flywheelState);
             panelsTelemetry.addData("FlywheelRPM", Robot.turret.getFlywheelRPM());
 
 
