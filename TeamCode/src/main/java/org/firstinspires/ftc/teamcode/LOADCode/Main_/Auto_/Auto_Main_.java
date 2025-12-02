@@ -7,10 +7,16 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import dev.nextftc.core.commands.delays.Delay;
+import dev.nextftc.core.commands.delays.WaitUntil;
+import dev.nextftc.core.commands.groups.ParallelGroup;
+import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 
@@ -22,7 +28,8 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     private enum Auto {
         LEAVE_NEAR_LAUNCH,
-        LEAVE_FAR_HP
+        LEAVE_FAR_HP,
+        MOVEMENT_RP_DEC6
     }
 
     private Auto selectedAuto = null;
@@ -54,7 +61,8 @@ public class Auto_Main_ extends NextFTCOpMode {
         prompter.prompt("auto",
                 new OptionPrompt<>("Select Auto",
                         Auto.LEAVE_NEAR_LAUNCH,
-                        Auto.LEAVE_FAR_HP
+                        Auto.LEAVE_FAR_HP,
+                        Auto.MOVEMENT_RP_DEC6
                 ));
         prompter.onComplete(() -> {
                     selectedAlliance = prompter.get("alliance");
@@ -85,6 +93,9 @@ public class Auto_Main_ extends NextFTCOpMode {
             case LEAVE_FAR_HP:
                 Leave_Far_HP();
                 return;
+            case MOVEMENT_RP_DEC6:
+                BasicMoveRP();
+                return;
         }
         switch (selectedAlliance) {
             case RED:
@@ -106,12 +117,25 @@ public class Auto_Main_ extends NextFTCOpMode {
      * and goes to the leave zone next to the human player zone.
      */
     private void Leave_Far_HP() {
-        //Commands.setFlywheelState(Robot, Turret.flywheelstate.ON).schedule();
-//        new ParallelGroup(
-//                new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
-//                new Delay(5)
-//        );
-        Commands.runPath(Robot.drivetrain.paths.start2_to_leave3, true).schedule();
+        new SequentialGroup(
+                Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
+                new ParallelGroup(
+                        new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
+                        new Delay(5)
+                ),
+                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                new Delay(2),
+                Commands.setIntakeMode(Robot, Intake.Mode.INTAKING),
+                new Delay(1),
+                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                new Delay(2),
+                Commands.setTransferState(Robot, Intake.transferState.UP),
+                new Delay(1),
+                Commands.setTransferState(Robot, Intake.transferState.DOWN),
+                Commands.setIntakeMode(Robot, Intake.Mode.OFF),
+                Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
+                Commands.runPath(Robot.drivetrain.paths.start2_to_leave3, true, 0.6)
+        ).schedule();
     }
 
     /**
@@ -120,11 +144,30 @@ public class Auto_Main_ extends NextFTCOpMode {
      * and goes to the leave pose that is in the launch zone.
      */
     private void Leave_Near_Launch() {
-        //Commands.setFlywheelState(Robot, Turret.flywheelstate.ON).schedule();
-//        new ParallelGroup(
-//                new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
-//                new Delay(5)
-//        );
-        Commands.runPath(Robot.drivetrain.paths.start1_to_leave1, true).schedule();
+        new SequentialGroup(
+                Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
+                new ParallelGroup(
+                        new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
+                        new Delay(5)
+                ),
+                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                new Delay(2),
+                Commands.setIntakeMode(Robot, Intake.Mode.INTAKING),
+                new Delay(1),
+                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                new Delay(2),
+                Commands.setTransferState(Robot, Intake.transferState.UP),
+                new Delay(1),
+                Commands.setTransferState(Robot, Intake.transferState.DOWN),
+                Commands.setIntakeMode(Robot, Intake.Mode.OFF),
+                Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
+                Commands.runPath(Robot.drivetrain.paths.start1_to_leave1, true, 0.6)
+        ).schedule();
+    }
+
+    private void BasicMoveRP(){
+        new SequentialGroup(
+                Commands.runPath(Robot.drivetrain.paths.basicMoveRPPath,true,0.6)
+        ).schedule();
     }
 }

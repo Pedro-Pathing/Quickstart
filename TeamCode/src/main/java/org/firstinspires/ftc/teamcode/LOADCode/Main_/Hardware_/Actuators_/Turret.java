@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,7 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
-
+@Configurable
 public class Turret {
 
 
@@ -19,8 +20,8 @@ public class Turret {
     public final Devices.ServoClass gate = new Devices.ServoClass();
 
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
-    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0, 0, 0);
-    public static BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
+    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0.0001, 0.0001);
+    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.00002899,0,0);
 
     public enum gatestate {
         OPEN,
@@ -40,19 +41,21 @@ public class Turret {
 
         rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        flywheel.ticksPerRotation = 28;
+
         gate.setAngle(0.5);
 
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
         flywheel.setPidCoefficients(flywheelCoefficients);
-        flywheel.setFFCoefficients(ffCoefficients);
+        flywheel.setFFCoefficients(flywheelFFCoefficients);
     }
 
     public void updatePIDs(){
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
         flywheel.setPidCoefficients(flywheelCoefficients);
-        flywheel.setFFCoefficients(ffCoefficients);
+        flywheel.setFFCoefficients(flywheelFFCoefficients);
     }
 
     /**

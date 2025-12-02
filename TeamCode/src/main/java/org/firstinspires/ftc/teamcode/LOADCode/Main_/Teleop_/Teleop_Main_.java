@@ -279,4 +279,107 @@ public class Teleop_Main_ extends LinearOpMode {
 
 
     }
+
+    /**
+     * <h1>Gamepad 2 Controls (December 6th Scrimmage)</h1>
+     * <ul>
+     *     <li><b>Analog Inputs</b><ul>
+     *         <li>Left Stick:<ul>
+     *             <li>X: <code>Tranfer Belt IN ONLY</code></li>
+     *             <li>Y: <code>Intake Direction/Power</code></li>
+     *         </ul></li>
+     *         <li>Right Stick:<ul>
+     *             <li>X: <code>N/A</code></li>
+     *             <li>Y: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Left Trigger: <code>N/A</code></li>
+     *         <li>Right Trigger: <code>N/A</code></li>
+     *     </ul></li>
+     *
+     *     <li><b>Button Inputs</b></li><ul>
+     *         <li>Letter Buttons:<ul>
+     *             <li>A: <code>N/A</code></li>
+     *             <li>B: <code>Kicker/Flap/Feeder</code></li>
+     *             <li>X: <code>N/A</code></li>
+     *             <li>Y: <code>Flywheel Toggle</code></li>
+     *         </ul></li>
+     *         <li>Letter Buttons:<ul>
+     *             <li>DpadUp: <code>N/A</code></li>
+     *             <li>DpadDown: <code>N/A</code></li>
+     *             <li>DpadLeft: <code>N/A</code></li>
+     *             <li>DpadRight: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Bumpers:<ul>
+     *             <li>Left Bumper: <code>N/A</code></li>
+     *             <li>Right Bumper: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Stick Buttons:<ul>
+     *             <li>Left Stick Button: <code>N/A</code></li>
+     *             <li>Right Stick Button: <code>N/A</code></li>
+     *         </ul></li>
+     *     </ul>
+     * </ul>
+     */
+    public void Gamepad2Dec6(){
+
+        //Intake Controls (Left Stick Y)
+        if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones){
+            Robot.intake.intake.setPower(gamepad2.left_stick_y);
+        } else { // OFF
+            Robot.intake.setMode(Intake.Mode.OFF);
+        }
+
+        //Transfer Belt (ABS Left Stick X)
+        if (Math.abs(gamepad2.left_stick_x) >= DylanStickDeadzones) {
+            Robot.intake.belt.setPower(Math.abs(gamepad2.left_stick_x));
+        } else { // OFF
+            Robot.intake.belt.setPower(0);
+        }
+
+        //Turret Angle Controls (Right Stick X)
+        //To be added after manual control is finished
+
+        //Flywheel Toggle Control (Y Button)
+        if (gamepad2.yWasPressed()){
+            if (Robot.turret.getFlywheel() == Turret.flywheelstate.OFF){
+                Robot.turret.setFlywheel(Turret.flywheelstate.ON);
+            } else {
+                Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
+            }
+        }
+
+        //Kicker Flapper (B Button Press)
+        // Increment the shooting state
+        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > 5900){shootingState++;}
+        switch (shootingState){
+            case 0:
+                telemetry.addData("Shooting State", "OFF");
+                return;
+            case 1:
+                Robot.intake.setMode(Intake.Mode.INTAKING);
+                Robot.turret.setGate(Turret.gatestate.OPEN);
+                telemetry.addData("Shooting State", "STARTED");
+                return;
+            case 2:
+                Robot.intake.setMode(Intake.Mode.SHOOTING);
+                Robot.intake.setTransfer(Intake.transferState.UP);
+                shootingDelay.restart();
+                shootingState++;
+                telemetry.addData("Shooting State", "TRANSFERRED");
+                return;
+            case 3:
+                if (shootingDelay.isDone()){shootingState++;}
+                telemetry.addData("Shooting State", "DELAY");
+                return;
+            case 4:
+                Robot.turret.setFlywheelRPM(0);
+                Robot.turret.setGate(Turret.gatestate.CLOSED);
+                Robot.intake.setMode(Intake.Mode.OFF);
+                Robot.intake.setTransfer(Intake.transferState.DOWN);
+                telemetry.addData("Shooting State", "RESET");
+                shootingState = 0;
+        }
+
+
+    }
 }
