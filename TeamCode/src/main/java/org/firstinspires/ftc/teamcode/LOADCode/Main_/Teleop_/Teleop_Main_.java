@@ -238,7 +238,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         //Flywheel Toggle Control (Y Button)
         if (gamepad2.yWasPressed()){
-            if (Robot.turret.getFlywheel() == Turret.flywheelstate.OFF){
+            if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
                 Robot.turret.setFlywheel(Turret.flywheelstate.ON);
             } else {
                 Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
@@ -326,7 +326,7 @@ public class Teleop_Main_ extends LinearOpMode {
         if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones){
             Robot.intake.intake.setPower(gamepad2.left_stick_y);
         } else { // OFF
-            Robot.intake.setMode(Intake.Mode.OFF);
+            Robot.intake.intake.setPower(0);
         }
 
         //Transfer Belt (ABS Left Stick X)
@@ -341,12 +341,13 @@ public class Teleop_Main_ extends LinearOpMode {
 
         //Flywheel Toggle Control (Y Button)
         if (gamepad2.yWasPressed()){
-            if (Robot.turret.getFlywheel() == Turret.flywheelstate.OFF){
-                Robot.turret.setFlywheel(Turret.flywheelstate.ON);
-            } else {
+            if (Robot.turret.flywheelState == Turret.flywheelstate.ON){
                 Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
+            }else if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
+                Robot.turret.setFlywheel(Turret.flywheelstate.ON);
             }
         }
+        Robot.turret.updateFlywheel();
 
         //Kicker Flapper (B Button Press)
         // Increment the shooting state

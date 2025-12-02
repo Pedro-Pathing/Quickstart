@@ -32,6 +32,7 @@ public class Turret {
         ON,
         OFF
     }
+    public flywheelstate flywheelState = flywheelstate.OFF;
 
     public void init(OpMode opmode){
         rotation.init(opmode, "turret", 145.1); //Previously 103.8
@@ -115,26 +116,22 @@ public class Turret {
         return flywheel.getRPM();
     }
 
+    /**
+     * Sets the target state of the Flywheel
+     * @param state The state to set the flywheel to (ON/OFF)
+     */
     public void setFlywheel(flywheelstate state){
-        if (state == flywheelstate.ON){
-            setFlywheelRPM(6000);
-        } else if (state == flywheelstate.OFF){
-            setFlywheelRPM(0);
-        }
+        flywheelState = state;
     }
 
     /**
-     * Outputs one of the following modes
-     * <ul>
-     *     <li><code>flywheelstate.OFF</code></li>
-     *     <li><code>flywheelstate.RUNNING</code></li>
-     * </ul>
+     * Updates the flywheel PID. Must be called every loop.
      */
-    public flywheelstate getFlywheel(){
-        if (getFlywheelRPM() == 0.0){
-            return flywheelstate.OFF;
-        } else {
-            return flywheelstate.ON;
+    public void updateFlywheel(){
+        if (flywheelState == flywheelstate.ON){
+            setFlywheelRPM(5485.714285714286);
+        } else if (flywheelState == flywheelstate.OFF){
+            setFlywheelRPM(0);
         }
     }
 }
