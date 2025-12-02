@@ -33,14 +33,17 @@ public class Auto_Main_ extends NextFTCOpMode {
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
 
+    public Auto_Main_(){
+        addComponents(
+                new PedroComponent(Constants::createFollower)
+        );
+    }
+
     @Override
     public void onInit() {
         // Initialize all hardware of the robot
         Robot.init(startPose);
-
-        addComponents(
-                new PedroComponent(Constants::createFollower)
-        );
+        Robot.drivetrain.follower = PedroComponent.follower();
 
         prompter = new Prompter(this);
         prompter.prompt("alliance",
