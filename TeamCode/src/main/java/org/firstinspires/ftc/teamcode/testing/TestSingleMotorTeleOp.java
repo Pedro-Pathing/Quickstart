@@ -21,7 +21,7 @@ public class TestSingleMotorTeleOp extends OpMode {
 
     @Override
     public void init() {
-        // Store motors currently accessible from the HardwareMap
+        // store motors currently accessible from the HardwareMap
         motors.clear();
         motors.addAll(hardwareMap.getAll(DcMotor.class));
     }
