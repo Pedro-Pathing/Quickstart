@@ -1,9 +1,15 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Auto_; // make sure this aligns with class location
 
+import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.skeletonarmy.marrow.prompts.OptionPrompt;
+import com.skeletonarmy.marrow.prompts.Prompter;
+
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 @Autonomous(name = "Auto_Dec6th", group = "TestAuto", preselectTeleOp="Teleop_Main_")
 public class Auto_Dec6th extends OpMode {
@@ -12,6 +18,9 @@ public class Auto_Dec6th extends OpMode {
     DcMotorEx FR;
     DcMotorEx BL;
     DcMotorEx BR;
+
+    // Create the prompter object for selecting Alliance and Auto
+    Prompter prompter = null;
 
     /**
      * Copied over from LinearOpMode.
@@ -35,12 +44,26 @@ public class Auto_Dec6th extends OpMode {
 
         FL.setDirection(DcMotorSimple.Direction.REVERSE);
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        prompter = new Prompter(this);
+        prompter.prompt("alliance",
+                new OptionPrompt<>("Select Alliance",
+                        LoadHardwareClass.Alliance.RED,
+                        LoadHardwareClass.Alliance.BLUE
+                ));
+        prompter.onComplete(() -> {
+                    selectedAlliance = prompter.get("alliance");
+                    telemetry.addData("Selection", "Complete");
+                    telemetry.addData("Alliance", selectedAlliance);
+                    telemetry.update();
+                }
+        );
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
     public void init_loop() {
-
+        prompter.run();
     }
 
     /** This method is called once at the start of the OpMode.

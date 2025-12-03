@@ -11,6 +11,7 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -19,6 +20,7 @@ import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.delays.WaitUntil;
 import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.groups.SequentialGroup;
+import dev.nextftc.extensions.pedro.FollowPath;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 
@@ -27,7 +29,7 @@ import dev.nextftc.ftc.NextFTCOpMode;
 public class Auto_Main_ extends NextFTCOpMode {
 
     // Define other PedroPathing constants
-    private final Pose startPose = new Pose(87, 8.8, Math.toRadians(90)); // Start Pose of our robot.
+    private Pose startPose = new Pose(87, 8.8, Math.toRadians(90)); // Start Pose of our robot.
 
     private enum Auto {
         LEAVE_NEAR_LAUNCH,
@@ -44,12 +46,15 @@ public class Auto_Main_ extends NextFTCOpMode {
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
 
-    @Override
-    public void onInit() {
-        // Initialize all hardware of the robot
+    public Auto_Main_() {
         addComponents(
                 new PedroComponent(Constants::createFollower)
         );
+    }
+
+    @Override
+    public void onInit() {
+        // Initialize all hardware of the robot
         Robot.init(startPose);
         Robot.drivetrain.follower = PedroComponent.follower();
 
@@ -69,6 +74,9 @@ public class Auto_Main_ extends NextFTCOpMode {
                     selectedAlliance = prompter.get("alliance");
                     selectedAuto = prompter.get("auto");
                     telemetry.addData("Selection", "Complete");
+                    telemetry.addData("Alliance", selectedAlliance);
+                    telemetry.addData("Auto", selectedAuto);
+                    telemetry.update();
                 }
         );
         Robot.drivetrain.paths.buildPaths(selectedAlliance);
@@ -84,25 +92,28 @@ public class Auto_Main_ extends NextFTCOpMode {
         // Schedule the proper auto
         switch (selectedAuto) {
             case LEAVE_NEAR_LAUNCH:
-                Leave_Near_Launch().invoke();
+                Leave_Near_Launch().schedule();
+                startPose = new Pose(0,0,0);
                 return;
             case LEAVE_FAR_HP:
-                Leave_Far_HP().invoke();
+                Leave_Far_HP().schedule();
+                startPose = new Pose(0,0,0);
                 return;
+            case MOVEMENT_RP_DEC6:
+                Movement_RP_Dec6th().schedule();
+                startPose = new Pose(0,0,0);
         }
     }
 
     @Override
     public void onUpdate() {
-        if (turretOn){
-            switch (selectedAlliance) {
-                case RED:
-                    Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
-                    return;
-                case BLUE:
-                    Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
-                    return;
-            }
+        switch (selectedAlliance) {
+            case RED:
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
+                return;
+            case BLUE:
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
+                return;
         }
 
         telemetry.addData("selectedAuto", selectedAuto);
@@ -163,6 +174,12 @@ public class Auto_Main_ extends NextFTCOpMode {
                 Commands.setIntakeMode(Robot, Intake.Mode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
                 Commands.runPath(Robot.drivetrain.paths.start1_to_leave1, true, 0.6)
+        );
+    }
+
+    private Command Movement_RP_Dec6th(){
+        return new SequentialGroup(
+                new FollowPath(Robot.drivetrain.paths.basicMoveRPPath, true, 0.5)
         );
     }
 }

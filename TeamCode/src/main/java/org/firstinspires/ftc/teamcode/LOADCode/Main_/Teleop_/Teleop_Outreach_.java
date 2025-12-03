@@ -38,8 +38,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
-//TODO, implement all our external libraries and functionality.
-
 @TeleOp(name="Teleop_Outreach_", group="TeleOp")
 public class Teleop_Outreach_ extends LinearOpMode {
 
@@ -75,19 +73,6 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     gamepad1.right_stick_x/2,
                     true
             );
-            if (gamepad1.x){
-                Robot.turret.setFlywheelRPM(5485.714285714286);
-                panelsTelemetry.addData("SetRPM", 5485.714285714286);
-            }else{
-                Robot.turret.setFlywheelRPM(0);
-                panelsTelemetry.addData("SetRPM", 0);
-            }
-
-            Robot.turret.updatePIDs();
-
-            telemetry.addData("FlywheelState", Robot.turret.flywheelState);
-            panelsTelemetry.addData("FlywheelRPM", Robot.turret.getFlywheelRPM());
-
 
             // System-related Telemetry
             telemetry.addLine();
@@ -95,7 +80,6 @@ public class Teleop_Outreach_ extends LinearOpMode {
             telemetry.addData("Version: ", "11/4/25");
             telemetry.update();
             panelsTelemetry.update(telemetry);
-            //TODO, Add a more advanced telemetry handler for better organization, readability, and debugging
         }
     }
 }

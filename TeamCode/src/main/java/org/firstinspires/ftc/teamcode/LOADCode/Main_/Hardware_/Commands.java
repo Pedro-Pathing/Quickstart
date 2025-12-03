@@ -17,10 +17,10 @@ public class Commands {
     public static Object intakeSystem = null;
 
     public static Command runPath(PathChain path, boolean holdEnd) {
-        return new FollowPath(path, holdEnd).requires(driveSystem);
+        return new FollowPath(path, holdEnd);
     }
     public static Command runPath(PathChain path, boolean holdEnd, double maxPower) {
-        return new FollowPath(path, holdEnd, maxPower).requires(driveSystem);
+        return new FollowPath(path, holdEnd, maxPower);
     }
 
     public static Command setFlywheelState(LoadHardwareClass Robot, Turret.flywheelstate state) {

@@ -57,6 +57,7 @@ public class Teleop_Main_ extends LinearOpMode {
     public static double DylanStickDeadzones = 0.2;
     public int shootingState = 0;
     public TimerEx shootingDelay = new TimerEx(1);
+    public static double autoaimmultiplier = 100;
 
     Prompter prompter = null;
 
@@ -190,6 +191,65 @@ public class Teleop_Main_ extends LinearOpMode {
                 gamepad1.left_stick_y,
                 gamepad1.left_stick_x,
                 gamepad1.right_stick_x/turnMult,
+                true
+        );
+    }
+
+    public void Gamepad1Dec6(){
+
+        Robot.drivetrain.speedMultiplier = 0.66;
+        if (gamepad1.left_trigger >= 0.5) {
+            Robot.drivetrain.speedMultiplier -= 0.33;
+        }
+        if (gamepad1.right_trigger >= 0.5){
+            Robot.drivetrain.speedMultiplier += 0.33;
+        }
+
+        double turnPower = gamepad1.right_stick_x;
+        double turnMult = 2;
+        if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
+            turnMult = 1;
+        }
+        turnPower = turnPower/turnMult;
+
+        double targetHeading = 0;
+        telemetry.addData("Alliance", LoadHardwareClass.selectedAlliance);
+        if (gamepad1.right_stick_button){
+            switch (LoadHardwareClass.selectedAlliance){
+                case RED:
+                    turnPower = Robot.drivetrain.follower.getHeading() -
+                            Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), false);
+                    targetHeading = Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), false);
+                    telemetry.addData("Pose", Robot.drivetrain.follower.getPose());
+                    telemetry.addData("Target Heading", targetHeading);
+                    return;
+                case BLUE:
+                    turnPower = Robot.drivetrain.follower.getHeading() -
+                            Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true);
+                    targetHeading = Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true);
+                    telemetry.addData("Pose", Robot.drivetrain.follower.getPose());
+                    telemetry.addData("Target Heading", targetHeading);
+                    return;
+            }
+            turnPower = turnPower/autoaimmultiplier;
+        }
+        telemetry.addData("TurnPower", turnPower);
+
+        if (gamepad1.guide){
+            switch (LoadHardwareClass.selectedAlliance){
+                case RED:
+                    Robot.drivetrain.follower.setPose(new Pose(144-8.25,7.25, Math.toRadians(90)));
+                    return;
+                case BLUE:
+                    Robot.drivetrain.follower.setPose(new Pose(8.25,7.25, Math.toRadians(90)));
+                    return;
+            }
+        }
+
+        Robot.drivetrain.pedroMecanumDrive(
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                turnPower,
                 true
         );
     }
