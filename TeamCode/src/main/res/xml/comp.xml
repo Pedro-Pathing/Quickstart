@@ -1,16 +1,18 @@
-<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-<!-- standard competition robot configuration: will show up as "comp" -->
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Standard competition robot configuration -->
 <Robot type="FirstInspires-FTC">
 
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)">
 
         <LynxModule name="Control Hub" moduleAddress="173">
 
+            <!-- Motors -->
             <goBILDA5202SeriesMotor name="motor0" port="0" />
             <goBILDA5202SeriesMotor name="motor1" port="1" />
             <goBILDA5202SeriesMotor name="motor2" port="2" />
             <goBILDA5202SeriesMotor name="motor3" port="3" />
 
+            <!-- Servos -->
             <Servo name="servo0" port="0" />
             <Servo name="servo1" port="1" />
             <Servo name="servo2" port="2" />
@@ -18,18 +20,21 @@
             <Servo name="servo4" port="4" />
             <ContinuousRotationServo name="servo5" port="5" />
 
+            <!-- I2C Sensors -->
             <ControlHubImuBHI260AP name="imu" port="0" bus="0"/>
-            <goBILDAPinpoint name="pinpoint" port="0" bus="3"/>
+            <goBILDAPinpoint name="pinpoint" port="1" bus="3"/>
 
         </LynxModule>
 
         <LynxModule name="Expansion Hub 0" moduleAddress="1" parentModuleAddress="173">
 
+            <!-- Expansion Hub Motors -->
             <goBILDA5202SeriesMotor name="motorExp0" port="0" />
             <goBILDA5202SeriesMotor name="motorExp1" port="1" />
             <goBILDA5202SeriesMotor name="motorExp2" port="2" />
             <goBILDA5202SeriesMotor name="motorExp3" port="3" />
 
+            <!-- Expansion Hub Servos -->
             <Servo name="servoExp0" port="0" />
             <Servo name="servoExp1" port="1" />
             <Servo name="servoExp2" port="2" />
