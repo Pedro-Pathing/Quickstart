@@ -19,7 +19,6 @@ import java.util.List;
 public class AprilTagWebCam {
     private AprilTagProcessor aprilTagProcessor;
     private VisionPortal visionPortal;
-    private Servo servo;
     private List<AprilTagDetection> detectedTags = new ArrayList<>();
     private Telemetry telemetry;
 
@@ -40,7 +39,9 @@ public class AprilTagWebCam {
         builder.addProcessor(aprilTagProcessor);
         visionPortal = builder.build();
     }
+
     public void update(){
+        telemetry.addLine("Searching");
         detectedTags = aprilTagProcessor.getDetections();
     }
     public List<AprilTagDetection> getDetectedTags(){

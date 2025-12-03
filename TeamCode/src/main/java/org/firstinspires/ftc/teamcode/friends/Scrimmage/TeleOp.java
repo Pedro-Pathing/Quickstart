@@ -57,6 +57,7 @@ public class TeleOp extends LinearOpMode  {
             currentGamepad1.copy(gamepad1);
 
             /// Shooter
+        /*
             if(gamepad1.right_bumper) {
                 hwMap.shooterMotor1.setPower(shooterPower);
                 hwMap.shooterMotor2.setPower(shooterPower);
@@ -77,6 +78,7 @@ public class TeleOp extends LinearOpMode  {
 
             telemetry.addData("Shooter Power: ", shooterPower);
             telemetry.update();
+            */
 
             /// Intake
             if(gamepad1.left_bumper) {

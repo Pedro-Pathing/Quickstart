@@ -20,6 +20,5 @@ public class ATWC extends OpMode {
         ATWC.update();
         AprilTagDetection id21 = ATWC.getTagByID(21);
         ATWC.displayDetectionTelemetry(id21);
-        ATWC.stop();
     }
 }

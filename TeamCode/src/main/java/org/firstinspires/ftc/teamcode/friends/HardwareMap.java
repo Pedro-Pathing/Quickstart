@@ -4,14 +4,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class HardwareMap {
-
     public DcMotor frontLeftMotor;
     public DcMotor backLeftMotor;
     public DcMotor frontRightMotor;
     public DcMotor backRightMotor;
 
-    public DcMotor shooterMotor1;
-    public DcMotor shooterMotor2;
+    //public DcMotor shooterMotor1;
+    //public DcMotor shooterMotor2;
     public DcMotor intakeMotor;
 
     public HardwareMap(com.qualcomm.robotcore.hardware.HardwareMap hardwaremap) {
@@ -25,8 +24,8 @@ public class HardwareMap {
         backLeftMotor = hardwaremap.get(DcMotor.class, "BLM");
         backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        shooterMotor1 = hardwaremap.get(DcMotor.class, "Shooter1");
-        shooterMotor2 = hardwaremap.get(DcMotor.class, "Shooter2");
+        //shooterMotor1 = hardwaremap.get(DcMotor.class, "Shooter1");
+        //shooterMotor2 = hardwaremap.get(DcMotor.class, "Shooter2");
         intakeMotor = hardwaremap.get(DcMotor.class, "Intake");
     }
 }
