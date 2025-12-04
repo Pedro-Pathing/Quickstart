@@ -1,22 +1,28 @@
 repositories {
     mavenCentral()
     google() // Needed for androidx
+
     maven { url = "https://mymaven.bylazar.com/releases" }
+    maven { url = "https://maven.brott.dev/"}
 }
 
 dependencies {
-    implementation 'org.firstinspires.ftc:Inspection:11.0.0'
-    implementation 'org.firstinspires.ftc:Blocks:11.0.0'
-    implementation 'org.firstinspires.ftc:RobotCore:11.0.0'
-    implementation 'org.firstinspires.ftc:RobotServer:11.0.0'
-    implementation 'org.firstinspires.ftc:OnBotJava:11.0.0'
-    implementation 'org.firstinspires.ftc:Hardware:11.0.0'
-    implementation 'org.firstinspires.ftc:FtcCommon:11.0.0'
-    implementation 'org.firstinspires.ftc:Vision:11.0.0'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'org.firstinspires.ftc:Inspection:10.3.0'
+    implementation 'org.firstinspires.ftc:Blocks:10.3.0'
+    //noinspection Aligned16KB
+    implementation 'org.firstinspires.ftc:RobotCore:10.3.0'
+    implementation 'org.firstinspires.ftc:RobotServer:10.3.0'
+    implementation 'org.firstinspires.ftc:OnBotJava:10.3.0'
+    implementation 'org.firstinspires.ftc:Hardware:10.3.0'
+    implementation 'org.firstinspires.ftc:FtcCommon:10.3.0'
+    implementation 'org.firstinspires.ftc:Vision:10.3.0'
 
     implementation 'com.pedropathing:ftc:2.0.4'
     implementation 'com.pedropathing:telemetry:1.0.0'
-    implementation 'com.bylazar:fullpanels:1.0.9'
-}
+    implementation 'org.ftclib.ftclib:core:2.1.1' // core
 
+    implementation 'com.bylazar:fullpanels:1.0.6'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+
+    implementation 'com.acmerobotics.dashboard:dashboard:0.5.0'
+}

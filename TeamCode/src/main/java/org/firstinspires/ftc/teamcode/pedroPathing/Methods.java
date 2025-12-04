@@ -1,34 +1,60 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
+import com.arcrobotics.ftclib.controller.PIDFController;
+
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class Methods {
-    public Modes mode = Modes.INTAKING;
-    public static final double HOOD_FAR = 0;
-    public static final double HOOD_CLOSE = 0;
+    private boolean firstLoop = true;
+    private double lastPos;
+    private double lastTime;
 
-    public static class FlyWheel_Values{
-        static double fv = 0;
-        static double fd = 0;
-        static double fp = 0;
+    public void FlyWheel_PID(DcMotorEx motor, double targetVelocity) {
+        double kF, kD, kP,kI;
+        PIDFController controller;
+        kI = Values.flywheel_Values.fi;
+        kD = Values.flywheel_Values.fd;
+        kP = Values.flywheel_Values.fp;
+        kF = Values.flywheel_Values.ff;
+        controller = Values.flywheel_Values.flywheelPIDController;
+        if (firstLoop) {
+            lastPos = motor.getCurrentPosition();
+            lastTime = System.nanoTime() / 1e9;
+            firstLoop = false;
+            return;
+        }
+        double currentPos = motor.getCurrentPosition();
+        double currentTime = System.nanoTime() / 1e9;
+
+        double dt = currentTime - lastTime;
+        double dp = currentPos - lastPos;
+
+        double measuredVelocity = dp / dt;
+
+        lastPos = currentPos;
+        lastTime = currentTime;
+
+        if (targetVelocity == 0) {
+            motor.setPower(0);
+            return;
+        }
+
+        controller.setPIDF(kP, kI, kD, kF);
+        double power = controller.calculate(measuredVelocity, targetVelocity);
+        motor.setPower(power);
     }
 
-    public static class Intake_Values{
-        static double iv = 0;
-        static double id = 0;
-        static double ip = 0;
+    public void resetPID() {
+        firstLoop = true;
     }
 
-    public static class Hood_Values{
-        static double hv = 0;
-        static double hd = 0;
-        static double hp = 0;
+    public void Relocalize(){
+        return;
     }
-    public static final double TURRET_RIGHT = 0;
+    public void Transfer(){
+    }
+    public void AutoAim(){
+    }
 
-    public enum Modes {
-        INTAKING,
-        SHOOTING,
-        REST
-    }
 }
 /// intake: PID,
 /// Hood: PID,
