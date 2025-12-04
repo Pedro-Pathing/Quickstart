@@ -28,6 +28,13 @@ public class TestSingleMotorTeleOp extends OpMode {
 
     @Override
     public void init_loop() {
+
+        if (motors.isEmpty()) {
+            telemetry.addLine("no motors found");
+            telemetry.update();
+            return;
+        }
+
         lastGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
 
