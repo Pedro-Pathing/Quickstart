@@ -3,14 +3,30 @@ package org.firstinspires.ftc.teamcode.friends;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+/**
+ * Class to provide a helpful abstraction layer for accessing the HardwareMap
+ */
+
 public class HardwareMap {
+
+    /*
+        -----------------------------------------------------------------------
+        | FRM               | Front Right Wheel     | Control Hub Motor 0     |
+        --------------------+-----------------------+--------------------------
+        | BRM               | Back Right Wheel      | Control Hub Motor 1     |
+        --------------------+-----------------------+--------------------------
+        | BLM               | Back Left Wheel       | Control Hub Motor 2     |
+        --------------------+-----------------------+--------------------------
+        | FLM               | Front Left Wheel      | Control Hub Motor 3     |
+        -----------------------------------------------------------------------
+        | Intake            | Intake Motor          | Expansion Hub Motor 1   |
+        -----------------------------------------------------------------------
+     */
+
     public DcMotor frontLeftMotor;
     public DcMotor backLeftMotor;
     public DcMotor frontRightMotor;
     public DcMotor backRightMotor;
-
-    //public DcMotor shooterMotor1;
-    //public DcMotor shooterMotor2;
     public DcMotor intakeMotor;
 
     public HardwareMap(com.qualcomm.robotcore.hardware.HardwareMap hardwaremap) {
@@ -24,8 +40,6 @@ public class HardwareMap {
         backLeftMotor = hardwaremap.get(DcMotor.class, "BLM");
         backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        //shooterMotor1 = hardwaremap.get(DcMotor.class, "Shooter1");
-        //shooterMotor2 = hardwaremap.get(DcMotor.class, "Shooter2");
         intakeMotor = hardwaremap.get(DcMotor.class, "Intake");
     }
 }

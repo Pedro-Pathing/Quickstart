@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.friends.teleOp.tests;
+package org.firstinspires.ftc.teamcode.friends.Comp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -6,11 +6,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-@TeleOp(name = "Driving")
-public class IntakeMovement extends LinearOpMode {
 
+@TeleOp(name = "Driving")
+public class Main extends LinearOpMode {
     private static double speedModifier = 0.8;
-    private static float power = 0.0f;
+    private static float power = -0.8f;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -65,17 +65,18 @@ public class IntakeMovement extends LinearOpMode {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            if(gamepad1.touchpad) {
+            boolean intakeTriggered = false;
+            if(gamepad1.x) { // toggle so u don't have to hold
                 motor.setPower(power);
             } else {
                 motor.setPower(0);
             }
 
-            if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-                power += 0.1f;
+            if (currentGamepad1.right_trigger == 1 && !(previousGamepad1.right_trigger == 1)) {
+                power += 1f;
             }
-            if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down){
-                power -= 0.1f;
+            if (currentGamepad1.left_trigger == 1 && !(previousGamepad1.left_trigger == 1)){
+                power -= 1f;
             }
 
             power = Math.min(1.0f, power);
