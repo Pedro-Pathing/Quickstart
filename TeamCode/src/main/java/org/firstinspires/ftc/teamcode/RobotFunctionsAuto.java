@@ -1517,14 +1517,14 @@ public class RobotFunctionsAuto {
         // Continuously update shooter control and alignment until ready
         // Timeout after 3 seconds to prevent infinite loop if no target
         long startTime = System.currentTimeMillis();
-        long timeout = 3000;  // 3 second timeout
+        long timeout = 500;  // 3 second timeout
         
         while (opMode.opModeIsActive()) {
             // Update shooter control (this adjusts power based on current speed)
             controlShooter(true);
             
             // Auto-align drivetrain to limelight target (drive=0, strafe=0)
-            limelightAutoAlign(0, 0);
+            //limelightAutoAlign(0, 0);
             
             // Check if shooter is ready (includes speed and alignment check within 5°)
             if (isShooterReady()) {
@@ -1550,7 +1550,7 @@ public class RobotFunctionsAuto {
         // Step 4: Run transfer motor for 250 ticks using dynamic speed based on distance
         // Reset encoder and use RUN_TO_POSITION mode
         int startPosition = robot.transferMotor.getCurrentPosition();
-        int targetPosition = startPosition + 250;
+        int targetPosition = startPosition + 300;
         
         robot.transferMotor.setTargetPosition(targetPosition);
         robot.transferMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -1738,6 +1738,8 @@ public class RobotFunctionsAuto {
         }
         robot.transferMotor.setPower(0);
         robot.intakeMotor.setPower(0);
+
+        moveTransferBallBackSmall(opMode);
         
         // Step 3: Set indexer to indexed position (keep shooter spinning)
         setIndexerIndexed();
@@ -1763,8 +1765,9 @@ public class RobotFunctionsAuto {
         // Step 6: Set indexer to middle position (keep shooter spinning)
         setIndexerMiddle();
         delayStart = System.currentTimeMillis();
-        while (opMode.opModeIsActive() && System.currentTimeMillis() - delayStart < 100) {
+        while (opMode.opModeIsActive() && System.currentTimeMillis() - delayStart < 400) {
             controlShooter(true);
+            robot.transferMotor.setPower(HardwareConfigAuto.TRANSFER_POWER);
         }
         
         // Step 7: Shoot third ball (keeps shooter spinning)
@@ -1787,6 +1790,8 @@ public class RobotFunctionsAuto {
     public void ISSIS(com.qualcomm.robotcore.eventloop.opmode.LinearOpMode opMode) throws InterruptedException {
         // Start shooter spinning BEFORE indexing (so it's up to speed by first shot)
         controlShooter(true);
+
+        moveTransferBallBackSmall(opMode);
         
         // Step 1: Set indexer to indexed position (while shooter ramps up)
         setIndexerIndexed();
@@ -1860,7 +1865,7 @@ public class RobotFunctionsAuto {
     public void moveTransferBallBack(com.qualcomm.robotcore.eventloop.opmode.LinearOpMode opMode) throws InterruptedException {
         // Get current position and calculate target (-250 ticks)
         int startPosition = robot.transferMotor.getCurrentPosition();
-        int targetPosition = startPosition - 250;
+        int targetPosition = startPosition - 400;
         
         // Set up transfer motor for RUN_TO_POSITION
         robot.transferMotor.setTargetPosition(targetPosition);
@@ -1879,6 +1884,31 @@ public class RobotFunctionsAuto {
         robot.transferMotor.setPower(0);
         robot.intakeMotor.setPower(0);
         
+        // Switch transfer motor back to RUN_WITHOUT_ENCODER
+        robot.transferMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+    public void moveTransferBallBackSmall(com.qualcomm.robotcore.eventloop.opmode.LinearOpMode opMode) throws InterruptedException {
+        // Get current position and calculate target (-250 ticks)
+        int startPosition = robot.transferMotor.getCurrentPosition();
+        int targetPosition = startPosition - 100;
+
+        // Set up transfer motor for RUN_TO_POSITION
+        robot.transferMotor.setTargetPosition(targetPosition);
+        robot.transferMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.transferMotor.setPower(1.0);  // Full speed (direction from target position)
+
+        // Run intake at full speed while transfer moves back
+        robot.intakeMotor.setPower(1.0);
+
+        // Wait for transfer motor to reach position
+        while (opMode.opModeIsActive() && robot.transferMotor.isBusy()) {
+
+        }
+
+        // Stop motors
+        robot.transferMotor.setPower(0);
+        robot.intakeMotor.setPower(0);
+
         // Switch transfer motor back to RUN_WITHOUT_ENCODER
         robot.transferMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
@@ -1927,6 +1957,7 @@ public class RobotFunctionsAuto {
     public void ISISS(com.qualcomm.robotcore.eventloop.opmode.LinearOpMode opMode) throws InterruptedException {
         // Start shooter spinning BEFORE indexing (so it's up to speed by first shot)
         controlShooter(true);
+        moveTransferBallBackSmall(opMode);
         
         // Step 1: Set indexer to indexed position (while shooter ramps up)
         setIndexerIndexed();
@@ -1954,7 +1985,7 @@ public class RobotFunctionsAuto {
         // Step 4: Set indexer to middle position (keep shooter spinning)
         setIndexerMiddle();
         delayStart = System.currentTimeMillis();
-        while (opMode.opModeIsActive() && System.currentTimeMillis() - delayStart < 50) {
+        while (opMode.opModeIsActive() && System.currentTimeMillis() - delayStart < 200) {
             controlShooter(true);
         }
         
@@ -1963,7 +1994,7 @@ public class RobotFunctionsAuto {
         robot.transferMotor.setPower(1);
         robot.intakeMotor.setPower(1);
         delayStart = System.currentTimeMillis();
-        while (opMode.opModeIsActive() && System.currentTimeMillis() - delayStart < 50) {
+        while (opMode.opModeIsActive() && System.currentTimeMillis() - delayStart < 200) {
             controlShooter(true);
         }
         robot.transferMotor.setPower(0);
