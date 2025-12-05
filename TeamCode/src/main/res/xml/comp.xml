@@ -1,49 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- Standard competition robot configuration -->
 <Robot type="FirstInspires-FTC">
-
-    <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)">
-
-        <LynxModule name="Control Hub" moduleAddress="173">
-
+    <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
+        <LynxModule name="Control Hub" port="173">
             <!-- Motors -->
-            <goBILDA5202SeriesMotor name="motor0" port="0" />
-            <goBILDA5202SeriesMotor name="motor1" port="1" />
-            <goBILDA5202SeriesMotor name="motor2" port="2" />
-            <goBILDA5202SeriesMotor name="motor3" port="3" />
-
+            <goBILDA5202SeriesMotor name="motor0" port="0"/>
+            <goBILDA5202SeriesMotor name="motor1" port="1"/>
+            <goBILDA5202SeriesMotor name="motor2" port="2"/>
+            <goBILDA5202SeriesMotor name="motor3" port="3"/>
             <!-- Servos -->
-            <Servo name="servo0" port="0" />
-            <Servo name="servo1" port="1" />
-            <Servo name="servo2" port="2" />
-            <Servo name="servo3" port="3" />
-            <Servo name="servo4" port="4" />
-            <ContinuousRotationServo name="servo5" port="5" />
-
-            <!-- I2C Sensors -->
-            <ControlHubImuBHI260AP name="imu" port="0" bus="0"/>
-            <goBILDAPinpoint name="pinpoint" port="1" bus="3"/>
-
+            <Servo name="servo0" port="0"/>
+            <Servo name="servo1" port="1"/>
+            <Servo name="servo2" port="2"/>
+            <Servo name="servo3" port="3"/>
+            <Servo name="servo4" port="4"/>
+            <ContinuousRotationServo name="servo5" port="5"/>
+            <!-- I2C -->
+            <LynxEmbeddedIMU name="imu" bus="0" port="0"/>
+            <goBILDAPinpoint name="pinpoint" bus="1" port="0"/> <!-- Physical port 1 -->
+        </LynxModule>+
+        <LynxModule name="Expansion Hub 2" port="2">
+            <!-- Motors -->
+            <goBILDA5202SeriesMotor name="motorExp0" port="0"/>
+            <goBILDA5202SeriesMotor name="motorExp1" port="1"/>
+            <goBILDA5202SeriesMotor name="motorExp2" port="2"/>
+            <goBILDA5202SeriesMotor name="motorExp3" port="3"/>
+            <!-- Servos -->
+            <Servo name="servoExp0" port="0"/>
+            <Servo name="servoExp1" port="1"/>
+            <Servo name="servoExp2" port="2"/>
+            <Servo name="servoExp3" port="3"/>
+            <Servo name="servoExp4" port="4"/>
+            <ContinuousRotationServo name="servo5" port="5"/>
+            <!-- I2C -->
         </LynxModule>
-
-        <LynxModule name="Expansion Hub 0" moduleAddress="1" parentModuleAddress="173">
-
-            <!-- Expansion Hub Motors -->
-            <goBILDA5202SeriesMotor name="motorExp0" port="0" />
-            <goBILDA5202SeriesMotor name="motorExp1" port="1" />
-            <goBILDA5202SeriesMotor name="motorExp2" port="2" />
-            <goBILDA5202SeriesMotor name="motorExp3" port="3" />
-
-            <!-- Expansion Hub Servos -->
-            <Servo name="servoExp0" port="0" />
-            <Servo name="servoExp1" port="1" />
-            <Servo name="servoExp2" port="2" />
-            <Servo name="servoExp3" port="3" />
-            <Servo name="servoExp4" port="4" />
-            <ContinuousRotationServo name="servoExp5" port="5" />
-
-        </LynxModule>
-
     </LynxUsbDevice>
-
+    <EthernetDevice name="limelight" serialNumber = "EthernetOverUsb:eth0:172.29.0.25" port = "0" ipAddress = "172.29.0.1"></EthernetDevice>
 </Robot>

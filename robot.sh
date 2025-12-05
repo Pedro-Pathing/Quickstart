@@ -23,6 +23,7 @@ setup() {
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+    # shellcheck disable=SC2016
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
     eval "$(/opt/homebrew/bin/brew shellenv)"
 
@@ -50,8 +51,16 @@ setup() {
   SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
   chmod +x "$SCRIPT_PATH"
 
+  TARGET_BIN=""
+
+  if [[ "$(uname -m)" == "arm64" ]]; then
+    TARGET_BIN="/opt/homebrew/bin"
+  else
+    TARGET_BIN="/usr/local/bin"
+  fi
+
   echo "copying script to /usr/local/bin/robot (overwriting if exists)..."
-  sudo cp "$SCRIPT_PATH" /usr/local/bin/robot
+  sudo cp "$SCRIPT_PATH" "$TARGET_BIN/robot"
   echo "now available as 'robot' globally"
 
   echo "done"
