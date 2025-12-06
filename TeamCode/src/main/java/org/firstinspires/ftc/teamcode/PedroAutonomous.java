@@ -16,7 +16,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
 @Configurable // Panels
 public class PedroAutonomous extends LinearOpMode {
-
+//ctrl + f new Pose, new Pose(144-
+    //ctrl f Math.toRadians(, Math.toRadians(-180-
+    //multiply turrent heading by -1
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
