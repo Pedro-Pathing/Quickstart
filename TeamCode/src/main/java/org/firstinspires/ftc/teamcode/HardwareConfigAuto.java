@@ -48,8 +48,8 @@ public class HardwareConfigAuto {
     public ServoImplEx lightServo;
     
     // Servo positions
-    public static final double BLOCKER_BLOCKED = 0.15;
-    public static final double BLOCKER_UNBLOCKED = 0.4;
+    public static final double BLOCKER_BLOCKED = 0.35;
+    public static final double BLOCKER_UNBLOCKED = 0.65;
 
     // Indexer servo positions
     public static final double INDEXER_INDEXED = 0.45;   // Indexed position (ball ready)

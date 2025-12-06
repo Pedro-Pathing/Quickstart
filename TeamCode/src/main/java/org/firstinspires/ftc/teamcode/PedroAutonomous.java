@@ -9,13 +9,13 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
 @Configurable // Panels
-public class PedroAutonomous extends OpMode {
+public class PedroAutonomous extends LinearOpMode {
 
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
@@ -31,12 +31,16 @@ public class PedroAutonomous extends OpMode {
     
     // Flag for shooter control - must be updated continuously for bang-bang
     private boolean shooterRunning = false;
+    
+    // AprilTag ID detected during init (21, 22, or 23)
+    private int detectedTagId = 21;
 
     // Starting pose - MUST match the beginning of Path1!
     private final Pose startPose = new Pose(129.0, 108.0, Math.toRadians(-90));
 
     @Override
-    public void init() {
+    public void runOpMode() throws InterruptedException {
+        // === INIT ===
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
@@ -52,7 +56,6 @@ public class PedroAutonomous extends OpMode {
             robotFunctions.setBlocker(true);
             telemetry.addLine("INITIALIZED SUCCESSFULLY");
         } catch (Exception e) {
-            // Hardware init failed - paths will still work
             robot = null;
             robotFunctions = null;
             telemetry.addLine("THREW ERROR");
@@ -60,29 +63,55 @@ public class PedroAutonomous extends OpMode {
 
         telemetry.update();
         panelsTelemetry.update(telemetry);
-    }
 
-    @Override
-    public void start() {
-        // Start following the first path when autonomous begins
+        // === INIT LOOP - Detect AprilTag ===
+        while (!isStarted() && !isStopRequested()) {
+            robotFunctions.setTurretAngle(45);
+            // Continuously check for AprilTag during init
+            int tagId = robotFunctions.getDetectedAprilTagId();
+            if (tagId == 21 || tagId == 22 || tagId == 23) {
+                detectedTagId = tagId;
+            }
+
+            robotFunctions.setBlocker(true);
+            robotFunctions.setIndexerMiddle();
+            
+            telemetry.addLine("=== INIT - Point at AprilTag ===");
+            telemetry.addData("Detected Tag ID", detectedTagId);
+            if (detectedTagId == 23) {
+                telemetry.addLine("TAG 23: SSS -> SISIS -> ISSIS");
+            } else if (detectedTagId == 22) {
+                telemetry.addLine("TAG 22: SISIS -> SSS -> ISISS");
+            } else if (detectedTagId == 21) {
+                telemetry.addLine("TAG 21: SSS -> ISSIS -> SSS");
+            } else {
+                telemetry.addLine("No valid tag (21/22/23) detected!");
+            }
+            telemetry.update();
+            
+            sleep(50);
+        }
+
+        // === START ===
         setPathState(0);
-    }
 
-    @Override
-    public void loop() {
-        follower.update(); // Update Pedro Pathing
-        autonomousPathUpdate(); // Update autonomous state machine
-        
-        // Continuously update shooter with bang-bang control (uses Limelight for target TPS)
-        robotFunctions.controlShooter(shooterRunning);
+        // === MAIN LOOP ===
+        while (opModeIsActive()) {
+            follower.update(); // Update Pedro Pathing
+            autonomousPathUpdate(); // Update autonomous state machine
+            
+            // Continuously update shooter with bang-bang control (uses Limelight for target TPS)
+            robotFunctions.controlShooter(shooterRunning);
 
-        // Log values to Panels and Driver Station
-        panelsTelemetry.debug("Path State", pathState);
-        panelsTelemetry.debug("X", follower.getPose().getX());
-        panelsTelemetry.debug("Y", follower.getPose().getY());
-        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-        panelsTelemetry.debug("Shooter Running", shooterRunning);
-        panelsTelemetry.update(telemetry);
+            // Log values to Panels and Driver Station
+            panelsTelemetry.debug("Path State", pathState);
+            panelsTelemetry.debug("Tag ID", detectedTagId);
+            panelsTelemetry.debug("X", follower.getPose().getX());
+            panelsTelemetry.debug("Y", follower.getPose().getY());
+            panelsTelemetry.debug("Heading", follower.getPose().getHeading());
+            panelsTelemetry.debug("Shooter Running", shooterRunning);
+            panelsTelemetry.update(telemetry);
+        }
     }
 
     public static class Paths {
@@ -167,7 +196,7 @@ public class PedroAutonomous extends OpMode {
                                     new Pose(82.000, 44.000),
                                     new Pose(94.629, 35.946),
                                     new Pose(84.000, 36.000),
-                                    new Pose(123.000, 32.000)
+                                    new Pose(128.000, 32.000)
                             )
                     )
                     .setTangentHeadingInterpolation()
@@ -176,7 +205,7 @@ public class PedroAutonomous extends OpMode {
             Path8 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(123.000, 32.000), new Pose(88.000, 83.000))
+                            new BezierLine(new Pose(128.000, 32.000), new Pose(88.000, 83.000))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
@@ -192,6 +221,35 @@ public class PedroAutonomous extends OpMode {
     }
 
     /**
+     * Run the appropriate shooting sequence based on detected tag and which set
+     * @param setNumber Which set of balls (2, 3, or 4)
+     */
+    private void runShootingSequence(int setNumber) throws InterruptedException {
+        if (detectedTagId == 23) {
+            switch (setNumber) {
+                case 2: robotFunctions.SSS(this); break;
+                case 3: robotFunctions.SISIS(this); break;
+                case 4: robotFunctions.ISSIS(this); break;
+            }
+        } else if (detectedTagId == 22) {
+            switch (setNumber) {
+                case 2: robotFunctions.SISIS(this); break;
+                case 3: robotFunctions.SSS(this); break;
+                case 4: robotFunctions.ISISS(this); break;
+            }
+        } else if (detectedTagId == 21) {
+            switch (setNumber) {
+                case 2: robotFunctions.SSS(this); break;
+                case 3: robotFunctions.ISSIS(this); break;
+                case 4: robotFunctions.SSS(this); break;
+            }
+        } else {
+            // Default to SSS if no valid tag
+            robotFunctions.SSS(this);
+        }
+    }
+
+    /**
      * Sets the path state and starts following the corresponding path
      * @param state the path state to transition to
      */
@@ -199,13 +257,15 @@ public class PedroAutonomous extends OpMode {
         pathState = state;
         switch (pathState) {
             case 0:
-                // Start Path1, move turret to -145 DURING path
+                // Start Path1, move turret to -80 DURING path
+                robotFunctions.setIndexerMiddle();
                 robotFunctions.setTurretAngle(-80);
                 shooterRunning = true;
                 follower.followPath(paths.Path1, true);
                 break;
             case 1:
-                // End of Path1: start shooting with bang-bang control, start timer (turret already at -145)
+                // End of Path1: start shooting with bang-bang control, start timer
+                robotFunctions.setIndexerMiddle();
                 shooterRunning = true;
                 shootTimer.reset();
                 break;
@@ -216,19 +276,18 @@ public class PedroAutonomous extends OpMode {
                 follower.followPath(paths.Path2, true);
                 break;
             case 3:
-                // Path2 done, start Path3 (intake still on)
+                // Path2 done, start Path3
                 robotFunctions.stopIntakeSystem();
                 follower.followPath(paths.Path3, true);
                 break;
             case 4:
-                // End of Path3: start Path4, move turret to -45 DURING path
+                // End of Path3: start Path4, move turret to -30 DURING path
                 robotFunctions.setTurretAngle(-30);
                 follower.followPath(paths.Path4, true);
                 break;
             case 5:
-                // End of Path4: start shooting with bang-bang control, start timer (turret already at -45)
-                shooterRunning = true;
-                shootTimer.reset();
+                // End of Path4: Run shooting sequence #2 based on tag
+                // (handled in autonomousPathUpdate)
                 break;
             case 6:
                 // Shooting done after Path4, start Path5 with intake ON
@@ -237,16 +296,14 @@ public class PedroAutonomous extends OpMode {
                 follower.followPath(paths.Path5, true);
                 break;
             case 7:
-                // Path5 done, start Path6, move turret to -45 DURING path
+                // Path5 done, start Path6, move turret to -30 DURING path
                 robotFunctions.stopIntakeSystem();
                 robotFunctions.setTurretAngle(-30);
                 follower.followPath(paths.Path6, true);
                 break;
             case 8:
-                // End of Path6: start shooting with bang-bang control, start timer (turret already at -45)
-                robotFunctions.stopIntakeSystem();
-                shooterRunning = true;
-                shootTimer.reset();
+                // End of Path6: Run shooting sequence #3 based on tag
+                // (handled in autonomousPathUpdate)
                 break;
             case 9:
                 // Shooting done after Path6, start Path7 with intake ON
@@ -255,16 +312,14 @@ public class PedroAutonomous extends OpMode {
                 follower.followPath(paths.Path7, true);
                 break;
             case 10:
-                // Path7 done, start Path8, move turret to -145 DURING path
+                // Path7 done, start Path8, move turret to -80 DURING path
                 robotFunctions.stopIntakeSystem();
                 robotFunctions.setTurretAngle(-80);
                 follower.followPath(paths.Path8, true);
                 break;
             case 11:
-                // End of Path8: start shooting with bang-bang control, start timer (turret already at -145)
-                robotFunctions.stopIntakeSystem();
-                shooterRunning = true;
-                shootTimer.reset();
+                // End of Path8: Run shooting sequence #4 based on tag
+                // (handled in autonomousPathUpdate)
                 break;
             case 12:
                 // Shooting done after Path8, start Path9
@@ -290,86 +345,96 @@ public class PedroAutonomous extends OpMode {
             case 0:
                 // Following Path1
                 if (!follower.isBusy()) {
-                    setPathState(1); // End of Path1 - shoot
+                    setPathState(1); // End of Path1 - shoot (first set, always timer-based)
                 }
                 break;
             case 1:
-                // Shooting after Path1 - wait 1.5 seconds
-                if(shootTimer.seconds() >= SHOOT_TIME + 0.75) {
-                    setPathState(2); //done shooting
+                // Shooting after Path1 (FIRST SET - always use timer-based shooting)
+                if (shootTimer.seconds() >= SHOOT_TIME + 0.75) {
+                    setPathState(2); // done shooting
                 } else if (shootTimer.seconds() >= SHOOT_TIME) {
-                    robotFunctions.setBlocker(false); //open blocker after shooter is ramped up
+                    robotFunctions.setBlocker(false);
+                    robotFunctions.setIndexerMiddle();
                     robotFunctions.runIntakeSystem(HardwareConfigAuto.INTAKE_POWER);
                 }
                 break;
             case 2:
-                // Following Path2 (intake on)
+                // Following Path2
                 if (!follower.isBusy()) {
                     setPathState(3); // Start Path3
                 }
                 break;
             case 3:
-                // Following Path3 (intake on)
+                // Following Path3
                 if (!follower.isBusy()) {
+                    sleep(500);
                     setPathState(4); // End of Path3
                 }
                 break;
             case 4:
                 // Following Path4
                 if (!follower.isBusy()) {
-                    setPathState(5); // End of Path4 - shoot
+                    setPathState(5); // End of Path4 - run sequence
+                    // Run shooting sequence #2 (blocking)
+                    try {
+                        runShootingSequence(2);
+                    } catch (InterruptedException e) {
+                        // Handle interruption
+                    }
+                    robotFunctions.setIndexerMiddle();
+                    robotFunctions.runIntakeSystem(HardwareConfigAuto.INTAKE_POWER);
+                    setPathState(6); // Continue to next path
                 }
                 break;
             case 5:
-                // Shooting after Path4 - wait 1.5 seconds
-                if(shootTimer.seconds() >= SHOOT_TIME + 0.75) {
-                    setPathState(6); //done shooting
-                } else if (shootTimer.seconds() >= SHOOT_TIME) {
-                    robotFunctions.setBlocker(false); //open blocker after shooter is ramped up
-                    robotFunctions.runIntakeSystem(HardwareConfigAuto.INTAKE_POWER);
-                }
+                // This state is skipped - sequence runs in case 4
                 break;
             case 6:
-                // Following Path5 (intake on)
+                // Following Path5
                 if (!follower.isBusy()) {
                     setPathState(7); // Start Path6
                 }
                 break;
             case 7:
-                // Following Path6 (intake on)
+                // Following Path6
                 if (!follower.isBusy()) {
-                    setPathState(8); // End of Path6 - shoot
+                    setPathState(8); // End of Path6 - run sequence
+                    // Run shooting sequence #3 (blocking)
+                    try {
+                        runShootingSequence(3);
+                    } catch (InterruptedException e) {
+                        // Handle interruption
+                    }
+                    robotFunctions.setIndexerMiddle();
+                    robotFunctions.runIntakeSystem(HardwareConfigAuto.INTAKE_POWER);
+                    setPathState(9); // Continue to next path
                 }
                 break;
             case 8:
-                // Shooting after Path6 - wait 1.5 seconds
-                if(shootTimer.seconds() >= SHOOT_TIME + 0.75) {
-                    setPathState(9); //done shooting
-                } else if (shootTimer.seconds() >= SHOOT_TIME) {
-                    robotFunctions.setBlocker(false); //open blocker after shooter is ramped up
-                    robotFunctions.runIntakeSystem(HardwareConfigAuto.INTAKE_POWER);
-                }
+                // This state is skipped - sequence runs in case 7
                 break;
             case 9:
-                // Following Path7 (intake on)
+                // Following Path7
                 if (!follower.isBusy()) {
                     setPathState(10); // Start Path8
                 }
                 break;
             case 10:
-                // Following Path8 (intake on)
+                // Following Path8
                 if (!follower.isBusy()) {
-                    setPathState(11); // End of Path8 - shoot
+                    setPathState(11); // End of Path8 - run sequence
+                    // Run shooting sequence #4 (blocking)
+                    try {
+                        runShootingSequence(4);
+                    } catch (InterruptedException e) {
+                        // Handle interruption
+                    }
+
+                    setPathState(12); // Continue to next path
                 }
                 break;
             case 11:
-                // Shooting after Path8 - wait 1.5 seconds
-                if(shootTimer.seconds() >= SHOOT_TIME + 0.75) {
-                    setPathState(12); //done shooting
-                } else if (shootTimer.seconds() >= SHOOT_TIME) {
-                    robotFunctions.setBlocker(false); //open blocker after shooter is ramped up
-                    robotFunctions.runIntakeSystem(HardwareConfigAuto.INTAKE_POWER);
-                }
+                // This state is skipped - sequence runs in case 10
                 break;
             case 12:
                 // Following Path9
