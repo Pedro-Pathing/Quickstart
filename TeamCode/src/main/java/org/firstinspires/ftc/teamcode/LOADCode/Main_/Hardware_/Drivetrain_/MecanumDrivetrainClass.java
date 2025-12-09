@@ -35,24 +35,6 @@ public class MecanumDrivetrainClass {
     }
 
     /**
-     * Initializes the PedroPathing follower.
-     * Needs to be run once after all hardware is initialized.
-     * @param myOpMode Allows the follower access to the robot hardware.
-     * @param initialPose The starting pose of the robot.
-     * @param follow The follower object.
-     */
-    public void init (@NonNull OpMode myOpMode, Pose initialPose, Follower follow){
-        // PedroPathing initialization
-        follower = follow;
-        paths = new Pedro_Paths(follower);
-        follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
-        follower.update(); // Applies the initialization
-
-        follower.startTeleopDrive();
-        follower.update();
-    }
-
-    /**
      * Uses PedroPathing's follower class to implement a mecanum drive controller.
      * Must be called every loop to function properly.
      * @param forward The joystick value for driving forward/backward

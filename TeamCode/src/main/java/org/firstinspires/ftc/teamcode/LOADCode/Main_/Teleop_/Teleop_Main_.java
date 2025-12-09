@@ -35,6 +35,7 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.skeletonarmy.marrow.TimerEx;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
@@ -62,7 +63,7 @@ public class Teleop_Main_ extends LinearOpMode {
     Prompter prompter = null;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
-    private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
+    private final Pose startPose = new Pose(88.5,7.8, Math.toRadians(90));
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
@@ -79,6 +80,8 @@ public class Teleop_Main_ extends LinearOpMode {
         prompter.onComplete(() -> {
                     LoadHardwareClass.selectedAlliance = prompter.get("alliance");
                     telemetry.addData("Selection", "Complete");
+                    telemetry.addData("Alliance", LoadHardwareClass.selectedAlliance);
+                    telemetry.update();
                 }
         );
 
@@ -173,14 +176,16 @@ public class Teleop_Main_ extends LinearOpMode {
      *     </ul>
      * </ul>
      */
-    public void Gamepad1(){
+    public void Gamepad1() {
 
-        Robot.drivetrain.speedMultiplier = 0.66;
-        if (gamepad1.left_trigger >= 0.5) {
-            Robot.drivetrain.speedMultiplier -= 0.33;
-        }
-        if (gamepad1.right_trigger >= 0.5){
-            Robot.drivetrain.speedMultiplier += 0.33;
+        if (gamepad1.left_trigger >= 0.5 && gamepad1.right_trigger >=0.5){
+            Robot.drivetrain.speedMultiplier = 0.66;
+        }else if (gamepad1.left_trigger >= 0.5) {
+            Robot.drivetrain.speedMultiplier = 0.33;
+        }else if (gamepad1.right_trigger >= 0.5){
+            Robot.drivetrain.speedMultiplier = 1;
+        }else{
+            Robot.drivetrain.speedMultiplier = 0.66;
         }
 
         double turnMult = 2;
@@ -191,65 +196,6 @@ public class Teleop_Main_ extends LinearOpMode {
                 gamepad1.left_stick_y,
                 gamepad1.left_stick_x,
                 gamepad1.right_stick_x/turnMult,
-                true
-        );
-    }
-
-    public void Gamepad1Dec6(){
-
-        Robot.drivetrain.speedMultiplier = 0.66;
-        if (gamepad1.left_trigger >= 0.5) {
-            Robot.drivetrain.speedMultiplier -= 0.33;
-        }
-        if (gamepad1.right_trigger >= 0.5){
-            Robot.drivetrain.speedMultiplier += 0.33;
-        }
-
-        double turnPower = gamepad1.right_stick_x;
-        double turnMult = 2;
-        if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
-            turnMult = 1;
-        }
-        turnPower = turnPower/turnMult;
-
-        double targetHeading = 0;
-        telemetry.addData("Alliance", LoadHardwareClass.selectedAlliance);
-        if (gamepad1.right_stick_button){
-            switch (LoadHardwareClass.selectedAlliance){
-                case RED:
-                    turnPower = Robot.drivetrain.follower.getHeading() -
-                            Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), false);
-                    targetHeading = Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), false);
-                    telemetry.addData("Pose", Robot.drivetrain.follower.getPose());
-                    telemetry.addData("Target Heading", targetHeading);
-                    return;
-                case BLUE:
-                    turnPower = Robot.drivetrain.follower.getHeading() -
-                            Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true);
-                    targetHeading = Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true);
-                    telemetry.addData("Pose", Robot.drivetrain.follower.getPose());
-                    telemetry.addData("Target Heading", targetHeading);
-                    return;
-            }
-            turnPower = turnPower/autoaimmultiplier;
-        }
-        telemetry.addData("TurnPower", turnPower);
-
-        if (gamepad1.guide){
-            switch (LoadHardwareClass.selectedAlliance){
-                case RED:
-                    Robot.drivetrain.follower.setPose(new Pose(144-8.25,7.25, Math.toRadians(90)));
-                    return;
-                case BLUE:
-                    Robot.drivetrain.follower.setPose(new Pose(8.25,7.25, Math.toRadians(90)));
-                    return;
-            }
-        }
-
-        Robot.drivetrain.pedroMecanumDrive(
-                gamepad1.left_stick_y,
-                gamepad1.left_stick_x,
-                turnPower,
                 true
         );
     }

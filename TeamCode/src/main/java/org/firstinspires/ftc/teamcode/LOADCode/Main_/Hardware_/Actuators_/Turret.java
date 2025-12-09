@@ -4,7 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
 import dev.nextftc.control.feedback.PIDCoefficients;
@@ -19,7 +19,7 @@ public class Turret {
     public final Devices.ServoClass hood = new Devices.ServoClass();
     public final Devices.ServoClass gate = new Devices.ServoClass();
 
-    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.002, 0, 0);
+    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.15, 0.1, 0);
     public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0.0001, 0.0001);
     public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.00002899,0,0);
 
@@ -41,6 +41,8 @@ public class Turret {
         gate.init(opmode, "gate");
 
         rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
+        rotation.ticksPerRotation = 751.8 * ((double) 131 /24);
+        rotation.setDirection(DcMotorSimple.Direction.REVERSE);
 
         flywheel.ticksPerRotation = 28;
 
@@ -98,7 +100,7 @@ public class Turret {
         return Math.toDegrees(Math.atan2(
                 goalPose.getY()-robotPose.getY(),
                 goalPose.getX()-robotPose.getX())
-        ) - Math.toDegrees(robotPose.getHeading()) + 180;
+        ) + Math.toDegrees(robotPose.getHeading());
     }
 
     /**

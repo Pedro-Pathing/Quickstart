@@ -46,7 +46,7 @@ public class Teleop_Outreach_ extends LinearOpMode {
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
-    private final Pose startPose = new Pose(135.6,9.8, Math.toRadians(90));
+    private final Pose startPose = new Pose(88.5,7.8, Math.toRadians(90));
 
     @Override
     public void runOpMode() {
@@ -73,6 +73,19 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     gamepad1.right_stick_x/2,
                     true
             );
+
+            if (!gamepad1.b){
+                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
+                telemetry.addData("Target Angle", Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), false));
+            }else{
+                Robot.turret.rotation.setAngle(0);
+                telemetry.addData("Target Angle", 0);
+            }
+
+            telemetry.addData("Turret Angle", Robot.turret.rotation.getAngleAbsolute());
+            telemetry.addData("Robot Pose X", Math.round(Robot.drivetrain.follower.getPose().getX()));
+            telemetry.addData("Robot Pose Y", Math.round(Robot.drivetrain.follower.getPose().getY()));
+            telemetry.addData("Robot Pose H", Math.round(Robot.drivetrain.follower.getPose().getHeading()));
 
             // System-related Telemetry
             telemetry.addLine();
