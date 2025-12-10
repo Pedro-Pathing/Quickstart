@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-
 import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
@@ -38,16 +37,13 @@ public class Turret {
     public flywheelstate flywheelState = flywheelstate.OFF;
 
     public void init(OpMode opmode){
-        rotation.init(opmode, "turret", 145.1); //Previously 103.8
-        flywheel.init(opmode, "flywheel");
+        rotation.init(opmode, "turret", 145.1 * ((double) 131 /24)); //Previously 103.8
+        flywheel.init(opmode, "flywheel", 28);
         hood.init(opmode, "hood");
         gate.init(opmode, "gate");
 
         rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
-        rotation.ticksPerRotation = 145.1 * ((double) 131 /24);
         rotation.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        flywheel.ticksPerRotation = 28;
 
         gate.setAngle(0.5);
         hood.setDirection(Servo.Direction.REVERSE);

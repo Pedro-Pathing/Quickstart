@@ -94,12 +94,14 @@ public class Devices {
 
         public void buildPIDs(){
             if (old_pidCoefficients != pidCoefficients || old_ffCoefficients != ffCoefficients){
+                posPID = ControlSystem.builder().posPid(pidCoefficients).build();
                 velPID = ControlSystem.builder()
                         .velPid(pidCoefficients)
                         .basicFF(ffCoefficients)
                         .build();
-                posPID = ControlSystem.builder().posPid(pidCoefficients).build();
             }
+            old_pidCoefficients = pidCoefficients;
+            old_ffCoefficients = ffCoefficients;
         }
 
         /**
