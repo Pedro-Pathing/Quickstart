@@ -30,7 +30,6 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -54,7 +53,7 @@ public class LoadHardwareClass {
     public final Intake intake;
 
     // Declare various enums & other variables that are useful across files
-    public static Alliance selectedAlliance = null;
+    public static Alliance selectedAlliance = Alliance.RED;
     public enum Alliance {
         RED,
         BLUE

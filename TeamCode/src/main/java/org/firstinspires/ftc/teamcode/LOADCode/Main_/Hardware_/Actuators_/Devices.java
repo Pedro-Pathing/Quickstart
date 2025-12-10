@@ -46,11 +46,20 @@ public class Devices {
     }
 
     public static class DcMotorExClass {
-        // PID pidCoefficients
+
+        // Old PID Coefficients
+        PIDCoefficients old_pidCoefficients = new PIDCoefficients(0, 0, 0);
+        BasicFeedforwardParameters old_ffCoefficients = new BasicFeedforwardParameters(0,0,0);
+
+        // PID Coefficients
         PIDCoefficients pidCoefficients = new PIDCoefficients(0, 0, 0);
         BasicFeedforwardParameters ffCoefficients = new BasicFeedforwardParameters(0,0,0);
-        // Encoder ticks/rotation
-        // 1620rpm Gobilda - 103.8 ticks at the motor shaft
+        /**
+         * <h4>Encoder ticks/rotation:</h4><br>
+         *      1620rpm Gobilda - 103.8<br>
+         *      1150rpm Gobilda - 145.1<br>
+         *      223rpm Gobilda - 751.8<br>
+         */
         public double ticksPerRotation = 103.8;
         // Target position/velocity of the motor
         public double target = 0;
@@ -78,6 +87,19 @@ public class Devices {
         public void init (@NonNull OpMode opmode, String motorName){
             // Initialize the motor object
             motorObject  = opmode.hardwareMap.get(DcMotorEx.class, motorName);
+        }
+
+        ControlSystem velPID = null;
+        ControlSystem posPID = null;
+
+        public void buildPIDs(){
+            if (old_pidCoefficients != pidCoefficients || old_ffCoefficients != ffCoefficients){
+                velPID = ControlSystem.builder()
+                        .velPid(pidCoefficients)
+                        .basicFF(ffCoefficients)
+                        .build();
+                posPID = ControlSystem.builder().posPid(pidCoefficients).build();
+            }
         }
 
         /**
@@ -123,6 +145,7 @@ public class Devices {
         }
         public void setEncoderTicks(int ticks){
             motorObject.setTargetPosition(ticks);
+            setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
         /**
          * @return The current position of the turret motor in encoder ticks. Can be any value.
@@ -178,12 +201,22 @@ public class Devices {
          * @param angle The angle in degrees to move the motor to. Can be any number.
          */
         public void setAngle(double angle){
-            target = angle;
-            ControlSystem turretPID = ControlSystem.builder().posPid(pidCoefficients).build();
-            KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
-            turretPID.setGoal(new KineticState(target));
-            setPower(turretPID.calculate(currentKineticState));
+            setAngle(angle, 0);
         }
+        /**
+         * Uses a PID controller to move the motor to the desired position.
+         * Must be called every loop to function properly.
+         * @param angle The angle in degrees to move the motor to. Can be any number.
+         * @param velocity The velocity the motor should be spinning at when it reaches the target point
+         */
+        public void setAngle(double angle, double velocity){
+            target = angle;
+            buildPIDs();
+            KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
+            posPID.setGoal(new KineticState(target, velocity));
+            setPower(posPID.calculate(currentKineticState));
+        }
+
         /**
          * Uses a PID controller to accelerate the motor to the desired RPM.
          * Must be called every loop to function properly.
@@ -191,14 +224,11 @@ public class Devices {
          */
         public void setRPM(double rpm){
             target = rpm;
+            buildPIDs();
             double degreesPerSecond = target*6;
-            ControlSystem PID = ControlSystem.builder()
-                    .velPid(pidCoefficients)
-                    .basicFF(ffCoefficients)
-                    .build();
             KineticState currentKineticState = new KineticState(getAngleAbsolute(), getDegreesPerSecond());
-            PID.setGoal(new KineticState(0, degreesPerSecond));
-            setPower(PID.calculate(currentKineticState));
+            velPID.setGoal(new KineticState(0, degreesPerSecond));
+            setPower(velPID.calculate(currentKineticState));
         }
     }
 

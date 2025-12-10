@@ -55,13 +55,18 @@ public class Teleop_Outreach_ extends LinearOpMode {
 
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
+        // Initialize all hardware of the robot
+        Robot.init(startPose);
+
+        if (gamepad1.guide){
+            Robot.turret.rotation.resetEncoder();
+        }
+
+        double hoodAngle = 0;
 
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
-
-        // Initialize all hardware of the robot
-        Robot.init(startPose);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -74,18 +79,28 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     true
             );
 
-            if (!gamepad1.b){
-                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
-                telemetry.addData("Target Angle", Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), false));
+            if (gamepad1.x){
+                Robot.turret.rotation.setAngle(180);
             }else{
-                Robot.turret.rotation.setAngle(0);
-                telemetry.addData("Target Angle", 0);
+                Robot.turret.rotation.setAngle(Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
             }
-
+            telemetry.addData("Target Angle", Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
             telemetry.addData("Turret Angle", Robot.turret.rotation.getAngleAbsolute());
+            telemetry.addData("Turret Motor Power", Robot.turret.rotation.getPower());
+            telemetry.addLine();
+
+            double increment = 2;
+            if (gamepad1.dpad_up && hoodAngle < 320){
+                hoodAngle += increment;
+            }else if (gamepad1.dpad_down && hoodAngle > 0){
+                hoodAngle -= increment;
+            }
+            Robot.turret.setHood(hoodAngle);
+            telemetry.addData("Hood Angle", Robot.turret.getHood());
+
             telemetry.addData("Robot Pose X", Math.round(Robot.drivetrain.follower.getPose().getX()));
             telemetry.addData("Robot Pose Y", Math.round(Robot.drivetrain.follower.getPose().getY()));
-            telemetry.addData("Robot Pose H", Math.round(Robot.drivetrain.follower.getPose().getHeading()));
+            telemetry.addData("Robot Pose H", Math.round(Math.toDegrees(Robot.drivetrain.follower.getPose().getHeading())));
 
             // System-related Telemetry
             telemetry.addLine();

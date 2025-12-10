@@ -29,13 +29,14 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
+import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.skeletonarmy.marrow.TimerEx;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
@@ -58,12 +59,11 @@ public class Teleop_Main_ extends LinearOpMode {
     public static double DylanStickDeadzones = 0.2;
     public int shootingState = 0;
     public TimerEx shootingDelay = new TimerEx(1);
-    public static double autoaimmultiplier = 100;
 
     Prompter prompter = null;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
-    private final Pose startPose = new Pose(88.5,7.8, Math.toRadians(90));
+    private final Pose startPose = new Pose(88.5, 7.8, Math.toRadians(90));
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
@@ -78,17 +78,17 @@ public class Teleop_Main_ extends LinearOpMode {
         prompter = new Prompter(this);
         prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE));
         prompter.onComplete(() -> {
-                    LoadHardwareClass.selectedAlliance = prompter.get("alliance");
+                    selectedAlliance = prompter.get("alliance");
                     telemetry.addData("Selection", "Complete");
-                    telemetry.addData("Alliance", LoadHardwareClass.selectedAlliance);
+                    telemetry.addData("Alliance", selectedAlliance);
                     telemetry.update();
                 }
         );
 
         // Runs repeatedly while in init
-        while (opModeInInit()){
+        while (opModeInInit()) {
             // If an auto was not run, run the prompter to select the correct alliance
-            if (LoadHardwareClass.selectedAlliance == null){
+            if (selectedAlliance == null) {
                 prompter.run();
             }
         }
@@ -104,7 +104,7 @@ public class Teleop_Main_ extends LinearOpMode {
         while (opModeIsActive()) {
 
             Gamepad1();
-            Gamepad2Dec6();
+            Gamepad2();
 
             Robot.turret.updatePIDs();
 
@@ -136,6 +136,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         }
     }
+
     /**
      * <h1>Gamepad 1 Controls (Ari's Pick V1)</h1>
      * <ul>
@@ -178,24 +179,24 @@ public class Teleop_Main_ extends LinearOpMode {
      */
     public void Gamepad1() {
 
-        if (gamepad1.left_trigger >= 0.5 && gamepad1.right_trigger >=0.5){
+        if (gamepad1.left_trigger >= 0.5 && gamepad1.right_trigger >= 0.5) {
             Robot.drivetrain.speedMultiplier = 0.66;
-        }else if (gamepad1.left_trigger >= 0.5) {
+        } else if (gamepad1.left_trigger >= 0.5) {
             Robot.drivetrain.speedMultiplier = 0.33;
-        }else if (gamepad1.right_trigger >= 0.5){
+        } else if (gamepad1.right_trigger >= 0.5) {
             Robot.drivetrain.speedMultiplier = 1;
-        }else{
+        } else {
             Robot.drivetrain.speedMultiplier = 0.66;
         }
 
         double turnMult = 2;
-        if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
-            turnMult = 1;
-        }
+//        if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
+//            turnMult = 1;
+//        }
         Robot.drivetrain.pedroMecanumDrive(
                 gamepad1.left_stick_y,
                 gamepad1.left_stick_x,
-                gamepad1.right_stick_x/turnMult,
+                gamepad1.right_stick_x / turnMult,
                 true
         );
     }
@@ -224,8 +225,8 @@ public class Teleop_Main_ extends LinearOpMode {
      *             <li>Y: <code>Flywheel Toggle</code></li>
      *         </ul></li>
      *         <li>Letter Buttons:<ul>
-     *             <li>DpadUp: <code>Hood Up Override</code></li>
-     *             <li>DpadDown: <code>Hood Down Override</code></li>
+     *             <li>DpadUp: <code>N/A</code></li>
+     *             <li>DpadDown: <code>N/A</code></li>
      *             <li>DpadLeft: <code>N/A</code></li>
      *             <li>DpadRight: <code>N/A</code></li>
      *         </ul></li>
@@ -240,35 +241,43 @@ public class Teleop_Main_ extends LinearOpMode {
      *     </ul>
      * </ul>
      */
-    public void Gamepad2(){
+    public void Gamepad2() {
+
+        // Turret Aimbot
+        if (selectedAlliance == LoadHardwareClass.Alliance.RED) {
+            Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
+        } else if (selectedAlliance == LoadHardwareClass.Alliance.BLUE) {
+            Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
+        }
 
         //Intake Controls (Left Stick Y)
-        if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones){
-            if (gamepad2.left_stick_y > 0){ // OUT (Digital)
-                Robot.intake.setMode(Intake.Mode.REVERSING);
-            } else { // IN (Digital)
-                Robot.intake.setMode(Intake.Mode.INTAKING);
+        if (shootingState == 0) {
+            if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones && shootingState > 0) {
+                if (gamepad2.left_stick_y > 0) { // OUT (Digital)
+                    Robot.intake.setMode(Intake.Mode.REVERSING);
+                } else { // IN (Digital)
+                    Robot.intake.setMode(Intake.Mode.INTAKING);
+                }
+            } else { // OFF
+                Robot.intake.setMode(Intake.Mode.OFF);
             }
-        } else { // OFF
-            Robot.intake.setMode(Intake.Mode.OFF);
-        }
-
-        //Turret Angle Controls (Right Stick X)
-        //To be added after manual control is finished
-
-        //Flywheel Toggle Control (Y Button)
-        if (gamepad2.yWasPressed()){
-            if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
-                Robot.turret.setFlywheel(Turret.flywheelstate.ON);
-            } else {
-                Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
+            //Flywheel Toggle Control (Y Button)
+            if (gamepad2.yWasPressed()) {
+                if (Robot.turret.flywheelState == Turret.flywheelstate.OFF) {
+                    Robot.turret.setFlywheel(Turret.flywheelstate.ON);
+                } else {
+                    Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
+                }
             }
         }
+        Robot.turret.updateFlywheel();
 
         //Shoot (B Button Press)
         // Increment the shooting state
-        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > 5900){shootingState++;}
-        switch (shootingState){
+        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > 5000) {
+            shootingState++;
+        }
+        switch (shootingState) {
             case 0:
                 telemetry.addData("Shooting State", "OFF");
                 return;
@@ -285,11 +294,13 @@ public class Teleop_Main_ extends LinearOpMode {
                 telemetry.addData("Shooting State", "TRANSFERRED");
                 return;
             case 3:
-                if (shootingDelay.isDone()){shootingState++;}
+                if (shootingDelay.isDone()) {
+                    shootingState++;
+                }
                 telemetry.addData("Shooting State", "DELAY");
                 return;
             case 4:
-                Robot.turret.setFlywheelRPM(0);
+                Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
                 Robot.turret.setGate(Turret.gatestate.CLOSED);
                 Robot.intake.setMode(Intake.Mode.OFF);
                 Robot.intake.setTransfer(Intake.transferState.DOWN);
@@ -298,86 +309,5 @@ public class Teleop_Main_ extends LinearOpMode {
         }
 
 
-    }
-
-    /**
-     * <h1>Gamepad 2 Controls (December 6th Scrimmage)</h1>
-     * <ul>
-     *     <li><b>Analog Inputs</b><ul>
-     *         <li>Left Stick:<ul>
-     *             <li>X: <code>Tranfer Belt IN ONLY</code></li>
-     *             <li>Y: <code>Intake Direction/Power</code></li>
-     *         </ul></li>
-     *         <li>Right Stick:<ul>
-     *             <li>X: <code>N/A</code></li>
-     *             <li>Y: <code>N/A</code></li>
-     *         </ul></li>
-     *         <li>Left Trigger: <code>N/A</code></li>
-     *         <li>Right Trigger: <code>N/A</code></li>
-     *     </ul></li>
-     *
-     *     <li><b>Button Inputs</b></li><ul>
-     *         <li>Letter Buttons:<ul>
-     *             <li>A: <code>N/A</code></li>
-     *             <li>B: <code>Kicker/Flap/Feeder</code></li>
-     *             <li>X: <code>N/A</code></li>
-     *             <li>Y: <code>Flywheel Toggle</code></li>
-     *         </ul></li>
-     *         <li>Letter Buttons:<ul>
-     *             <li>DpadUp: <code>N/A</code></li>
-     *             <li>DpadDown: <code>N/A</code></li>
-     *             <li>DpadLeft: <code>N/A</code></li>
-     *             <li>DpadRight: <code>N/A</code></li>
-     *         </ul></li>
-     *         <li>Bumpers:<ul>
-     *             <li>Left Bumper: <code>N/A</code></li>
-     *             <li>Right Bumper: <code>N/A</code></li>
-     *         </ul></li>
-     *         <li>Stick Buttons:<ul>
-     *             <li>Left Stick Button: <code>N/A</code></li>
-     *             <li>Right Stick Button: <code>N/A</code></li>
-     *         </ul></li>
-     *     </ul>
-     * </ul>
-     */
-    public void Gamepad2Dec6(){
-
-        //Intake Controls (Left Stick Y)
-        if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones){
-            Robot.intake.intake.setPower(gamepad2.left_stick_y);
-        } else { // OFF
-            Robot.intake.intake.setPower(0);
-        }
-
-        //Transfer Belt (ABS Right Stick Y)
-        if (Math.abs(gamepad2.right_stick_y) >= DylanStickDeadzones) {
-            Robot.intake.belt.setPower(Math.abs(gamepad2.right_stick_y));
-        } else { // OFF
-            Robot.intake.belt.setPower(0);
-        }
-
-        // Gate control
-        if (Robot.turret.getFlywheelRPM() > 3000){
-            Robot.turret.setGate(Turret.gatestate.OPEN);
-        }else{
-            Robot.turret.setGate(Turret.gatestate.CLOSED);
-        }
-
-        // Transfer control
-        if (gamepad2.b){
-            Robot.intake.setTransfer(Intake.transferState.UP);
-        }else{
-            Robot.intake.setTransfer(Intake.transferState.DOWN);
-        }
-
-        //Flywheel Toggle Control (Y Button)
-        if (gamepad2.yWasPressed()){
-            if (Robot.turret.flywheelState == Turret.flywheelstate.ON){
-                Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
-            }else if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
-                Robot.turret.setFlywheel(Turret.flywheelstate.ON);
-            }
-        }
-        Robot.turret.updateFlywheel();
     }
 }
