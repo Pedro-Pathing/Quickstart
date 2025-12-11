@@ -44,6 +44,10 @@ public class MainTeleOp extends NextFTCOpMode {
                 .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Intake.setIntakePower(1))
                 .whenBecomesFalse(() -> Intake.setIntakePower(0));
+        button(() -> gamepad2.x)
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(Outtake.on)
+                .whenBecomesFalse(Outtake.off);
 
     }
     @Override public void onStop() {
