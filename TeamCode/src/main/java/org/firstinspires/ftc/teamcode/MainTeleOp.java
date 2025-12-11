@@ -11,6 +11,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
+import static dev.nextftc.bindings.Bindings.button;
+
 @TeleOp(name="MainTeleOp", group="TeleOp")
 public class MainTeleOp extends NextFTCOpMode {
     {
@@ -38,6 +40,10 @@ public class MainTeleOp extends NextFTCOpMode {
 
     }
     @Override public void onUpdate() {
+        button(() -> gamepad2.a)
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(() -> Intake.setIntakePower(1))
+                .whenBecomesFalse(() -> Intake.setIntakePower(0));
 
     }
     @Override public void onStop() {
