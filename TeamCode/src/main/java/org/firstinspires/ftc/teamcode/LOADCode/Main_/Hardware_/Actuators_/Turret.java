@@ -16,14 +16,19 @@ public class Turret {
     // Hardware definitions
     public final Devices.DcMotorExClass rotation = new Devices.DcMotorExClass();
     public final Devices.DcMotorExClass flywheel = new Devices.DcMotorExClass();
+    public final Devices.DcMotorExClass flywheel2 = new Devices.DcMotorExClass();
     public final Devices.ServoClass hood = new Devices.ServoClass();
     public final Devices.ServoClass gate = new Devices.ServoClass();
 
-    // The PID coefficient variables
+    // Turret PID coefficients
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.06, 0, 0); // 223RPM
     //public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.3, 0, 0.007); // 1150RPM
-    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0.0001, 0.0001);
-    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.00002899,0,0);
+
+    // Flywheel PID coefficients
+    //public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0.0001, 0.0001);
+    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.00002899,0,0);
+    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.00005, 0, 0);
+    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.0003,0,0);
 
     public enum gatestate {
         OPEN,
@@ -36,9 +41,12 @@ public class Turret {
     }
     public flywheelstate flywheelState = flywheelstate.OFF;
 
+    public static double onSpeed = 4500;
+
     public void init(OpMode opmode){
         rotation.init(opmode, "turret", 145.1 * ((double) 131 /24)); //Previously 103.8
         flywheel.init(opmode, "flywheel", 28);
+        flywheel2.init(opmode, "flywheel2", 28);
         hood.init(opmode, "hood");
         gate.init(opmode, "gate");
 
@@ -48,10 +56,14 @@ public class Turret {
         gate.setAngle(0.5);
         hood.setDirection(Servo.Direction.REVERSE);
 
+        flywheel2.setDirection(DcMotorSimple.Direction.REVERSE);
+
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
         flywheel.setPidCoefficients(flywheelCoefficients);
         flywheel.setFFCoefficients(flywheelFFCoefficients);
+        flywheel2.setPidCoefficients(flywheelCoefficients);
+        flywheel2.setFFCoefficients(flywheelFFCoefficients);
     }
 
     public void updatePIDs(){
@@ -59,6 +71,8 @@ public class Turret {
         rotation.setPidCoefficients(turretCoefficients);
         flywheel.setPidCoefficients(flywheelCoefficients);
         flywheel.setFFCoefficients(flywheelFFCoefficients);
+        flywheel2.setPidCoefficients(flywheelCoefficients);
+        flywheel2.setFFCoefficients(flywheelFFCoefficients);
     }
 
     /**
@@ -80,10 +94,10 @@ public class Turret {
 
     /**
      * Sets the angle of the hood.
-     * @param angle An angle in degrees that is constrained to between 0 and 45
+     * @param angle An angle in degrees that is constrained to between 0 and 320 degrees
      */
     public void setHood(double angle){
-        hood.setAngle(Math.min(Math.max(angle, 0), 320)/(360*5));
+        hood.setAngle(Math.min(Math.max(angle, 0), 260)/(360*5));
     }
 
     /**
@@ -125,6 +139,7 @@ public class Turret {
      */
     public void setFlywheelRPM(double rpm){
         flywheel.setRPM(rpm);
+        flywheel2.setPower(flywheel.getPower());
     }
 
     /**
@@ -147,7 +162,7 @@ public class Turret {
      */
     public void updateFlywheel(){
         if (flywheelState == flywheelstate.ON){
-            setFlywheelRPM(5485.714285714286);
+            setFlywheelRPM(onSpeed);
         } else if (flywheelState == flywheelstate.OFF){
             setFlywheelRPM(0);
         }

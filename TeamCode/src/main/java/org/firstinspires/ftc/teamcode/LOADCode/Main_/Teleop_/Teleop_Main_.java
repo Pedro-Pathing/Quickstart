@@ -64,6 +64,8 @@ public class Teleop_Main_ extends LinearOpMode {
     public int shootingState = 0;
     public TimerEx shootingDelay = new TimerEx(1);
 
+    private double hoodAngle = 0;
+
     Prompter prompter = null;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
@@ -115,29 +117,30 @@ public class Teleop_Main_ extends LinearOpMode {
             telemetry.addData("SpeedMult", Robot.drivetrain.speedMultiplier);
             telemetry.addLine();
             // Turret-related Telemetry
-            telemetry.addData("Turret Target Angle:", Robot.turret.rotation.target);
+            panelsTelemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
+            panelsTelemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
+            telemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
             telemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
+            telemetry.addData("Turret Hood Angle", Robot.turret.getHood());
 
             telemetry.addLine();
             panelsTelemetry.addData("Flywheel Target Speed", Robot.turret.flywheel.target);
             panelsTelemetry.addData("Flywheel Actual Speed", Robot.turret.getFlywheelRPM());
+            panelsTelemetry.addData("Flywheel Power", Robot.turret.flywheel.getPower());
             telemetry.addData("Flywheel Target Speed", Robot.turret.flywheel.target);
             telemetry.addData("Flywheel Actual Speed", Robot.turret.getFlywheelRPM());
-
-            telemetry.addLine();
-            telemetry.addData("Belt Power", Robot.intake.belt.getPower());
-
+            telemetry.addData("Flywheel State", Robot.turret.getFlywheelRPM());
 
             // Intake-related Telemetry
             telemetry.addLine();
-            telemetry.addData("Intake Status", Robot.intake.intake.getPower());
+            telemetry.addData("Intake Mode", Robot.intake.getMode());
 
             // System-related Telemetry
             telemetry.addLine();
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Version: ", "11/4/25");
+            telemetry.addData("Version: ", "12/12/25");
             telemetry.update();
-
+            panelsTelemetry.update();
         }
     }
 
@@ -256,14 +259,14 @@ public class Teleop_Main_ extends LinearOpMode {
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
-            if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones && shootingState > 0) {
-                if (gamepad2.left_stick_y > 0) { // OUT (Digital)
-                    Robot.intake.setMode(Intake.intakeMode.REVERSING);
+            if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones) {
+                if (gamepad2.left_stick_y < 0) { // OUT (Digital)
+                    Robot.intake.setMode(intakeMode.REVERSING);
                 } else { // IN (Digital)
                     Robot.intake.setMode(intakeMode.INTAKING);
                 }
             } else { // OFF
-                Robot.intake.setMode(Intake.intakeMode.OFF);
+                Robot.intake.setMode(intakeMode.OFF);
             }
             //Flywheel Toggle Control (Y Button)
             if (gamepad2.yWasPressed()) {
@@ -275,6 +278,15 @@ public class Teleop_Main_ extends LinearOpMode {
             }
         }
         Robot.turret.updateFlywheel();
+
+        // Hood Controls
+        double increment = 4;
+        if (gamepad2.dpad_up && hoodAngle < 260){
+            hoodAngle += increment;
+        }else if (gamepad2.dpad_down && hoodAngle > 0){
+            hoodAngle -= increment;
+        }
+        Robot.turret.setHood(hoodAngle);
 
         //Shoot (B Button Press)
         // Increment the shooting state

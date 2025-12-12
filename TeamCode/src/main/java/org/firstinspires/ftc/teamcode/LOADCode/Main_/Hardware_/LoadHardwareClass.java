@@ -53,7 +53,7 @@ public class LoadHardwareClass {
     public final Intake intake;
 
     // Declare various enums & other variables that are useful across files
-    public static Alliance selectedAlliance = Alliance.RED;
+    public static Alliance selectedAlliance = null;
     public enum Alliance {
         RED,
         BLUE
