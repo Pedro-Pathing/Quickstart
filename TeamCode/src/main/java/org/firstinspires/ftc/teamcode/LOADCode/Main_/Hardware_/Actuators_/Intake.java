@@ -11,7 +11,7 @@ public class Intake {
     public final Devices.CRServoClass belt = new Devices.CRServoClass();
     public final Devices.ServoClass transfer = new Devices.ServoClass();
 
-    public enum Mode {
+    public enum intakeMode {
         INTAKING,
         SHOOTING,
         REVERSING,
@@ -38,20 +38,20 @@ public class Intake {
      * @param direction
      * Takes the following inputs
      * <ul>
-     *     <li><code>Mode.INTAKING</code></li>
-     *     <li><code>Mode.SHOOTING</code></li>
-     *     <li><code>Mode.REVERSING</code></li>
-     *     <li><code>Mode.OFF</code></li>
+     *     <li><code>intakeMode.INTAKING</code></li>
+     *     <li><code>intakeMode.SHOOTING</code></li>
+     *     <li><code>intakeMode.REVERSING</code></li>
+     *     <li><code>intakeMode.OFF</code></li>
      * </ul>
      */
-    public void setMode(Mode direction){
-        if (direction == Mode.INTAKING){
+    public void setMode(intakeMode direction){
+        if (direction == intakeMode.INTAKING){
             intake.setPower(1);
             belt.setPower(1);
-        }else if (direction == Mode.SHOOTING){
+        }else if (direction == intakeMode.SHOOTING){
             intake.setPower(0);
             belt.setPower(1);
-        }else if (direction == Mode.REVERSING){
+        }else if (direction == intakeMode.REVERSING){
             intake.setPower(-1);
             belt.setPower(-1);
         }else{
@@ -63,23 +63,23 @@ public class Intake {
     /**
      * Outputs one of the following modes
      * <ul>
-     *     <li><code>Mode.INTAKING</code></li>
-     *     <li><code>Mode.SHOOTING</code></li>
-     *     <li><code>Mode.REVERSING</code></li>
-     *     <li><code>Mode.OFF</code></li>
+     *     <li><code>intakeMode.INTAKING</code></li>
+     *     <li><code>intakeMode.SHOOTING</code></li>
+     *     <li><code>intakeMode.REVERSING</code></li>
+     *     <li><code>intakeMode.OFF</code></li>
      * </ul>
      */
-    public Mode getMode(){
+    public intakeMode getMode(){
         double intakePower = intake.getPower();
         double beltPower = belt.getPower();
         if (intakePower == 1 && beltPower == 1){
-            return Mode.INTAKING;
+            return intakeMode.INTAKING;
         }else if (intakePower == 0 && beltPower == 1){
-            return Mode.SHOOTING;
+            return intakeMode.SHOOTING;
         }else if (intakePower == -1 && beltPower == -1){
-            return Mode.REVERSING;
+            return intakeMode.REVERSING;
         }else{
-            return Mode.OFF;
+            return intakeMode.OFF;
         }
     }
 

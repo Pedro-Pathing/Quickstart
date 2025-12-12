@@ -43,8 +43,12 @@ import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake.intakeMode;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake.transferState;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelstate;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.Alliance;
 
 
 @Configurable
@@ -244,9 +248,9 @@ public class Teleop_Main_ extends LinearOpMode {
     public void Gamepad2() {
 
         // Turret Aimbot
-        if (selectedAlliance == LoadHardwareClass.Alliance.RED) {
+        if (selectedAlliance == Alliance.RED) {
             Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
-        } else if (selectedAlliance == LoadHardwareClass.Alliance.BLUE) {
+        } else if (selectedAlliance == Alliance.BLUE) {
             Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
         }
 
@@ -254,19 +258,19 @@ public class Teleop_Main_ extends LinearOpMode {
         if (shootingState == 0) {
             if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones && shootingState > 0) {
                 if (gamepad2.left_stick_y > 0) { // OUT (Digital)
-                    Robot.intake.setMode(Intake.Mode.REVERSING);
+                    Robot.intake.setMode(Intake.intakeMode.REVERSING);
                 } else { // IN (Digital)
-                    Robot.intake.setMode(Intake.Mode.INTAKING);
+                    Robot.intake.setMode(intakeMode.INTAKING);
                 }
             } else { // OFF
-                Robot.intake.setMode(Intake.Mode.OFF);
+                Robot.intake.setMode(Intake.intakeMode.OFF);
             }
             //Flywheel Toggle Control (Y Button)
             if (gamepad2.yWasPressed()) {
-                if (Robot.turret.flywheelState == Turret.flywheelstate.OFF) {
-                    Robot.turret.setFlywheel(Turret.flywheelstate.ON);
+                if (Robot.turret.flywheelState == flywheelstate.OFF) {
+                    Robot.turret.setFlywheel(flywheelstate.ON);
                 } else {
-                    Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
+                    Robot.turret.setFlywheel(flywheelstate.OFF);
                 }
             }
         }
@@ -282,13 +286,13 @@ public class Teleop_Main_ extends LinearOpMode {
                 telemetry.addData("Shooting State", "OFF");
                 return;
             case 1:
-                Robot.intake.setMode(Intake.Mode.INTAKING);
-                Robot.turret.setGate(Turret.gatestate.OPEN);
+                Robot.intake.setMode(intakeMode.INTAKING);
+                Robot.turret.setGate(gatestate.OPEN);
                 telemetry.addData("Shooting State", "STARTED");
                 return;
             case 2:
-                Robot.intake.setMode(Intake.Mode.SHOOTING);
-                Robot.intake.setTransfer(Intake.transferState.UP);
+                Robot.intake.setMode(Intake.intakeMode.SHOOTING);
+                Robot.intake.setTransfer(transferState.UP);
                 shootingDelay.restart();
                 shootingState++;
                 telemetry.addData("Shooting State", "TRANSFERRED");
@@ -300,10 +304,10 @@ public class Teleop_Main_ extends LinearOpMode {
                 telemetry.addData("Shooting State", "DELAY");
                 return;
             case 4:
-                Robot.turret.setFlywheel(Turret.flywheelstate.OFF);
-                Robot.turret.setGate(Turret.gatestate.CLOSED);
-                Robot.intake.setMode(Intake.Mode.OFF);
-                Robot.intake.setTransfer(Intake.transferState.DOWN);
+                Robot.turret.setFlywheel(flywheelstate.OFF);
+                Robot.turret.setGate(gatestate.CLOSED);
+                Robot.intake.setMode(intakeMode.OFF);
+                Robot.intake.setTransfer(transferState.DOWN);
                 telemetry.addData("Shooting State", "RESET");
                 shootingState = 0;
         }

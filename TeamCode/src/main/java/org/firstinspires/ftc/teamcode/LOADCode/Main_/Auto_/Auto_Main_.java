@@ -11,7 +11,6 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -134,16 +133,16 @@ public class Auto_Main_ extends NextFTCOpMode {
                         new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
                         new Delay(5)
                 ),
-                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
                 new Delay(2),
-                Commands.setIntakeMode(Robot, Intake.Mode.INTAKING),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.INTAKING),
                 new Delay(1),
-                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
                 new Delay(2),
                 Commands.setTransferState(Robot, Intake.transferState.UP),
                 new Delay(1),
                 Commands.setTransferState(Robot, Intake.transferState.DOWN),
-                Commands.setIntakeMode(Robot, Intake.Mode.OFF),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
                 Commands.runPath(Robot.drivetrain.paths.start2_to_leave3, true, 0.6)
         );
@@ -162,16 +161,16 @@ public class Auto_Main_ extends NextFTCOpMode {
                         new WaitUntil(() -> Robot.turret.getFlywheelRPM() > 5900),
                         new Delay(5)
                 ),
-                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
                 new Delay(2),
-                Commands.setIntakeMode(Robot, Intake.Mode.INTAKING),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.INTAKING),
                 new Delay(1),
-                Commands.setIntakeMode(Robot, Intake.Mode.SHOOTING),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
                 new Delay(2),
                 Commands.setTransferState(Robot, Intake.transferState.UP),
                 new Delay(1),
                 Commands.setTransferState(Robot, Intake.transferState.DOWN),
-                Commands.setIntakeMode(Robot, Intake.Mode.OFF),
+                Commands.setIntakeMode(Robot, Intake.intakeMode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
                 Commands.runPath(Robot.drivetrain.paths.start1_to_leave1, true, 0.6)
         );

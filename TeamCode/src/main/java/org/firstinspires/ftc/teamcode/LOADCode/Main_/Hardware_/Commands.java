@@ -37,7 +37,7 @@ public class Commands {
                 .requires(turretSystem);
     }
 
-    public static Command setIntakeMode(LoadHardwareClass Robot, Intake.Mode state) {
+    public static Command setIntakeMode(LoadHardwareClass Robot, Intake.intakeMode state) {
         return new InstantCommand(new LambdaCommand("setIntakeMode()")
                 .setStart(() -> Robot.intake.setMode(state))
                 .requires(intakeSystem));
