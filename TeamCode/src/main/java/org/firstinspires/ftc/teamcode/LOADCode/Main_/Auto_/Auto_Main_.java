@@ -108,10 +108,10 @@ public class Auto_Main_ extends NextFTCOpMode {
     public void onUpdate() {
         switch (selectedAlliance) {
             case RED:
-                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
+                Robot.turret.updateAimbot(Robot, true);
                 return;
             case BLUE:
-                Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
+                Robot.turret.updateAimbot(Robot, false);
                 return;
         }
 

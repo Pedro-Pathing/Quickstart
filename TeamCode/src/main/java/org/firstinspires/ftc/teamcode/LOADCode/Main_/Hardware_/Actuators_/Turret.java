@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_;
 
+import androidx.annotation.NonNull;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
@@ -16,19 +20,18 @@ public class Turret {
     // Hardware definitions
     public final Devices.DcMotorExClass rotation = new Devices.DcMotorExClass();
     public final Devices.DcMotorExClass flywheel = new Devices.DcMotorExClass();
-    public final Devices.DcMotorExClass flywheel2 = new Devices.DcMotorExClass();
-    public final Devices.ServoClass hood = new Devices.ServoClass();
-    public final Devices.ServoClass gate = new Devices.ServoClass();
+    private final Devices.DcMotorExClass flywheel2 = new Devices.DcMotorExClass();
+    private final Devices.ServoClass hood = new Devices.ServoClass();
+    private final Devices.ServoClass gate = new Devices.ServoClass();
 
     // Turret PID coefficients
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.06, 0, 0); // 223RPM
     //public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.3, 0, 0.007); // 1150RPM
 
     // Flywheel PID coefficients
-    //public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0003, 0.0001, 0.0001);
-    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.00002899,0,0);
-    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.00005, 0, 0);
-    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.0003,0,0);
+    // 4500RPM
+    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0002, 0, 0);
+    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000026,0,0);
 
     public enum gatestate {
         OPEN,
@@ -76,15 +79,14 @@ public class Turret {
     }
 
     /**
-     * @param robotPose The pose of the robot, gotten from PedroPathing's localization
+     * @param robot The pose of the robot, gotten from PedroPathing's localization
      * @param targetRedGoal Set this to true to target the red goal, otherwise targets the blue goal.
      */
-    public void updateAimbot(Pose robotPose, boolean targetRedGoal){
-        rotation.setAngle(calcLocalizer(robotPose, targetRedGoal));
+    public void updateAimbot(@NonNull LoadHardwareClass robot, boolean targetRedGoal){
+        rotation.setAngle(calcLocalizer(robot.drivetrain.follower.getPose(), targetRedGoal));
     }
 
-
-    public void setGate(gatestate state){
+    public void setGateState(gatestate state){
         if (state == gatestate.OPEN){
             gate.setAngle(0.5);
         }else if (state == gatestate.CLOSED){
@@ -137,23 +139,21 @@ public class Turret {
      * @param rpm
      * RPM Range [0,6000]
      */
-    public void setFlywheelRPM(double rpm){
+    private void setFlywheelRPM(double rpm){
         flywheel.setRPM(rpm);
         flywheel2.setPower(flywheel.getPower());
     }
 
-    /**
-     * @return double <b>flywheel.getRPM();</b> - RPM Range [0,6000]
-     */
     public double getFlywheelRPM(){
         return flywheel.getRPM();
     }
 
     /**
-     * Sets the target state of the Flywheel
+     * Sets the target state of the Flywheel. </br>
+     * <code>updateFlywheel()</code> must be called every loop for this to be effective.
      * @param state The state to set the flywheel to (ON/OFF)
      */
-    public void setFlywheel(flywheelstate state){
+    public void setFlywheelState(flywheelstate state){
         flywheelState = state;
     }
 

@@ -7,9 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class Intake {
     // RESET THESE TO PRIVATE AFTER DECEMBER 6TH!
-    public final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
-    public final Devices.CRServoClass belt = new Devices.CRServoClass();
-    public final Devices.ServoClass transfer = new Devices.ServoClass();
+    private final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
+    private final Devices.CRServoClass belt = new Devices.CRServoClass();
+    private final Devices.ServoClass transfer = new Devices.ServoClass();
+    public final Devices.REVColorSensorV3Class color1 = new Devices.REVColorSensorV3Class();
+    public final Devices.REVColorSensorV3Class color2 = new Devices.REVColorSensorV3Class();
+    public final Devices.REVColorSensorV3Class color3 = new Devices.REVColorSensorV3Class();
+    public final Devices.REVColorSensorV3Class color4 = new Devices.REVColorSensorV3Class();
 
     public enum intakeMode {
         INTAKING,
@@ -27,11 +31,14 @@ public class Intake {
         intake.init(opmode, "intake");
         belt.init(opmode, "belt");
         transfer.init(opmode, "transfer");
+        color1.init(opmode, "color1");
 
         intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         belt.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        color1.setGain(2);
     }
 
     /**

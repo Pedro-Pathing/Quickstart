@@ -34,8 +34,10 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 @TeleOp(name="Teleop_Outreach_", group="TeleOp")
@@ -80,9 +82,9 @@ public class Teleop_Outreach_ extends LinearOpMode {
             );
 
             if (gamepad1.x){
-                Robot.turret.rotation.setAngle(180);
+                //Robot.turret.rotation.setAngle(180);
             }else{
-                Robot.turret.rotation.setAngle(Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
+                //Robot.turret.rotation.setAngle(Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
             }
             telemetry.addData("Target Angle", Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
             telemetry.addData("Turret Angle", Robot.turret.rotation.getAngleAbsolute());
@@ -98,6 +100,16 @@ public class Teleop_Outreach_ extends LinearOpMode {
             Robot.turret.setHood(hoodAngle);
             telemetry.addData("Hood Angle", Robot.turret.getHood());
 
+            telemetry.addLine();
+            telemetry.addData("Gain", Robot.intake.color1.getGain());
+            telemetry.addData("Distance", Robot.intake.color1.getDistance(DistanceUnit.INCH));
+            telemetry.addData("Color", Robot.intake.color1.getNormalizedColors().toColor());
+            NormalizedRGBA colors = Robot.intake.color1.getNormalizedColors();
+            telemetry.addData("R", colors.red);
+            telemetry.addData("G", colors.green);
+            telemetry.addData("B", colors.blue);
+
+            telemetry.addLine();
             telemetry.addData("Robot Pose X", Math.round(Robot.drivetrain.follower.getPose().getX()));
             telemetry.addData("Robot Pose Y", Math.round(Robot.drivetrain.follower.getPose().getY()));
             telemetry.addData("Robot Pose H", Math.round(Math.toDegrees(Robot.drivetrain.follower.getPose().getHeading())));

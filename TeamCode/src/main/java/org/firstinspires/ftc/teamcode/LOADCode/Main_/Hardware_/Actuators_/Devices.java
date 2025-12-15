@@ -7,7 +7,12 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
@@ -261,6 +266,30 @@ public class Devices {
          */
         public double getAngle(){
             return servo.getPosition();
+        }
+    }
+
+    public static class REVColorSensorV3Class {
+        private NormalizedColorSensor sensor;
+
+        public void init(@NonNull OpMode opmode, String sensorName){
+            sensor = opmode.hardwareMap.get(NormalizedColorSensor.class, sensorName);
+        }
+
+        public NormalizedRGBA getNormalizedColors(){
+            return sensor.getNormalizedColors();
+        }
+
+        public double getGain(){
+            return sensor.getGain();
+        }
+
+        public void setGain(double gain){
+            sensor.setGain((float) gain);
+        }
+
+        public double getDistance(DistanceUnit units){
+            return ((DistanceSensor) sensor).getDistance(units);
         }
     }
 }

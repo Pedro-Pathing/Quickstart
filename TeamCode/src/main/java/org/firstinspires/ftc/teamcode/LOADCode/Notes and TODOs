@@ -10,7 +10,7 @@
 
 //TODO, Add a more advanced telemetry handler for better organization, readability, and debugging
 
-//TODO, Add proper functionality for manual turret control to Turret.java
+//DONE, Add proper functionality for manual turret control to Turret.java
 
 //DONE, Shoot mode state machine Off->On->LastShot->Delay->ResetActuators->Off etc. cycled with B button on Gamepad2
 

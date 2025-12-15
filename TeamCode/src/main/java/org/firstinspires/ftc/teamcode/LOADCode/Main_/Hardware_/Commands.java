@@ -26,7 +26,7 @@ public class Commands {
     public static Command setFlywheelState(LoadHardwareClass Robot, Turret.flywheelstate state) {
         return new LambdaCommand("setFlywheelState()")
                 .setInterruptible(false)
-                .setStart(() -> Robot.turret.setFlywheel(state))
+                .setStart(() -> Robot.turret.setFlywheelState(state))
                 .setIsDone(() -> {
                     if (state == Turret.flywheelstate.ON){
                         return Robot.turret.getFlywheelRPM() > 5900;

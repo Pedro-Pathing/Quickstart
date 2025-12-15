@@ -252,9 +252,9 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Turret Aimbot
         if (selectedAlliance == Alliance.RED) {
-            Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), true);
+            Robot.turret.updateAimbot(Robot, true);
         } else if (selectedAlliance == Alliance.BLUE) {
-            Robot.turret.updateAimbot(Robot.drivetrain.follower.getPose(), false);
+            Robot.turret.updateAimbot(Robot, false);
         }
 
         //Intake Controls (Left Stick Y)
@@ -271,9 +271,9 @@ public class Teleop_Main_ extends LinearOpMode {
             //Flywheel Toggle Control (Y Button)
             if (gamepad2.yWasPressed()) {
                 if (Robot.turret.flywheelState == flywheelstate.OFF) {
-                    Robot.turret.setFlywheel(flywheelstate.ON);
+                    Robot.turret.setFlywheelState(flywheelstate.ON);
                 } else {
-                    Robot.turret.setFlywheel(flywheelstate.OFF);
+                    Robot.turret.setFlywheelState(flywheelstate.OFF);
                 }
             }
         }
@@ -299,7 +299,7 @@ public class Teleop_Main_ extends LinearOpMode {
                 return;
             case 1:
                 Robot.intake.setMode(intakeMode.INTAKING);
-                Robot.turret.setGate(gatestate.OPEN);
+                Robot.turret.setGateState(gatestate.OPEN);
                 telemetry.addData("Shooting State", "STARTED");
                 return;
             case 2:
@@ -316,14 +316,12 @@ public class Teleop_Main_ extends LinearOpMode {
                 telemetry.addData("Shooting State", "DELAY");
                 return;
             case 4:
-                Robot.turret.setFlywheel(flywheelstate.OFF);
-                Robot.turret.setGate(gatestate.CLOSED);
+                Robot.turret.setFlywheelState(flywheelstate.OFF);
+                Robot.turret.setGateState(gatestate.CLOSED);
                 Robot.intake.setMode(intakeMode.OFF);
                 Robot.intake.setTransfer(transferState.DOWN);
                 telemetry.addData("Shooting State", "RESET");
                 shootingState = 0;
         }
-
-
     }
 }
