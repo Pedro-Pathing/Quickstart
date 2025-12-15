@@ -5,6 +5,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Utils_ {
+
+    public enum telemetrySortCategory {
+        DRIVETRAIN,
+        INTAKE,
+        TRANSFER,
+        TURRET,
+        TESTINGVALUES,
+        OTHER,
+    }
+
     /**
      * Performs spline interpolation given a set of control points.
      */
@@ -144,6 +154,55 @@ public class Utils_ {
             }
             str.append("]");
             return str.toString();
+        }
+
+    }
+
+    /**
+     * This class is for the runtime per-loop sorting and displaying of every single <code>TelemetryObject</code>.
+     * There should only be one of these per program.
+     */
+    public class TelemetryManager{
+        List<TelemetryObject> telemtryList = new ArrayList<>();
+
+        public void addLine(TelemetryObject telemetryline){
+            telemtryList.add(telemetryline);
+        }
+    }
+
+    /**
+     * This class represents a single line of telemetry, which will be sorted and managed by a <code>TelemetryManager</code>.
+     * It will contain all the relevant data for lookup and sorting, as well as functionality for live runtime editing of keys and values
+     */
+    public class TelemetryObject{
+
+        Object name;
+        Object key;
+        Object value;
+        telemetrySortCategory category;
+
+        public TelemetryObject(Object initialName,
+                               Object initialKey,
+                               Object initialValue,
+                               telemetrySortCategory telemCategory,
+                               TelemetryManager telemetryManagerParent){
+            name = initialName;
+            key = initialKey;
+            value = initialValue;
+            category = telemCategory;
+        }
+
+        public Object getName(){
+            return name;
+        }
+        public Object getKey(){
+            return key;
+        }
+        public Object getValue(){
+            return value;
+        }
+        public telemetrySortCategory getTelemCategory(){
+            return category;
         }
 
     }
