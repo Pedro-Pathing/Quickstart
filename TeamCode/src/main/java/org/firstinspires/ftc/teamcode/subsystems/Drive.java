@@ -59,8 +59,8 @@ public class Drive implements Subsystem {
                 }
 
                 //log verbosely to telemetry
-                ActiveOpMode.telemetry().addLine("forward: " + forward + " strafe: " + strafe + " turn: " + turn);
-                ActiveOpMode.telemetry().addData("slowMode?", slowMode);
+                //ActiveOpMode.telemetry().addLine("forward: " + forward + " strafe: " + strafe + " turn: " + turn);
+                //ActiveOpMode.telemetry().addData("slowMode?", slowMode);
                 ActiveOpMode.telemetry().update();
             })
             .setStop(interrupted -> {})

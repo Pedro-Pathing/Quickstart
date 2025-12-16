@@ -10,7 +10,7 @@ public class Outtake implements Subsystem {
 
     public static final Outtake INSTANCE = new Outtake();
 
-    private static final MotorEx motor = new MotorEx("flywheel_motor");
+    private static final MotorEx motor = new MotorEx("motor1");
 
     private static final ControlSystem controller = ControlSystem.builder()
             .velPid(0.005, 0, 0)

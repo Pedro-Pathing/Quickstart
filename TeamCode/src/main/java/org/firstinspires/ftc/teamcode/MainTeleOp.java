@@ -6,10 +6,7 @@ import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
-import org.firstinspires.ftc.teamcode.subsystems.Drive;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Outtake;
-import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.*;
 
 import static dev.nextftc.bindings.Bindings.button;
 
@@ -21,6 +18,7 @@ public class MainTeleOp extends NextFTCOpMode {
                 BindingsComponent.INSTANCE,
                 CommandManager.INSTANCE,
                 new SubsystemComponent(
+                        Storage.INSTANCE,
                         Robot.INSTANCE,
                         Drive.INSTANCE,
                         Intake.INSTANCE,
@@ -31,7 +29,25 @@ public class MainTeleOp extends NextFTCOpMode {
     }
 
     @Override public void onInit() {
+        button(() -> gamepad2.a)
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(() -> Intake.setIntakePower(1))
+                .whenBecomesFalse(() -> Intake.setIntakePower(0));
 
+        button(() -> gamepad2.x)
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(Outtake.on)
+                .whenBecomesFalse(Outtake.off);
+
+        button(() -> gamepad2.b)
+                .whenBecomesTrue(() -> Storage.INSTANCE.resetSpinMotor.schedule());
+
+        button(() -> gamepad2.dpad_left)
+                .whenBecomesTrue(() -> Storage.INSTANCE.toIntake1.schedule());
+        button(() -> gamepad2.dpad_down)
+                .whenBecomesTrue(() -> Storage.INSTANCE.toIntake2.schedule());
+        button(() -> gamepad2.dpad_right)
+                .whenBecomesTrue(() -> Storage.INSTANCE.toIntake3.schedule());
     }
     @Override public void onWaitForStart() {
 
@@ -40,14 +56,6 @@ public class MainTeleOp extends NextFTCOpMode {
 
     }
     @Override public void onUpdate() {
-        button(() -> gamepad2.a)
-                .toggleOnBecomesTrue()
-                .whenBecomesTrue(() -> Intake.setIntakePower(1))
-                .whenBecomesFalse(() -> Intake.setIntakePower(0));
-        button(() -> gamepad2.x)
-                .toggleOnBecomesTrue()
-                .whenBecomesTrue(Outtake.on)
-                .whenBecomesFalse(Outtake.off);
 
     }
     @Override public void onStop() {
