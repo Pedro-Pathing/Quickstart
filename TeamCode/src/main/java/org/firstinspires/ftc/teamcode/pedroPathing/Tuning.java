@@ -164,6 +164,7 @@ class LocalizationTest extends OpMode {
         telemetryM.update(telemetry);
 
         draw();
+        return 0;
     }
 }
 
@@ -212,6 +213,7 @@ class ForwardTuner extends OpMode {
         telemetryM.update(telemetry);
 
         draw();
+        return 0;
     }
 }
 
@@ -260,6 +262,7 @@ class LateralTuner extends OpMode {
         telemetryM.update(telemetry);
 
         draw();
+        return 0;
     }
 }
 
@@ -309,6 +312,7 @@ class TurnTuner extends OpMode {
         telemetryM.update(telemetry);
 
         draw();
+        return 0;
     }
 }
 
@@ -415,6 +419,7 @@ class ForwardVelocityTuner extends OpMode {
                 changes.add(message);
             }
         }
+        return 0;
     }
 }
 
@@ -516,6 +521,7 @@ class LateralVelocityTuner extends OpMode {
                 changes.add(message);
             }
         }
+        return 0;
     }
 }
 
@@ -622,6 +628,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
                 changes.add(message);
             }
         }
+        return 0;
     }
 }
 
@@ -726,6 +733,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
                 changes.add(message);
             }
         }
+        return 0;
     }
 }
 
@@ -794,6 +802,7 @@ class TranslationalTuner extends OpMode {
         telemetryM.addData("Error X", follower.errorCalculator.getTranslationalError().getXComponent());
         telemetryM.addData("Error Y", follower.errorCalculator.getTranslationalError().getYComponent());
         telemetryM.update(telemetry);
+        return 0;
     }
 }
 
@@ -868,6 +877,7 @@ class HeadingTuner extends OpMode {
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error", follower.errorCalculator.getHeadingError());
         telemetryM.update(telemetry);
+        return 0;
     }
 }
 
@@ -949,6 +959,7 @@ class DriveTuner extends OpMode {
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error", follower.errorCalculator.getDriveErrors()[1]);
         telemetryM.update(telemetry);
+        return 0;
     }
 }
 
@@ -1013,6 +1024,7 @@ class Line extends OpMode {
 
         telemetryM.debug("Driving Forward?: " + forward);
         telemetryM.update(telemetry);
+        return 0;
     }
 }
 
@@ -1087,6 +1099,7 @@ class CentripetalTuner extends OpMode {
 
         telemetryM.debug("Driving away from the origin along the curve?: " + forward);
         telemetryM.update(telemetry);
+        return 0;
     }
 }
 
@@ -1118,6 +1131,7 @@ class Triangle extends OpMode {
         if (follower.atParametricEnd()) {
             follower.followPath(triangle, true);
         }
+        return 0;
     }
 
     @Override
@@ -1208,6 +1222,7 @@ class Circle extends OpMode {
         if (follower.atParametricEnd()) {
             follower.followPath(circle);
         }
+        return 0;
     }
 }
 

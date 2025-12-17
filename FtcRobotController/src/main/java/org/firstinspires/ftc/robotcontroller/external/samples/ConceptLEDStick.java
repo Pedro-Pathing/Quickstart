@@ -119,5 +119,6 @@ public class ConceptLEDStick extends OpMode {
 
         wasDown = gamepad1.dpad_down;
         wasUp = gamepad1.dpad_up;
+        return 0;
     }
 }

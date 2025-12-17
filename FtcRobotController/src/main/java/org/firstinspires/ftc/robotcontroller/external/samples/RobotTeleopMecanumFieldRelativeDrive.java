@@ -112,6 +112,7 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
         } else {
             driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
+        return 0;
     }
 
     // This routine drives the robot field relative

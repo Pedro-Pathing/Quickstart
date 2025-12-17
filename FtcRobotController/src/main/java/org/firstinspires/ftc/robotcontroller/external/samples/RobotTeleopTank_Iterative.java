@@ -149,6 +149,7 @@ public class RobotTeleopTank_Iterative extends OpMode{
         telemetry.addData("claw",  "Offset = %.2f", clawOffset);
         telemetry.addData("left",  "%.2f", left);
         telemetry.addData("right", "%.2f", right);
+        return left;
     }
 
     /*
