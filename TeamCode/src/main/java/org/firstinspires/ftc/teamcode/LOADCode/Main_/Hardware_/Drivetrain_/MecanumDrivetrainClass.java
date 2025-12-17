@@ -7,6 +7,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 public class MecanumDrivetrainClass {
@@ -15,7 +16,7 @@ public class MecanumDrivetrainClass {
 
     // Misc Constants
     public Follower follower = null;
-    public Pedro_Paths paths = null;
+    public Pedro_Paths paths = new Pedro_Paths();
 
     /**
      * Initializes the PedroPathing follower.
@@ -23,13 +24,30 @@ public class MecanumDrivetrainClass {
      * @param myOpMode Allows the follower access to the robot hardware.
      * @param initialPose The starting pose of the robot.
      */
-    public void init (@NonNull OpMode myOpMode, Pose initialPose){
+    public void init (@NonNull OpMode myOpMode, Pose initialPose, LoadHardwareClass.Alliance alliance){
         // PedroPathing initialization
         follower = Constants.createFollower(myOpMode.hardwareMap);  // Initializes the PedroPathing path follower
-        paths = new Pedro_Paths(follower);
         follower.setStartingPose(initialPose);                      // Sets the initial position of the robot on the field
         follower.update(); // Applies the initialization
+        //TODO uncommment this: paths.buildPaths(alliance, follower);
+    }
 
+    /**
+     * Initializes the PedroPathing follower.
+     * Needs to be run once after all hardware is initialized.
+     * @param myOpMode Allows the follower access to the robot hardware.
+     * @param initialPose The starting pose of the robot.
+     * @param follow The PedroPathing follower object
+     */
+    public void init (@NonNull OpMode myOpMode, Pose initialPose, LoadHardwareClass.Alliance alliance, Follower follow){
+        // PedroPathing initialization
+        follower = follow;  // Initializes the PedroPathing path follower
+        follower.setPose(initialPose);                      // Sets the initial position of the robot on the field
+        follower.update(); // Applies the initialization
+        //TODO uncommment this: paths.buildPaths(alliance, follower);
+    }
+
+    public void startTeleOpDrive(){
         follower.startTeleopDrive();
         follower.update();
     }

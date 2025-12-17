@@ -105,6 +105,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Initialize all hardware of the robot
         Robot.init(startPose);
+        Robot.drivetrain.startTeleOpDrive();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {

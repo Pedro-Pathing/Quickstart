@@ -16,16 +16,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(5) // TODO: Change this to the actual weight of the robot
-            .forwardZeroPowerAcceleration(-45.7735)
-            .lateralZeroPowerAcceleration(-53.7000)
+            .mass(13.6) // TODO: Change this to the actual weight of the robot
+            .forwardZeroPowerAcceleration(-42.5878)
+            .lateralZeroPowerAcceleration(-68.2022)
             // Set following parameters to true to enable dual PID
             .useSecondaryTranslationalPIDF(false)
             .useSecondaryHeadingPIDF(false)
             .useSecondaryDrivePIDF(false)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.1, 0, 0.01, 0.05))
-            .headingPIDFCoefficients(new PIDFCoefficients(3, 0.3, 0.2, 0.05))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.3, 0.1, 0.01, 0.6, 0.6));
+            .centripetalScaling(0.0002)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.15, 0, 0.01, 0.05))
+            .headingPIDFCoefficients(new PIDFCoefficients(2, 0, 0.1, 0.026))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.001, 0.6, 0.02));
 
     public static PathConstraints pathConstraints = new PathConstraints(
             0.99,
@@ -48,12 +49,12 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(59.3402)
-            .yVelocity(46.4157);
+            .xVelocity(65.1356)
+            .yVelocity(39.2622);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY((double) 3/8)
-            .strafePodX(6)
+            .forwardPodY(-3.25)
+            .strafePodX(-6.25)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)

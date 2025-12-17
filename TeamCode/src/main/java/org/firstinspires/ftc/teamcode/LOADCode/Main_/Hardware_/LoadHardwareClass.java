@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -88,7 +89,22 @@ public class LoadHardwareClass {
      */
     public void init(Pose initialPose)    {
         // Initialize all subclasses
-        drivetrain.init(myOpMode, initialPose);
+        drivetrain.init(myOpMode, initialPose, selectedAlliance);
+        turret.init(myOpMode);
+        intake.init(myOpMode);
+
+        // Misc telemetry
+        myOpMode.telemetry.addData(">", "Hardware Initialized");
+        myOpMode.telemetry.update();
+    }
+
+    /**
+     * Initializes all hardware for the robot.
+     * Must be called once at the start of each op-mode.
+     */
+    public void init(Pose initialPose, Follower follower)    {
+        // Initialize all subclasses
+        drivetrain.init(myOpMode, initialPose, selectedAlliance, follower);
         turret.init(myOpMode);
         intake.init(myOpMode);
 

@@ -15,46 +15,43 @@ public class Pedro_Paths {
     /**
      * Define primary poses to be used in paths
       */
-    // Dummy Stand-In Poses
-    public Pose dummyStartPose = new Pose(0,0,0);
-    public Pose dummyMoveRPPose = new Pose(0,28,0);
     // Start Poses
-    public Pose startPose1 = new Pose(112, 136.6, Math.toRadians(270));
-    public Pose startPose2 = new Pose(88, 7.4, Math.toRadians(90));
+    public Pose nearStart = new Pose(112, 136.6, Math.toRadians(270));
+    public Pose farStart = new Pose(88, 7.4, Math.toRadians(90));
     // Preload Poses
-    public Pose preloadPose1 = new Pose(130.000, 83.500, Math.toRadians(90));
-    public Pose preloadPose2 = new Pose(132.000, 59.500, Math.toRadians(90));
-    public Pose preloadPose3 = new Pose(132.000, 35.500, Math.toRadians(90));
+    public Pose nearPreload = new Pose(130.000, 83.500, Math.toRadians(90));
+    public Pose midPreload = new Pose(132.000, 59.500, Math.toRadians(90));
+    public Pose farPreload = new Pose(132.000, 35.500, Math.toRadians(90));
     // Shooting Poses
-    public Pose shootingPose1 = new Pose(115, 120, Math.toRadians(-35));
-    public Pose shootingPose2 = new Pose(85, 85, Math.toRadians(-15));
-    public Pose shootingPose3 = new Pose(85, 15, Math.toRadians(60));
+    public Pose nearShoot = new Pose(115, 120, Math.toRadians(-35));
+    public Pose midShoot = new Pose(85, 85, Math.toRadians(-15));
+    public Pose farShoot = new Pose(85, 15, Math.toRadians(60));
     // Leave Poses
-    public Pose leavePose1 = new Pose(90,120);
-    public Pose leavePose2 = new Pose(95,55);
-    public Pose leavePose3 = new Pose(115,20);
+    public Pose nearLeave = new Pose(90,120);
+    public Pose midLeave = new Pose(95,55);
+    public Pose farLeave = new Pose(115,20);
 
     // Define all path variables
     // Dummy Paths
     public PathChain basicMoveRPPath;
     // Start Poses to Preloads
-    public PathChain startPose1_to_preload1, startPose1_to_preload2, startPose1_to_preload3;
-    public PathChain startPose2_to_preload1, startPose2_to_preload2, startPose2_to_preload3;
+    public PathChain nearStart_to_nearPreload, nearStart_to_midPreload, nearStart_to_farPreload;
+    public PathChain farStart_to_nearPreload, farStart_to_midPreload, farStart_to_farPreload;
     // Preloads to Shooting Positions
-    public PathChain preload1_to_shooting1, preload1_to_shooting2, preload1_to_shooting3;
-    public PathChain preload2_to_shooting1, preload2_to_shooting2, preload2_to_shooting3;
-    public PathChain preload3_to_shooting1, preload3_to_shooting2, preload3_to_shooting3;
+    public PathChain nearPreload_to_nearShoot, nearPreload_to_midShoot, nearPreload_to_farShoot;
+    public PathChain midPreload_to_nearShoot, midPreload_to_midShoot, midPreload_to_farShoot;
+    public PathChain farPreload_to_nearShoot, farPreload_to_midShoot, farPreload_to_farShoot;
     // Shooting Positions to Preloads
-    public PathChain shooting1_to_preload1, shooting1_to_preload2, shooting1_to_preload3;
-    public PathChain shooting2_to_preload1, shooting2_to_preload2, shooting2_to_preload3;
-    public PathChain shooting3_to_preload1, shooting3_to_preload2, shooting3_to_preload3;
+    public PathChain nearShoot_to_nearPreload, nearShoot_to_midPreload, nearShoot_to_farPreload;
+    public PathChain midShoot_to_nearPreload, midShoot_to_midPreload, midShoot_to_farPreload;
+    public PathChain farShoot_to_nearPreload, farShoot_to_midPreload, farShoot_to_farPreload;
     // Shooting Positions to Leave Positions
-    public PathChain shooting1_to_leave1, shooting1_to_leave2;
-    public PathChain shooting2_to_leave1, shooting2_to_leave2;
-    public PathChain shooting3_to_leave2, shooting3_to_leave3;
+    public PathChain nearShoot_to_nearLeave, nearShoot_to_midLeave;
+    public PathChain midShoot_to_nearLeave, midShoot_to_midLeave;
+    public PathChain farShoot_to_midLeave, farShoot_to_farLeave;
     // Start Positions to Leave Positions
-    public PathChain start1_to_leave1, start1_to_leave2;
-    public PathChain start2_to_leave2, start2_to_leave3;
+    public PathChain nearStart_to_nearLeave, nearStart_to_midLeave;
+    public PathChain farStart_to_midLeave, farStart_to_farLeave;
 
     public Pose autoMirror(Pose pose, LoadHardwareClass.Alliance alliance){
         int mult = 1;
@@ -68,349 +65,340 @@ public class Pedro_Paths {
         );
     }
 
-    /**
-     * <h1>DON'T EVER USE THIS PATH!!!</h1>
-     * This path is ONLY for the December 6th scrimmage, for movement RP bonus only!
-     */
-    public void buildMoveRPPath(){
-        basicMoveRPPath = follower.pathBuilder()
-                .addPath(new BezierCurve(dummyStartPose,dummyMoveRPPose))
-                .setLinearHeadingInterpolation(dummyStartPose.getHeading(), dummyMoveRPPose.getHeading())
-                .build();
-    }
     public void buildStart1ToPreloads(LoadHardwareClass.Alliance alliance) {
-        startPose1_to_preload1 = follower.pathBuilder()
+        nearStart_to_nearPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose1, alliance),
+                        autoMirror(nearStart, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
                         autoMirror(new Pose(89.000, 78.000), alliance),
                         autoMirror(new Pose(95.000, 83.500), alliance),
                         autoMirror(new Pose(110.000, 83.500), alliance)
                 ))
-                .setLinearHeadingInterpolation(startPose1.getHeading(), Math.toRadians(0))
+                .setLinearHeadingInterpolation(nearStart.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
                         autoMirror(new Pose(110.000, 83.500), alliance),
-                        autoMirror(preloadPose1, alliance)
+                        autoMirror(nearPreload, alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
-        startPose1_to_preload2 = follower.pathBuilder()
+        nearStart_to_midPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose1, alliance),
+                        autoMirror(nearStart, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
                         autoMirror(new Pose(89.000, 54.000), alliance),
                         autoMirror(new Pose(95.000, 59.500), alliance),
                         autoMirror(new Pose(110.000, 59.500), alliance)
                 ))
-                .setLinearHeadingInterpolation(startPose1.getHeading(), Math.toRadians(0))
+                .setLinearHeadingInterpolation(nearStart.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
                         autoMirror(new Pose(110.000, 59.500), alliance),
-                        autoMirror(preloadPose2, alliance)
+                        autoMirror(midPreload, alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
-        startPose1_to_preload3 = follower.pathBuilder()
+        nearStart_to_farPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose1, alliance),
+                        autoMirror(nearStart, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
                         autoMirror(new Pose(89.000, 30.000), alliance),
                         autoMirror(new Pose(95.000, 35.500), alliance),
                         autoMirror(new Pose(110.000, 35.500), alliance)
                 ))
-                .setLinearHeadingInterpolation(startPose1.getHeading(), Math.toRadians(0))
+                .setLinearHeadingInterpolation(nearStart.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
                         autoMirror(new Pose(110.000, 35.500), alliance),
-                        autoMirror(preloadPose3, alliance)
+                        autoMirror(farPreload, alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
     }
     public void buildStart2ToPreloads(LoadHardwareClass.Alliance alliance){
-        startPose2_to_preload1 = follower.pathBuilder()
+        farStart_to_nearPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose2, alliance),
+                        autoMirror(farStart, alliance),
                         autoMirror(new Pose(89.000, 89.000), alliance),
                         autoMirror(new Pose(95.000, 83.500), alliance),
                         autoMirror(new Pose(110.000, 83.500), alliance)
                 ))
-                .setLinearHeadingInterpolation(startPose2.getHeading(), Math.toRadians(0))
+                .setLinearHeadingInterpolation(farStart.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
                         autoMirror(new Pose(110.000, 83.500), alliance),
-                        autoMirror(preloadPose1, alliance)
+                        autoMirror(nearPreload, alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
-        startPose2_to_preload2 = follower.pathBuilder()
+        farStart_to_midPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose2, alliance),
+                        autoMirror(farStart, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
                         autoMirror(new Pose(89.000, 65.000), alliance),
                         autoMirror(new Pose(95.000, 59.500), alliance),
                         autoMirror(new Pose(110.000, 59.500), alliance)
                 ))
-                .setLinearHeadingInterpolation(startPose1.getHeading(), Math.toRadians(0))
+                .setLinearHeadingInterpolation(nearStart.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
                         autoMirror(new Pose(110.000, 59.500), alliance),
-                        autoMirror(preloadPose2, alliance)
+                        autoMirror(midPreload, alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
-        startPose2_to_preload3 = follower.pathBuilder()
+        farStart_to_farPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose2, alliance),
+                        autoMirror(farStart, alliance),
                         autoMirror(new Pose(89.000, 136.600), alliance),
                         autoMirror(new Pose(89.000, 41.000), alliance),
                         autoMirror(new Pose(95.000, 35.500), alliance),
                         autoMirror(new Pose(110.000, 35.500), alliance)
                 ))
-                .setLinearHeadingInterpolation(startPose2.getHeading(), Math.toRadians(0))
+                .setLinearHeadingInterpolation(farStart.getHeading(), Math.toRadians(0))
                 .addPath(new BezierLine(
                         autoMirror(new Pose(110.000, 35.500), alliance),
-                        autoMirror(preloadPose3, alliance)
+                        autoMirror(farPreload, alliance)
                 ))
                 .setTangentHeadingInterpolation()
                 .build();
     }
     public void buildPreload1ToShootings(LoadHardwareClass.Alliance alliance){
-        preload1_to_shooting1 = follower.pathBuilder()
+        nearPreload_to_nearShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose1, alliance),
-                        autoMirror(shootingPose1, alliance)
+                        autoMirror(nearPreload, alliance),
+                        autoMirror(nearShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose1.getHeading(), shootingPose1.getHeading())
+                .setLinearHeadingInterpolation(nearPreload.getHeading(), nearShoot.getHeading())
                 .build();
-        preload1_to_shooting2 = follower.pathBuilder()
+        nearPreload_to_midShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose1, alliance),
-                        autoMirror(shootingPose2, alliance)
+                        autoMirror(nearPreload, alliance),
+                        autoMirror(midShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose1.getHeading(), shootingPose2.getHeading())
+                .setLinearHeadingInterpolation(nearPreload.getHeading(), midShoot.getHeading())
                 .build();
-        preload1_to_shooting3 = follower.pathBuilder()
+        nearPreload_to_farShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose1, alliance),
+                        autoMirror(nearPreload, alliance),
                         autoMirror(new Pose(80.000, 83.500), alliance),
-                        autoMirror(shootingPose3, alliance)
+                        autoMirror(farShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose1.getHeading(), shootingPose3.getHeading())
+                .setLinearHeadingInterpolation(nearPreload.getHeading(), farShoot.getHeading())
                 .build();
     }
     public void buildPreload2ToShootings(LoadHardwareClass.Alliance alliance){
-        preload2_to_shooting1 = follower.pathBuilder()
+        midPreload_to_nearShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose2, alliance),
+                        autoMirror(midPreload, alliance),
                         autoMirror(new Pose(65,59.5), alliance),
-                        autoMirror(shootingPose1, alliance)
+                        autoMirror(nearShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose1.getHeading())
+                .setLinearHeadingInterpolation(midPreload.getHeading(), nearShoot.getHeading())
                 .build();
-        preload2_to_shooting2 = follower.pathBuilder()
+        midPreload_to_midShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose2, alliance),
+                        autoMirror(midPreload, alliance),
                         autoMirror(new Pose(65,59.5), alliance),
-                        autoMirror(shootingPose2, alliance)
+                        autoMirror(midShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose2.getHeading())
+                .setLinearHeadingInterpolation(midPreload.getHeading(), midShoot.getHeading())
                 .build();
-        preload2_to_shooting3 = follower.pathBuilder()
+        midPreload_to_farShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose2, alliance),
+                        autoMirror(midPreload, alliance),
                         autoMirror(new Pose(90.000, 59.500), alliance),
-                        autoMirror(shootingPose3, alliance)
+                        autoMirror(farShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose3.getHeading())
+                .setLinearHeadingInterpolation(midPreload.getHeading(), farShoot.getHeading())
                 .build();
     }
     public void buildPreload3ToShootings(LoadHardwareClass.Alliance alliance){
-        preload3_to_shooting1 = follower.pathBuilder()
+        farPreload_to_nearShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose2, alliance),
+                        autoMirror(midPreload, alliance),
                         autoMirror(new Pose(75,30), alliance),
                         autoMirror(new Pose(80,100), alliance),
-                        autoMirror(shootingPose1, alliance)
+                        autoMirror(nearShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose1.getHeading())
+                .setLinearHeadingInterpolation(midPreload.getHeading(), nearShoot.getHeading())
                 .build();
-        preload3_to_shooting2 = follower.pathBuilder()
+        farPreload_to_midShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose2, alliance),
+                        autoMirror(midPreload, alliance),
                         autoMirror(new Pose(85,32), alliance),
-                        autoMirror(shootingPose2, alliance)
+                        autoMirror(midShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose2.getHeading())
+                .setLinearHeadingInterpolation(midPreload.getHeading(), midShoot.getHeading())
                 .build();
-        preload3_to_shooting3 = follower.pathBuilder()
+        farPreload_to_farShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(preloadPose2, alliance),
-                        autoMirror(shootingPose3, alliance)
+                        autoMirror(midPreload, alliance),
+                        autoMirror(farShoot, alliance)
                 ))
-                .setLinearHeadingInterpolation(preloadPose2.getHeading(), shootingPose3.getHeading())
+                .setLinearHeadingInterpolation(midPreload.getHeading(), farShoot.getHeading())
                 .build();
     }
     public void buildShooting1ToPreloads(LoadHardwareClass.Alliance alliance){
-        shooting1_to_preload1 = follower.pathBuilder()
+        nearShoot_to_nearPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose1, alliance),
+                        autoMirror(nearShoot, alliance),
                         autoMirror(new Pose(60, 80), alliance),
-                        autoMirror(preloadPose1, alliance)
+                        autoMirror(nearPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose1.getHeading(), preloadPose1.getHeading())
+                .setLinearHeadingInterpolation(nearShoot.getHeading(), nearPreload.getHeading())
                 .build();
-        shooting1_to_preload2 = follower.pathBuilder()
+        nearShoot_to_midPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose1, alliance),
+                        autoMirror(nearShoot, alliance),
                         autoMirror(new Pose(60, 55), alliance),
-                        autoMirror(preloadPose2, alliance)
+                        autoMirror(midPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose1.getHeading(), preloadPose2.getHeading())
+                .setLinearHeadingInterpolation(nearShoot.getHeading(), midPreload.getHeading())
                 .build();
-        shooting1_to_preload3 = follower.pathBuilder()
+        nearShoot_to_farPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose1, alliance),
+                        autoMirror(nearShoot, alliance),
                         autoMirror(new Pose(60, 27), alliance),
-                        autoMirror(preloadPose3, alliance)
+                        autoMirror(farPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose1.getHeading(), preloadPose3.getHeading())
+                .setLinearHeadingInterpolation(nearShoot.getHeading(), farPreload.getHeading())
                 .build();
     }
     public void buildShooting2ToPreloads(LoadHardwareClass.Alliance alliance){
-        shooting2_to_preload1 = follower.pathBuilder()
+        midShoot_to_nearPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose2, alliance),
-                        autoMirror(preloadPose1, alliance)
+                        autoMirror(midShoot, alliance),
+                        autoMirror(nearPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose2.getHeading(), preloadPose1.getHeading())
+                .setLinearHeadingInterpolation(midShoot.getHeading(), nearPreload.getHeading())
                 .build();
-        shooting2_to_preload2 = follower.pathBuilder()
+        midShoot_to_midPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose2, alliance),
+                        autoMirror(midShoot, alliance),
                         autoMirror(new Pose(75, 56), alliance),
-                        autoMirror(preloadPose2, alliance)
+                        autoMirror(midPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose2.getHeading(), preloadPose2.getHeading())
+                .setLinearHeadingInterpolation(midShoot.getHeading(), midPreload.getHeading())
                 .build();
-        shooting2_to_preload3 = follower.pathBuilder()
+        midShoot_to_farPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose2, alliance),
+                        autoMirror(midShoot, alliance),
                         autoMirror(new Pose(68, 30), alliance),
-                        autoMirror(preloadPose3, alliance)
+                        autoMirror(farPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose2.getHeading(), preloadPose3.getHeading())
+                .setLinearHeadingInterpolation(midShoot.getHeading(), farPreload.getHeading())
                 .build();
     }
     public void buildShooting3ToPreloads(LoadHardwareClass.Alliance alliance){
-        shooting3_to_preload1 = follower.pathBuilder()
+        farShoot_to_nearPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose3, alliance),
+                        autoMirror(farShoot, alliance),
                         autoMirror(new Pose(73, 88), alliance),
-                        autoMirror(preloadPose1, alliance)
+                        autoMirror(nearPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose3.getHeading(), preloadPose1.getHeading())
+                .setLinearHeadingInterpolation(farShoot.getHeading(), nearPreload.getHeading())
                 .build();
-        shooting3_to_preload2 = follower.pathBuilder()
+        farShoot_to_midPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose3, alliance),
+                        autoMirror(farShoot, alliance),
                         autoMirror(new Pose(78, 62), alliance),
-                        autoMirror(preloadPose2, alliance)
+                        autoMirror(midPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose3.getHeading(), preloadPose2.getHeading())
+                .setLinearHeadingInterpolation(farShoot.getHeading(), midPreload.getHeading())
                 .build();
-        shooting3_to_preload3 = follower.pathBuilder()
+        farShoot_to_farPreload = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose3, alliance),
+                        autoMirror(farShoot, alliance),
                         autoMirror(new Pose(82.5, 35), alliance),
-                        autoMirror(preloadPose3, alliance)
+                        autoMirror(farPreload, alliance)
                 ))
-                .setLinearHeadingInterpolation(shootingPose3.getHeading(), preloadPose3.getHeading())
+                .setLinearHeadingInterpolation(farShoot.getHeading(), farPreload.getHeading())
                 .build();
     }
     public void buildShooting1ToLeaves(LoadHardwareClass.Alliance alliance){
-        shooting1_to_leave1 = follower.pathBuilder()
+        nearShoot_to_nearLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose1, alliance),
-                        autoMirror(leavePose1, alliance)
+                        autoMirror(nearShoot, alliance),
+                        autoMirror(nearLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(shootingPose1.getHeading())
+                .setConstantHeadingInterpolation(nearShoot.getHeading())
                 .build();
-        shooting1_to_leave2 = follower.pathBuilder()
+        nearShoot_to_midLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose1, alliance),
-                        autoMirror(leavePose2, alliance)
+                        autoMirror(nearShoot, alliance),
+                        autoMirror(midLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(shootingPose1.getHeading())
+                .setConstantHeadingInterpolation(nearShoot.getHeading())
                 .build();
     }
     public void buildShooting2ToLeaves(LoadHardwareClass.Alliance alliance){
-        shooting2_to_leave1 = follower.pathBuilder()
+        midShoot_to_nearLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose2, alliance),
-                        autoMirror(leavePose1, alliance)
+                        autoMirror(midShoot, alliance),
+                        autoMirror(nearLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(shootingPose2.getHeading())
+                .setConstantHeadingInterpolation(midShoot.getHeading())
                 .build();
-        shooting2_to_leave2 = follower.pathBuilder()
+        midShoot_to_midLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose2, alliance),
-                        autoMirror(leavePose2, alliance)
+                        autoMirror(midShoot, alliance),
+                        autoMirror(midLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(shootingPose2.getHeading())
+                .setConstantHeadingInterpolation(midShoot.getHeading())
                 .build();
     }
     public void buildShooting3ToLeaves(LoadHardwareClass.Alliance alliance){
-        shooting3_to_leave2 = follower.pathBuilder()
+        farShoot_to_midLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose3, alliance),
-                        autoMirror(leavePose2, alliance)
+                        autoMirror(farShoot, alliance),
+                        autoMirror(midLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(shootingPose3.getHeading())
+                .setConstantHeadingInterpolation(farShoot.getHeading())
                 .build();
-        shooting3_to_leave3 = follower.pathBuilder()
+        farShoot_to_farLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(shootingPose3, alliance),
-                        autoMirror(leavePose3, alliance)
+                        autoMirror(farShoot, alliance),
+                        autoMirror(farLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(shootingPose3.getHeading())
+                .setConstantHeadingInterpolation(farShoot.getHeading())
                 .build();
     }
     public void buildStart1ToLeaves(LoadHardwareClass.Alliance alliance){
-        start1_to_leave1 = follower.pathBuilder()
+        nearStart_to_nearLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose1, alliance),
-                        autoMirror(leavePose1, alliance)
+                        autoMirror(nearStart, alliance),
+                        autoMirror(nearLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(startPose1.getHeading())
+                .setConstantHeadingInterpolation(nearStart.getHeading())
                 .build();
-        start1_to_leave2 = follower.pathBuilder()
+        nearStart_to_midLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose1, alliance),
-                        autoMirror(leavePose3, alliance)
+                        autoMirror(nearStart, alliance),
+                        autoMirror(farLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(startPose1.getHeading())
+                .setConstantHeadingInterpolation(nearStart.getHeading())
                 .build();
     }
     public void buildStart2ToLeaves(LoadHardwareClass.Alliance alliance){
-        start2_to_leave2 = follower.pathBuilder()
+        farStart_to_midLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose2, alliance),
-                        autoMirror(leavePose1, alliance)
+                        autoMirror(farStart, alliance),
+                        autoMirror(nearLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(startPose2.getHeading())
+                .setConstantHeadingInterpolation(farStart.getHeading())
                 .build();
-        start2_to_leave3 = follower.pathBuilder()
+        farStart_to_farLeave = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        autoMirror(startPose2, alliance),
-                        autoMirror(leavePose3, alliance)
+                        autoMirror(farStart, alliance),
+                        autoMirror(farLeave, alliance)
                 ))
-                .setConstantHeadingInterpolation(startPose2.getHeading())
+                .setConstantHeadingInterpolation(farStart.getHeading())
                 .build();
     }
 
     /**
      * Builds all the paths, mirroring them to the other side of the field if necessary
      */
-    public void buildPaths(LoadHardwareClass.Alliance alliance){
+    public void buildPaths(LoadHardwareClass.Alliance alliance, Follower follow){
+        follower = follow;
+
         /// All paths are for the RED side of the field. they will be mirrored if necessary.
-        buildMoveRPPath();
         // Paths going from each start position to each of the preloads.
         buildStart1ToPreloads(alliance);
         buildStart2ToPreloads(alliance);
@@ -429,13 +417,5 @@ public class Pedro_Paths {
         // Paths going from the start positions to the leave positions
         buildStart1ToLeaves(alliance);
         buildStart2ToLeaves(alliance);
-    }
-
-    /**
-     * Must be called after MecanumDrivetrainClass is initialized.
-     * @param follow PedroPathing's follower object, gotten from MecanumDrivetrainClass
-     */
-    public Pedro_Paths(Follower follow){
-        follower = follow;
     }
 }

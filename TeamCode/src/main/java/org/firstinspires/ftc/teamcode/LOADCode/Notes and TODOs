@@ -1,7 +1,5 @@
 //TODO, implement all our external libraries and functionality.
 
-//TODO, add 2 generic autos for preloads and shooting and stuff
-
 //DONE, Implement controls graph to TeleOp
 
 //DONE, Consolidate the generic actuator functionalities folder into one file
@@ -21,3 +19,13 @@
 //DONE, Finish translating Dylan's December 6th controls into the program.
 
 //DONE, Figure out how to use NextFTC's Pedropathing extension for auto.
+
+
+
+//1. TODO, test the auto paths used in the generic autos
+//2. TODO, create two generic autos for testing and competition
+//3. TODO, test the turret rotation autoaim with shooting
+//4. TODO, establish static (non-changing) flywheel speeds for near/far zones
+//5. TODO, make hood autoaim using InterpLUT
+//6. TODO, test turret hood and rotation autoaim together
+//7. TODO, test turret autoaim with the generic autos
