@@ -17,6 +17,8 @@
             <!-- I2C -->
             <LynxEmbeddedIMU name="imu" bus="0" port="0"/>
             <goBILDAPinpoint name="pinpoint" bus="1" port="0"/> <!-- Physical port 1 -->
+
+            <DigitalDevice name="limitSwitch" port="0"/>
         </LynxModule>+
         <LynxModule name="Expansion Hub 2" port="2">
             <!-- Motors -->

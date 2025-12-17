@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
+import dev.nextftc.hardware.impl.CRServoEx;
 import dev.nextftc.hardware.impl.MotorEx;
 
 public class Intake implements Subsystem {
@@ -9,9 +10,7 @@ public class Intake implements Subsystem {
     public static final Intake INSTANCE = new Intake();
     public static double intakePower = 0;
 
-    private MotorEx intake = new MotorEx("motor0")
-            .brakeMode()
-            .zeroed();
+    private MotorEx intake = new MotorEx("motor0");
 
     @Override
     public void initialize() {
@@ -23,6 +22,6 @@ public class Intake implements Subsystem {
     }
 
     public static void setIntakePower(double newPower) {
-        new InstantCommand(() -> intakePower = newPower);
+        new InstantCommand(() -> intakePower = newPower).schedule();
     }
 }
