@@ -1,15 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.hardware.impl.CRServoEx;
 
 public class Transitions implements Subsystem {
 
     public static final Transitions INSTANCE = new Transitions();
-    public static double transitionPower = 0;
+    public static double intakePower = 0;
+    public static double outtakePower = 0;
 
     private CRServoEx intakeServo = new CRServoEx("servo5");
+    private CRServoEx outtakeServo = new CRServoEx("servo4");
+
 
     @Override
     public void initialize() {
@@ -17,9 +19,13 @@ public class Transitions implements Subsystem {
 
     @Override
     public void periodic() {
-        intakeServo.setPower(transitionPower);
+        intakeServo.setPower(intakePower);
+        outtakeServo.setPower(outtakePower);
     }
-    public static void setTransitionPower(double newPower) {
-        new InstantCommand(() -> transitionPower = newPower).schedule();
+    public static void setIntakePower(double newPower) {
+        intakePower = newPower;
+    }
+    public static void setOuttakePower(double newPower) {
+        intakePower = newPower;
     }
 }

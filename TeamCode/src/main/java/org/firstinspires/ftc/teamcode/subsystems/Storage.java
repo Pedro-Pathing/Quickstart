@@ -29,9 +29,6 @@ public class Storage implements Subsystem {
             State.NONE
     };
 
-    // PURPLE & GREEN should take priority
-    // If the state is unknown, it should be BALL
-    // At which time we should queue for a read to determine if it's PURPLE, GREEN, or NONE
     public enum State {
         PURPLE,
         GREEN,
@@ -45,6 +42,9 @@ public class Storage implements Subsystem {
         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
 
         colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class, "sensor_color");
+
+        ((SwitchableLight) colorSensor).enableLight(false);
+        // TODO: optimize this so that the light only turns on when we need it to
     }
 
     @Override
@@ -66,12 +66,13 @@ public class Storage implements Subsystem {
         }
 
         // Write Telemetry
-        ActiveOpMode.telemetry().addData("Storage Position", spin.getCurrentPosition());
-        ActiveOpMode.telemetry().addData("manualmode?", manualMode);
-        ActiveOpMode.telemetry().addData("manualpower", manualPower);
-        ActiveOpMode.telemetry().addData("wasJustPressed?", wasJustPressed());
-        ActiveOpMode.telemetry().addData("pressed?", limitSwitch.getState());
+        ActiveOpMode.telemetry().addLine("Storage | Ticks: " + spin.getCurrentPosition() + " | Index: " + index);
+        ActiveOpMode.telemetry().addLine("Manual: " + manualMode + " | Power: " + manualPower);
+        ActiveOpMode.telemetry().addLine("Limit: " + limitSwitch.getState());
+        ActiveOpMode.telemetry().addLine("Color: " + getColor().red + ", " + getColor().green + ", " + getColor().blue );
+
     }
+
     public static void setManualPower(double newPower) {
         manualPower = newPower;
     }
@@ -82,36 +83,29 @@ public class Storage implements Subsystem {
         spin.zero();
     }
 
+    public static NormalizedRGBA getColor() {
+        return colorSensor.getNormalizedColors();
+    }
     public static State readColor() {
-        ((SwitchableLight) colorSensor).enableLight(true);
-        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+        NormalizedRGBA colors = getColor();
 
         double red = colors.red;
         double green = colors.green;
         double blue = colors.blue;
 
         double sum = red + green + blue;
-        if (sum < 0.05) {
-            ((SwitchableLight) colorSensor).enableLight(false);
-            return State.BALL;
-        }
 
         double r = red / sum;
         double g = green / sum;
         double b = blue / sum;
 
         if (r > 0.35 && b > 0.35 && g < 0.25) {
-            ((SwitchableLight) colorSensor).enableLight(false);
             return State.PURPLE;
         }
-
         if (g > 0.45 && r < 0.3 && b < 0.3) {
-            ((SwitchableLight) colorSensor).enableLight(false);
             return State.GREEN;
         }
-
-        ((SwitchableLight) colorSensor).enableLight(false);
-        return State.BALL;
+        return State.NONE;
     }
 
     public boolean wasJustPressed() {
