@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
+import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
@@ -29,10 +30,9 @@ public class MainTeleOp extends NextFTCOpMode {
     }
 
     @Override public void onInit() {
-
     }
     @Override public void onWaitForStart() {
-
+        ActiveOpMode.telemetry().update();
     }
     @Override public void onStartButtonPressed() {
         Gamepads.gamepad1().x()
@@ -43,9 +43,8 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(Storage::resetEncoder);
     }
     @Override public void onUpdate() {
-
+        ActiveOpMode.telemetry().update();
     }
     @Override public void onStop() {
-
     }
 }

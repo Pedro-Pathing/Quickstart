@@ -1,8 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.graphics.Color;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.LambdaCommand;
+import dev.nextftc.core.commands.utility.NullCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
@@ -14,10 +19,11 @@ public class Storage implements Subsystem {
     private static double runPower = 0;
     private static MotorEx spin = new MotorEx("motor2").brakeMode();
 
-    private DigitalChannel limitSwitch;
+    private static DigitalChannel limitSwitch;
+    private static NormalizedColorSensor colorSensor;
     private static boolean lastState = false;
     private static int index = 0;
-    private static final State[] STATES = {
+    public static final State[] STATES = {
             State.NONE,
             State.NONE,
             State.NONE
@@ -26,7 +32,7 @@ public class Storage implements Subsystem {
     // PURPLE & GREEN should take priority
     // If the state is unknown, it should be BALL
     // At which time we should queue for a read to determine if it's PURPLE, GREEN, or NONE
-    private enum State {
+    public enum State {
         PURPLE,
         GREEN,
         NONE,
@@ -37,6 +43,8 @@ public class Storage implements Subsystem {
     public void initialize() {
         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class, "limitSwitch");
         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
+
+        colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class, "sensor_color");
     }
 
     @Override
@@ -50,6 +58,7 @@ public class Storage implements Subsystem {
             }
         }
 
+        // Should be the only location we're setting the power, default to manualMode
         if (manualMode) {
             spin.setPower(manualPower);
         } else {
@@ -62,8 +71,6 @@ public class Storage implements Subsystem {
         ActiveOpMode.telemetry().addData("manualpower", manualPower);
         ActiveOpMode.telemetry().addData("wasJustPressed?", wasJustPressed());
         ActiveOpMode.telemetry().addData("pressed?", limitSwitch.getState());
-
-        ActiveOpMode.telemetry().update();
     }
     public static void setManualPower(double newPower) {
         manualPower = newPower;
@@ -74,6 +81,39 @@ public class Storage implements Subsystem {
     public static void resetEncoder(){
         spin.zero();
     }
+
+    public static State readColor() {
+        ((SwitchableLight) colorSensor).enableLight(true);
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+        double red = colors.red;
+        double green = colors.green;
+        double blue = colors.blue;
+
+        double sum = red + green + blue;
+        if (sum < 0.05) {
+            ((SwitchableLight) colorSensor).enableLight(false);
+            return State.BALL;
+        }
+
+        double r = red / sum;
+        double g = green / sum;
+        double b = blue / sum;
+
+        if (r > 0.35 && b > 0.35 && g < 0.25) {
+            ((SwitchableLight) colorSensor).enableLight(false);
+            return State.PURPLE;
+        }
+
+        if (g > 0.45 && r < 0.3 && b < 0.3) {
+            ((SwitchableLight) colorSensor).enableLight(false);
+            return State.GREEN;
+        }
+
+        ((SwitchableLight) colorSensor).enableLight(false);
+        return State.BALL;
+    }
+
     public boolean wasJustPressed() {
         boolean current = limitSwitch.getState();
         boolean triggered = current && !lastState;
@@ -88,11 +128,10 @@ public class Storage implements Subsystem {
                     runPower = .6;
                 })
                 .setIsDone(() -> index == targetIndex)
-
                 .setStop(interrupted -> {
+                    runPower = 0;
                     manualPower = 0;
                     manualMode = true;
-                    runPower = 0;
                 })
                 .requires(Storage.INSTANCE)
                 .setInterruptible(false)
@@ -105,14 +144,29 @@ public class Storage implements Subsystem {
                     runPower = .6;
                 })
                 .setIsDone(() -> index == targetIndex)
-
                 .setStop(interrupted -> {
-                    manualPower = 0;
-                    manualMode = true;
-                    runPower = 0;
+                    if (!interrupted) {
+                        runPower = 0;
+                        manualPower = 0;
+                        manualMode = true;
+                    }
                 })
                 .requires(Storage.INSTANCE)
                 .setInterruptible(true)
                 .named("Lazy Spin → " + targetIndex);
+    }
+
+    public static Command spinToState(State targetState) {
+        int targetIndex = -1;
+        for (int i = 0; i < STATES.length; i++) {
+            if (STATES[i] == targetState) {
+                targetIndex = i;
+                break;
+            }
+        }
+        if (targetIndex == -1) {
+            return new NullCommand();
+        }
+        return prioritySpin(targetIndex);
     }
 }
