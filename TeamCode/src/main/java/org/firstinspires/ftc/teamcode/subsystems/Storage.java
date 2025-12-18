@@ -189,5 +189,26 @@ public class Storage implements Subsystem {
                 .named("reIndex");
     }
 
+    public static Command clearCurrentIndex() {
+        return new LambdaCommand()
+                .setStart(() -> STATES[index] = State.NONE)
+                .setIsDone(() -> true)
+                .named("clear current index");
+    }
+    public static Command clearIndexState(int targetIndex) {
+        return new LambdaCommand()
+                .setStart(() -> STATES[targetIndex] = State.NONE)
+                .setIsDone(() -> true)
+                .named("clear state of " + targetIndex);
+    }
+    public static Command resetIndexStates() {
 
+        Command[] clears = new Command[STATES.length];
+
+        for (int i = 0; i < STATES.length; i++) {
+            clears[i] = clearIndexState(i);
+        }
+        return new SequentialGroup(clears)
+                .named("reset index states");
+    }
 }
