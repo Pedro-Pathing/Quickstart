@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.graphics.Color;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.commands.utility.NullCommand;
 import dev.nextftc.core.subsystems.Subsystem;
@@ -169,4 +169,25 @@ public class Storage implements Subsystem {
         }
         return prioritySpin(targetIndex);
     }
+    public static Command reIndex() {
+
+        Command[] steps = new Command[STATES.length * 2];
+        int cmdIndex = 0;
+
+        for (int i = 0; i < STATES.length; i++) {
+            final int target = i;
+
+            steps[cmdIndex++] = prioritySpin(target);
+
+            steps[cmdIndex++] = new LambdaCommand()
+                    .setStart(() -> STATES[target] = readColor())
+                    .setIsDone(() -> true)
+                    .named("read color at " + target);
+        }
+
+        return new SequentialGroup(steps)
+                .named("reIndex");
+    }
+
+
 }

@@ -19,7 +19,7 @@ public class MainTeleOp extends NextFTCOpMode {
                 CommandManager.INSTANCE,
                 new SubsystemComponent(
                         Storage.INSTANCE,
-                        Robot.INSTANCE,
+                        //Robot.INSTANCE,
                         Drive.INSTANCE,
                         Intake.INSTANCE,
                         Outtake.INSTANCE,
