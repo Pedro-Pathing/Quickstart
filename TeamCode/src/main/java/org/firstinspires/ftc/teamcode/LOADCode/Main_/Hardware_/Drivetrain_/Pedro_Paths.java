@@ -19,7 +19,7 @@ public class Pedro_Paths {
     public Pose nearStart = new Pose(112, 136.6, Math.toRadians(270));
     public Pose farStart = new Pose(88, 7.4, Math.toRadians(90));
     // Preload Poses
-    public Pose nearPreload = new Pose(130.000, 83.500, Math.toRadians(90));
+    public Pose nearPreload = new Pose(128.000, 83.500, Math.toRadians(90));
     public Pose midPreload = new Pose(132.000, 59.500, Math.toRadians(90));
     public Pose farPreload = new Pose(132.000, 35.500, Math.toRadians(90));
     // Shooting Poses
@@ -27,13 +27,13 @@ public class Pedro_Paths {
     public Pose midShoot = new Pose(85, 85, Math.toRadians(-15));
     public Pose farShoot = new Pose(85, 15, Math.toRadians(60));
     // Leave Poses
-    public Pose nearLeave = new Pose(90,120);
-    public Pose midLeave = new Pose(95,55);
-    public Pose farLeave = new Pose(115,20);
+    public Pose nearLeave = new Pose(90,120, Math.toRadians(90));
+    public Pose midLeave = new Pose(95,55, Math.toRadians(90));
+    public Pose farLeave = new Pose(115,20, Math.toRadians(90));
 
-    // Define all path variables
-    // Dummy Paths
-    public PathChain basicMoveRPPath;
+    /**
+     * <h4>Define all path variables</h4>
+     */
     // Start Poses to Preloads
     public PathChain nearStart_to_nearPreload, nearStart_to_midPreload, nearStart_to_farPreload;
     public PathChain farStart_to_nearPreload, farStart_to_midPreload, farStart_to_farPreload;
@@ -54,15 +54,14 @@ public class Pedro_Paths {
     public PathChain farStart_to_midLeave, farStart_to_farLeave;
 
     public Pose autoMirror(Pose pose, LoadHardwareClass.Alliance alliance){
-        int mult = 1;
         if (alliance == LoadHardwareClass.Alliance.BLUE){
-            mult = -1;
+            return new Pose(
+                    144 - pose.getX(),
+                    144 - pose.getY(),
+                    Math.atan2(Math.sin(pose.getHeading()), -Math.cos(pose.getHeading()))
+            );
         }
-        return new Pose(
-                144 - pose.getX(),
-                144 - pose.getY(),
-                Math.atan2(Math.sin(pose.getHeading()), mult * Math.cos(pose.getHeading()))
-        );
+        return pose;
     }
 
     public void buildStart1ToPreloads(LoadHardwareClass.Alliance alliance) {

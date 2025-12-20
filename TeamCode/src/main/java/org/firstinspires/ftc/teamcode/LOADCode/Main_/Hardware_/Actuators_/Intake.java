@@ -32,6 +32,10 @@ public class Intake {
         belt.init(opmode, "belt");
         transfer.init(opmode, "transfer");
         color1.init(opmode, "color1");
+        color2.init(opmode, "color2");
+        color3.init(opmode, "color3");
+        color4.init(opmode, "color4");
+
 
         intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -39,6 +43,9 @@ public class Intake {
         belt.setDirection(DcMotorSimple.Direction.REVERSE);
 
         color1.setGain(2);
+        color2.setGain(2);
+        color3.setGain(2);
+        color4.setGain(2);
     }
 
     /**

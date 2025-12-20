@@ -1,10 +1,9 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Auto_;
 
 import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
+import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
@@ -21,7 +20,6 @@ import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.delays.WaitUntil;
 import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.groups.SequentialGroup;
-import dev.nextftc.extensions.pedro.FollowPath;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 
@@ -40,13 +38,13 @@ public class Auto_Main_ extends NextFTCOpMode {
     private Auto selectedAuto = null;
     private boolean turretOn = true;
 
-    Pedro_Paths paths = new Pedro_Paths();
-
     // Create the prompter object for selecting Alliance and Auto
     Prompter prompter = null;
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
+    // Create a Paths object for accessing modular auto paths
+    Pedro_Paths paths = new Pedro_Paths();
 
     public Auto_Main_() {
         addComponents(
@@ -86,20 +84,24 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     @Override
     public void onStartButtonPressed() {
+        // Build paths
+        paths.buildPaths(selectedAlliance, follower());
         // Schedule the proper auto
         switch (selectedAuto) {
             case LEAVE_NEAR_LAUNCH:
                 Leave_Near_Launch().schedule();
-                return;
+                break;
             case LEAVE_FAR_HP:
                 Leave_Far_HP().schedule();
-                return;
+                break;
             case TEST_AUTO:
                 test_Auto().schedule();
+                break;
         }
         // Initialize all hardware of the robot
-        Robot.init(startPose, PedroComponent.follower());
-        paths.buildPaths(selectedAlliance, PedroComponent.follower());
+        Robot.init(startPose, follower());
+        telemetry.addData("Initialized", "");
+        telemetry.update();
     }
 
     @Override
@@ -107,14 +109,20 @@ public class Auto_Main_ extends NextFTCOpMode {
         if (turretOn){
             switch (selectedAlliance) {
                 case RED:
+                    telemetry.addData("Aimbot Target", "RED");
                     Robot.turret.updateAimbot(Robot, true);
-                    return;
+                    break;
                 case BLUE:
+                    telemetry.addData("Aimbot Target", "BLUE");
                     Robot.turret.updateAimbot(Robot, false);
-                    return;
+                    break;
             }
         }
 
+        Robot.turret.updateFlywheel();
+
+        telemetry.addData("Path", paths.farStart_to_farLeave.endPose());
+        telemetry.addLine();
         telemetry.addData("selectedAuto", selectedAuto);
         telemetry.addData("currentPose", Robot.drivetrain.follower.getPose());
         telemetry.update();
@@ -127,11 +135,10 @@ public class Auto_Main_ extends NextFTCOpMode {
      */
     private Command Leave_Far_HP() {
         turretOn = true;
-        startPose = Robot.drivetrain.paths.farStart;
+        startPose = paths.farStart;
         return new SequentialGroup(
-                Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
                 new ParallelGroup(
-                        new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.onSpeed),
+                        // Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
                         new Delay(5)
                 ),
                 Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
@@ -145,7 +152,7 @@ public class Auto_Main_ extends NextFTCOpMode {
                 Commands.setTransferState(Robot, Intake.transferState.DOWN),
                 Commands.setIntakeMode(Robot, Intake.intakeMode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
-                Commands.runPath(Robot.drivetrain.paths.farStart_to_farLeave, true, 0.6)
+                Commands.runPath(paths.farStart_to_farLeave, true, 0.6)
         );
     }
 
@@ -156,7 +163,7 @@ public class Auto_Main_ extends NextFTCOpMode {
      */
     private Command Leave_Near_Launch() {
         turretOn = true;
-        startPose = Robot.drivetrain.paths.nearStart;
+        startPose = paths.nearStart;
         return new SequentialGroup(
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
                 new ParallelGroup(
@@ -174,11 +181,11 @@ public class Auto_Main_ extends NextFTCOpMode {
                 Commands.setTransferState(Robot, Intake.transferState.DOWN),
                 Commands.setIntakeMode(Robot, Intake.intakeMode.OFF),
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
-                Commands.runPath(Robot.drivetrain.paths.nearShoot_to_nearLeave, true, 0.6)
+                Commands.runPath(paths.nearShoot_to_nearLeave, true, 0.6)
         );
     }
 
     private Command test_Auto(){
-        return new FollowPath(new Path(new BezierCurve(paths.farStart, paths.farLeave)), true, 0.6);
+        return Commands.runPath(paths.farStart_to_nearPreload, true);
     }
 }

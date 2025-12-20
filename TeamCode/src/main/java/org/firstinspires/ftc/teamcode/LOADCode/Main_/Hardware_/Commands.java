@@ -12,10 +12,6 @@ import dev.nextftc.extensions.pedro.FollowPath;
 
 public class Commands {
 
-    public static Object driveSystem = null;
-    public static Object turretSystem = null;
-    public static Object intakeSystem = null;
-
     public static Command runPath(PathChain path, boolean holdEnd) {
         return new FollowPath(path, holdEnd);
     }
@@ -29,24 +25,26 @@ public class Commands {
                 .setStart(() -> Robot.turret.setFlywheelState(state))
                 .setIsDone(() -> {
                     if (state == Turret.flywheelstate.ON){
-                        return Robot.turret.getFlywheelRPM() > 5900;
+                        return Robot.turret.getFlywheelRPM() > Turret.onSpeed;
                     }else{
                         return Robot.turret.getFlywheelRPM() < 100;
                     }
                 })
-                .requires(turretSystem);
+        ;
     }
 
     public static Command setIntakeMode(LoadHardwareClass Robot, Intake.intakeMode state) {
         return new InstantCommand(new LambdaCommand("setIntakeMode()")
                 .setStart(() -> Robot.intake.setMode(state))
-                .requires(intakeSystem));
+                .setIsDone(() -> true)
+        );
     }
 
     public static Command setTransferState(LoadHardwareClass Robot, Intake.transferState state) {
         return new InstantCommand(new LambdaCommand("setIntakeMode()")
                 .setStart(() -> Robot.intake.setTransfer(state))
-                .requires(intakeSystem));
+                .setIsDone(() -> true)
+        );
     }
 
 }

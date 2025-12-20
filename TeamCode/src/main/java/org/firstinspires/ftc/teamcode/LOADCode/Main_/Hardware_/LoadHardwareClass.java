@@ -89,7 +89,7 @@ public class LoadHardwareClass {
      */
     public void init(Pose initialPose)    {
         // Initialize all subclasses
-        drivetrain.init(myOpMode, initialPose, selectedAlliance);
+        drivetrain.init(myOpMode, initialPose);
         turret.init(myOpMode);
         intake.init(myOpMode);
 
@@ -104,7 +104,7 @@ public class LoadHardwareClass {
      */
     public void init(Pose initialPose, Follower follower)    {
         // Initialize all subclasses
-        drivetrain.init(myOpMode, initialPose, selectedAlliance, follower);
+        drivetrain.init(myOpMode, initialPose, follower);
         turret.init(myOpMode);
         intake.init(myOpMode);
 
