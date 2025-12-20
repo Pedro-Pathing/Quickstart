@@ -19,7 +19,6 @@ public class PositionTuner extends LinearOpMode {
     public static double kP = 0;
     public static double kI = 0;
     public static double kD = 0;
-
     public static double maxV = 0;
 
     public static double maxA = 0;

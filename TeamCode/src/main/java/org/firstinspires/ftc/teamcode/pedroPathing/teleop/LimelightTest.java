@@ -11,8 +11,10 @@ import com.bylazar.field.FieldManager;
 import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
 import com.pedropathing.geometry.CoordinateSystem;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -40,19 +42,19 @@ public class LimelightTest extends OpMode {
     private Style llPos;
     private Limelight3A ll;
 
-
-    private Odometry odo;
+    private GoBildaPinpointDriver pinpoint;
 
 
     @Override
     public void init() {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        configurePinpoint();
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
         fieldManager = PanelsField.INSTANCE.getField();
         llPos = new Style("","#3F51B5",0.75);
         fieldManager.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
         ll = hardwareMap.get(Limelight3A.class, "ll");
         ll.pipelineSwitch(1);
-        odo = hardwareMap.get(Odometry.class, "odo");
-
     }
 
 
@@ -64,8 +66,8 @@ public class LimelightTest extends OpMode {
 
     @Override
     public void loop() {
-        double heading = Math.toDegrees(odo.getPose().getHeading());
-        ll.updateRobotOrientation(heading);
+        double pose2D = pinpoint.getHeading(AngleUnit.RADIANS);
+        ll.updateRobotOrientation(pose2D);
         LLResult LLResult = ll.getLatestResult();
         if (LLResult != null && LLResult.isValid()) {
             Pose3D botpose = LLResult.getBotpose_MT2();
@@ -75,14 +77,23 @@ public class LimelightTest extends OpMode {
             telemetry.addData("Heading", botpose.getOrientation().getYaw(AngleUnit.DEGREES));
 
 
-            double dx = botpose.getPosition().x - odo.getPose().getX();
-            double dy = botpose.getPosition().y - odo.getPose().getY();
+            double dy = botpose.getPosition().y - pinpoint.getPosY(DistanceUnit.METER);
+            double dx = botpose.getPosition().x - pinpoint.getPosX(DistanceUnit.METER);
+
             double dist = Math.hypot(dx,dy);
             Position pos = botpose.getPosition();
-            Pose botpose2D = new Pose(pos.x, pos.y, Math.toRadians(heading));
+            Pose botpose2D = new Pose(pos.x, pos.y, Math.toRadians(pose2D));
             drawRobot(botpose2D,llPos);
         }
         telemetry.update();
         fieldManager.update();
+        pinpoint.update();
+    }
+    public  void  configurePinpoint(){
+        pinpoint.setOffsets(-84.0, -168.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        pinpoint.resetPosAndIMU();
     }
 }

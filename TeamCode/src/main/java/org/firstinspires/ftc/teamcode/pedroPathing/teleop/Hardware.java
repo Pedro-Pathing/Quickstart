@@ -7,22 +7,29 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class Hardware {
-    private Limelight3A ll;
-    private DcMotorEx intake, transfer, flywheel1, flywheel2;
-    private Servo led;
-    private Servo hood1, hood2, turret1, turret2;
+    public Limelight3A ll;
+    public DcMotorEx intake, transfer, flywheel1, flywheel2;
+    public Servo led;
+    public Servo hood1, hood2, turret1, turret2;
+
+    public HardwareMap map;
+
+
 
     public Hardware(HardwareMap hardwareMap) {
-        ll = hardwareMap.get(Limelight3A.class, "ll");
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
-        transfer = hardwareMap.get(DcMotorEx.class, "transfer");
-        flywheel1 = hardwareMap.get(DcMotorEx.class, "shooter1");
-        flywheel2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-        hood1 = hardwareMap.get(Servo.class, "hood1");
-        hood2 = hardwareMap.get(Servo.class, "hood2");
-        turret1 = hardwareMap.get(Servo.class, "turret1");
-        turret2 = hardwareMap.get(Servo.class, "turret2");
-        led = hardwareMap.get(Servo.class, "led");
+        this.map = hardwareMap;
+    }
+    public void hardware (){
+        ll = map.get(Limelight3A.class, "ll");
+        intake = map.get(DcMotorEx.class, "intake");
+        transfer = map.get(DcMotorEx.class, "transfer");
+        flywheel1 = map.get(DcMotorEx.class, "shooter1");
+        flywheel2 = map.get(DcMotorEx.class, "shooter2");
+        hood1 = map.get(Servo.class, "hood1");
+        hood2 = map.get(Servo.class, "hood2");
+        turret1 = map.get(Servo.class, "turret1");
+        turret2 = map.get(Servo.class, "turret2");
+        led = map.get(Servo.class, "led");
         ll.pipelineSwitch(1);
         flywheel1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -44,6 +51,5 @@ public class Hardware {
         transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         transfer.setDirection(DcMotorEx.Direction.REVERSE);
         transfer.setPower(0);
-
     }
 }
