@@ -167,7 +167,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         return new SequentialGroup(
                 Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
                 new ParallelGroup(
-                        new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.onSpeed),
+                        new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.flywheelSpeed),
                         new Delay(5)
                 ),
                 Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),

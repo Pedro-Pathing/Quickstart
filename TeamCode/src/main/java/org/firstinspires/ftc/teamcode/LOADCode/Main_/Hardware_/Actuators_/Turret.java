@@ -44,7 +44,7 @@ public class Turret {
     }
     public flywheelstate flywheelState = flywheelstate.OFF;
 
-    public static double onSpeed = 4500;
+    public static double flywheelSpeed = 4500;
 
     public void init(OpMode opmode){
         rotation.init(opmode, "turret", 145.1 * ((double) 131 /24)); //Previously 103.8
@@ -162,7 +162,7 @@ public class Turret {
      */
     public void updateFlywheel(){
         if (flywheelState == flywheelstate.ON){
-            setFlywheelRPM(onSpeed);
+            setFlywheelRPM(flywheelSpeed);
         } else if (flywheelState == flywheelstate.OFF){
             setFlywheelRPM(0);
         }

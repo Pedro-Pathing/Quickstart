@@ -25,7 +25,7 @@ public class Commands {
                 .setStart(() -> Robot.turret.setFlywheelState(state))
                 .setIsDone(() -> {
                     if (state == Turret.flywheelstate.ON){
-                        return Robot.turret.getFlywheelRPM() > Turret.onSpeed;
+                        return Robot.turret.getFlywheelRPM() > Turret.flywheelSpeed;
                     }else{
                         return Robot.turret.getFlywheelRPM() < 100;
                     }

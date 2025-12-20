@@ -292,4 +292,30 @@ public class Devices {
             return ((DistanceSensor) sensor).getDistance(units);
         }
     }
+
+    public static class DualProximitySensorClass {
+        private final REVColorSensorV3Class sensor1 = new REVColorSensorV3Class();
+        private final REVColorSensorV3Class sensor2 = new REVColorSensorV3Class();
+
+        public double threshold = 2;
+        public DistanceUnit units = DistanceUnit.CM;
+
+        public void init(@NonNull OpMode opmode, String sensor1Name, String sensor2Name){
+            sensor1.init(opmode, sensor1Name);
+            sensor2.init(opmode, sensor2Name);
+        }
+
+        public void setGain(double gain){
+            sensor1.setGain(gain);
+            sensor2.setGain(gain);
+        }
+
+        public boolean objectDetected(){
+            return (sensor1.getDistance(units) < threshold || sensor2.getDistance(units) < threshold);
+        }
+
+        public double[] getDistances(){
+            return new double[]{sensor1.getDistance(units), sensor2.getDistance(units)};
+        }
+    }
 }

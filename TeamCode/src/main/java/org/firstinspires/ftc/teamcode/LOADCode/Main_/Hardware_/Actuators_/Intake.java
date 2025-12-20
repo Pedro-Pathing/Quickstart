@@ -4,16 +4,16 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 
 public class Intake {
     // RESET THESE TO PRIVATE AFTER DECEMBER 6TH!
     private final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();
     private final Devices.CRServoClass belt = new Devices.CRServoClass();
     private final Devices.ServoClass transfer = new Devices.ServoClass();
-    public final Devices.REVColorSensorV3Class color1 = new Devices.REVColorSensorV3Class();
-    public final Devices.REVColorSensorV3Class color2 = new Devices.REVColorSensorV3Class();
-    public final Devices.REVColorSensorV3Class color3 = new Devices.REVColorSensorV3Class();
-    public final Devices.REVColorSensorV3Class color4 = new Devices.REVColorSensorV3Class();
+    public final Devices.DualProximitySensorClass topSensor = new Devices.DualProximitySensorClass();
+    public final Devices.DualProximitySensorClass bottomSensor = new Devices.DualProximitySensorClass();
 
     public enum intakeMode {
         INTAKING,
@@ -27,14 +27,14 @@ public class Intake {
         DOWN
     }
 
+    public static double proximitySensorThreshold = 20;
+
     public void init(OpMode opmode){
         intake.init(opmode, "intake");
         belt.init(opmode, "belt");
         transfer.init(opmode, "transfer");
-        color1.init(opmode, "color1");
-        color2.init(opmode, "color2");
-        color3.init(opmode, "color3");
-        color4.init(opmode, "color4");
+        topSensor.init(opmode, "color1", "color2");
+        bottomSensor.init(opmode, "color3", "color4");
 
 
         intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -42,10 +42,12 @@ public class Intake {
 
         belt.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        color1.setGain(2);
-        color2.setGain(2);
-        color3.setGain(2);
-        color4.setGain(2);
+        topSensor.setGain(2);
+        topSensor.units = DistanceUnit.MM;
+        topSensor.threshold = proximitySensorThreshold;
+        bottomSensor.setGain(2);
+        bottomSensor.units = DistanceUnit.MM;
+        bottomSensor.threshold = proximitySensorThreshold;
     }
 
     /**
@@ -105,5 +107,12 @@ public class Intake {
             case DOWN:
                 transfer.setAngle(.05);
         }
+    }
+
+    public boolean getTopSensorState(){
+        return topSensor.objectDetected();
+    }
+    public boolean getBottomSensorState(){
+        return bottomSensor.objectDetected();
     }
 }
