@@ -5,6 +5,7 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.skeletonarmy.marrow.TimerEx;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.conditionals.IfElseCommand;
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.delays.WaitUntil;
 import dev.nextftc.core.commands.groups.ParallelGroup;
@@ -40,6 +42,9 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     // Create the prompter object for selecting Alliance and Auto
     Prompter prompter = null;
+
+    // Create a TimerEx object for time tracking
+    TimerEx time = new TimerEx(30);
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
@@ -100,6 +105,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         }
         // Initialize all hardware of the robot
         Robot.init(startPose, follower());
+
         telemetry.addData("Initialized", "");
         telemetry.update();
     }
@@ -186,6 +192,14 @@ public class Auto_Main_ extends NextFTCOpMode {
     }
 
     private Command test_Auto(){
-        return Commands.runPath(paths.farStart_to_nearPreload, true);
+        return new IfElseCommand(
+                () -> time.isLessThan(5),
+                new SequentialGroup(
+
+                ),
+                new SequentialGroup(
+
+                )
+        );
     }
 }

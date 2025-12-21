@@ -6,15 +6,6 @@ import java.util.List;
 
 public class Utils_ {
 
-    public enum telemetrySortCategory {
-        DRIVETRAIN,
-        INTAKE,
-        TRANSFER,
-        TURRET,
-        TESTINGVALUES,
-        OTHER,
-    }
-
     /**
      * Performs spline interpolation given a set of control points.
      */
@@ -156,6 +147,15 @@ public class Utils_ {
             return str.toString();
         }
 
+    }
+
+    public enum telemetrySortCategory {
+        DRIVETRAIN,
+        INTAKE,
+        TRANSFER,
+        TURRET,
+        TESTINGVALUES,
+        OTHER,
     }
 
     /**
