@@ -1,0 +1,56 @@
+name: Auto-close mistake PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect new files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // If permanently locked, do nothing
+            if (pr.labels.some(l => l.name === 'reopen-locked')) return;
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              }
+            );
+
+            const hasNewFiles = files.some(f => f.status === 'added');
+            if (!hasNewFiles) return;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['mistake-pr']
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              state: 'closed'
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: "This PR was automatically closed because it adds new files.\n\nIf this is **not** a mistake, comment:\n\n  `/not-a-mistake`\n\n  You may do this **once only**."
+            });
