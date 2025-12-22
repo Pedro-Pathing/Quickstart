@@ -99,7 +99,7 @@ public class CV extends LinearOpMode {
 
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata == null) continue;
-            if(detection.id == 21) processAprilTag(detection);
+            if(detection.id == 20 || detection.id == 24 || detection.id == 21) processAprilTag(detection);
         }
 
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
@@ -132,3 +132,5 @@ public class CV extends LinearOpMode {
         if(servo.getPosition() == 0 || servo.getPosition() == 1) lastLookedRight = !lastLookedRight;
     }
 }
+// Harry I think ive got it detect tags using the wheels instead of a servo
+// We can decide which one is easier

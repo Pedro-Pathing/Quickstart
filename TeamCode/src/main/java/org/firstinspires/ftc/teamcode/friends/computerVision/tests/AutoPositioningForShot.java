@@ -1,13 +1,7 @@
 package org.firstinspires.ftc.teamcode.friends.computerVision.tests;
 
-
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
@@ -18,7 +12,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import android.util.Size;
 import org.firstinspires.ftc.vision.VisionPortal;
-//import org.firstinspires.ftc.vision.VisionPortal.Size;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -56,18 +49,18 @@ public class AutoPositioningForShot extends LinearOpMode {
     @Override public void runOpMode()
         {
             boolean targetFound     = false;    // Set to true when an AprilTag target is detected
-            double  drive           = 0;        // Desired forward power/speed (-1 to +1)
-            double  strafe          = 0;        // Desired strafe power/speed (-1 to +1)
-            double  turn            = 0;        // Desired turning power/speed (-1 to +1)
+            double  drive           = 0.5;        // Desired forward power/speed (-1 to +1)
+            double  strafe          = 0.5;        // Desired strafe power/speed (-1 to +1)
+            double  turn            = 0.3;        // Desired turning power/speed (-1 to +1)
 
             // For starting th april tag tagging
             initAprilTag();
 
             // The hardware variables for the autonomous driving
-            leftFrontDrive  = hardwareMap.get(DcMotor.class, "frontL");
-            rightFrontDrive = hardwareMap.get(DcMotor.class, "frontR");
-            leftBackDrive  = hardwareMap.get(DcMotor.class, "backL");
-            rightBackDrive = hardwareMap.get(DcMotor.class, "backR");
+            leftFrontDrive  = hardwareMap.get(DcMotor.class, "FLM");
+            rightFrontDrive = hardwareMap.get(DcMotor.class, "FRM");
+            leftBackDrive  = hardwareMap.get(DcMotor.class, "BLM");
+            rightBackDrive = hardwareMap.get(DcMotor.class, "BRM");
 
 
             leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -91,7 +84,7 @@ public class AutoPositioningForShot extends LinearOpMode {
                 AprilTagDetection desiredTag = null;
 
                 // Step through the list of detected tags and look for a matching tag. love my for loops
-                // Pu the tag for shooting here
+                // Put the tag for shooting here
                 List<AprilTagDetection> currentDetections = aprilTag.getDetections();
                 for (AprilTagDetection detection : currentDetections) {
                     if ((detection.metadata != null)
@@ -180,14 +173,15 @@ public class AutoPositioningForShot extends LinearOpMode {
         private void initAprilTag() {
             // Create the AprilTag processor by using a builder.
             aprilTag = new AprilTagProcessor.Builder()
-                    .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+                    .setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
                     .setLensIntrinsics(1439.42, 1439.42, 970.514, 537.613)
                     .build();
+            // These are placeholder values we will need to calibrate either using a chessboard or roughly guessing after figuring out the camera features
 
             // Create the vision portal by using a builder.
             if (USE_WEBCAM) {
                 visionPortal = new VisionPortal.Builder()
-                        .setCamera(hardwareMap.get(WebcamName.class, "Webcam 2"))
+                        .setCamera(hardwareMap.get(WebcamName.class, "Webcam"))
                         .setCameraResolution(new Size(1920,1080))
                         .addProcessor(aprilTag)
                         .build();
@@ -203,8 +197,9 @@ public class AutoPositioningForShot extends LinearOpMode {
          Manually set the camera gain and exposure.
          This can only be called AFTER calling initAprilTag(), and only works for Webcams for some reason
         */
-        private void    setManualExposure(int exposureMS, int gain) {
-            // Wait for the camera to be open, then use the controls
+
+        private void    setManualExposure(int exposureMS, int gain) { //Figure out some values
+            // Wait for the camera to be open, then use the control
 
             if (visionPortal == null) {
                 return;
