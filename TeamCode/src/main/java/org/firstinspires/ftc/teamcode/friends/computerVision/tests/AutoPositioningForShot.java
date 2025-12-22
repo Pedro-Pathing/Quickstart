@@ -36,6 +36,10 @@ public class AutoPositioningForShot extends LinearOpMode {
         final double MAX_AUTO_STRAFE= 0.5;
         final double MAX_AUTO_TURN  = 0.3;
 
+    final double RANGE_DEADZONE_CM   = 1.0;   // stop within 1 cm
+    final double STRAFE_DEADZONE_CM  = 1.0;   // stop within 1 cm sideways
+    final double TURN_DEADZONE_DEG   = 2.0;   // stop within 2 degrees
+
         private DcMotor leftFrontDrive   = null;
         private DcMotor rightFrontDrive  = null;
         private DcMotor leftBackDrive    = null;
@@ -72,6 +76,7 @@ public class AutoPositioningForShot extends LinearOpMode {
             rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
             if (USE_WEBCAM)
                 setManualExposure(6, 250);  // Use low exposure time to reduce motion blur (learnt that from a MarkRober video)
@@ -119,12 +124,34 @@ public class AutoPositioningForShot extends LinearOpMode {
                     // Range is the y distance
                     double  rangeError = (desiredTag.ftcPose.y - DESIRED_DISTANCE);
                     double strafeError = desiredTag.ftcPose.x;
-                    double  yawError   = desiredTag.ftcPose.yaw;
+                    double  bearingError   = desiredTag.ftcPose.bearing;
 
                     // Use the speed and turn to calculate how we want the robot to move.
                     drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-                    turn = Range.clip(yawError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+                    turn = Range.clip(bearingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
                     strafe = Range.clip(strafeError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+                    // Apply dead zones
+                    if (Math.abs(rangeError) < RANGE_DEADZONE_CM) {
+                        rangeError = 0;
+                    }
+
+                    if (Math.abs(strafeError) < STRAFE_DEADZONE_CM) {
+                        strafeError = 0;
+                    }
+
+                    if (Math.abs(bearingError) < TURN_DEADZONE_DEG) {
+                        bearingError = 0;
+                    }
+
+                    drive  = Range.clip(rangeError   * SPEED_GAIN,
+                            -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+
+                    strafe = Range.clip(strafeError * STRAFE_GAIN,
+                            -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+                    turn   = Range.clip(bearingError * TURN_GAIN,
+                            -MAX_AUTO_TURN, MAX_AUTO_TURN);
 
                     telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
                 } else {
