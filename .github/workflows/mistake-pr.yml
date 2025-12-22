@@ -1,0 +1,74 @@
+name: Auto-close mistake PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect new files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name);
+
+            // Skip if already handled or permanently locked
+            if (
+              labels.includes('mistake-pr') ||
+              labels.includes('reopen-used') ||
+              labels.includes('reopen-locked')
+            ) {
+              return;
+            }
+
+            // Only act on open PRs
+            if (pr.state !== 'open') return;
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              }
+            );
+
+            // Ignore CI / maintainer changes
+            const relevantFiles = files.filter(
+              f => !f.filename.startsWith('.github/')
+            );
+
+            const hasNewFiles = relevantFiles.some(
+              f => f.status === 'added' || f.status === 'copied'
+            );
+
+            if (!hasNewFiles) return;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['mistake-pr']
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              state: 'closed'
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: `This PR was automatically closed because it adds new files. If this is **not** a mistake, comment: \`/not-a-mistake\` You may do this **once only**.`
+            });
