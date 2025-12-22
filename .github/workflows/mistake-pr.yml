@@ -20,10 +20,17 @@ jobs:
             const pr = context.payload.pull_request;
             const labels = pr.labels.map(l => l.name);
 
-            // Skip if reopen already used or PR permanently locked
-            if (labels.includes('reopen-used') || labels.includes('reopen-locked')) {
+            // Skip if already handled or permanently locked
+            if (
+              labels.includes('mistake-pr') ||
+              labels.includes('reopen-used') ||
+              labels.includes('reopen-locked')
+            ) {
               return;
             }
+
+            // Only act on open PRs
+            if (pr.state !== 'open') return;
 
             const files = await github.paginate(
               github.rest.pulls.listFiles,
@@ -34,13 +41,13 @@ jobs:
               }
             );
 
-            // Ignore .github/** (CI / maintainer PRs)
-            const nonGithubFiles = files.filter(
+            // Ignore CI / maintainer changes
+            const relevantFiles = files.filter(
               f => !f.filename.startsWith('.github/')
             );
 
-            const hasNewFiles = nonGithubFiles.some(
-              f => f.status === 'added'
+            const hasNewFiles = relevantFiles.some(
+              f => f.status === 'added' || f.status === 'copied'
             );
 
             if (!hasNewFiles) return;
