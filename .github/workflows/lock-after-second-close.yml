@@ -21,9 +21,18 @@ jobs:
 
             if (!labels.includes('reopen-used')) return;
 
+            // Apply permanent label
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
               labels: ['reopen-locked']
+            });
+
+            // Actually lock the conversation
+            await github.rest.issues.lock({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              lock_reason: 'resolved'
             });

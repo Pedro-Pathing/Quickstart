@@ -20,8 +20,8 @@ jobs:
             const pr = context.payload.pull_request;
             const labels = pr.labels.map(l => l.name);
 
-            // Do nothing if PR is permanently locked or already reopened once
-            if (labels.includes('reopen-locked') || labels.includes('reopen-used')) {
+            // Skip if reopen already used or PR permanently locked
+            if (labels.includes('reopen-used') || labels.includes('reopen-locked')) {
               return;
             }
 
@@ -34,7 +34,7 @@ jobs:
               }
             );
 
-            // Ignore .github/** changes (CI / maintainer PRs)
+            // Ignore .github/** (CI / maintainer PRs)
             const nonGithubFiles = files.filter(
               f => !f.filename.startsWith('.github/')
             );
@@ -45,7 +45,6 @@ jobs:
 
             if (!hasNewFiles) return;
 
-            // Label PR as mistake
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -53,7 +52,6 @@ jobs:
               labels: ['mistake-pr']
             });
 
-            // Close the PR
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -61,7 +59,6 @@ jobs:
               state: 'closed'
             });
 
-            // Explain what happened
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
