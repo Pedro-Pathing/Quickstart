@@ -19,7 +19,7 @@ jobs:
             const comment = context.payload.comment;
             const issue = context.payload.issue;
 
-            // Only run on PR comments
+            // Only PR comments
             if (!issue.pull_request) return;
 
             // Exact command only
@@ -31,17 +31,28 @@ jobs:
               pull_number: issue.number
             });
 
-            // Only the PR author can reopen
+            // Only PR author can reopen
             if (comment.user.login !== pr.data.user.login) return;
 
             const labels = pr.data.labels.map(l => l.name);
 
-            // Must be a mistake PR and not already used/locked
+            // Must be closed to reopen
+            if (pr.data.state !== 'closed') return;
+
+            // Must be eligible
             if (
               !labels.includes('mistake-pr') ||
               labels.includes('reopen-used') ||
               labels.includes('reopen-locked')
             ) return;
+
+            // Mark reopen as used FIRST (prevents race)
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: ['reopen-used']
+            });
 
             // Reopen PR
             await github.rest.pulls.update({
@@ -49,14 +60,6 @@ jobs:
               repo: context.repo.repo,
               pull_number: issue.number,
               state: 'open'
-            });
-
-            // Mark reopen as used
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue.number,
-              labels: ['reopen-used']
             });
 
             // Remove mistake label
@@ -72,5 +75,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
-              body: `✅ PR reopened. ⚠️ If this PR is closed again, it cannot be reopened.`
+              body: `PR reopened. If this PR is closed again, it cannot be reopened.`
             });

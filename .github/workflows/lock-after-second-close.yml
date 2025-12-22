@@ -19,9 +19,12 @@ jobs:
             const pr = context.payload.pull_request;
             const labels = pr.labels.map(l => l.name);
 
+            // Don't lock merged PRs
+            if (pr.merged) return;
+
+            // Only lock if reopen was already used
             if (!labels.includes('reopen-used')) return;
 
-            // Apply permanent label
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -29,7 +32,6 @@ jobs:
               labels: ['reopen-locked']
             });
 
-            // Actually lock the conversation
             await github.rest.issues.lock({
               owner: context.repo.owner,
               repo: context.repo.repo,
