@@ -68,6 +68,11 @@ public class AutoPositioningForShot extends LinearOpMode {
             rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
             rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
+            leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
             if (USE_WEBCAM)
                 setManualExposure(6, 250);  // Use low exposure time to reduce motion blur (learnt that from a MarkRober video)
 
@@ -106,18 +111,20 @@ public class AutoPositioningForShot extends LinearOpMode {
                     telemetry.addData(">","Drive using joystick to find target\n");
                 }
 
+
                 // If Left Bumper is being pressed and  we have found the desired target, Drive to target Automatically .
                 if (gamepad1.left_bumper && targetFound) {
 
                     // Determine heading, range and Yaw (rotation) error so we can use them to control the robot automatically.
-                    double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
-                    double  headingError    = desiredTag.ftcPose.bearing;
-                    double  yawError        = desiredTag.ftcPose.yaw;
+                    // Range is the y distance
+                    double  rangeError = (desiredTag.ftcPose.y - DESIRED_DISTANCE);
+                    double strafeError = desiredTag.ftcPose.x;
+                    double  yawError   = desiredTag.ftcPose.yaw;
 
                     // Use the speed and turn to calculate how we want the robot to move.
                     drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-                    turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
-                    strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+                    turn = Range.clip(yawError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+                    strafe = Range.clip(strafeError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
 
                     telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
                 } else {
