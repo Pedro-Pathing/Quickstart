@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @TeleOp( name = "AutoPositioning")
 public class AutoPositioningForShot extends LinearOpMode {
 
-    // Change this for the distance we are going to shoot at
+        // Change this for the distance we are going to shoot at
         final double DESIRED_DISTANCE = 18.0;
 
         //These constants will hopefully autocorrect any minor errors when the robot is trying to align with the tag
@@ -174,9 +174,8 @@ public class AutoPositioningForShot extends LinearOpMode {
             // Create the AprilTag processor by using a builder.
             aprilTag = new AprilTagProcessor.Builder()
                     .setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
-                    .setLensIntrinsics(1439.42, 1439.42, 970.514, 537.613)
+                    .setLensIntrinsics(435.14, 436.58, 323.26, 162.08)
                     .build();
-            // These are placeholder values we will need to calibrate either using a chessboard or roughly guessing after figuring out the camera features
 
             // Create the vision portal by using a builder.
             if (USE_WEBCAM) {
