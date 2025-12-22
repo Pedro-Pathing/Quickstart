@@ -18,9 +18,12 @@ jobs:
         with:
           script: |
             const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name);
 
-            // If permanently locked, do nothing
-            if (pr.labels.some(l => l.name === 'reopen-locked')) return;
+            // Do nothing if PR is permanently locked or already reopened once
+            if (labels.includes('reopen-locked') || labels.includes('reopen-used')) {
+              return;
+            }
 
             const files = await github.paginate(
               github.rest.pulls.listFiles,
@@ -31,9 +34,18 @@ jobs:
               }
             );
 
-            const hasNewFiles = files.some(f => f.status === 'added');
+            // Ignore .github/** changes (CI / maintainer PRs)
+            const nonGithubFiles = files.filter(
+              f => !f.filename.startsWith('.github/')
+            );
+
+            const hasNewFiles = nonGithubFiles.some(
+              f => f.status === 'added'
+            );
+
             if (!hasNewFiles) return;
 
+            // Label PR as mistake
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -41,6 +53,7 @@ jobs:
               labels: ['mistake-pr']
             });
 
+            // Close the PR
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -48,9 +61,16 @@ jobs:
               state: 'closed'
             });
 
+            // Explain what happened
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
-              body: "This PR was automatically closed because it adds new files.\n\nIf this is **not** a mistake, comment:\n\n  `/not-a-mistake`\n\n  You may do this **once only**."
-            });
+              body: `🚫 This PR was automatically closed because it adds new files.
+
+If this is **not** a mistake, comment:
+
+  \`/not-a-mistake\`
+  
+  You may do this **once only**.`
+  });
