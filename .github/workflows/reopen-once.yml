@@ -19,50 +19,35 @@ jobs:
             const comment = context.payload.comment;
             const issue = context.payload.issue;
 
-            // Only PR comments
+            // Must be a PR
             if (!issue.pull_request) return;
 
-            // Exact command only
+            // Exact command
             if (comment.body.trim() !== '/not-a-mistake') return;
 
-            const prResp = await github.rest.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: issue.number
             });
 
-            const pr = prResp.data;
+            // Must be closed and not merged
+            if (pr.data.state !== 'closed' || pr.data.merged) return;
 
             // Only PR author can reopen
-            if (comment.user.login !== pr.user.login) return;
+            if (comment.user.login !== pr.data.user.login) return;
 
-            // Must be closed and not merged
-            if (pr.state !== 'closed' || pr.merged) return;
-
-            const labels = pr.labels.map(l => l.name);
+            const labels = pr.data.labels.map(l => l.name);
 
             // Must be eligible
             if (
               !labels.includes('mistake-pr') ||
               labels.includes('reopen-used') ||
-              labels.includes('reopen-locked')
+              labels.includes('reopen-locked') ||
+              labels.includes('admin-overridden')
             ) return;
 
-            // Attempt reopen FIRST
-            try {
-              await github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: issue.number,
-                state: 'open'
-              });
-            } catch (err) {
-              // Reopen failed — do not consume the retry
-              console.error('Failed to reopen PR:', err);
-              return;
-            }
-
-            // Mark reopen as used ONLY after success
+            // Mark reopen used FIRST (prevents race condition)
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -78,9 +63,19 @@ jobs:
               name: 'mistake-pr'
             });
 
+            // Reopen PR
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issue.number,
+              state: 'open'
+            });
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
-              body: `PR reopened. If this PR is closed again, it cannot be reopened.`
+              body:
+                "**PR reopened.**\n\n" +
+                "If this PR is closed again, it will be permanently locked."
             });
