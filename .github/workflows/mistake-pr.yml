@@ -66,11 +66,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
-              body: `🚫 This PR was automatically closed because it adds new files.
-
-If this is **not** a mistake, comment:
-
-  \`/not-a-mistake\`
-  
-  You may do this **once only**.`
-  });
+              body: `This PR was automatically closed because it adds new files. If this is **not** a mistake, comment: \`/not-a-mistake\` You may do this **once only**.`
+            });
