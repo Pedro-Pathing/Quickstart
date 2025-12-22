@@ -213,9 +213,21 @@ public class AutoExample extends OpMode {
         setPathState(0);
     }
 
+
     /**
      * We do not use this because everything should automatically disable
      **/
+
+    Path path = new PathBuilder(startPose)
+            .setConstraints(new PathConstraints(
+                    0.25,                 // max linear velocity
+                    0.25,                 // max linear acceleration
+                    Math.toRadians(90),   // max angular velocity
+                    Math.toRadians(90)    // max angular acceleration
+            ))
+            .lineTo(new Vector2d(10, 20))
+            .build();
+
     @Override
     public void stop() {
     }
