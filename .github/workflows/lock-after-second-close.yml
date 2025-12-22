@@ -12,19 +12,20 @@ jobs:
   lock:
     runs-on: ubuntu-latest
     steps:
-      - name: Lock PR permanently
+      - name: Permanently lock PR after second close
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
             const labels = pr.labels.map(l => l.name);
 
-            // Don't lock merged PRs
+            // Ignore merged PRs (merged also triggers "closed")
             if (pr.merged) return;
 
-            // Only lock if reopen was already used
+            // Only act if this PR already used its one reopen
             if (!labels.includes('reopen-used')) return;
 
+            // Mark PR as permanently locked
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -32,9 +33,18 @@ jobs:
               labels: ['reopen-locked']
             });
 
+            // Lock the conversation (prevents further comments)
             await github.rest.issues.lock({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
               lock_reason: 'resolved'
+            });
+
+            // Explain what happened
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: "**This pull request is now permanently locked.**\n\nIt was closed, reopened once using `/not-a-mistake`, and then closed again. Further reopening is not allowed."
             });
