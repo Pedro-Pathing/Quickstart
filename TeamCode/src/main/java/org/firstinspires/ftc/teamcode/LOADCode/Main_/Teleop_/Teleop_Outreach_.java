@@ -64,8 +64,6 @@ public class Teleop_Outreach_ extends LinearOpMode {
             Robot.turret.rotation.resetEncoder();
         }
 
-        double hoodAngle = 0;
-
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
@@ -91,23 +89,12 @@ public class Teleop_Outreach_ extends LinearOpMode {
             telemetry.addData("Turret Motor Power", Robot.turret.rotation.getPower());
             telemetry.addLine();
 
-            double increment = 2;
-            if (gamepad1.dpad_up && hoodAngle < 320){
-                hoodAngle += increment;
-            }else if (gamepad1.dpad_down && hoodAngle > 0){
-                hoodAngle -= increment;
+            if (gamepad1.dpad_up){
+                Robot.turret.setHood(Robot.turret.getHood() + 2);
+            }else if (gamepad1.dpad_down){
+                Robot.turret.setHood(Robot.turret.getHood() + 2);
             }
-            Robot.turret.setHood(hoodAngle);
             telemetry.addData("Hood Angle", Robot.turret.getHood());
-
-            telemetry.addLine();
-            telemetry.addData("Gain", Robot.intake.color1.getGain());
-            telemetry.addData("Distance", Robot.intake.color1.getDistance(DistanceUnit.INCH));
-            telemetry.addData("Color", Robot.intake.color1.getNormalizedColors().toColor());
-            NormalizedRGBA colors = Robot.intake.color1.getNormalizedColors();
-            telemetry.addData("R", colors.red);
-            telemetry.addData("G", colors.green);
-            telemetry.addData("B", colors.blue);
 
             telemetry.addLine();
             telemetry.addData("Robot Pose X", Math.round(Robot.drivetrain.follower.getPose().getX()));

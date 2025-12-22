@@ -46,6 +46,8 @@ public class Turret {
 
     public static double flywheelSpeed = 4500;
 
+    public static double upperHoodLimit = 260;
+
     public void init(OpMode opmode){
         rotation.init(opmode, "turret", 145.1 * ((double) 131 /24)); //Previously 103.8
         flywheel.init(opmode, "flywheel", 28);
@@ -99,7 +101,7 @@ public class Turret {
      * @param angle An angle in degrees that is constrained to between 0 and 320 degrees
      */
     public void setHood(double angle){
-        hood.setAngle(Math.min(Math.max(angle, 0), 260)/(360*5));
+        hood.setAngle(Math.min(Math.max(angle, 0), upperHoodLimit)/(360*5));
     }
 
     /**
