@@ -53,6 +53,34 @@ jobs:
               labels: ['admin-overridden']
             });
 
+            // Try to remove permanent-lock and related labels so an admin can override
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'reopen-locked'
+              });
+            } catch (e) {}
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'reopen-used'
+              });
+            } catch (e) {}
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'mistake-pr'
+              });
+            } catch (e) {}
+
             try {
               await github.rest.issues.unlock({
                 owner: context.repo.owner,
@@ -76,5 +104,6 @@ jobs:
               issue_number: issue.number,
               body:
                 "**Admin override applied.**\n\n" +
-                "This PR is no longer subject to the mistake-PR lock."
+                "This PR is no longer subject to the mistake-PR lock or the permanent lock.\n\n" +
+                "Labels cleaned: `reopen-locked`, `reopen-used`, `mistake-pr` (if present)."
             });
