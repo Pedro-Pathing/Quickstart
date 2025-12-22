@@ -25,19 +25,21 @@ jobs:
             // Exact command only
             if (comment.body.trim() !== '/not-a-mistake') return;
 
-            const pr = await github.rest.pulls.get({
+            const prResp = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: issue.number
             });
 
+            const pr = prResp.data;
+
             // Only PR author can reopen
-            if (comment.user.login !== pr.data.user.login) return;
+            if (comment.user.login !== pr.user.login) return;
 
-            const labels = pr.data.labels.map(l => l.name);
+            // Must be closed and not merged
+            if (pr.state !== 'closed' || pr.merged) return;
 
-            // Must be closed to reopen
-            if (pr.data.state !== 'closed') return;
+            const labels = pr.labels.map(l => l.name);
 
             // Must be eligible
             if (
@@ -46,20 +48,26 @@ jobs:
               labels.includes('reopen-locked')
             ) return;
 
-            // Mark reopen as used FIRST (prevents race)
+            // Attempt reopen FIRST
+            try {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: issue.number,
+                state: 'open'
+              });
+            } catch (err) {
+              // Reopen failed — do not consume the retry
+              console.error('Failed to reopen PR:', err);
+              return;
+            }
+
+            // Mark reopen as used ONLY after success
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
               labels: ['reopen-used']
-            });
-
-            // Reopen PR
-            await github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: issue.number,
-              state: 'open'
             });
 
             // Remove mistake label
@@ -70,7 +78,6 @@ jobs:
               name: 'mistake-pr'
             });
 
-            // Notify author
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
