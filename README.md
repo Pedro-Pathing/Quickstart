@@ -5,6 +5,15 @@ This repository contains LOAD Robotics' robot code for the 2025-2026 FTC season 
 
 This repository contains the public FTC SDK for the DECODE (2025-2026) competition season.
 
+
+## LOAD Charts & Diagrams
+### Our Filestructure
+[File Structure Flowchart](File_Structure.png)
+### Robot Control Scheme (Pre December 6th)
+[Robot Gamepad 1 & 2 Control Charts](Robot_Controls.png)
+### Robot Wiring Diagram
+[Wiring Paths and Labels](Robot_Wiring.png)
+
 ## Welcome!
 This GitHub repository contains the source code that is used to build an Android app to control a *FIRST* Tech Challenge competition robot.  To use this SDK, download/clone the entire project to your local computer.
 
