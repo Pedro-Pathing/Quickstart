@@ -28,7 +28,7 @@ jobs:
             // Only lock if reopen was already used
             if (!labels.includes('reopen-used')) return;
 
-            // Add permanent lock label (idempotent)
+            // Add permanent lock label
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -36,22 +36,19 @@ jobs:
               labels: ['reopen-locked']
             });
 
-            // Comment ONLY if not already locked
-            if (!pr.locked) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                body:
-                  "**This PR is now permanently locked.**\n\n" +
-                  "It was reopened once and then closed again. Further reopening is disabled."
-              });
+            // Lock conversation
+            await github.rest.issues.lock({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              lock_reason: 'resolved'
+            });
 
-              // Lock conversation after comment
-              await github.rest.issues.lock({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                lock_reason: 'resolved'
-              });
-            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body:
+                "**This PR is now permanently locked.**\n\n" +
+                "It was reopened once and then closed again. Further reopening is disabled."
+            });
