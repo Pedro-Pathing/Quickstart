@@ -9,7 +9,7 @@ import com.pedropathing.util.Timer;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous
+@Autonomous (name="bleuFond", group="PedroPathing")
 public class DecodeBlueAuto extends OpMode {
 
     private Follower follower;
