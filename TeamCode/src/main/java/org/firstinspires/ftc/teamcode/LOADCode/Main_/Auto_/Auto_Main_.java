@@ -6,6 +6,7 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.skeletonarmy.marrow.TimerEx;
+import com.skeletonarmy.marrow.nextftc.RetryCommand;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
@@ -17,7 +18,6 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import dev.nextftc.core.commands.Command;
-import dev.nextftc.core.commands.conditionals.IfElseCommand;
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.delays.WaitUntil;
 import dev.nextftc.core.commands.groups.ParallelGroup;
@@ -192,14 +192,17 @@ public class Auto_Main_ extends NextFTCOpMode {
     }
 
     private Command test_Auto(){
-        return new IfElseCommand(
-                () -> time.isLessThan(5),
+        /*
+         This RetryCommand allows for a command/set of commands
+          to be run as many times as you want unless the time is
+          less than a given amount
+         */
+        return new RetryCommand(
                 new SequentialGroup(
 
                 ),
-                new SequentialGroup(
-
-                )
+                () -> time.isLessThan(5),
+                10
         );
     }
 }
