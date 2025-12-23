@@ -1,52 +1,31 @@
 name: Auto-close mistake PRs
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
   pull-requests: write
-  contents: read
   issues: write
+  contents: read
 
 jobs:
   detect:
     runs-on: ubuntu-latest
     steps:
-      - name: Detect and enforce mistake PR rules
+      - name: Detect new files
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
             const labels = pr.labels.map(l => l.name);
 
-            // Permanently locked PRs may never be reopened
-            if (labels.includes('reopen-locked')) {
-              if (pr.state === 'open') {
-                await github.rest.pulls.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: pr.number,
-                  state: 'closed'
-                });
-
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: pr.number,
-                  body: "**This pull request is permanently locked.**\n\nIt was previously closed, reopened once, and then closed again. Further reopening is not allowed."
-                });
-              }
+            // If PR is permanently locked or already reopened once, do nothing
+            if (labels.includes('reopen-locked') || labels.includes('reopen-used')) {
               return;
             }
 
-            // Skip PRs that already used their one-time reopen
-            if (labels.includes('reopen-used')) return;
-
-            // Skip already-processed mistake PRs to avoid spam
-            if (labels.includes('mistake-pr')) return;
-
-            // Check for newly added OR copied files
+            // List changed files
             const files = await github.paginate(
               github.rest.pulls.listFiles,
               {
@@ -56,13 +35,14 @@ jobs:
               }
             );
 
+            // Detect newly added or copied files
             const hasNewFiles = files.some(
               f => f.status === 'added' || f.status === 'copied'
             );
 
             if (!hasNewFiles) return;
 
-            // Label as mistake PR
+            // Label PR
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -78,10 +58,14 @@ jobs:
               state: 'closed'
             });
 
-            // Explain why
+            // Comment instructions
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
-              body: "This PR was automatically closed because it adds new files.\n\nIf this is **not** a mistake, comment:\n\n`/not-a-mistake`\n\n You may do this **once only**."
+              body:
+                "This PR was automatically closed because it adds new files.\n\n" +
+                "If this is **not** a mistake, comment:\n\n" +
+                "`/not-a-mistake`\n\n" +
+                "You may do this **once only**."
             });
