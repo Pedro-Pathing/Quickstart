@@ -22,7 +22,7 @@ jobs:
             // Must be a PR
             if (!issue.pull_request) return;
 
-            // Exact command only
+            // Exact command
             if (comment.body.trim() !== '/not-a-mistake') return;
 
             // Fetch PR
@@ -44,7 +44,8 @@ jobs:
             if (
               !labels.includes('mistake-pr') ||
               labels.includes('reopen-used') ||
-              labels.includes('reopen-locked')
+              labels.includes('reopen-locked') ||
+              labels.includes('admin-overridden')
             ) return;
 
             // Mark reopen as used FIRST (prevents race condition)

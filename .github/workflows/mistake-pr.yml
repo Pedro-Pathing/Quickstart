@@ -50,13 +50,17 @@ jobs:
               labels: ['mistake-pr']
             });
 
-            // Close PR
-            await github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr.number,
-              state: 'closed'
-            });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body:
+                  "This PR was automatically closed because it adds new files.\n\n" +
+                  "If this is **not** a mistake, comment:\n\n" +
+                  "`/not-a-mistake`\n\n" +
+                  "You may do this **once only**."
+              });
+            }
 
             // Comment instructions
             await github.rest.issues.createComment({
