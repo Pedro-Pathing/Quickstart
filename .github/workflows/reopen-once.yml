@@ -5,50 +5,54 @@ on:
     types: [created]
 
 permissions:
-  pull-requests: write
   issues: write
+  pull-requests: write
 
 jobs:
   reopen:
     runs-on: ubuntu-latest
     steps:
-      - name: Reopen PR once
+      - name: Handle /not-a-mistake
         uses: actions/github-script@v7
         with:
           script: |
             const comment = context.payload.comment;
             const issue = context.payload.issue;
 
-            // Must be a PR
             if (!issue.pull_request) return;
-
-            // Exact command
             if (comment.body.trim() !== '/not-a-mistake') return;
 
-            // Fetch PR
             const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: issue.number
             });
 
-            // Must be closed and not merged
-            if (pr.data.state !== 'closed' || pr.data.merged) return;
-
-            // Only PR author can reopen
-            if (comment.user.login !== pr.data.user.login) return;
-
             const labels = pr.data.labels.map(l => l.name);
 
-            // Must be a mistake PR and not already used or locked
-            if (
-              !labels.includes('mistake-pr') ||
-              labels.includes('reopen-used') ||
-              labels.includes('reopen-locked') ||
-              labels.includes('admin-overridden')
-            ) return;
+            // Only PR author may use this
+            if (comment.user.login !== pr.data.user.login) {
+              return;
+            }
 
-            // Mark reopen as used FIRST (prevents race condition)
+            // Must be closed and labeled mistake-pr
+            if (pr.data.state !== 'closed') return;
+            if (!labels.includes('mistake-pr')) return;
+
+            // Auto-reopen already disabled
+            if (labels.includes('reopen-used') || labels.includes('reopen-locked')) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body:
+                  "Automatic reopening is disabled for this PR.\n\n" +
+                  "A maintainer may still reopen it manually if needed."
+              });
+              return;
+            }
+
+            // Mark reopen as used FIRST (prevents race)
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -56,7 +60,6 @@ jobs:
               labels: ['reopen-used']
             });
 
-            // Remove mistake label
             await github.rest.issues.removeLabel({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -64,7 +67,6 @@ jobs:
               name: 'mistake-pr'
             });
 
-            // Reopen PR
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -72,12 +74,11 @@ jobs:
               state: 'open'
             });
 
-            // Notify
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
               body:
                 "PR reopened.\n\n" +
-                "If this PR is closed again, it cannot be reopened automatically."
+                "If this PR is closed again, automatic reopening will be disabled."
             });
