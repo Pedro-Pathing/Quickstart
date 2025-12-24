@@ -75,7 +75,7 @@ public class Indexeur {
         HOMING
     }
 
-    private Indexeuretat IndexeurState;
+    private Indexeuretat IndexeurState = Indexeuretat.IDLE;
     private ElapsedTime timeretat = new ElapsedTime();
     private ElapsedTime indexeurtimer = new ElapsedTime();
     private int SEUIL_MMDETECTION = 5 //seuil detection capteur distance

@@ -20,7 +20,7 @@ public class Shooter {
         TirMax,
 
     }
-    private Shooteretat shooteretat;
+    private Shooteretat shooteretat = Shooteretat.IDLE;
     private ElapsedTime timeretat = new ElapsedTime();
     private int shooterlowspeed= 4000;
     private int shootermediumspeed = 4500;

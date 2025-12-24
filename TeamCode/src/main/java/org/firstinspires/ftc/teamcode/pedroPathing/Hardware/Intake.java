@@ -18,7 +18,7 @@ public class Intake {
         RAMASSAGE,
         EJECTION,
     }
-    private Intakeetat intakeState;
+    private Intakeetat intakeState = Intakeetat.IDLE;
 
     // --- constante du moteur d'intake
     private double intake_reverse = -2000;
