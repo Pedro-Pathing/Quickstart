@@ -25,6 +25,7 @@ jobs:
             // Exact command
             if (comment.body.trim() !== '/not-a-mistake') return;
 
+            // Fetch PR
             const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -39,7 +40,7 @@ jobs:
 
             const labels = pr.data.labels.map(l => l.name);
 
-            // Must be eligible
+            // Must be a mistake PR and not already used or locked
             if (
               !labels.includes('mistake-pr') ||
               labels.includes('reopen-used') ||
@@ -47,7 +48,7 @@ jobs:
               labels.includes('admin-overridden')
             ) return;
 
-            // Mark reopen used FIRST (prevents race condition)
+            // Mark reopen as used FIRST (prevents race condition)
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -71,11 +72,12 @@ jobs:
               state: 'open'
             });
 
+            // Notify
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
               body:
-                "**PR reopened.**\n\n" +
-                "If this PR is closed again, it will be permanently locked."
+                "PR reopened.\n\n" +
+                "If this PR is closed again, it cannot be reopened automatically."
             });

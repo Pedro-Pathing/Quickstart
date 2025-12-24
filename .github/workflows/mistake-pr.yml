@@ -1,13 +1,13 @@
 name: Auto-close mistake PRs
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
   pull-requests: write
-  contents: read
   issues: write
+  contents: read
 
 jobs:
   detect:
@@ -20,17 +20,12 @@ jobs:
             const pr = context.payload.pull_request;
             const labels = pr.labels.map(l => l.name);
 
-            // Skip if permanently locked, admin overridden, or already reopened once
-            if (
-              labels.includes('reopen-locked') ||
-              labels.includes('reopen-used') ||
-              labels.includes('admin-overridden')
-            ) return;
+            // If PR is permanently locked or already reopened once, do nothing
+            if (labels.includes('reopen-locked') || labels.includes('reopen-used')) {
+              return;
+            }
 
-            // Do nothing for merged PRs
-            if (pr.merged) return;
-
-            // Fetch PR files
+            // List changed files
             const files = await github.paginate(
               github.rest.pulls.listFiles,
               {
@@ -40,21 +35,20 @@ jobs:
               }
             );
 
-            // Detect new files (added OR copied)
+            // Detect newly added or copied files
             const hasNewFiles = files.some(
               f => f.status === 'added' || f.status === 'copied'
             );
 
             if (!hasNewFiles) return;
 
-            // Avoid duplicate spam if already labeled
-            if (!labels.includes('mistake-pr')) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                labels: ['mistake-pr']
-              });
+            // Label PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['mistake-pr']
+            });
 
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -68,12 +62,14 @@ jobs:
               });
             }
 
-            // Close PR if open
-            if (pr.state === 'open') {
-              await github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                state: 'closed'
-              });
-            }
+            // Comment instructions
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body:
+                "This PR was automatically closed because it adds new files.\n\n" +
+                "If this is **not** a mistake, comment:\n\n" +
+                "`/not-a-mistake`\n\n" +
+                "You may do this **once only**."
+            });
