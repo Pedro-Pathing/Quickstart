@@ -1,4 +1,4 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.Hardware;
 
-public class Tireur {
+public class AngleShooter {
 }

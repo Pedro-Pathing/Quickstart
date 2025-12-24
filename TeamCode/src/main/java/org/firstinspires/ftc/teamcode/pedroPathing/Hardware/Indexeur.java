@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.Hardware;
-package org.firstinspires.ftc.teamcode.hardware;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
@@ -32,7 +31,6 @@ import java.util.*;
 import java.util.ArrayList;
 import java.util.Random;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Indexeur {
@@ -45,9 +43,17 @@ public class Indexeur {
     private NormalizedColorSensor ColorRight;
     double hue;
     private static final double TICKS_PER_REV_43 = 3895.9; // GoBilda 5203 43 tours
+
+    private int vitessehomingindexeurRPM = 10;
+    private int vitesserapideindexeurRPM =25;
     private static final int COMPARTIMENTS = 3;
     private static final double TICKS_PAR_COMPARTIMENT = TICKS_PER_REV_43 / COMPARTIMENTS;
     private int compartimentActuel = 0;
+
+    int ballComptage = 0;
+    int MAX_BALLS =3;
+    int MIN_BALLS=0;
+
 
     // Variable interne pour mémoriser l'état précédent
     private boolean lastBallDetected = false;
@@ -59,17 +65,20 @@ public class Indexeur {
     private enum Indexeuretat {
         IDLE,
         RECHERCHEPALE,
-        ATTENTEBALLE,
-        IMPLUSION,
-        AVANCERAPIDE,
+
+        AVANCERAPIDETIR,
+        AVANCERAPIDEAMASSAGE,
         BOURRAGE,
         STABILISATION,
-        HOMING,
+        PRETPOURTIR,
+
+        HOMING
     }
 
-    private Indexeur etat  = Indexeuretat.IDLE;
+    private Indexeuretat IndexeurState;
     private ElapsedTime timeretat = new ElapsedTime();
     private ElapsedTime indexeurtimer = new ElapsedTime();
+    private int SEUIL_MMDETECTION = 5 //seuil detection capteur distance
 
     public void init(@NonNull HardwareMap hwMap) {
 
@@ -86,20 +95,54 @@ public class Indexeur {
 
     }
 
-    public void setEtat(Indexeuretat nouvelEtat){
-        etat = nouvelEtat;
-        timeretat.reset();
-    }
 
     public void update (){
-        switch (etat) {
+        switch (IndexeurState) {
             case IDLE:
-
+                setindexeurTargetRPM(0.00);
+                if (balleDetectee()) {
+                    Indexeuretat = IndexeurState.AVANCERAPIDEAMASSAGE;}
                 break;
             case RECHERCHEPALE:
+                if (!detectionpale() && ballComptage < MAX_BALLS) {
+                    setindexeurTargetRPM(6);
+                } else if (detectionpale()) {
+                    setindexeurTargetRPM(0.0);
+                    Indexeuretat = IndexeurState.IDLE;
+                }
+               if (timeretat.milliseconds()>500) {
+            }
                 break;
-            case ATTENTEBALLE:
+
+            case AVANCERAPIDEAMASSAGE:
+                avancerIndexeurRapide();
+                ballComptage++;
+                ballComptage = Math.min(ballComptage, MAX_BALLS);
+
                 break;
+
+            case AVANCERAPIDETIR:
+                avancerIndexeurRapide();
+                ballComptage--;
+                ballComptage = Math.max(ballComptage, 0); //on empeche le decompte d'aller sous zero
+                break;
+
+            case BOURRAGE:
+                break;
+
+            case STABILISATION:
+                break;
+
+            case PRETPOURTIR:
+                break;
+
+            case HOMING:
+                timeretat.reset();
+                homingIndexeur();
+                IndexeurState =  Indexeuretat.IDLE;
+
+                break;
+
 
 
         }
@@ -152,15 +195,25 @@ public class Indexeur {
     // Méthode de homing à appeler au démarrage
     public void homingIndexeur() {
         if (!homingDone) { // lancer le moteur doucement pour chercher l’aimant
-            indexeur.setPower(0.35); // si l’aimant est détecté (via detectionpale)
+            indexeur.setPower(0.25); // si l’aimant est détecté (via detectionpale)
             if (detectionpale()) {
                 indexeur.setPower(0.0); // arrêt
                 indexeur.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // mode normal
                 homingDone = true;
             }
-        }
+            // Sécurité : si ça tourne trop longtemps
+            if (timeretat.seconds() > 3.0) {
+                    indexeur.setPower(0);
+                    homingDone = true;
+                }
+            }
+
+
     }
+
+    public int getBalles() {
+        return ballComptage}
 
     // Fast advance by one compartment using RUN_TO_POSITION
     public void avancerIndexeurRapide() {
@@ -174,10 +227,24 @@ public class Indexeur {
         int erreur = Math.abs(indexeur.getCurrentPosition() - target);
         if (erreur < 15) { // tolérance de 15 ticks // Stop net
             indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            indexeur.setPower(0);
+            indexeur.setPower(0);}
         }
 
-    }
+        public void reculerIndexeurbourrage() {
+            int positionbourrage = indexeur.getCurrentPosition();
+            int target = (int) ((positionbourrage) * 0.95);
+            indexeur.setTargetPosition(target);
+            indexeur.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            // Power ceiling controls max speed in
+            indexeur.setPower(0.2); // augmente si besoin, attention au couple, pas besoin de mettre puissance negative car calcul auto }
+            int erreur = Math.abs(target - indexeur.getCurrentPosition());
+            if (erreur < 15) { // tolérance de 15 ticks // Stop net
+                indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                indexeur.setPower(0);
+            }
+        }
+
+
 
     public boolean avanceTerminee() {
         boolean blocage = indexeur.isBusy() && Math.abs(indexeur.getVelocity()) < 10;
@@ -195,6 +262,35 @@ public class Indexeur {
     public boolean detectionpale() {
         return !magSensorAv.getState();
     }
+    public boolean isindexeurBusy() {
+        return indexeur.isBusy(); }
+    /** * Getter pour accéder directement au moteur si besoin */
+    public DcMotor getindexeurMotor() {
+        return indexeur;}
+    private static final int TOLERANCE_TIR = 15;
+    public boolean indexeurPretPourTir() {
+        if (Indexeur == null)
+            return false;
+        boolean fini = !indexeur.isBusy();
+        int erreur = Math.abs(indexeur.getTargetPosition() - indexeur.getCurrentPosition());
+        boolean dansTol = erreur < TOLERANCE_TIR;
+        return fini && dansTol; }
+
+    public boolean balleDetectee() {
+        int count = 0;
+        for (int i = 0; i < NB_LECTURES; i++) {
+            //double d2 = distSensorIndexeur2.getDistance(DistanceUnit.MM);
+            double d1 = distSensorIndexeur.getDistance(DistanceUnit.MM);
+            // Vérification des deux capteurs
+            boolean capteur1Detecte = (d1 > 5 && d1 < 500 && d1 < SEUIL_MMDETECTION);
+            //boolean capteur2Detecte = (d2 > 5 && d2 < 500);
+            // Si au moins un capteur détecte la balle
+            if (capteur1Detecte) { count++; } }
+        // Majorité des lectures doivent confirmer la présence
+        return count >= (NB_LECTURES / 2 + 1); }
+}
+
+
 
 }
 

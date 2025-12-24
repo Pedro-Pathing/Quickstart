@@ -44,12 +44,12 @@ public class Intake {
     public Intake(Indexeur indexeur) { this.indexeur = indexeur; }
 
     public void update() {
-        int balles_restantes = indexeur.getBalles();
+        int ballcomptage = indexeur.getBalles();
 
         switch (intakeState) {
             case IDLE:
                 setIntakeBallTargetRPM(0);
-                if (balles_restantes == 0) {
+                if (ballcomptage == 0) {
                     statetimer.reset();
                     intakeState = Intakeetat.RAMASSAGE;
                 }
@@ -59,7 +59,7 @@ public class Intake {
 
                 double rpm = IntakeBall.getVelocity()*60/TICKS_PER_REV_6000;
 
-                if (balles_restantes == 3) {
+                if (ballcomptage == 3) {
                     intakeState = Intakeetat.IDLE;
                     break;
 
@@ -71,10 +71,10 @@ public class Intake {
                 break;
             case EJECTION:
                 setIntakeBallTargetRPM(intake_reverse);
-                if (statetimer.milliseconds()>500 && balles_restantes >3){
+                if (statetimer.milliseconds()>500 && ballcomptage >3){
                 intakeState = Intakeetat.IDLE;
                 break;
-              } else if (statetimer.milliseconds() > 500 && balles_restantes < 3) {
+              } else if (statetimer.milliseconds() > 500 && ballcomptage < 3) {
                     statetimer.reset();
                     intakeState = Intakeetat.RAMASSAGE;
                 }
