@@ -11,6 +11,7 @@ public class Shooter {
     private int Shootpower;
     private static final double MAX_RPM = 6000.0;
     private DcMotorEx Shooter,Shooter2;
+    private Indexeur indexeur;
 
     private enum Shooteretat {
         IDLE,  //Repos
@@ -27,6 +28,7 @@ public class Shooter {
     private int shootermaxspeed = 5000;
 
     public void init(@NonNull HardwareMap hwMap) {
+        this.indexeur = indexeur;
         Shooter = hwMap.get(DcMotorEx.class, "Shooter");
         Shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //Test avec deux moteurs
@@ -36,7 +38,7 @@ public class Shooter {
 
     }
     public void update() {
-        int ballcomptage = ;
+        int ballcomptage = indexeur.getBalles();
 
         switch (shooteretat) {
             case IDLE:
@@ -92,4 +94,4 @@ public class Shooter {
 
 
     }
-}
+

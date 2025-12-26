@@ -1,40 +1,26 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.Hardware;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import androidx.annotation.NonNull;
 
-import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import java.time.Month;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.CRServo;
-
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import java.util.*;
-import java.util.ArrayList;
-import java.util.Random;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Indexeur {
-    private boolean indexeurActif = false;
+    private boolean rotationPourAmassage = false;
+
+    // Timer d'erreur (temps passé avec une erreur >= tolérance)
+    private final ElapsedTime erreurTimer = new ElapsedTime();
+    // Durée max erreur avant fin (avancerrapide)
+    private static final double ERREUR_TIMEOUT_S = 1.0; // 1 à 2 secondes
+    private boolean rotationPourTir = false;
+
     private DcMotorEx indexeur;
     private DigitalChannel magSensorAv;
     private Rev2mDistanceSensor distSensorIndexeur;
@@ -45,14 +31,16 @@ public class Indexeur {
     private static final double TICKS_PER_REV_43 = 3895.9; // GoBilda 5203 43 tours
 
     private int vitessehomingindexeurRPM = 10;
-    private int vitesserapideindexeurRPM =25;
+    private int vitesserapideindexeurRPM = 25;
     private static final int COMPARTIMENTS = 3;
+    private int positionLogique = 0;
+    private int compartimentPhysique = 0;
     private static final double TICKS_PAR_COMPARTIMENT = TICKS_PER_REV_43 / COMPARTIMENTS;
     private int compartimentActuel = 0;
 
     int ballComptage = 0;
-    int MAX_BALLS =3;
-    int MIN_BALLS=0;
+    int MAX_BALLS = 3;
+    int MIN_BALLS = 0;
 
 
     // Variable interne pour mémoriser l'état précédent
@@ -62,7 +50,11 @@ public class Indexeur {
     private int consecutiveDetections = 0;
     private static final int NB_LECTURES = 5;
 
-    private enum Indexeuretat {
+    private int targetTicks = 0;
+    private boolean rotationEnCours = false;
+    private int erreurindexeur = 30;
+
+    public enum Indexeuretat {
         IDLE,
         RECHERCHEPALE,
 
@@ -78,7 +70,9 @@ public class Indexeur {
     private Indexeuretat IndexeurState = Indexeuretat.IDLE;
     private ElapsedTime timeretat = new ElapsedTime();
     private ElapsedTime indexeurtimer = new ElapsedTime();
-    private int SEUIL_MMDETECTION = 5 //seuil detection capteur distance
+    private int SEUIL_MMDETECTION = 5; //seuil detection capteur distance
+
+    private String[] couleurBalleDansCompartiment = new String[COMPARTIMENTS];
 
     public void init(@NonNull HardwareMap hwMap) {
 
@@ -95,37 +89,41 @@ public class Indexeur {
 
     }
 
-
-    public void update (){
+    public void update() {
+        updateRotation();
         switch (IndexeurState) {
             case IDLE:
                 setindexeurTargetRPM(0.00);
-                if (balleDetectee()) {
-                    Indexeuretat = IndexeurState.AVANCERAPIDEAMASSAGE;}
+                if (!homingDone) {
+                    if (timeretat.seconds() == 0) timeretat.reset();
+                    homingIndexeur();
+                    if (homingDone) IndexeurState = Indexeuretat.IDLE;
+                    break;
+
+                }
                 break;
             case RECHERCHEPALE:
                 if (!detectionpale() && ballComptage < MAX_BALLS) {
                     setindexeurTargetRPM(6);
                 } else if (detectionpale()) {
                     setindexeurTargetRPM(0.0);
-                    Indexeuretat = IndexeurState.IDLE;
+                    IndexeurState = Indexeuretat.IDLE;
                 }
-               if (timeretat.milliseconds()>500) {
-            }
-                break;
-
-            case AVANCERAPIDEAMASSAGE:
-                avancerIndexeurRapide();
-                ballComptage++;
-                ballComptage = Math.min(ballComptage, MAX_BALLS);
-
+                if (timeretat.milliseconds() > 500) {
+                }
                 break;
 
             case AVANCERAPIDETIR:
+                rotationPourAmassage = false;
+                rotationPourTir = true;
                 avancerIndexeurRapide();
-                ballComptage--;
-                ballComptage = Math.max(ballComptage, 0); //on empeche le decompte d'aller sous zero
                 break;
+            case AVANCERAPIDEAMASSAGE:
+                rotationPourAmassage = true;
+                rotationPourTir = false;
+                avancerIndexeurRapide();
+                break;
+
 
             case BOURRAGE:
                 break;
@@ -137,16 +135,15 @@ public class Indexeur {
                 break;
 
             case HOMING:
-                timeretat.reset();
                 homingIndexeur();
-                IndexeurState =  Indexeuretat.IDLE;
+                IndexeurState = Indexeuretat.IDLE;
 
                 break;
 
 
-
         }
     }
+
     public double getindexeurVelocityRPM() {
         double ticksPerSec = indexeur.getVelocity();
         return (ticksPerSec * 60) / TICKS_PER_REV_43;
@@ -195,7 +192,7 @@ public class Indexeur {
     // Méthode de homing à appeler au démarrage
     public void homingIndexeur() {
         if (!homingDone) { // lancer le moteur doucement pour chercher l’aimant
-            indexeur.setPower(0.25); // si l’aimant est détecté (via detectionpale)
+            indexeur.setVelocity(4); // si l’aimant est détecté (via detectionpale)
             if (detectionpale()) {
                 indexeur.setPower(0.0); // arrêt
                 indexeur.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -204,35 +201,103 @@ public class Indexeur {
             }
             // Sécurité : si ça tourne trop longtemps
             if (timeretat.seconds() > 3.0) {
-                    indexeur.setPower(0);
-                    homingDone = true;
-                }
+                indexeur.setPower(0);
+                homingDone = true;
             }
+        }
 
 
     }
 
     public int getBalles() {
-        return ballComptage}
+        return ballComptage;
+    }
 
     // Fast advance by one compartment using RUN_TO_POSITION
+
     public void avancerIndexeurRapide() {
+
+
         if (!homingDone) return;
-        compartimentActuel = (compartimentActuel + 1);
-        int target = (int) (compartimentActuel * TICKS_PAR_COMPARTIMENT);
-        indexeur.setTargetPosition(target);
+        if (rotationEnCours) return;
+
+        positionLogique++;
+        compartimentPhysique = positionLogique % COMPARTIMENTS;
+
+        targetTicks = (int) (positionLogique * TICKS_PAR_COMPARTIMENT);
+
+        indexeur.setTargetPosition(targetTicks);
         indexeur.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        // Power ceiling controls max speed in
-        indexeur.setPower(0.5); // augmente si besoin, attention au couple }
-        int erreur = Math.abs(indexeur.getCurrentPosition() - target);
-        if (erreur < 15) { // tolérance de 15 ticks // Stop net
-            indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            indexeur.setPower(0);}
+        indexeur.setPower(0.5);
+        indexeurtimer.reset();  // timer général
+        erreurTimer.reset();    // timer d'erreur (au-dessus de tolérance)
+
+        rotationEnCours = true;
+    }
+
+
+    public void updateRotation() {
+
+        if (!rotationEnCours) return;
+
+        int erreur = Math.abs(indexeur.getCurrentPosition() - targetTicks);
+
+        // Fin "normale" : moteur non occupé OU dans la tolérance
+        boolean finNormale = !indexeur.isBusy() || (erreur < erreurindexeur);
+
+        // Fin par timer : erreur >= tolérance ET durée au-dessus de tolérance > timeout
+        boolean finParTimerErreur = (erreur >= erreurindexeur) && (erreurTimer.seconds() > ERREUR_TIMEOUT_S);
+
+        // Tant que ce n'est pas fini, on ne fait rien (on laisse RUN_TO_POSITION agir)
+        if (!(finNormale || finParTimerErreur)) {
+            return;
         }
 
-        public void reculerIndexeurbourrage() {
+        // --- Rotation FINIE (normale ou par timer) ---
+        indexeur.setPower(0);
+        indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // Indices des slots relatifs
+        int slotCapteurs = compartimentPhysique;                      // Slot 2 (détection)
+        int slotTir = (compartimentPhysique + 1) % COMPARTIMENTS; // Slot 3 (tir)
+        int slotEntree = (compartimentPhysique + 2) % COMPARTIMENTS; // Slot 1 (entrée)
+
+        // 1) Mise à jour couleur sous capteurs (Slot 2)
+        String couleurSousCapteurs = detectBallColor();
+        couleurBalleDansCompartiment[slotCapteurs] = couleurSousCapteurs;
+
+        // 2) Comptage selon le type d'avance
+        if (rotationPourAmassage) {
+            // Compter uniquement si une vraie balle est détectée sous capteurs (Slot 2)
+            if (!"Inconnue".equals(couleurSousCapteurs)) {
+                ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
+            }
+        } else if (rotationPourTir) {
+            // Décrémenter selon ce qui était au TIR (Slot 3), pas sous capteurs !
+            String couleurAuTir = couleurBalleDansCompartiment[slotTir];
+            if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {
+                ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
+            }
+            // Vider le compartiment tiré quoi qu'il arrive
+            couleurBalleDansCompartiment[slotTir] = "Inconnue";
+        }
+
+        // Reset des flags
+        rotationPourAmassage = false;
+        rotationPourTir = false;
+        rotationEnCours = false;
+
+        // Tu peux choisir de basculer en BOURRAGE en cas de finParTimerErreur
+        IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE : Indexeuretat.IDLE;
+    }
+
+
+
+
+    public void reculerIndexeurbourrage() {
             int positionbourrage = indexeur.getCurrentPosition();
-            int target = (int) ((positionbourrage) * 0.95);
+            int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
+            int target = positionbourrage - delta;
             indexeur.setTargetPosition(target);
             indexeur.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             // Power ceiling controls max speed in
@@ -243,7 +308,6 @@ public class Indexeur {
                 indexeur.setPower(0);
             }
         }
-
 
 
     public boolean avanceTerminee() {
@@ -269,28 +333,29 @@ public class Indexeur {
         return indexeur;}
     private static final int TOLERANCE_TIR = 15;
     public boolean indexeurPretPourTir() {
-        if (Indexeur == null)
+        if (indexeur == null)
             return false;
         boolean fini = !indexeur.isBusy();
         int erreur = Math.abs(indexeur.getTargetPosition() - indexeur.getCurrentPosition());
         boolean dansTol = erreur < TOLERANCE_TIR;
         return fini && dansTol; }
 
-    public boolean balleDetectee() {
-        int count = 0;
-        for (int i = 0; i < NB_LECTURES; i++) {
-            //double d2 = distSensorIndexeur2.getDistance(DistanceUnit.MM);
-            double d1 = distSensorIndexeur.getDistance(DistanceUnit.MM);
-            // Vérification des deux capteurs
-            boolean capteur1Detecte = (d1 > 5 && d1 < 500 && d1 < SEUIL_MMDETECTION);
-            //boolean capteur2Detecte = (d2 > 5 && d2 < 500);
-            // Si au moins un capteur détecte la balle
-            if (capteur1Detecte) { count++; } }
-        // Majorité des lectures doivent confirmer la présence
-        return count >= (NB_LECTURES / 2 + 1); }
-}
+
+    public String getCouleurCompartiment(int compartiment) {
+        return couleurBalleDansCompartiment[compartiment];
+    }
 
 
+    public Indexeuretat getEtat() {
+        return IndexeurState;
+    }
+
+    public void setEtat(Indexeuretat nouvelEtat) {
+        this.IndexeurState = nouvelEtat;
+    }
 
 }
+
+
+
 

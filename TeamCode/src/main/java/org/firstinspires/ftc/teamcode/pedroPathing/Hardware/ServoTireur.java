@@ -44,18 +44,18 @@ public class ServoTireur  {
 
         switch (tireuretat) {
             case IDLE:
-                ServoTir.setPosition(tirpositionretour);
+                tirerAvecServo(tirpositionretour);
                 break;
 
             case TirPositionhaute:
-                ServoTir.setPosition(tirpositionhaute);
+                tirerAvecServo(tirpositionhaute);
                 break;
         }
-        tireuretat = Tireuretat.IDLE;
-
-        public void tirerAvecServo(double servoposition) {
+    }
+    public void tirerAvecServo(double servoposition) {
         ServoTir.setPosition(servoposition);   // monter ou descendre le servo
         tirServoEnCours = true;      // activer le flag
+    }
 
 }
 

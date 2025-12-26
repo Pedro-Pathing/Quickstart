@@ -10,6 +10,8 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -25,9 +27,17 @@ public class TeleOpDecode extends OpMode {
     private TelemetryManager telemetryM;
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
+    private Intake intake;
+    private Indexeur indexeur;
 
     @Override
     public void init() {
+        indexeur = new Indexeur();
+        indexeur.init(hardwareMap);
+
+        intake = new Intake(indexeur);
+        intake.init(hardwareMap);
+
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
@@ -104,5 +114,17 @@ public class TeleOpDecode extends OpMode {
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
+        intake.update();   // très important
+        indexeur.update(); // si tu en as un
+
+        telemetry.addData("RPM", intake.getRPM());
+        telemetry.addData("DistanceBalle", intake.getCapteurDistance());
+        telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
+        telemetry.addData("Ralentissement", intake.getRalentissement());
+        telemetry.addData("Score", intake.getScore());
+        telemetry.addData("Balle détectée", intake.getBalleDetectee());
+
+        telemetry.update();
+
     }
 }

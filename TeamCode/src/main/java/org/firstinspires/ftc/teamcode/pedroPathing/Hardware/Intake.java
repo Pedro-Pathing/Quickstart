@@ -7,11 +7,20 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.Random;
 public class Intake {
 
     private DcMotorEx IntakeBall;
-    private  ElapsedTime statetimer = new ElapsedTime();
+    private ElapsedTime statetimer = new ElapsedTime();
+    int seuilcapteurmm = 50;
 
     private enum Intakeetat {
         IDLE,
@@ -20,25 +29,37 @@ public class Intake {
     }
     private Intakeetat intakeState = Intakeetat.IDLE;
 
-    // --- constante du moteur d'intake
-    private double intake_reverse = -2000;
+    private double intake_reverse = -200;
+    private double intake_fast = 200;
 
-    private double intake_fast= 3000;
-
-    // parametre de bourrage
 
     private final double MINRPM = 120;
+
+    // --- Variables télémétrie / détection
+    private double rpm = 0;
+    private float lumIndexeur = 0;
+    private boolean ralentissement = false;
+    private int score = 0;
+
     private final int tempsblocage = 300;
+    private final double CHUTE_RPM = 0.85;
+    private final float SEUIL_LUM_INDEXEUR = 0.250f;
+
     private Indexeur indexeur;
+    private NormalizedColorSensor ColorIndexeur, ColorIntake;
+    private Rev2mDistanceSensor distSensorIndexeur;
 
+    private static final int TICKS_PER_REV_6000 = 28;
 
-    private static final int TICKS_PER_REV_6000 = 28; // GoBilda 5203 ratio 1:1
     public void init(@NonNull HardwareMap hwMap) {
 
         IntakeBall = hwMap.get(DcMotorEx.class, "IntakeBall");
         IntakeBall.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         IntakeBall.setDirection(DcMotor.Direction.REVERSE);
         intakeState = Intakeetat.IDLE;
+
+        ColorIndexeur = hwMap.get(NormalizedColorSensor.class, "ColorIndexeur");
+        distSensorIndexeur = hwMap.get(Rev2mDistanceSensor.class, "DistSensorIndexeur");
     }
 
     public Intake(Indexeur indexeur) { this.indexeur = indexeur; }
@@ -47,6 +68,7 @@ public class Intake {
         int ballcomptage = indexeur.getBalles();
 
         switch (intakeState) {
+
             case IDLE:
                 setIntakeBallTargetRPM(0);
                 if (ballcomptage == 0) {
@@ -54,40 +76,83 @@ public class Intake {
                     intakeState = Intakeetat.RAMASSAGE;
                 }
                 break;
+
             case RAMASSAGE:
+                //
                 setIntakeBallTargetRPM(intake_fast);
 
-                double rpm = IntakeBall.getVelocity()*60/TICKS_PER_REV_6000;
+                // --- Mise à jour des variables ---
+                rpm = IntakeBall.getVelocity() * 60 / TICKS_PER_REV_6000;
+                lumIndexeur = ColorIndexeur.getNormalizedColors().alpha;
+
+                ralentissement = rpm < intake_fast * CHUTE_RPM;
+                boolean indexeurLumiere = detectCapteurIndexeur();
+                boolean indexeurdistance= balleDetecteeDistSensor();
 
                 if (ballcomptage == 3) {
                     intakeState = Intakeetat.IDLE;
                     break;
-
                 }
 
-                if (rpm<MINRPM && statetimer.milliseconds()>tempsblocage){
+                // --- Fusion des signaux ---
+                score = 0;
+                //if (ralentissement) score++;
+                if (indexeurLumiere) score++;
+                if (indexeurdistance) score++;
+
+                if (score >= 1) {
+                    indexeur.setEtat(Indexeur.Indexeuretat.AVANCERAPIDEAMASSAGE);
+                }
+
+                // --- Bourrage ---
+                if (rpm < MINRPM && statetimer.milliseconds() > tempsblocage) {
                     intakeState = Intakeetat.EJECTION;
                 }
                 break;
+
             case EJECTION:
                 setIntakeBallTargetRPM(intake_reverse);
-                if (statetimer.milliseconds()>500 && ballcomptage >3){
-                intakeState = Intakeetat.IDLE;
-                break;
-              } else if (statetimer.milliseconds() > 500 && ballcomptage < 3) {
-                    statetimer.reset();
-                    intakeState = Intakeetat.RAMASSAGE;
+                if (statetimer.milliseconds() > 500) {
+                    if (ballcomptage > 3) {
+                        intakeState = Intakeetat.IDLE;
+                    } else {
+                        statetimer.reset();
+                        intakeState = Intakeetat.RAMASSAGE;
+                    }
                 }
-            }
-            break;
-
-
+                break;
         }
+    }
 
-        public void setIntakeBallTargetRPM ( double targetRPM){
-            // Conversion RPM -> ticks/sec
-                double targetTicksPerSec = (targetRPM * TICKS_PER_REV_6000) / 60.0;
-                IntakeBall.setVelocity(targetTicksPerSec);
+    public void setIntakeBallTargetRPM(double targetRPM) {
+        double targetTicksPerSec = (targetRPM * TICKS_PER_REV_6000) / 60.0;
+        IntakeBall.setVelocity(targetTicksPerSec);
+    }
 
-            }
+
+    private boolean detectCapteurIndexeur() {
+        return lumIndexeur > SEUIL_LUM_INDEXEUR;
+    }
+
+
+    public boolean balleDetecteeDistSensor() {
+        int count = 0;
+        for (int i = 0; i < 2; i++) {
+            double d1 = distSensorIndexeur.getDistance(DistanceUnit.MM);
+            boolean capteur1Detecte = Double.isFinite(d1) && d1 > 5 && d1 < seuilcapteurmm;
+            if (capteur1Detecte) count++;
         }
+        return count >= 1; // au moins une lecture valide
+    }
+
+    // --- GETTERS ---
+    public double getRPM() { return rpm; }
+
+    public float getLumIndexeur() { return ColorIndexeur.getNormalizedColors().alpha; }
+    public boolean getRalentissement() { return ralentissement; }
+    public int getScore() { return score; }
+    public double getCapteurDistance() { return distSensorIndexeur.getDistance(DistanceUnit.MM);}
+    public boolean getBalleDetectee() { return score >= 2; }
+
+
+}
