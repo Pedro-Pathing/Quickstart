@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-
+@Configurable
 public class Intake {
     // RESET THESE TO PRIVATE AFTER DECEMBER 6TH!
     private final Devices.DcMotorExClass intake = new Devices.DcMotorExClass();

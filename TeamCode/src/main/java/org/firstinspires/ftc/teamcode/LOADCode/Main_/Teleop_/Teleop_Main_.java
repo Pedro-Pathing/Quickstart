@@ -74,6 +74,9 @@ public class Teleop_Main_ extends LinearOpMode {
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
 
+    // Timer for the shooting state machine
+    TimerEx stateTimer = new TimerEx(1);
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -135,6 +138,11 @@ public class Teleop_Main_ extends LinearOpMode {
             // Intake-related Telemetry
             telemetry.addLine();
             telemetry.addData("Intake Mode", Robot.intake.getMode());
+
+            // Color Sensor Telemetry
+            telemetry.addLine();
+            telemetry.addData("Upper Sensor", Robot.intake.getTopSensorState());
+            telemetry.addData("Lower Sensor", Robot.intake.getBottomSensorState());
 
             // System-related Telemetry
             telemetry.addLine();
@@ -299,9 +307,16 @@ public class Teleop_Main_ extends LinearOpMode {
                 telemetry.addData("Shooting State", "OFF");
                 return;
             case 1:
+                if (Robot.intake.getMode() == intakeMode.OFF){
+                    stateTimer.restart();
+                    stateTimer.start();
+                }
                 Robot.intake.setMode(intakeMode.INTAKING);
                 Robot.turret.setGateState(gatestate.OPEN);
                 telemetry.addData("Shooting State", "STARTED");
+                if (stateTimer.isDone() && Robot.intake.getTopSensorState() && !Robot.intake.getBottomSensorState()){
+                    shootingState++;
+                }
                 return;
             case 2:
                 Robot.intake.setMode(Intake.intakeMode.SHOOTING);

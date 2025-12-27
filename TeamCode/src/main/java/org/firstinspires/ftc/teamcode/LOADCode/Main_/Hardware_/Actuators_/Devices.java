@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -316,6 +317,18 @@ public class Devices {
 
         public double[] getDistances(){
             return new double[]{sensor1.getDistance(units), sensor2.getDistance(units)};
+        }
+    }
+
+    public static class REVHallEffectSensorClass {
+        private DigitalChannel sensor;
+
+        public void init(@NonNull OpMode opMode, String sensorName){
+            sensor = opMode.hardwareMap.get(DigitalChannel.class, sensorName);
+        }
+
+        public Boolean getTriggered(){
+            return sensor.getState();
         }
     }
 }

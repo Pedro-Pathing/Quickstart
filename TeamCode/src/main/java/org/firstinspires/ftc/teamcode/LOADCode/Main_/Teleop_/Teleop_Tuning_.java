@@ -36,10 +36,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
-@TeleOp(name="Teleop_Outreach_", group="TeleOp")
-public class Teleop_Outreach_ extends LinearOpMode {
+@TeleOp(name="Teleop_Tuning_", group="TeleOp")
+public class Teleop_Tuning_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -57,11 +59,16 @@ public class Teleop_Outreach_ extends LinearOpMode {
         LoadHardwareClass Robot = new LoadHardwareClass(this);
         // Initialize all hardware of the robot
         Robot.init(startPose);
-        Robot.turret.zeroTurret(isStopRequested());
+
+        if (gamepad1.guide){
+            Robot.turret.rotation.resetEncoder();
+        }
 
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
+
+        // Begin TeleOp driving
         Robot.drivetrain.startTeleOpDrive();
 
         // run until the end of the match (driver presses STOP)
@@ -75,34 +82,53 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     true
             );
 
-            if (gamepad1.x){
-                //Robot.turret.rotation.setAngle(180);
-            }else{
-                //Robot.turret.rotation.setAngle(Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
-            }
-            telemetry.addData("Target Angle", Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
-            telemetry.addData("Turret Angle", Robot.turret.rotation.getAngleAbsolute());
-            telemetry.addData("Turret Motor Power", Robot.turret.rotation.getPower());
-            telemetry.addLine();
+            // Color sensor telemetry
+            telemetry.addLine("COLOR SENSOR DATA");
+            telemetry.addData("Color Sensor Threshold", Intake.proximitySensorThreshold);
+            telemetry.addData("Upper Sensor Array Triggered", Robot.intake.getTopSensorState());
+            telemetry.addData("Lower Sensor Array Triggered", Robot.intake.getBottomSensorState());
 
+            // Controls for turret rotation testing
+            if (!gamepad1.x){
+                Robot.turret.rotation.setAngle(0);
+            }else{
+                Robot.turret.rotation.setAngle(180);
+            }
+
+            // Controls for hood testing
             if (gamepad1.dpad_up){
                 Robot.turret.setHood(Robot.turret.getHood() + 2);
             }else if (gamepad1.dpad_down){
-                Robot.turret.setHood(Robot.turret.getHood() + 2);
+                Robot.turret.setHood(Robot.turret.getHood() - 2);
             }
+            telemetry.addLine();
+            telemetry.addLine("HOOD DATA");
             telemetry.addData("Hood Angle", Robot.turret.getHood());
 
+            // Controls for flywheel testing
+            if (gamepad1.yWasPressed()){
+                if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
+                    Robot.turret.setFlywheelState(Turret.flywheelstate.ON);
+                }else{
+                    Robot.turret.setFlywheelState(Turret.flywheelstate.OFF);
+                }
+            }
+            Robot.turret.updateFlywheel();
             telemetry.addLine();
-            telemetry.addData("Robot Pose X", Math.round(Robot.drivetrain.follower.getPose().getX()));
-            telemetry.addData("Robot Pose Y", Math.round(Robot.drivetrain.follower.getPose().getY()));
-            telemetry.addData("Robot Pose H", Math.round(Math.toDegrees(Robot.drivetrain.follower.getPose().getHeading())));
+            telemetry.addLine("FLYWHEEL DATA");
+            telemetry.addData("Flywheel Target Velocity", Robot.turret.flywheel.target);
+            telemetry.addData("Flywheel Actual Velocity", Robot.turret.getFlywheelRPM());
+            panelsTelemetry.addData("Flywheel Target Velocity", Robot.turret.flywheel.target);
+            panelsTelemetry.addData("Flywheel Actual Velocity", Robot.turret.getFlywheelRPM());
+
 
             // System-related Telemetry
             telemetry.addLine();
+            telemetry.addLine("SYSTEM DATA");
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Version: ", "11/4/25");
+            telemetry.addData("Version: ", "12/26/25");
             telemetry.update();
-            panelsTelemetry.update(telemetry);
+            panelsTelemetry.update();
         }
     }
 }

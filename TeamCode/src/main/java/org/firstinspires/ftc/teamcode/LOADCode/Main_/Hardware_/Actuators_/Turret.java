@@ -23,6 +23,7 @@ public class Turret {
     private final Devices.DcMotorExClass flywheel2 = new Devices.DcMotorExClass();
     private final Devices.ServoClass hood = new Devices.ServoClass();
     private final Devices.ServoClass gate = new Devices.ServoClass();
+    private final Devices.REVHallEffectSensorClass hall = new Devices.REVHallEffectSensorClass();
 
     // Turret PID coefficients
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.06, 0, 0); // 223RPM
@@ -44,16 +45,24 @@ public class Turret {
     }
     public flywheelstate flywheelState = flywheelstate.OFF;
 
+    /** Controls the target speed of the flywheel when it is on */
     public static double flywheelSpeed = 4500;
-
+    /** Controls the upper software limit of the hood */
     public static double upperHoodLimit = 260;
+    /** Controls the speed at which the turret will zero itself */
+    public static double zeroSpeed = 0.2;
+
+    // Stores the opmode object for later access
+    OpMode opMode = null;
 
     public void init(OpMode opmode){
+        opMode = opmode;
         rotation.init(opmode, "turret", 145.1 * ((double) 131 /24)); //Previously 103.8
         flywheel.init(opmode, "flywheel", 28);
         flywheel2.init(opmode, "flywheel2", 28);
         hood.init(opmode, "hood");
         gate.init(opmode, "gate");
+        hall.init(opmode, "hall");
 
         rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         rotation.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -157,6 +166,14 @@ public class Turret {
      */
     public void setFlywheelState(flywheelstate state){
         flywheelState = state;
+    }
+
+    public void zeroTurret(boolean stopIsCalled){
+        while (!(hall.getTriggered() || stopIsCalled)){
+            rotation.setPower(zeroSpeed);
+        }
+        rotation.setPower(0);
+        rotation.resetEncoder();
     }
 
     /**
