@@ -21,6 +21,8 @@ public class Indexeur {
     private static final double ERREUR_TIMEOUT_S = 1.0; // 1 à 2 secondes
     private boolean rotationPourTir = false;
 
+
+
     private DcMotorEx indexeur;
     private DigitalChannel magSensorAv;
     private Rev2mDistanceSensor distSensorIndexeur;
@@ -86,6 +88,10 @@ public class Indexeur {
         // ColorLeft = hwMap.get(ColorSensor.class, "ColorLeft");
         ColorLeft = hwMap.get(NormalizedColorSensor.class, "ColorLeft");
         ColorRight = hwMap.get(NormalizedColorSensor.class, "ColorRight");
+        IndexeurState = Indexeuretat.HOMING;
+        for (int i = 0; i < COMPARTIMENTS; i++) {
+            couleurBalleDansCompartiment[i] = "Inconnue";
+        }
 
     }
 
@@ -93,15 +99,13 @@ public class Indexeur {
         updateRotation();
         switch (IndexeurState) {
             case IDLE:
-                setindexeurTargetRPM(0.00);
-                if (!homingDone) {
-                    if (timeretat.seconds() == 0) timeretat.reset();
-                    homingIndexeur();
-                    if (homingDone) IndexeurState = Indexeuretat.IDLE;
-                    break;
-
-                }
+                indexeur.setPower(0);
+                indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 break;
+
+
+            break;
+
             case RECHERCHEPALE:
                 if (!detectionpale() && ballComptage < MAX_BALLS) {
                     setindexeurTargetRPM(6);
@@ -136,8 +140,9 @@ public class Indexeur {
 
             case HOMING:
                 homingIndexeur();
-                IndexeurState = Indexeuretat.IDLE;
-
+                if (homingDone) {
+                    IndexeurState = Indexeuretat.IDLE;
+                }
                 break;
 
 
@@ -191,6 +196,10 @@ public class Indexeur {
 
     // Méthode de homing à appeler au démarrage
     public void homingIndexeur() {
+        if (homingDone) {
+            IndexeurState = Indexeuretat.IDLE;
+        }
+
         if (!homingDone) { // lancer le moteur doucement pour chercher l’aimant
             indexeur.setVelocity(4); // si l’aimant est détecté (via detectionpale)
             if (detectionpale()) {
@@ -235,63 +244,64 @@ public class Indexeur {
         rotationEnCours = true;
     }
 
-
     public void updateRotation() {
 
         if (!rotationEnCours) return;
 
         int erreur = Math.abs(indexeur.getCurrentPosition() - targetTicks);
 
-        // Fin "normale" : moteur non occupé OU dans la tolérance
-        boolean finNormale = !indexeur.isBusy() || (erreur < erreurindexeur);
+        if (erreur >= erreurindexeur) {
+            // on accumule du temps en erreur
+        } else {
+            erreurTimer.reset();
+        }
 
-        // Fin par timer : erreur >= tolérance ET durée au-dessus de tolérance > timeout
+        // --- AJOUT : gestion de la vitesse progressive ---
+        if (erreur > 300) {
+            // Loin de la cible → vitesse rapide
+            indexeur.setPower(0.9);
+        } else {
+            // Proche de la cible → ralentissement
+            indexeur.setPower(0.5);
+        }
+        // --- FIN AJOUT ---
+
+        boolean finNormale = !indexeur.isBusy() || (erreur < erreurindexeur);
         boolean finParTimerErreur = (erreur >= erreurindexeur) && (erreurTimer.seconds() > ERREUR_TIMEOUT_S);
 
-        // Tant que ce n'est pas fini, on ne fait rien (on laisse RUN_TO_POSITION agir)
         if (!(finNormale || finParTimerErreur)) {
             return;
         }
 
-        // --- Rotation FINIE (normale ou par timer) ---
+        // --- Rotation FINIE ---
         indexeur.setPower(0);
         indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // Indices des slots relatifs
-        int slotCapteurs = compartimentPhysique;                      // Slot 2 (détection)
-        int slotTir = (compartimentPhysique + 1) % COMPARTIMENTS; // Slot 3 (tir)
-        int slotEntree = (compartimentPhysique + 2) % COMPARTIMENTS; // Slot 1 (entrée)
+        int slotCapteurs = compartimentPhysique;
+        int slotTir = (compartimentPhysique + 1) % COMPARTIMENTS;
+        int slotEntree = (compartimentPhysique + 2) % COMPARTIMENTS;
 
-        // 1) Mise à jour couleur sous capteurs (Slot 2)
         String couleurSousCapteurs = detectBallColor();
         couleurBalleDansCompartiment[slotCapteurs] = couleurSousCapteurs;
 
-        // 2) Comptage selon le type d'avance
         if (rotationPourAmassage) {
-            // Compter uniquement si une vraie balle est détectée sous capteurs (Slot 2)
             if (!"Inconnue".equals(couleurSousCapteurs)) {
                 ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
             }
         } else if (rotationPourTir) {
-            // Décrémenter selon ce qui était au TIR (Slot 3), pas sous capteurs !
             String couleurAuTir = couleurBalleDansCompartiment[slotTir];
             if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {
                 ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
             }
-            // Vider le compartiment tiré quoi qu'il arrive
             couleurBalleDansCompartiment[slotTir] = "Inconnue";
         }
 
-        // Reset des flags
         rotationPourAmassage = false;
         rotationPourTir = false;
         rotationEnCours = false;
 
-        // Tu peux choisir de basculer en BOURRAGE en cas de finParTimerErreur
         IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE : Indexeuretat.IDLE;
     }
-
-
 
 
     public void reculerIndexeurbourrage() {
@@ -351,8 +361,19 @@ public class Indexeur {
     }
 
     public void setEtat(Indexeuretat nouvelEtat) {
+
+        // Empêche l’intake de spammer pendant une rotation
+        if (rotationEnCours &&
+                (nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE ||
+                        nouvelEtat == Indexeuretat.AVANCERAPIDETIR)) {
+            return;
+        }
+
         this.IndexeurState = nouvelEtat;
     }
+
+
+
 
 }
 
