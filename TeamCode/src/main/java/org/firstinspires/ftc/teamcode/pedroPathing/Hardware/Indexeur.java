@@ -24,11 +24,14 @@ public class Indexeur {
 
 
     private DcMotorEx indexeur;
+    private Intake intake;
+    public void setIntake(Intake intake) { this.intake = intake; }
     private DigitalChannel magSensorAv;
     private Rev2mDistanceSensor distSensorIndexeur;
     private Rev2mDistanceSensor distSensorIndexeur2;
     private NormalizedColorSensor ColorLeft;
     private NormalizedColorSensor ColorRight;
+    private String couleurDetecteeTemp = "Inconnue";
     double hue;
     private static final double TICKS_PER_REV_43 = 3895.9; // GoBilda 5203 43 tours
 
@@ -48,6 +51,7 @@ public class Indexeur {
     // Variable interne pour mémoriser l'état précédent
     private boolean lastBallDetected = false;
     private boolean homingDone = false;
+    private boolean homingDemarre = false;
     private boolean marcheForceeIndexeur = false;
     private int consecutiveDetections = 0;
     private static final int NB_LECTURES = 5;
@@ -88,7 +92,6 @@ public class Indexeur {
         // ColorLeft = hwMap.get(ColorSensor.class, "ColorLeft");
         ColorLeft = hwMap.get(NormalizedColorSensor.class, "ColorLeft");
         ColorRight = hwMap.get(NormalizedColorSensor.class, "ColorRight");
-        IndexeurState = Indexeuretat.HOMING;
         for (int i = 0; i < COMPARTIMENTS; i++) {
             couleurBalleDansCompartiment[i] = "Inconnue";
         }
@@ -96,14 +99,30 @@ public class Indexeur {
     }
 
     public void update() {
+        // Détection couleur déclenchée par la balle
+        if (intake.getBalleDetectee()) {
+            String c = detectBallColor();
+            if (!"Inconnue".equals(c)) {
+                couleurDetecteeTemp = c;   // capture anticipée
+            }
+        }
+
+
+        // --- PRIORITÉ ABSOLUE : lancer le homing une seule fois ---
+        if (!homingDemarre) {
+            IndexeurState = Indexeuretat.HOMING;
+            homingDemarre = true;
+        }
+
         updateRotation();
         switch (IndexeurState) {
+
+            case HOMING:
+                homingIndexeur();
+                break;
             case IDLE:
                 indexeur.setPower(0);
                 indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                break;
-
-
             break;
 
             case RECHERCHEPALE:
@@ -138,12 +157,7 @@ public class Indexeur {
             case PRETPOURTIR:
                 break;
 
-            case HOMING:
-                homingIndexeur();
-                if (homingDone) {
-                    IndexeurState = Indexeuretat.IDLE;
-                }
-                break;
+
 
 
         }
@@ -196,24 +210,25 @@ public class Indexeur {
 
     // Méthode de homing à appeler au démarrage
     public void homingIndexeur() {
-        if (homingDone) {
+        //if (homingDone) { //IndexeurState = Indexeuretat.IDLE;
+        //}
+        // Toujours en RUN_USING_ENCODER pour le homing
+        indexeur.setPower(0.2);
+        // si l’aimant est détecté (via detectionpale)
+        if (detectionpale()) {
+            indexeur.setPower(0.0); // arrêt
+            indexeur.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // mode normal
+            homingDone = true;
             IndexeurState = Indexeuretat.IDLE;
-        }
 
-        if (!homingDone) { // lancer le moteur doucement pour chercher l’aimant
-            indexeur.setVelocity(4); // si l’aimant est détecté (via detectionpale)
-            if (detectionpale()) {
-                indexeur.setPower(0.0); // arrêt
-                indexeur.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // mode normal
-                homingDone = true;
             }
             // Sécurité : si ça tourne trop longtemps
-            if (timeretat.seconds() > 3.0) {
-                indexeur.setPower(0);
-                homingDone = true;
-            }
-        }
+            //if (timeretat.seconds() > 3.0) {
+            //    indexeur.setPower(0);
+            //    homingDone = true;
+
+
 
 
     }
@@ -250,21 +265,20 @@ public class Indexeur {
 
         int erreur = Math.abs(indexeur.getCurrentPosition() - targetTicks);
 
-        if (erreur >= erreurindexeur) {
-            // on accumule du temps en erreur
-        } else {
-            erreurTimer.reset();
+        // --- LECTURE CONTINUE DE LA COULEUR (NOUVEAU) ---
+        // On lit la couleur pendant la rotation, dès qu'une couleur valide apparaît
+        String couleurInstant = detectBallColor();
+
+        if (!"Inconnue".equals(couleurInstant)) {
+            couleurDetecteeTemp = couleurInstant;   // on garde la meilleure couleur vue
         }
 
-        // --- AJOUT : gestion de la vitesse progressive ---
+        // --- Gestion de la vitesse progressive ---
         if (erreur > 300) {
-            // Loin de la cible → vitesse rapide
-            indexeur.setPower(0.9);
+            indexeur.setPower(0.9);   // loin de la cible → rapide
         } else {
-            // Proche de la cible → ralentissement
-            indexeur.setPower(0.5);
+            indexeur.setPower(0.5);   // proche de la cible → lent
         }
-        // --- FIN AJOUT ---
 
         boolean finNormale = !indexeur.isBusy() || (erreur < erreurindexeur);
         boolean finParTimerErreur = (erreur >= erreurindexeur) && (erreurTimer.seconds() > ERREUR_TIMEOUT_S);
@@ -273,7 +287,7 @@ public class Indexeur {
             return;
         }
 
-        // --- Rotation FINIE ---
+        // --- ROTATION FINIE ---
         indexeur.setPower(0);
         indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -281,9 +295,13 @@ public class Indexeur {
         int slotTir = (compartimentPhysique + 1) % COMPARTIMENTS;
         int slotEntree = (compartimentPhysique + 2) % COMPARTIMENTS;
 
-        String couleurSousCapteurs = detectBallColor();
+        // --- UTILISATION DE LA MEILLEURE COULEUR DÉTECTÉE ---
+        String couleurSousCapteurs = couleurDetecteeTemp;
+        couleurDetecteeTemp = "Inconnue"; // reset pour la prochaine rotation
+
         couleurBalleDansCompartiment[slotCapteurs] = couleurSousCapteurs;
 
+        // --- Mise à jour du comptage ---
         if (rotationPourAmassage) {
             if (!"Inconnue".equals(couleurSousCapteurs)) {
                 ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
@@ -302,6 +320,7 @@ public class Indexeur {
 
         IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE : Indexeuretat.IDLE;
     }
+
 
 
     public void reculerIndexeurbourrage() {
@@ -362,6 +381,13 @@ public class Indexeur {
 
     public void setEtat(Indexeuretat nouvelEtat) {
 
+        // Empêche l’intake d'interrompre le homing
+        if (IndexeurState == Indexeuretat.HOMING &&
+                (nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE ||
+                        nouvelEtat == Indexeuretat.AVANCERAPIDETIR)) {
+            return;
+        }
+
         // Empêche l’intake de spammer pendant une rotation
         if (rotationEnCours &&
                 (nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE ||
@@ -371,8 +397,6 @@ public class Indexeur {
 
         this.IndexeurState = nouvelEtat;
     }
-
-
 
 
 }

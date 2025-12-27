@@ -29,11 +29,12 @@ public class Intake {
     }
     private Intakeetat intakeState = Intakeetat.IDLE;
 
-    private double intake_reverse = -200;
-    private double intake_fast = 200;
+    private double intake_reverse = -500;
+    private double intake_fast = 1500;
 
 
-    private final double MINRPM = 120;
+
+    private final double MINRPM = 20;
 
     // --- Variables télémétrie / détection
     private double rpm = 0;

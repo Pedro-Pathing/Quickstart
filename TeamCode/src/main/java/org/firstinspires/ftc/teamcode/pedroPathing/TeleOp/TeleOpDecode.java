@@ -37,6 +37,7 @@ public class TeleOpDecode extends OpMode {
 
         intake = new Intake(indexeur);
         intake.init(hardwareMap);
+        indexeur.setIntake(intake);
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -120,9 +121,11 @@ public class TeleOpDecode extends OpMode {
         telemetry.addData("RPM", intake.getRPM());
         telemetry.addData("DistanceBalle", intake.getCapteurDistance());
         telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
-        telemetry.addData("Ralentissement", intake.getRalentissement());
         telemetry.addData("Score", intake.getScore());
-        telemetry.addData("Balle détectée", intake.getBalleDetectee());
+        telemetry.addData("État Indexeur", indexeur.getEtat());
+        telemetry.addData("Pale detectée", indexeur.detectionpale());
+        telemetry.addData("Nombre de balles", indexeur.getBalles());
+        for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
 
         telemetry.update();
 
