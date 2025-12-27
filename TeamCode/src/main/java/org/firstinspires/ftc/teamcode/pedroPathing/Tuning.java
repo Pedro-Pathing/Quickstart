@@ -27,7 +27,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.ModifiedPedro.QuadraticRegression;
+import com.pedropathing.math.MathFunctions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -856,7 +856,7 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case DONE: {
-                double[] coeffs = QuadraticRegression.quadraticFit(data);
+                double[] coeffs = MathFunctions.QuadraticRegression.quadraticFit(data);
 
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("kFriction (kQ)", coeffs[1]);
