@@ -17,21 +17,23 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class ServoTireur  {
     private Servo ServoTir;
     private Indexeur indexeur;
+    private double tirpositionretour = 0.79; // position basse
+    private double tirpositionhaute = 0.32; // position haute
+
     private ElapsedTime timeretat = new ElapsedTime();
     private boolean tirServoEnCours = false;
 
     private boolean pauseTir = false;
 
-    private double tirpositionretour = 0.65;
-
-    private double tirpositionhaute = 0.0;
 
     private enum Tireuretat {
         IDLE, // servo en position basse
         TirPositionhaute // Servo en position haute pour lancer balle
 
     }
+
     private Tireuretat tireuretat = Tireuretat.IDLE;
+
     public void init(@NonNull HardwareMap hwMap) {
         ServoTir= hwMap.get(Servo.class, "ServoTir");
         ServoTir.setPosition(tirpositionretour);
@@ -56,7 +58,23 @@ public class ServoTireur  {
         ServoTir.setPosition(servoposition);   // monter ou descendre le servo
         tirServoEnCours = true;      // activer le flag
     }
-
+    // --- Monter le servo pour tirer ---
+    public void push() {
+        ServoTir.setPosition(tirpositionhaute);
+    }
+    // --- Redescendre le servo ---
+    public void retract() {
+        ServoTir.setPosition(tirpositionretour);
+    }
+    // --- Vérifier si le servo est bien monté ---
+    public boolean isPushDone() {
+        return Math.abs(ServoTir.getPosition() - tirpositionhaute) < 0.02;
+    }
+    // --- Vérifier si le servo est bien redescendu ---
+    public boolean isRetractDone() {
+        return Math.abs(ServoTir.getPosition() - tirpositionretour) < 0.02;
+    }
+    public double getPosition() { return ServoTir.getPosition(); }
 }
 
 

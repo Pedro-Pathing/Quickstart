@@ -20,11 +20,15 @@ public class Indexeur {
     // Durée max erreur avant fin (avancerrapide)
     private static final double ERREUR_TIMEOUT_S = 1.0; // 1 à 2 secondes
     private boolean rotationPourTir = false;
+    private String capteurDetecteur = "Aucun";   // "Left", "Right", "Fusion"
+    private float hueDetectee = -1;              // Hue retenue
+
 
 
 
     private DcMotorEx indexeur;
     private Intake intake;
+
     public void setIntake(Intake intake) { this.intake = intake; }
     private DigitalChannel magSensorAv;
     private Rev2mDistanceSensor distSensorIndexeur;
@@ -187,15 +191,35 @@ public class Indexeur {
         String couleurLeft = detectHueColor(hueLeft);
         String couleurRight = detectHueColor(hueRight);
 
-        // Fusion des résultats
+        // --- FUSION + identification du capteur ---
         if (couleurLeft.equals("Vert") || couleurRight.equals("Vert")) {
+            if (couleurLeft.equals("Vert")) {
+                capteurDetecteur = "Left";
+                hueDetectee = hueLeft;
+            } else {
+                capteurDetecteur = "Right";
+                hueDetectee = hueRight;
+            }
             return "Vert";
-        } else if (couleurLeft.equals("Violet") || couleurRight.equals("Violet")) {
-            return "Violet";
-        } else {
-            return "Inconnue"; // indexeur, trou, réverbération, etc.
         }
+
+        if (couleurLeft.equals("Violet") || couleurRight.equals("Violet")) {
+            if (couleurLeft.equals("Violet")) {
+                capteurDetecteur = "Left";
+                hueDetectee = hueLeft;
+            } else {
+                capteurDetecteur = "Right";
+                hueDetectee = hueRight;
+            }
+            return "Violet";
+        }
+
+        // Aucun capteur n'a détecté de couleur
+        capteurDetecteur = "Aucun";
+        hueDetectee = -1;
+        return "Inconnue";
     }
+
 
     // Fonction auxiliaire : convertit Hue en Vert/Violet/Inconnue
     private String detectHueColor(float hue) {
@@ -396,6 +420,18 @@ public class Indexeur {
         }
 
         this.IndexeurState = nouvelEtat;
+    }
+    // --- Appelé par le TireurManager pour avancer une balle vers le tir ---
+    public void avancerPourTir() {
+        rotationPourAmassage = false;
+        rotationPourTir = true;
+        setEtat(Indexeuretat.AVANCERAPIDETIR);
+    }
+
+    // --- Appelé par le TireurManager pour savoir si l'avance est finie ---
+    public boolean isRotationTerminee() {
+        // On se base sur la logique déjà existante
+        return !rotationEnCours || indexeurPretPourTir();
     }
 
 

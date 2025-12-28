@@ -31,10 +31,16 @@ public class Shooter {
         this.indexeur = indexeur;
         Shooter = hwMap.get(DcMotorEx.class, "Shooter");
         Shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        Shooter.setVelocityPIDFCoefficients(10, 3, 0, 12);
+
         //Test avec deux moteurs
         Shooter2 = hwMap.get(DcMotorEx.class, "Shooter2");
         Shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Shooter2.setDirection(DcMotor.Direction.REVERSE);
+        Shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        Shooter2.setVelocityPIDFCoefficients(10, 3, 0, 12);
 
     }
     public void update() {
@@ -91,6 +97,9 @@ public class Shooter {
             double ticksPerSec = Shooter.getVelocity();
             return (ticksPerSec * 60) / TICKS_PER_REV_6000;
         }
+    public void setIndexeur(Indexeur indexeur) {
+        this.indexeur = indexeur;
+    }
 
 
     }

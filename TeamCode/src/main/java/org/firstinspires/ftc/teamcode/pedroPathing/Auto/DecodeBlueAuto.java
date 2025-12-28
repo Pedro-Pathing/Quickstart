@@ -6,14 +6,32 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.util.Timer;
-
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
+import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 
 @Autonomous (name="bleuFond", group="PedroPathing")
 public class DecodeBlueAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opModeTimer;
+    //private ElapsedTime pathTimer = new ElapsedTime();
+    //private ElapsedTime opModeTimer = new ElapsedTime();
+    private Shooter shooter;
+    private SpinTurret tourelle;
+    private AngleShooter angleShooter;
+    private ServoTireur servoTireur;
+    private Indexeur indexeur;
+    private Intake intake;
+
+    private TireurManager tireurManager;
 
     public enum PathState {
         //Start Position -End Position
@@ -116,21 +134,25 @@ public class DecodeBlueAuto extends OpMode {
                 break;
 
             case PremierTir:
-                ;
-                // check is follow done is path
-                if (!follower.isBusy()){
-                    // TODO add ShooterLogic 3 tirs
-                    telemetry.addLine("Shooting");
-                    // transition to next state
-                    //
+                if (!follower.isBusy()) {
+
+                    // Lancer tir automatique
+                    tireurManager.startTirAuto(
+                            0,   // angle tourelle (exemple)
+                            0.35,  // angle shooter
+                            4500   // RPM
+                    );
+
                     setPathState(PathState.align_RANGEE1Blue);
                 }
                 break;
 
+
             case align_RANGEE1Blue: // On va dans cette etape
                 // check is follow done is path
+                intake.update();
+                indexeur.update();
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>5) {
-                    // TODO add ShooterLogic 3 tirs
                     telemetry.addLine("Done with Shooting 1, deplacement vers premiere rangée");
                     // transition to next state
                     follower.followPath(driveShoot2pickup1Pos , true);
@@ -139,14 +161,44 @@ public class DecodeBlueAuto extends OpMode {
                 break;
 
             case intakeballeRangee1:
-                // check is follow done is path
+
+                // Toujours mettre à jour les systèmes
+                intake.update();
+                indexeur.update();
+
+                // On ne décide de rien tant que le path n'est pas fini
                 if (!follower.isBusy()) {
-                    // TO DO demarer intake , tourner indexeur des dectetion balles)
-                    telemetry.addLine("ramassage terminé");
-                    // transition to next state
-                    follower.followPath(driveAvalerpremiereLigne, true);
-                    setPathState(PathState.DrivedeuxiemeShoot);
+
+                    // Condition normale : 3 balles validées par l'indexeur
+                    if (indexeur.getBalles() >= 3) {
+
+                        telemetry.addLine("ramassage terminé (3 balles)");
+
+                        // 1. Couper l'intake
+                        intake.setIntakeBallTargetRPM(0);
+
+                        // 2. Couper l'indexeur
+                        indexeur.setEtat(Indexeur.Indexeuretat.IDLE);
+
+                        // 3. Lancer le path suivant
+                        follower.followPath(driveAvalerpremiereLigne, true);
+                        setPathState(PathState.DrivedeuxiemeShoot);
+                        break;
+                    }
+
+                    // Optionnel : sécurité si pas 3 balles mais path terminé depuis trop longtemps
+                    if (pathTimer.getElapsedTimeSeconds()> 3.0) {
+                        telemetry.addLine(" ramassage incomplet, on continue quand même");
+
+                        intake.setIntakeBallTargetRPM(0);
+                        indexeur.setEtat(Indexeur.Indexeuretat.IDLE);
+
+                        follower.followPath(driveAvalerpremiereLigne, true);
+                        setPathState(PathState.DrivedeuxiemeShoot);
+                        break;
+                    }
                 }
+
                 break;
 
             case DrivedeuxiemeShoot:
@@ -220,16 +272,38 @@ public class DecodeBlueAuto extends OpMode {
         pathTimer.resetTimer();
 
     }
-
     @Override
-    public void init () {
+    public void init() {
         pathState = PathState.DRIVE_STARTPOSITIONTOSHOOT;
-        pathTimer=new Timer();
+        pathTimer = new Timer();
         opModeTimer = new Timer();
         opModeTimer.resetTimer();
+
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setPose(startPose);
+
+        // --- Initialisation hardware ---
+        shooter = new Shooter();
+        shooter.init(hardwareMap);
+
+        tourelle = new SpinTurret();
+        tourelle.init(hardwareMap);
+
+        angleShooter = new AngleShooter();
+        angleShooter.init(hardwareMap);
+
+        indexeur = new Indexeur();
+        indexeur.init(hardwareMap);
+
+        intake = new Intake(indexeur);
+        intake.init(hardwareMap);
+
+        servoTireur = new ServoTireur(indexeur);
+        servoTireur.init(hardwareMap);
+
+        // --- TireurManager ---
+        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur);
 
     }
 
@@ -242,6 +316,9 @@ public class DecodeBlueAuto extends OpMode {
     public void loop (){
         follower.update();
         statePathUpdate();
+        intake.update();
+        indexeur.update();
+        tireurManager.update();
 
         telemetry.addData("path state", pathState.toString());
         telemetry.addData("x",follower.getPose().getX());

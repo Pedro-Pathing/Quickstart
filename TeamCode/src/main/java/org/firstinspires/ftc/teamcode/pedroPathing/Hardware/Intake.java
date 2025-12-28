@@ -154,6 +154,8 @@ public class Intake {
     public int getScore() { return score; }
     public double getCapteurDistance() { return distSensorIndexeur.getDistance(DistanceUnit.MM);}
     public boolean getBalleDetectee() { return score >= 2; }
+    public boolean isIdle() { return intakeState == Intakeetat.IDLE; }
+
 
 
 }

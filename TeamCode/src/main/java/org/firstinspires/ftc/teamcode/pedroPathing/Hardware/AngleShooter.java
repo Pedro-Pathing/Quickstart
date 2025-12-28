@@ -48,4 +48,11 @@ public class AngleShooter {
         AngleShoot.setPosition(angle);
     }
 
+    // Methode publique utilisable par Tireur Manager
+    public void setAngle(double pos)
+    { AngleShoot.setPosition(pos); }
+    public boolean isAtAngle(double pos)
+    { return Math.abs(AngleShoot.getPosition() - pos) < 0.02; }
+
+
 }

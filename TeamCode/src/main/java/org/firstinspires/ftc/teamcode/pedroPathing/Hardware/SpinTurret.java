@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.Hardware;
 import androidx.annotation.NonNull;
 import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.qualcomm.robotcore.hardware.CRServo;
 
-public class SpintTurret {
+public class SpinTurret {
     private CRServo SpinTourelle;
     private double powerarrettourelle = 0.0;
     private double powertournertourelle =1.0;
@@ -83,5 +82,26 @@ public class SpintTurret {
             SpinTourelle.setPower(power);
         }
     }
+
+    public void allerVersAngle(double angleCible) {
+        double angleActuel = lectureangletourelle();
+        double erreur = angleCible - angleActuel;
+
+        // Petit PID proportionnel simple
+        double kP = 0.01; // à ajuster selon notre robot
+        double power = kP * erreur;
+
+        // Limite la puissance (1 sur servo pour aller plus vite à revoir)
+        power = Math.max(-1, Math.min(power, 1));
+
+        rotationtourelle(power);
+    }
+
+    // Connaitre l'angle de la tourelle
+    public boolean isAtAngle(double angleCible) {
+        return Math.abs(lectureangletourelle() - angleCible) < 2.0;
+    }
+
+
 
 }
