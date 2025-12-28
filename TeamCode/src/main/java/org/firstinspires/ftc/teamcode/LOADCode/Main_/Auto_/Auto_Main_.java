@@ -113,21 +113,11 @@ public class Auto_Main_ extends NextFTCOpMode {
     @Override
     public void onUpdate() {
         if (turretOn){
-            switch (selectedAlliance) {
-                case RED:
-                    telemetry.addData("Aimbot Target", "RED");
-                    Robot.turret.updateAimbot(Robot, true);
-                    break;
-                case BLUE:
-                    telemetry.addData("Aimbot Target", "BLUE");
-                    Robot.turret.updateAimbot(Robot, false);
-                    break;
-            }
+            Robot.turret.updateAimbot(Robot);
+            telemetry.addData("Aimbot Target", selectedAlliance);
         }
-
         Robot.turret.updateFlywheel();
 
-        telemetry.addData("Path", paths.farStart_to_farLeave.endPose());
         telemetry.addLine();
         telemetry.addData("selectedAuto", selectedAuto);
         telemetry.addData("currentPose", Robot.drivetrain.follower.getPose());

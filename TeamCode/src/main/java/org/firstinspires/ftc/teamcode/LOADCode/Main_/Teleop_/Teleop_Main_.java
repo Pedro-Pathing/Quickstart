@@ -48,7 +48,6 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelstate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.Alliance;
 
 
 @Configurable
@@ -260,11 +259,7 @@ public class Teleop_Main_ extends LinearOpMode {
     public void Gamepad2() {
 
         // Turret Aimbot
-        if (selectedAlliance == Alliance.RED) {
-            Robot.turret.updateAimbot(Robot, true);
-        } else if (selectedAlliance == Alliance.BLUE) {
-            Robot.turret.updateAimbot(Robot, false);
-        }
+        Robot.turret.updateAimbot(Robot);
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {

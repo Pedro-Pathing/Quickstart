@@ -111,9 +111,11 @@ public class Intake {
     }
 
     public boolean getTopSensorState(){
+        topSensor.threshold = proximitySensorThreshold;
         return topSensor.objectDetected();
     }
     public boolean getBottomSensorState(){
+        bottomSensor.threshold = proximitySensorThreshold;
         return bottomSensor.objectDetected();
     }
 }

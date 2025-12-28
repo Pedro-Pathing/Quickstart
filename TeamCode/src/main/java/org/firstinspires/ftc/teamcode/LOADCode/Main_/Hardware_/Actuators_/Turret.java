@@ -90,11 +90,10 @@ public class Turret {
     }
 
     /**
-     * @param robot The pose of the robot, gotten from PedroPathing's localization
-     * @param targetRedGoal Set this to true to target the red goal, otherwise targets the blue goal.
+     * @param robot The robot object in that opmode
      */
-    public void updateAimbot(@NonNull LoadHardwareClass robot, boolean targetRedGoal){
-        rotation.setAngle(calcLocalizer(robot.drivetrain.follower.getPose(), targetRedGoal));
+    public void updateAimbot(@NonNull LoadHardwareClass robot){
+        rotation.setAngle(calcLocalizer(robot.drivetrain.follower.getPose(), LoadHardwareClass.selectedAlliance));
     }
 
     public void setGateState(gatestate state){
@@ -136,9 +135,9 @@ public class Turret {
         }
     }
 
-    public double calcLocalizer (Pose robotPose, boolean targetRedGoal){
+    public double calcLocalizer (Pose robotPose, LoadHardwareClass.Alliance alliance){
         Pose goalPose = new Pose(4,140,0);
-        if (targetRedGoal) {goalPose = new Pose(140, 140, 0);}
+        if (alliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
 
         return Math.toDegrees(Math.atan2(
                 goalPose.getY()-robotPose.getY(),

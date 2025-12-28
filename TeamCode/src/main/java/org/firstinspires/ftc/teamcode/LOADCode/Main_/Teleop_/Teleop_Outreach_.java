@@ -75,16 +75,6 @@ public class Teleop_Outreach_ extends LinearOpMode {
                     true
             );
 
-            if (gamepad1.x){
-                //Robot.turret.rotation.setAngle(180);
-            }else{
-                //Robot.turret.rotation.setAngle(Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
-            }
-            telemetry.addData("Target Angle", Robot.turret.calcLocalizer(Robot.drivetrain.follower.getPose(), true));
-            telemetry.addData("Turret Angle", Robot.turret.rotation.getAngleAbsolute());
-            telemetry.addData("Turret Motor Power", Robot.turret.rotation.getPower());
-            telemetry.addLine();
-
             if (gamepad1.dpad_up){
                 Robot.turret.setHood(Robot.turret.getHood() + 2);
             }else if (gamepad1.dpad_down){
