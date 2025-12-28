@@ -303,7 +303,7 @@ public class DecodeBlueAuto extends OpMode {
         servoTireur.init(hardwareMap);
 
         // --- TireurManager ---
-        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur);
+        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake);
 
     }
 

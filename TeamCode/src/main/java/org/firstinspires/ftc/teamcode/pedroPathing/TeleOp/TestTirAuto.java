@@ -36,6 +36,7 @@ public class TestTirAuto extends OpMode {
         private AngleShooter angleShooter;
         private ServoTireur servoTireur;
         private Indexeur indexeur;
+        private Intake intake;
 
         // --- Manager ---
         private TireurManager tireurManager;
@@ -55,6 +56,11 @@ public class TestTirAuto extends OpMode {
             indexeur = new Indexeur();
             indexeur.init(hardwareMap);
 
+
+            intake = new Intake(indexeur);
+            intake.init(hardwareMap);
+            indexeur.setIntake(intake);
+
             shooter = new Shooter();
             shooter.setIndexeur(indexeur);   // ✔️ on passe l’indexeur
             shooter.init(hardwareMap);       // ✔️ on initialise le hardware
@@ -62,10 +68,8 @@ public class TestTirAuto extends OpMode {
 
             servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
             servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
-
-
-            tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur);
-
+            tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake);
+            ;
             telemetry.addLine(">>> Test Tir Auto prêt <<<");
         }
 
@@ -86,16 +90,22 @@ public class TestTirAuto extends OpMode {
             }
 
             lastX = gamepad2.x;
-
             // --- Mise à jour du manager ---
+
+            intake.update();
+            indexeur.update();
             tireurManager.update();
+
 
             // --- Telemetry utile ---
             telemetry.addLine("=== TIR AUTO ===");
-            telemetry.addData("État", tireurManager.getState());
+            telemetry.addData("État tireur manager", tireurManager.getState());
+            telemetry.addData("État indexeur", indexeur.getEtat());
+            telemetry.addData("Etat de l'intake", intake.getEtat());
             telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
             telemetry.addData("Servo pos", servoTireur.getPosition());
             telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
+            telemetry.addData("Nombre de balles", indexeur.getBalles());
             telemetry.update();
         }
     }

@@ -87,21 +87,37 @@ public class SpinTurret {
         double angleActuel = lectureangletourelle();
         double erreur = angleCible - angleActuel;
 
-        // Petit PID proportionnel simple
-        double kP = 0.01; // à ajuster selon notre robot
-        double power = kP * erreur;
+        double absErr = Math.abs(erreur);
+        double power;
 
-        // Limite la puissance (1 sur servo pour aller plus vite à revoir)
-        power = Math.max(-1, Math.min(power, 1));
+        // 1) Fenêtre d'arrêt : on stoppe complètement
+        if (absErr < 7.0) {
+            power = 0.0;  // STOP
+        }
+        // 2) Zone proche : on bouge lentement mais avec un minimum
+        else if (absErr < 10.0) {
+            double minPower = 0.10; //
+            power = Math.signum(erreur) * minPower;
+        }
+        // 3) Zone lointaine : proportionnel normal
+        else {
+            double kP = 0.01;
+            power = kP * erreur;
+            power = Math.max(-0.5, Math.min(power, 1));
+        }
 
         rotationtourelle(power);
     }
 
+
+
     // Connaitre l'angle de la tourelle
     public boolean isAtAngle(double angleCible) {
-        return Math.abs(lectureangletourelle() - angleCible) < 2.0;
+        return Math.abs(lectureangletourelle() - angleCible) < 5.0;
     }
 
-
+    public void stopTourelle() {
+        SpinTourelle.setPower(0);
+    }// blocage servo }
 
 }

@@ -115,8 +115,8 @@ public class TeleOpDecode extends OpMode {
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
-        intake.update();   // très important
-        indexeur.update(); // si tu en as un
+        intake.update();
+        indexeur.update();
 
         telemetry.addData("RPM", intake.getRPM());
         telemetry.addData("DistanceBalle", intake.getCapteurDistance());

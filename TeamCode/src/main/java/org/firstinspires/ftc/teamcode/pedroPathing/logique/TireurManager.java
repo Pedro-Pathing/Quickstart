@@ -6,15 +6,19 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
+
 
 public class TireurManager {
 
     // --- Modules contrôlés ---
     private final Shooter shooter;
+    private boolean tirEnCours = false;
     private final SpinTurret tourelle;
     private final AngleShooter angleShooter;
     private final ServoTireur servoTireur;
     private final Indexeur indexeur;
+    private final Intake intake;
 
     // --- Machine à états ---
     public enum TirState {
@@ -41,13 +45,14 @@ public class TireurManager {
                          SpinTurret tourelle,
                          AngleShooter angleShooter,
                          ServoTireur servoTireur,
-                         Indexeur indexeur) {
+                         Indexeur indexeur, Intake intake) {
 
         this.shooter = shooter;
         this.tourelle = tourelle;
         this.angleShooter = angleShooter;
         this.servoTireur = servoTireur;
         this.indexeur = indexeur;
+        this.intake = intake;
     }
 
     public void update() {
@@ -58,11 +63,16 @@ public class TireurManager {
 
             // --- 1) Shooter spin-up ---
             case SHOOTER_SPINUP:
+                intake.disableRamassage();
                 tourelle.allerVersAngle(angleCibleTourelle);
+                if (!indexeur.isHomingDone()) {
+                    indexeur.lancerHoming();
+                    return; }
 
-                if (shooter.getShooterVelocityRPM() >= vitesseCibleShooter) {
+                if ((shooter.getShooterVelocityRPM() >= vitesseCibleShooter)&&(indexeur.isHomingDone()))
+                {   state = TirState.TURRET_POSITION;
                     timer.reset();
-                    state = TirState.TURRET_POSITION;
+
                 }
                 break;
 
@@ -79,15 +89,17 @@ public class TireurManager {
             // --- 3) Positionnement angle shooter ---
             case ANGLE_POSITION:
                 angleShooter.setAngle(angleCibleShooter);
-
-                if (angleShooter.isAtAngle(angleCibleShooter)) {
-                    timer.reset();
-                    state = TirState.SERVO_PUSH;
-                }
+                state = TirState.SERVO_PUSH;
+                timer.reset();
+                //if (angleShooter.isAtAngle(angleCibleShooter)) {
+                    //timer.reset();
+                    //state = TirState.SERVO_PUSH;
+                //}
                 break;
 
             // --- 4) Pousser la balle ---
             case SERVO_PUSH:
+                tourelle.stopTourelle();
                 servoTireur.push();
 
                 if (timer.milliseconds() > 200) {
@@ -106,8 +118,11 @@ public class TireurManager {
 
                     if (tirsEffectues >= 3) {
                         shooter.setShooterTargetRPM(0);
+                        intake.repriseApresTir();
                         state = TirState.IDLE;
+
                     } else {
+
                         indexeur.avancerPourTir();
                         timer.reset();
                         state = TirState.INDEX_ADVANCE;
@@ -126,8 +141,15 @@ public class TireurManager {
             // --- 7) Petite pause avant tir suivant ---
             case WAIT_AFTER_INDEX:
                 if (timer.milliseconds() > 150) {
-                    timer.reset();
-                    state = TirState.SERVO_PUSH;
+                    tourelle.allerVersAngle(angleCibleTourelle);
+                    if (tourelle.isAtAngle(angleCibleTourelle)) {
+                        timer.reset();
+                        state = TirState.SERVO_PUSH;
+                    }
+                    //tirEnCours = false;
+                    //intake.enableRamassage();
+
+
                 }
                 break;
         }
@@ -135,6 +157,8 @@ public class TireurManager {
 
     // --- Lancer un tir automatique ---
     public void startTirAuto(double angleTourelle, double angleShooter, double vitesseShooter) {
+        intake.arretPourTir();
+        tirEnCours = true;
         this.angleCibleTourelle = angleTourelle;
         this.angleCibleShooter = angleShooter;
         this.vitesseCibleShooter = vitesseShooter;
@@ -148,4 +172,6 @@ public class TireurManager {
     public TirState getState() {
         return state;
     }
+    public boolean isTirEnCours() {
+        return tirEnCours; }
 }

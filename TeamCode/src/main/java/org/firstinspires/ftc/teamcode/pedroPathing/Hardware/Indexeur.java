@@ -407,15 +407,16 @@ public class Indexeur {
 
         // Empêche l’intake d'interrompre le homing
         if (IndexeurState == Indexeuretat.HOMING &&
-                (nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE ||
-                        nouvelEtat == Indexeuretat.AVANCERAPIDETIR)) {
+                nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE) { //||
+                        //nouvelEtat == Indexeuretat.AVANCERAPIDETIR)) {
             return;
         }
 
         // Empêche l’intake de spammer pendant une rotation
         if (rotationEnCours &&
-                (nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE ||
-                        nouvelEtat == Indexeuretat.AVANCERAPIDETIR)) {
+                nouvelEtat == Indexeuretat.AVANCERAPIDEAMASSAGE) //||
+                        //nouvelEtat == Indexeuretat.AVANCERAPIDETIR))
+            {
             return;
         }
 
@@ -433,7 +434,15 @@ public class Indexeur {
         // On se base sur la logique déjà existante
         return !rotationEnCours || indexeurPretPourTir();
     }
-
+    public void forcerHomingTermine() {
+        homingDone = true;
+        IndexeurState = Indexeuretat.IDLE;
+    }
+    public void lancerHoming() {
+        IndexeurState = Indexeuretat.HOMING;
+        homingDemarre = true;
+    }
+    public boolean isHomingDone() { return homingDone; }
 
 }
 

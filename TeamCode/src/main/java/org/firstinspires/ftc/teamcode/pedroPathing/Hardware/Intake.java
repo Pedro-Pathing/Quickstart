@@ -19,6 +19,7 @@ import java.util.Random;
 public class Intake {
 
     private DcMotorEx IntakeBall;
+    private boolean ramassageEnabled = true;
     private ElapsedTime statetimer = new ElapsedTime();
     int seuilcapteurmm = 50;
 
@@ -26,6 +27,7 @@ public class Intake {
         IDLE,
         RAMASSAGE,
         EJECTION,
+        ARRET_POUR_TIR
     }
     private Intakeetat intakeState = Intakeetat.IDLE;
 
@@ -66,7 +68,9 @@ public class Intake {
     public Intake(Indexeur indexeur) { this.indexeur = indexeur; }
 
     public void update() {
+
         int ballcomptage = indexeur.getBalles();
+
 
         switch (intakeState) {
 
@@ -77,8 +81,14 @@ public class Intake {
                     intakeState = Intakeetat.RAMASSAGE;
                 }
                 break;
+            case ARRET_POUR_TIR:
+                setIntakeBallTargetRPM(0);  // moteur arrêté
+                // pas de ramassage, pas de changement d’état
+                break;
+
 
             case RAMASSAGE:
+
                 //
                 setIntakeBallTargetRPM(intake_fast);
 
@@ -158,4 +168,20 @@ public class Intake {
 
 
 
+    public void enableRamassage() {
+        ramassageEnabled = true;
+    }
+
+    public void disableRamassage() {
+        ramassageEnabled = false;
+    }
+    public void arretPourTir() {
+        intakeState = Intakeetat.ARRET_POUR_TIR; }
+
+    public void repriseApresTir() {
+        intakeState = Intakeetat.IDLE; }
+    public Intakeetat getEtat() {
+        return intakeState;
+    }
 }
+
