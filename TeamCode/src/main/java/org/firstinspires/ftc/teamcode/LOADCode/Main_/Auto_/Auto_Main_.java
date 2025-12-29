@@ -6,7 +6,6 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.skeletonarmy.marrow.TimerEx;
-import com.skeletonarmy.marrow.nextftc.RetryCommand;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
@@ -153,17 +152,13 @@ public class Auto_Main_ extends NextFTCOpMode {
           to be run as many times as you want unless the time is
           less than a given amount
          */
-        return new RetryCommand(
-                new SequentialGroup(
-                        Commands.runPath(paths.farStart_to_farPreload,true,0.6),
-                        Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
-                        Commands.runPath(paths.farShoot_to_midPreload, true, 0.6),
-                        Commands.runPath(paths.midPreload_to_midShoot, true, 0.6),
-                        Commands.runPath(paths.midShoot_to_nearPreload, true, 0.6),
-                        Commands.runPath(paths.nearPreload_to_nearShoot, true, 0.6)
-                ),
-                () -> time.isLessThan(5),
-                10
+        return new SequentialGroup(
+                Commands.runPath(paths.farStart_to_farPreload,true,0.6),
+                Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
+                Commands.runPath(paths.farShoot_to_midPreload, true, 0.6),
+                Commands.runPath(paths.midPreload_to_midShoot, true, 0.6),
+                Commands.runPath(paths.midShoot_to_nearPreload, true, 0.6),
+                Commands.runPath(paths.nearPreload_to_nearShoot, true, 0.6)
         );
     }
 }
