@@ -119,6 +119,10 @@ public class Teleop_Main_ extends LinearOpMode {
 
             telemetry.addData("SpeedMult", Robot.drivetrain.speedMultiplier);
             telemetry.addLine();
+            //positional telemetry
+            telemetry.addData("X Position: ", Robot.drivetrain.follower.getPose().getX());
+            telemetry.addData("Y Position: ", Robot.drivetrain.follower.getPose().getY());
+            telemetry.addLine();
             // Turret-related Telemetry
             panelsTelemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
             panelsTelemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());

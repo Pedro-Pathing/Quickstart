@@ -155,7 +155,12 @@ public class Auto_Main_ extends NextFTCOpMode {
          */
         return new RetryCommand(
                 new SequentialGroup(
-
+                        Commands.runPath(paths.farStart_to_farPreload,true,0.6),
+                        Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
+                        Commands.runPath(paths.farShoot_to_midPreload, true, 0.6),
+                        Commands.runPath(paths.midPreload_to_midShoot, true, 0.6),
+                        Commands.runPath(paths.midShoot_to_nearPreload, true, 0.6),
+                        Commands.runPath(paths.nearPreload_to_nearShoot, true, 0.6)
                 ),
                 () -> time.isLessThan(5),
                 10

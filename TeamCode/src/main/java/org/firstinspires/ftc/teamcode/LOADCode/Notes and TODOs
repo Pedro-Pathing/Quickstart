@@ -22,10 +22,10 @@
 
 
 
-//1. TODO, test the auto paths used in the generic autos
+//1. TODO, test the auto paths used in the generic autos                         - ARI WORKING ON IT!
 //2. TODO, create two generic autos for testing and competition
 //3. TODO, test the turret rotation autoaim with shooting
 //4. TODO, establish static (non-changing) flywheel speeds for near/far zones
 //5. TODO, make hood autoaim using InterpLUT
 //6. TODO, test turret hood and rotation autoaim together
-//7. TODO, test turret autoaim with the generic autos
+//7. TODO, test turret autoaim with the generic autos                            - ADD THE TURRET CONTROL FUNCTIONALITY TO COMMANDS
