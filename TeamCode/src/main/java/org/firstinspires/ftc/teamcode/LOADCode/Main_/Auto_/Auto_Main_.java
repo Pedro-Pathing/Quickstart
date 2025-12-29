@@ -10,17 +10,12 @@ import com.skeletonarmy.marrow.nextftc.RetryCommand;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import dev.nextftc.core.commands.Command;
-import dev.nextftc.core.commands.delays.Delay;
-import dev.nextftc.core.commands.delays.WaitUntil;
-import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
@@ -133,21 +128,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         turretOn = true;
         startPose = paths.farStart;
         return new SequentialGroup(
-                new ParallelGroup(
-                        // Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
-                        new Delay(5)
-                ),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
-                new Delay(2),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.INTAKING),
-                new Delay(1),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
-                new Delay(2),
-                Commands.setTransferState(Robot, Intake.transferState.UP),
-                new Delay(1),
-                Commands.setTransferState(Robot, Intake.transferState.DOWN),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.OFF),
-                Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
+                Commands.shootBalls(Robot),
                 Commands.runPath(paths.farStart_to_farLeave, true, 0.6)
         );
     }
@@ -161,22 +142,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         turretOn = true;
         startPose = paths.nearStart;
         return new SequentialGroup(
-                Commands.setFlywheelState(Robot, Turret.flywheelstate.ON),
-                new ParallelGroup(
-                        new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.flywheelSpeed),
-                        new Delay(5)
-                ),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
-                new Delay(2),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.INTAKING),
-                new Delay(1),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.SHOOTING),
-                new Delay(2),
-                Commands.setTransferState(Robot, Intake.transferState.UP),
-                new Delay(1),
-                Commands.setTransferState(Robot, Intake.transferState.DOWN),
-                Commands.setIntakeMode(Robot, Intake.intakeMode.OFF),
-                Commands.setFlywheelState(Robot, Turret.flywheelstate.OFF),
+                Commands.shootBalls(Robot),
                 Commands.runPath(paths.nearShoot_to_nearLeave, true, 0.6)
         );
     }
