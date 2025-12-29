@@ -22,6 +22,7 @@ import com.pedropathing.math.*;
 import com.pedropathing.paths.*;
 import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.*;
+import static com.pedropathing.math.MathFunctions.quadraticFit;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -856,7 +857,7 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case DONE: {
-                double[] coeffs = MathFunctions.QuadraticRegression.quadraticFit(data);
+                double[] coeffs = quadraticFit(data);
 
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("kFriction (kQ)", coeffs[1]);
