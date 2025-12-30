@@ -13,7 +13,6 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
@@ -21,27 +20,20 @@ import dev.nextftc.ftc.NextFTCOpMode;
 @Autonomous(name = "Auto_Main_", group = "Main", preselectTeleOp="Teleop_Main_")
 public class Auto_Main_ extends NextFTCOpMode {
 
-    // Define other PedroPathing constants
-    private Pose startPose = new Pose(87, 8.8, Math.toRadians(90)); // Start Pose of our robot.
-
-    private enum Auto {
-        LEAVE_NEAR_LAUNCH,
-        LEAVE_FAR_HP,
-        TEST_AUTO
-    }
-
+    // Variable to store the selected auto program
     private Auto selectedAuto = null;
-    private boolean turretOn = true;
-
     // Create the prompter object for selecting Alliance and Auto
     Prompter prompter = null;
-
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
     // Create a Paths object for accessing modular auto paths
     Pedro_Paths paths = new Pedro_Paths();
     // Create a Commands object for auto creation
     Commands Commands = new Commands(Robot);
+
+    // Auto parameter variables
+    private boolean turretOn = true;
+    private Pose startPose = paths.farStart; // Start Pose of our robot.
 
     public Auto_Main_() {
         addComponents(
@@ -59,15 +51,15 @@ public class Auto_Main_ extends NextFTCOpMode {
                 ));
         prompter.prompt("auto",
                 new OptionPrompt<>("Select Auto",
-                        Auto.LEAVE_NEAR_LAUNCH,
-                        Auto.LEAVE_FAR_HP,
-                        Auto.TEST_AUTO
+                        new Leave_Far_HP(),
+                        new Leave_Near_Launch(),
+                        new test_Auto()
                 ));
         prompter.onComplete(() -> {
                     selectedAlliance = prompter.get("alliance");
                     selectedAuto = prompter.get("auto");
                     telemetry.addData("Selection", "Complete");
-                    telemetry.addData("Alliance", selectedAlliance);
+                    telemetry.addData("Alliance", selectedAlliance.toString());
                     telemetry.addData("Auto", selectedAuto);
                     telemetry.update();
                 }
@@ -83,22 +75,13 @@ public class Auto_Main_ extends NextFTCOpMode {
     public void onStartButtonPressed() {
         // Build paths
         paths.buildPaths(selectedAlliance, follower());
-        // Schedule the proper auto
-        switch (selectedAuto) {
-            case LEAVE_NEAR_LAUNCH:
-                Leave_Near_Launch().schedule();
-                break;
-            case LEAVE_FAR_HP:
-                Leave_Far_HP().schedule();
-                break;
-            case TEST_AUTO:
-                test_Auto().schedule();
-                break;
-        }
         // Initialize all hardware of the robot
         Robot.init(startPose, follower());
+        // Schedule the proper auto
+        selectedAuto.runAuto();
 
-        telemetry.addData("Initialized", "");
+        // Indicate that initialization is done
+        telemetry.addLine("Initialized");
         telemetry.update();
     }
 
@@ -117,48 +100,79 @@ public class Auto_Main_ extends NextFTCOpMode {
     }
 
     /**
-     * This auto starts at the far zone,
-     * shoots it's preloads after 5 seconds,
-     * and goes to the leave zone next to the human player zone.
+     * This class serves as a template for all auto programs. </br>
+     * The methods runAuto() and ToString() must be overridden for each auto.
      */
-    private Command Leave_Far_HP() {
-        turretOn = true;
-        startPose = paths.farStart;
-        return new SequentialGroup(
-                Commands.shootBalls(),
-                Commands.runPath(paths.farStart_to_farLeave, true, 0.6)
-        );
+    private static class Auto{
+        /** Override this to schedule the auto command*/
+        public void runAuto(){}
+        /** Override this to return the name of the auto*/
+        @SuppressWarnings("unused")
+        public String ToString(){return "<Placeholder Auto Name>";}
     }
 
     /**
-     * This auto starts at the near zone,
-     * shoots it's preloads after 5 seconds,
+     * This auto starts at the far zone, shoots it's preloads, </br>
+     * and goes to the leave zone next to the human player zone.
+     */
+    private class Leave_Far_HP extends Auto{
+        Leave_Far_HP(){
+            turretOn = true;
+            startPose = paths.farStart;
+        }
+
+        @Override
+        public void runAuto(){
+            new SequentialGroup(
+                    Commands.shootBalls(),
+                    Commands.runPath(paths.farStart_to_farLeave, true, 0.6)
+            ).schedule();
+        }
+
+        @Override
+        public String ToString(){return "Shoot Far Preloads";}
+    }
+    /**
+     * This auto starts at the near zone, shoots it's preloads, </br>
      * and goes to the leave pose that is in the launch zone.
      */
-    private Command Leave_Near_Launch() {
-        turretOn = true;
-        startPose = paths.nearStart;
-        return new SequentialGroup(
-                Commands.shootBalls(),
-                Commands.runPath(paths.nearShoot_to_nearLeave, true, 0.6)
-        );
+    private class Leave_Near_Launch extends Auto{
+        Leave_Near_Launch(){
+            turretOn = true;
+            startPose = paths.nearStart;
+        }
+
+        @Override
+        public void runAuto(){
+            new SequentialGroup(
+                    Commands.shootBalls(),
+                    Commands.runPath(paths.nearStart_to_nearLeave, true, 0.6)
+            ).schedule();
+        }
+
+        @Override
+        public String ToString(){return "Shoot Near Preloads";}
     }
 
-    private Command test_Auto(){
-        /*
-         This RetryCommand allows for a command/set of commands
-          to be run as many times as you want unless the time is
-          less than a given amount
-         */
-        turretOn = false;
-        startPose = paths.farStart;
-        return new SequentialGroup(
-                Commands.runPath(paths.farStart_to_farPreload,true,0.6),
-                Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
-                Commands.runPath(paths.farShoot_to_midPreload, true, 0.6),
-                Commands.runPath(paths.midPreload_to_midShoot, true, 0.6),
-                Commands.runPath(paths.midShoot_to_nearPreload, true, 0.6),
-                Commands.runPath(paths.nearPreload_to_nearShoot, true, 0.6)
-        );
+    private class test_Auto extends Auto{
+        test_Auto(){
+            turretOn = false;
+            startPose = paths.farStart;
+        }
+
+        @Override
+        public void runAuto(){
+            new SequentialGroup(
+                    Commands.runPath(paths.farStart_to_farPreload,true,0.6),
+                    Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
+                    Commands.runPath(paths.farShoot_to_midPreload, true, 0.6),
+                    Commands.runPath(paths.midPreload_to_midShoot, true, 0.6),
+                    Commands.runPath(paths.midShoot_to_nearPreload, true, 0.6),
+                    Commands.runPath(paths.nearPreload_to_nearShoot, true, 0.6)
+            ).schedule();
+        }
+
+        @Override
+        public String ToString(){return "Test Auto";}
     }
 }
