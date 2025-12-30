@@ -21,7 +21,7 @@ import dev.nextftc.ftc.NextFTCOpMode;
 public class Auto_Main_ extends NextFTCOpMode {
 
     // Variable to store the selected auto program
-    private Auto selectedAuto = null;
+    Auto selectedAuto = null;
     // Create the prompter object for selecting Alliance and Auto
     Prompter prompter = null;
     // Create a new instance of our Robot class
@@ -35,6 +35,7 @@ public class Auto_Main_ extends NextFTCOpMode {
     private boolean turretOn = true;
     private Pose startPose = paths.farStart; // Start Pose of our robot.
 
+    @SuppressWarnings("unused")
     public Auto_Main_() {
         addComponents(
                 new PedroComponent(Constants::createFollower)
@@ -87,6 +88,8 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     @Override
     public void onUpdate() {
+        telemetry.addData("Running Auto", selectedAuto.toString());
+        telemetry.addLine();
         if (turretOn){
             Robot.turret.updateAimbot(Robot);
             telemetry.addData("Aimbot Target", selectedAlliance);
@@ -94,8 +97,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         Robot.turret.updateFlywheel();
 
         telemetry.addLine();
-        telemetry.addData("selectedAuto", selectedAuto);
-        telemetry.addData("currentPose", Robot.drivetrain.follower.getPose());
+        telemetry.addData("Current Robot Pose", Robot.drivetrain.follower.getPose());
         telemetry.update();
     }
 
@@ -103,22 +105,34 @@ public class Auto_Main_ extends NextFTCOpMode {
      * This class serves as a template for all auto programs. </br>
      * The methods runAuto() and ToString() must be overridden for each auto.
      */
-    private static class Auto{
-        /** Override this to schedule the auto command*/
-        public void runAuto(){}
-        /** Override this to return the name of the auto*/
-        @SuppressWarnings("unused")
-        public String ToString(){return "<Placeholder Auto Name>";}
-    }
+    abstract class Auto{
+        /**
+         * This constructor must be called from the child class using <code>super()</code>
+         * @param startingPose Indicates the starting pose of the robot
+         * @param runTurret Indicates whether to run the turret auto aim functions
+         */
+        Auto(Pose startingPose, Boolean runTurret){
+            turretOn = runTurret;
+            startPose = startingPose;
+        }
+        Auto(Pose startingPose){
+            turretOn = true;
+            startPose = startingPose;
+        }
 
+        /** Override this to schedule the auto command*/
+        abstract void runAuto();
+        /** Override this to rename the auto*/
+        @SuppressWarnings("unused")
+        abstract String ToString();
+    }
     /**
      * This auto starts at the far zone, shoots it's preloads, </br>
      * and goes to the leave zone next to the human player zone.
      */
     private class Leave_Far_HP extends Auto{
         Leave_Far_HP(){
-            turretOn = true;
-            startPose = paths.farStart;
+            super(paths.farStart);
         }
 
         @Override
@@ -138,8 +152,7 @@ public class Auto_Main_ extends NextFTCOpMode {
      */
     private class Leave_Near_Launch extends Auto{
         Leave_Near_Launch(){
-            turretOn = true;
-            startPose = paths.nearStart;
+            super(paths.nearStart, true);
         }
 
         @Override
@@ -156,8 +169,7 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     private class test_Auto extends Auto{
         test_Auto(){
-            turretOn = false;
-            startPose = paths.farStart;
+            super(paths.farStart, false);
         }
 
         @Override
