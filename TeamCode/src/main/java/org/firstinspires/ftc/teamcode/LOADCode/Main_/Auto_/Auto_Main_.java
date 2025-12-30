@@ -125,7 +125,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         turretOn = true;
         startPose = paths.farStart;
         return new SequentialGroup(
-                Commands.shootBalls(Robot),
+                Commands.shootBalls(),
                 Commands.runPath(paths.farStart_to_farLeave, true, 0.6)
         );
     }
@@ -139,7 +139,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         turretOn = true;
         startPose = paths.nearStart;
         return new SequentialGroup(
-                Commands.shootBalls(Robot),
+                Commands.shootBalls(),
                 Commands.runPath(paths.nearShoot_to_nearLeave, true, 0.6)
         );
     }

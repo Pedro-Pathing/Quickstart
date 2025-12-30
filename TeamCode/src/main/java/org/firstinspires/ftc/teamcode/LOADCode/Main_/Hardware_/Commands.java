@@ -67,7 +67,7 @@ public class Commands {
         );
     }
 
-    public Command shootBalls(LoadHardwareClass Robot){
+    public Command shootBalls(){
         return new SequentialGroup(
                 // Ensure the flywheel is up to speed, if not, spin up first
                 setFlywheelState(Turret.flywheelstate.ON),
