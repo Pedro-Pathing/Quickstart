@@ -174,13 +174,14 @@ public class Auto_Main_ extends NextFTCOpMode {
 
         @Override
         public void runAuto(){
+            double tempSpeed = 1;
             new SequentialGroup(
-                    Commands.runPath(paths.farStart_to_farPreload,true,0.6),
-                    Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
-                    Commands.runPath(paths.farShoot_to_midPreload, true, 0.6),
-                    Commands.runPath(paths.midPreload_to_midShoot, true, 0.6),
-                    Commands.runPath(paths.midShoot_to_nearPreload, true, 0.6),
-                    Commands.runPath(paths.nearPreload_to_nearShoot, true, 0.6)
+                    Commands.runPath(paths.farStart_to_farPreload,true,tempSpeed),
+                    Commands.runPath(paths.farPreload_to_farShoot,true,tempSpeed),
+                    Commands.runPath(paths.farShoot_to_midPreload, true, tempSpeed),
+                    Commands.runPath(paths.midPreload_to_midShoot, true, tempSpeed),
+                    Commands.runPath(paths.midShoot_to_nearPreload, true, tempSpeed),
+                    Commands.runPath(paths.nearPreload_to_nearShoot, true, tempSpeed)
             ).schedule();
         }
 
