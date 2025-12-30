@@ -16,19 +16,18 @@ import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.drivetrains.Mecanum;
 import com.pedropathing.geometry.*;
 import com.pedropathing.math.*;
 import com.pedropathing.paths.*;
 import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.*;
 import static com.pedropathing.math.MathFunctions.quadraticFit;
+
+import android.annotation.SuppressLint;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import com.pedropathing.math.MathFunctions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -750,18 +749,30 @@ class PredictiveBrakingTuner extends OpMode {
         RECORD,
         DONE
     }
+    
+    private static class BrakeRecord {
+        double timeMs;
+        Pose pose;
+        double velocity;
+        
+        BrakeRecord(double timeMs, Pose pose, double velocity) {
+            this.timeMs = timeMs;
+            this.pose = pose;
+            this.velocity = velocity;
+        }
+    }
 
     private State state = State.START_MOVE;
 
-    private ElapsedTime timer = new ElapsedTime();
+    private final ElapsedTime timer = new ElapsedTime();
 
     private int iteration = 0;
-    private double currentPower;
-
+    
     private Vector startPosition;
     private double measuredVelocity;
 
-    private final List<double[]> data = new ArrayList<>();
+    private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
+    private final List<BrakeRecord> brakeData = new ArrayList<>();
 
     @Override
     public void init() {}
@@ -781,11 +792,11 @@ class PredictiveBrakingTuner extends OpMode {
     @Override
     public void start() {
         timer.reset();
-//        follower.usePredictiveBraking();
         follower.update();
         follower.startTeleOpDrive(true);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void loop() {
         follower.update();
@@ -802,8 +813,8 @@ class PredictiveBrakingTuner extends OpMode {
                     state = State.DONE;
                     break;
                 }
-
-                currentPower = TEST_POWERS[iteration];
+                
+                double currentPower = TEST_POWERS[iteration];
                 follower.setMaxPower(currentPower);
                 if (iteration % 2 != 0) {
                     follower.setTeleOpDrive(-1, 0, 0, true);
@@ -834,7 +845,13 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case WAIT_BRAKE_TIME: {
-                if (timer.milliseconds() >= BRAKE_WAIT_MS || follower.getVelocity().getMagnitude() <= .1) {
+                double t = timer.milliseconds();
+                Pose currentPose = follower.getPose();
+                double currentVelocity = follower.getVelocity().getMagnitude();
+                
+                brakeData.add(new BrakeRecord(t, currentPose, currentVelocity));
+                
+                if (timer.milliseconds() >= BRAKE_WAIT_MS || follower.getVelocity().getMagnitude() <= .05) {
                     state = State.RECORD;
                 }
                 break;
@@ -844,10 +861,10 @@ class PredictiveBrakingTuner extends OpMode {
                 Vector endPosition = follower.getPose().getAsVector();
                 double brakingDistance = endPosition.minus(startPosition).getMagnitude();
 
-                data.add(new double[]{measuredVelocity, brakingDistance});
+                velocityToBrakingDistance.add(new double[]{measuredVelocity, brakingDistance});
 
                 telemetryM.debug("Test " + iteration,
-                        stringify(measuredVelocity, brakingDistance));
+                                 String.format("v=%.3f  d=%.3f", (measuredVelocity, brakingDistance);
                 telemetryM.update(telemetry);
 
                 iteration++;
@@ -857,11 +874,21 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case DONE: {
-                double[] coeffs = quadraticFit(data);
+                double[] coefficients = quadraticFit(velocityToBrakingDistance);
 
                 telemetryM.debug("Tuning Complete");
-                telemetryM.debug("kFriction (kQ)", coeffs[1]);
-                telemetryM.debug("kBraking (kD)", coeffs[0]);
+                telemetryM.debug("Braking Profile:");
+                for (BrakeRecord record : brakeData) {
+                    Pose p = record.pose;
+                    telemetryM.debug(String.format("t=%.0f ms, x=%.2f, y=%.2f, θ=%.2f, v=%.2f",
+                                                   record.timeMs, p.getX(), p.getY(),
+                                                   p.getHeading(),
+                                                   record.velocity));
+                }
+                
+                telemetryM.update(telemetry);
+                telemetryM.debug("kQuadraticFriction", coefficients[1]);
+                telemetryM.debug("kLinearBraking", coefficients[0]);
                 telemetryM.update(telemetry);
 
                 break;
@@ -869,10 +896,6 @@ class PredictiveBrakingTuner extends OpMode {
         }
 
         telemetry.update();
-    }
-
-    private String stringify(double v, double d) {
-        return String.format("v=%.3f  d=%.3f", v, d);
     }
 }
 
