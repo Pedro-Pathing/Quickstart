@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.LOADCode.Main_.Auto_;
 import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
 import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
+import androidx.annotation.NonNull;
+
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
@@ -123,8 +125,9 @@ public class Auto_Main_ extends NextFTCOpMode {
         /** Override this to schedule the auto command*/
         abstract void runAuto();
         /** Override this to rename the auto*/
-        @SuppressWarnings("unused")
-        abstract String ToString();
+        @NonNull
+        @Override
+        public abstract String toString();
     }
     /**
      * This auto starts at the far zone, shoots it's preloads, </br>
@@ -143,8 +146,9 @@ public class Auto_Main_ extends NextFTCOpMode {
             ).schedule();
         }
 
+        @NonNull
         @Override
-        public String ToString(){return "Shoot Far Preloads";}
+        public String toString(){return "Shoot Far Preloads";}
     }
     /**
      * This auto starts at the near zone, shoots it's preloads, </br>
@@ -163,8 +167,9 @@ public class Auto_Main_ extends NextFTCOpMode {
             ).schedule();
         }
 
+        @NonNull
         @Override
-        public String ToString(){return "Shoot Near Preloads";}
+        public String toString(){return "Shoot Near Preloads";}
     }
 
     private class test_Auto extends Auto{
@@ -185,7 +190,8 @@ public class Auto_Main_ extends NextFTCOpMode {
             ).schedule();
         }
 
+        @NonNull
         @Override
-        public String ToString(){return "Test Auto";}
+        public String toString(){return "Test Auto";}
     }
 }
