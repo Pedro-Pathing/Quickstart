@@ -740,7 +740,7 @@ class PredictiveBrakingTuner extends OpMode {
             {1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2};
 
     private static final int DRIVE_TIME_MS = 1000;
-    private static final int BRAKE_WAIT_MS = 2000;
+    private static final int BRAKE_WAIT_MS = 500;
 
     private enum State {
         START_MOVE,
@@ -834,7 +834,7 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case WAIT_BRAKE_TIME: {
-                if (timer.milliseconds() >= BRAKE_WAIT_MS) {
+                if (timer.milliseconds() >= BRAKE_WAIT_MS || follower.getVelocity().getMagnitude() <= .1) {
                     state = State.RECORD;
                 }
                 break;
