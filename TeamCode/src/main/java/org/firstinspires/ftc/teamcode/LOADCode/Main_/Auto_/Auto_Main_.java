@@ -5,7 +5,6 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.skeletonarmy.marrow.TimerEx;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
@@ -37,13 +36,12 @@ public class Auto_Main_ extends NextFTCOpMode {
     // Create the prompter object for selecting Alliance and Auto
     Prompter prompter = null;
 
-    // Create a TimerEx object for time tracking
-    TimerEx time = new TimerEx(30);
-
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
     // Create a Paths object for accessing modular auto paths
     Pedro_Paths paths = new Pedro_Paths();
+    // Create a Commands object for auto creation
+    Commands Commands = new Commands(Robot);
 
     public Auto_Main_() {
         addComponents(
@@ -152,6 +150,8 @@ public class Auto_Main_ extends NextFTCOpMode {
           to be run as many times as you want unless the time is
           less than a given amount
          */
+        turretOn = false;
+        startPose = paths.farStart;
         return new SequentialGroup(
                 Commands.runPath(paths.farStart_to_farPreload,true,0.6),
                 Commands.runPath(paths.farPreload_to_farShoot,true,0.6),
