@@ -738,8 +738,8 @@ class PredictiveBrakingTuner extends OpMode {
     private static final double[] TEST_POWERS =
             {1, 1, 1, 0.9, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2};
 
-    private static final int DRIVE_TIME_MS = 1000;
-    private static final int BRAKE_WAIT_MS = 500;
+    private static final int DRIVE_TIME_MS = 2000;
+    private static final int BRAKE_WAIT_MS = 1000;
 
     private enum State {
         START_MOVE,
