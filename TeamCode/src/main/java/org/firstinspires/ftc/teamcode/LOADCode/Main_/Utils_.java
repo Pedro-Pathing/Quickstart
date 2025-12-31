@@ -9,7 +9,8 @@ public class Utils_ {
     /**
      * Performs spline interpolation given a set of control points.
      */
-    public class InterpLUT {
+    @SuppressWarnings("all")
+    public static class InterpLUT {
 
         private List<Double> mX = new ArrayList<>();
         private List<Double> mY = new ArrayList<>();

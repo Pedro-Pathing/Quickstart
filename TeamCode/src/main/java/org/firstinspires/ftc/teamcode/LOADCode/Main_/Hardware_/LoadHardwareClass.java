@@ -90,7 +90,7 @@ public class LoadHardwareClass {
     public void init(Pose initialPose)    {
         // Initialize all subclasses
         drivetrain.init(myOpMode, initialPose);
-        turret.init(myOpMode);
+        turret.init(myOpMode, this);
         intake.init(myOpMode);
 
         // Misc telemetry
@@ -105,7 +105,7 @@ public class LoadHardwareClass {
     public void init(Pose initialPose, Follower follower)    {
         // Initialize all subclasses
         drivetrain.init(myOpMode, initialPose, follower);
-        turret.init(myOpMode);
+        turret.init(myOpMode, this);
         intake.init(myOpMode);
 
         // Misc telemetry

@@ -93,7 +93,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         telemetry.addData("Running Auto", selectedAuto.toString());
         telemetry.addLine();
         if (turretOn){
-            Robot.turret.updateAimbot(Robot);
+            Robot.turret.updateAimbot();
             telemetry.addData("Aimbot Target", selectedAlliance);
         }
         Robot.turret.updateFlywheel();

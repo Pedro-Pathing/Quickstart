@@ -55,8 +55,8 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass
 public class Teleop_Main_ extends LinearOpMode {
 
     // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
-    private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+    private final ElapsedTime runtime = new ElapsedTime();
+    private final TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     // Variables for storing data for the second gamepad controls
     public static double DylanStickDeadzones = 0.2;
@@ -263,7 +263,7 @@ public class Teleop_Main_ extends LinearOpMode {
     public void Gamepad2() {
 
         // Turret Aimbot
-        Robot.turret.updateAimbot(Robot);
+        Robot.turret.updateAimbot();
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
