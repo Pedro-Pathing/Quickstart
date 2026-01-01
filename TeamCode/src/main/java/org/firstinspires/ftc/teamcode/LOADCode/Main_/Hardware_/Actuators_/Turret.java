@@ -119,6 +119,14 @@ public class Turret {
         if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
         //setHood(hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)));
     }
+    public void updateAimbotWithVelocity(){
+        // Set the turret rotation
+        rotation.setAngle(calcLocalizer(), Math.toDegrees(Robot.drivetrain.follower.getAngularVelocity()));
+        // Set the hood angle
+        Pose goalPose = new Pose(4,140,0);
+        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
+        //setHood(hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)));
+    }
 
     /**
      * Sets the state of the turret gate.

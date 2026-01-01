@@ -206,7 +206,7 @@ public class Devices {
         /**
          * Uses a PID controller to move the motor to the desired position.
          * Must be called every loop to function properly.
-         * @param angle The angle in degrees to move the motor to. Can be any number.
+         * @param angle The angle in degrees to move the motor to. Can be any number. </br>
          */
         public void setAngle(double angle){
             setAngle(angle, 0);
@@ -215,7 +215,7 @@ public class Devices {
          * Uses a PID controller to move the motor to the desired position.
          * Must be called every loop to function properly.
          * @param angle The angle in degrees to move the motor to. Can be any number.
-         * @param velocity The velocity the motor should be spinning at when it reaches the target point
+         * @param velocity The velocity in degrees/sec that the motor should be spinning at when it reaches the target point.
          */
         public void setAngle(double angle, double velocity){
             target = angle;
