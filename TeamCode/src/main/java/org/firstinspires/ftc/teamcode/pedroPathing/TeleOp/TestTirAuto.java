@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
@@ -38,6 +40,9 @@ public class TestTirAuto extends OpMode {
         private Indexeur indexeur;
         private Intake intake;
 
+        private AfficheurLeft afficheurLeft;
+        private AfficheurRight afficheurRight;
+
         // --- Manager ---
         private TireurManager tireurManager;
 
@@ -56,8 +61,14 @@ public class TestTirAuto extends OpMode {
             indexeur = new Indexeur();
             indexeur.init(hardwareMap);
 
+            afficheurLeft = new AfficheurLeft();
+            afficheurLeft.init(hardwareMap);
 
-            intake = new Intake(indexeur);
+            afficheurRight = new AfficheurRight();
+            afficheurRight.init(hardwareMap);
+
+
+            intake = new Intake(indexeur, afficheurLeft);
             intake.init(hardwareMap);
             indexeur.setIntake(intake);
 
@@ -68,7 +79,7 @@ public class TestTirAuto extends OpMode {
 
             servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
             servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
-            tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake);
+            tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
             ;
             telemetry.addLine(">>> Test Tir Auto prêt <<<");
         }
@@ -82,11 +93,11 @@ public class TestTirAuto extends OpMode {
             if (gamepad2.x && !lastX) {
 
                 // Exemple : tir droit devant
-                double angleTourelle = -30;      // à adapter
+                double angleTourelle = 0;      // à adapter
                 double angleShooter = 15;      // à adapter
-                double vitesseShooter = 500;  // à adapter
+                double vitesseShooter = 5100;  // à adapter
 
-                tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
+                tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter, afficheurRight);
             }
 
             lastX = gamepad2.x;

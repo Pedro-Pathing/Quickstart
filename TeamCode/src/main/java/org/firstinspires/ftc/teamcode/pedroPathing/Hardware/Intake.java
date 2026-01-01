@@ -19,6 +19,7 @@ import java.util.Random;
 public class Intake {
 
     private DcMotorEx IntakeBall;
+    private AfficheurLeft afficheurLeft;
     private boolean ramassageEnabled = true;
     private ElapsedTime statetimer = new ElapsedTime();
     int seuilcapteurmm = 50;
@@ -65,11 +66,22 @@ public class Intake {
         distSensorIndexeur = hwMap.get(Rev2mDistanceSensor.class, "DistSensorIndexeur");
     }
 
-    public Intake(Indexeur indexeur) { this.indexeur = indexeur; }
+    public Intake(Indexeur indexeur, AfficheurLeft afficheurLeft) {
+        this.indexeur = indexeur;
+        this.afficheurLeft = afficheurLeft;}
 
     public void update() {
 
         int ballcomptage = indexeur.getBalles();
+        boolean intakeEnMarche = (intakeState == Intakeetat.RAMASSAGE);
+        if (intakeEnMarche) {
+            afficheurLeft.setClignoteOrange();
+        } else {
+            afficheurLeft.setIdle();
+        }
+
+        afficheurLeft.update();
+
 
 
         switch (intakeState) {

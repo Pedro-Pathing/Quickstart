@@ -10,6 +10,8 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 
@@ -30,12 +32,17 @@ public class TeleOpDecode extends OpMode {
     private Intake intake;
     private Indexeur indexeur;
 
+    private AfficheurLeft afficheurLeft;
+
     @Override
     public void init() {
         indexeur = new Indexeur();
         indexeur.init(hardwareMap);
 
-        intake = new Intake(indexeur);
+        afficheurLeft = new AfficheurLeft();
+        afficheurLeft.init(hardwareMap);
+
+        intake = new Intake(indexeur, afficheurLeft);
         intake.init(hardwareMap);
         indexeur.setIntake(intake);
 

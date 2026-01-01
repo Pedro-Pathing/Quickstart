@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.util.Timer;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
@@ -30,6 +33,10 @@ public class DecodeBlueAuto extends OpMode {
     private ServoTireur servoTireur;
     private Indexeur indexeur;
     private Intake intake;
+
+    private AfficheurLeft afficheurLeft;
+    private AfficheurRight afficheurRight;
+
 
     private TireurManager tireurManager;
 
@@ -283,6 +290,7 @@ public class DecodeBlueAuto extends OpMode {
         buildPaths();
         follower.setPose(startPose);
 
+
         // --- Initialisation hardware ---
         shooter = new Shooter();
         shooter.init(hardwareMap);
@@ -296,14 +304,20 @@ public class DecodeBlueAuto extends OpMode {
         indexeur = new Indexeur();
         indexeur.init(hardwareMap);
 
-        intake = new Intake(indexeur);
+        afficheurLeft = new AfficheurLeft();
+        afficheurLeft.init(hardwareMap);
+
+        afficheurRight = new AfficheurRight();
+        afficheurRight.init(hardwareMap);
+
+        intake = new Intake(indexeur, afficheurLeft);
         intake.init(hardwareMap);
 
         servoTireur = new ServoTireur(indexeur);
         servoTireur.init(hardwareMap);
 
         // --- TireurManager ---
-        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake);
+        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
 
     }
 

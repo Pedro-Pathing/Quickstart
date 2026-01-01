@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight
 
 
 public class TireurManager {
@@ -19,6 +20,8 @@ public class TireurManager {
     private final ServoTireur servoTireur;
     private final Indexeur indexeur;
     private final Intake intake;
+
+    private final AfficheurRight afficheurRight;
 
     // --- Machine à états ---
     public enum TirState {
@@ -45,7 +48,7 @@ public class TireurManager {
                          SpinTurret tourelle,
                          AngleShooter angleShooter,
                          ServoTireur servoTireur,
-                         Indexeur indexeur, Intake intake) {
+                         Indexeur indexeur, Intake intake, AfficheurRight afficheurRight) {
 
         this.shooter = shooter;
         this.tourelle = tourelle;
@@ -53,10 +56,22 @@ public class TireurManager {
         this.servoTireur = servoTireur;
         this.indexeur = indexeur;
         this.intake = intake;
+        this.afficheurRight = afficheurRight;
     }
 
     public void update() {
+
+        boolean tirActif = (state != TirState.IDLE);
+        if (tirActif) {
+            afficheurRight.setClignoteVert();
+        } else {
+            afficheurRight.setIdle();
+        }
+
+        afficheurRight.update();
+
         switch (state) {
+
 
             case IDLE:
                 break;
@@ -102,7 +117,7 @@ public class TireurManager {
                 tourelle.stopTourelle();
                 servoTireur.push();
 
-                if (timer.milliseconds() > 200) {
+                if (timer.milliseconds() > 300) {
                     timer.reset();
                     state = TirState.SERVO_RETRACT;
                 }
@@ -112,7 +127,7 @@ public class TireurManager {
             case SERVO_RETRACT:
                 servoTireur.retract();
 
-                if (timer.milliseconds() > 200) {
+                if (timer.milliseconds() > 300) {
 
                     tirsEffectues++;   // Tir réellement terminé ici
 
