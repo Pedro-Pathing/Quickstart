@@ -263,7 +263,7 @@ public class Teleop_Main_ extends LinearOpMode {
     public void Gamepad2() {
 
         // Turret Aimbot
-        Robot.turret.updateAimbot();
+        //Robot.turret.updateAimbot();
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
