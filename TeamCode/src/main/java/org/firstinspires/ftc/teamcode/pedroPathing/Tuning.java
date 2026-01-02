@@ -77,6 +77,7 @@ public class Tuning extends SelectableOpMode {
                 p.add("Line", Line::new);
                 p.add("Triangle", Triangle::new);
                 p.add("Circle", Circle::new);
+                p.add("Line90DegreeTurn", Line90DegreeTurn::new);
             });
         });
     }
