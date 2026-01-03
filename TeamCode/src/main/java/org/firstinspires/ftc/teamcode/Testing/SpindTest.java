@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.TeleOp;
+package org.firstinspires.ftc.teamcode.Testing;
 
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -8,9 +8,7 @@ import org.firstinspires.ftc.teamcode.Mechanics.Color;
 import org.firstinspires.ftc.teamcode.Mechanics.Robot;
 import org.firstinspires.ftc.teamcode.Mechanics.Shooter;
 import org.firstinspires.ftc.teamcode.Mechanics.Spind;
-import org.firstinspires.ftc.teamcode.Mechanics.Turret;
 import org.firstinspires.ftc.teamcode.Mechanics.Vision;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name = "Spindexer Test")
 public class SpindTest extends OpMode {

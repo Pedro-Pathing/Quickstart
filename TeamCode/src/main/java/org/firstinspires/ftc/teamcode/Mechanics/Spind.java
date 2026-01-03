@@ -21,9 +21,9 @@ public class Spind {
     private static boolean p1, p2, p3;
     public static boolean spinTheDexer(double slot) {
         if(intaking)
-            targetAngle = Constants.CPR / 3 * (slot+0.5);
+            targetAngle = Constants.CPR312 / 3 * (slot+0.5);
         else
-            targetAngle = Constants.CPR / 3 * slot;
+            targetAngle = Constants.CPR312 / 3 * slot;
         spindexer.setTargetPosition((int)Math.round(targetAngle));
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setPower(1);
@@ -42,9 +42,9 @@ public class Spind {
 
     public static boolean spinTheDexer(double slot, boolean Teleop) {
         if(intaking)
-            targetAngle = Constants.CPR / 3 * (slot+0.5);
+            targetAngle = Constants.CPR312 / 3 * (slot+0.5);
         else
-            targetAngle = Constants.CPR / 3 * slot;
+            targetAngle = Constants.CPR312 / 3 * slot;
         spindexer.setTargetPosition((int)Math.round(targetAngle));
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setPower(1);
@@ -97,7 +97,7 @@ public class Spind {
         return false;
     }
     public static int getSigmaPosition() {
-        return (int)Math.round(spindexer.getCurrentPosition() / Constants.CPR * 3);
+        return (int)Math.round(spindexer.getCurrentPosition() / Constants.CPR312 * 3);
     }
     public static boolean Launch3Balls(Timer timer,String motif,double timeBetweenShots) throws InterruptedException {
         if(timer.getElapsedTimeSeconds()>(3*timeBetweenShots)) {
