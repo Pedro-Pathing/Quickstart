@@ -749,12 +749,12 @@ class PredictiveBrakingTuner extends OpMode {
         RECORD,
         DONE
     }
-    
+
     private static class BrakeRecord {
         double timeMs;
         Pose pose;
         double velocity;
-        
+
         BrakeRecord(double timeMs, Pose pose, double velocity) {
             this.timeMs = timeMs;
             this.pose = pose;
@@ -762,12 +762,15 @@ class PredictiveBrakingTuner extends OpMode {
         }
     }
 
+    private double lastDriveSign = 1.0;
+    private static final int BRAKE_PULSE_MS = 150;
+
     private State state = State.START_MOVE;
 
     private final ElapsedTime timer = new ElapsedTime();
 
     private int iteration = 0;
-    
+
     private Vector startPosition;
     private double measuredVelocity;
 
@@ -813,12 +816,14 @@ class PredictiveBrakingTuner extends OpMode {
                     state = State.DONE;
                     break;
                 }
-                
+
                 double currentPower = TEST_POWERS[iteration];
                 follower.setMaxPower(currentPower);
                 if (iteration % 2 != 0) {
+                    lastDriveSign = -1.0;
                     follower.setTeleOpDrive(-1, 0, 0, true);
                 } else {
+                    lastDriveSign = 1.0;
                     follower.setTeleOpDrive(1, 0, 0, true);
                 }
 
@@ -837,7 +842,8 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case APPLY_BRAKE: {
-                stopRobot();
+                double reversePower = -lastDriveSign * follower.constants.predictiveBrakingCoefficients.maximumBrakingPower;
+                follower.setTeleOpDrive(reversePower, 0, 0, true);
 
                 timer.reset();
                 state = State.WAIT_BRAKE_TIME;
@@ -848,9 +854,13 @@ class PredictiveBrakingTuner extends OpMode {
                 double t = timer.milliseconds();
                 Pose currentPose = follower.getPose();
                 double currentVelocity = follower.getVelocity().getMagnitude();
-                
+
                 brakeData.add(new BrakeRecord(t, currentPose, currentVelocity));
-                
+
+                if (t >= BRAKE_PULSE_MS) {
+                    stopRobot();
+                }
+
                 if (timer.milliseconds() >= BRAKE_WAIT_MS || follower.getVelocity().getMagnitude() <= .05) {
                     state = State.RECORD;
                 }
@@ -864,8 +874,8 @@ class PredictiveBrakingTuner extends OpMode {
                 velocityToBrakingDistance.add(new double[]{measuredVelocity, brakingDistance});
 
                 telemetryM.debug("Test " + iteration,
-                                 String.format("v=%.3f  d=%.3f", measuredVelocity,
-                                               brakingDistance));
+                        String.format("v=%.3f  d=%.3f", measuredVelocity,
+                                brakingDistance));
                 telemetryM.update(telemetry);
 
                 iteration++;
@@ -889,9 +899,9 @@ class PredictiveBrakingTuner extends OpMode {
                 for (BrakeRecord record : brakeData) {
                     Pose p = record.pose;
                     telemetryM.debug(String.format("t=%.0f ms, x=%.2f, y=%.2f, θ=%.2f, v=%.2f",
-                                                   record.timeMs, p.getX(), p.getY(),
-                                                   p.getHeading(),
-                                                   record.velocity));
+                            record.timeMs, p.getX(), p.getY(),
+                            p.getHeading(),
+                            record.velocity));
                 }
                 telemetryM.update();
                 break;
