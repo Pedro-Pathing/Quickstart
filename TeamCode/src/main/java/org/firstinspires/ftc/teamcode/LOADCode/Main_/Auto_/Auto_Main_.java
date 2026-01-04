@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
@@ -56,7 +57,8 @@ public class Auto_Main_ extends NextFTCOpMode {
                 new OptionPrompt<>("Select Auto",
                         new Leave_Far_HP(),
                         new Leave_Near_Launch(),
-                        new test_Auto()
+                        new test_Auto(),
+                        new Complex_Test_Auto()
                 ));
         prompter.onComplete(() -> {
                     selectedAlliance = prompter.get("alliance");
@@ -170,6 +172,33 @@ public class Auto_Main_ extends NextFTCOpMode {
         @NonNull
         @Override
         public String toString(){return "Shoot Near Preloads";}
+    }
+
+    /**
+     * This auto starts at the far zone
+     */
+    private class Complex_Test_Auto extends Auto{
+        Complex_Test_Auto() {
+            super(paths.farStart, true);
+        }
+
+        @Override
+        void runAuto() {
+            new SequentialGroup(
+                    new Delay(1),
+                    Commands.shootBalls(),
+                    Commands.runPath(paths.farStart_to_farPreload, true, 1),
+                    Commands.runPath(paths.farPreload_to_farShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.runPath(paths.farShoot_to_farLeave, true, 1)
+            ).schedule();
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return "Complex Test Auto";
+        }
     }
 
     private class test_Auto extends Auto{
