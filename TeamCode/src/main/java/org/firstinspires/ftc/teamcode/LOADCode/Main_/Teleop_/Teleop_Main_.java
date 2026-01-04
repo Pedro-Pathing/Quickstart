@@ -61,20 +61,16 @@ public class Teleop_Main_ extends LinearOpMode {
     // Variables for storing data for the second gamepad controls
     public static double DylanStickDeadzones = 0.2;
     public int shootingState = 0;
-    public TimerEx shootingDelay = new TimerEx(1);
-
-    private double hoodAngle = 0;
-
-    Prompter prompter = null;
+    public TimerEx stateTimer = new TimerEx(1);
+    public static double hoodSpeed = 4;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(88.5, 7.8, Math.toRadians(90));
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
-
-    // Timer for the shooting state machine
-    TimerEx stateTimer = new TimerEx(1);
+    // Create a new instance of Prompter for selecting the alliance
+    Prompter prompter = null;
 
     @Override
     public void runOpMode() {
@@ -149,7 +145,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
             // System-related Telemetry
             telemetry.addLine();
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Version: ", "12/12/25");
             telemetry.update();
             panelsTelemetry.update();
@@ -288,13 +284,11 @@ public class Teleop_Main_ extends LinearOpMode {
         Robot.turret.updateFlywheel();
 
         // Hood Controls
-        double increment = 4;
-        if (gamepad2.dpad_up && hoodAngle < 260){
-            hoodAngle += increment;
-        }else if (gamepad2.dpad_down && hoodAngle > 0){
-            hoodAngle -= increment;
+        if (gamepad2.dpad_up && Robot.turret.getHood() < 260){
+            Robot.turret.setHood(Robot.turret.getHood() + hoodSpeed);
+        }else if (gamepad2.dpad_down && Robot.turret.getHood() > 0){
+            Robot.turret.setHood(Robot.turret.getHood() - hoodSpeed);
         }
-        Robot.turret.setHood(hoodAngle);
 
         //Shoot (B Button Press)
         // Increment the shooting state
@@ -318,19 +312,18 @@ public class Teleop_Main_ extends LinearOpMode {
                 }
                 return;
             case 2:
+                if (Robot.intake.getMode() == intakeMode.INTAKING){
+                    stateTimer.restart();
+                    stateTimer.start();
+                }
                 Robot.intake.setMode(Intake.intakeMode.SHOOTING);
                 Robot.intake.setTransfer(transferState.UP);
-                shootingDelay.restart();
-                shootingState++;
                 telemetry.addData("Shooting State", "TRANSFERRED");
-                return;
-            case 3:
-                if (shootingDelay.isDone()) {
+                if (stateTimer.isDone()) {
                     shootingState++;
                 }
-                telemetry.addData("Shooting State", "DELAY");
                 return;
-            case 4:
+            case 3:
                 Robot.turret.setFlywheelState(flywheelstate.OFF);
                 Robot.turret.setGateState(gatestate.CLOSED);
                 Robot.intake.setMode(intakeMode.OFF);
