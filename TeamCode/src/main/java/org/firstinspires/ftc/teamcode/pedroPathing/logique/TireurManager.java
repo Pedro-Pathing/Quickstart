@@ -212,20 +212,23 @@ public class TireurManager {
         state = TirState.SHOOTER_SPINUP;
     }
 
-    public void startTirManuel(double vitesseShooter) {
+    public void startTirManuel() {
         intake.arretPourTir();
         tirEnCours = true;
         shotsRemaining = 1;
-        this.vitesseCibleShooter = vitesseShooter;
+        //this.vitesseCibleShooter = vitesseShooter;
 
         tirsEffectues = 0;
 
-        shooter.setShooterTargetRPM(vitesseShooter);  // Démarre immédiatement
+        //shooter.setShooterTargetRPM(vitesseShooter);  // Démarre immédiatement
 
-        if ((shooter.getShooterVelocityRPM() >= vitesseShooter) && (indexeur.isHomingDone())) {
-            state = TirState.SERVO_PUSH;
-            timer.reset();
-        }
+        state = TirState.SERVO_PUSH;
+        timer.reset();
+
+        //if ((shooter.getShooterVelocityRPM() >= vitesseShooter) && (indexeur.isHomingDone())) {
+        //    state = TirState.SERVO_PUSH;
+        //    timer.reset();
+        //}
     }
 
     public TirState getState() {

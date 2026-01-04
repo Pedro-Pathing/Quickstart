@@ -54,6 +54,7 @@ public class TeleOpDecode extends OpMode {
     private boolean lastrightbumper = false ;
     private boolean lastleftbumper = false;
     private double positionAngleshoot =0.5 ;
+    int vitesseShooter = 0;
 
 
     @Override
@@ -161,9 +162,9 @@ public class TeleOpDecode extends OpMode {
         }
 
         //Optional way to change slow mode strength
-        if (gamepad2.yWasPressed()) {
-            slowModeMultiplier -= 0.25;
-        }
+        //if (gamepad2.yWasPressed()) {
+        //    slowModeMultiplier -= 0.25;
+        //}
 
         // --- Déclenchement tir auto ---
         if (gamepad2.right_bumper && !lastrightbumper) {
@@ -187,10 +188,9 @@ public class TeleOpDecode extends OpMode {
 
             tireurManager.startTirAutoIndividuel(angleTourelle, angleShooter, vitesseShooter);
 
-
         }
 
-        lastleftbumper = gamepad1.left_bumper;
+        lastleftbumper = gamepad2.left_bumper;
 
         if (gamepad2.x && !lastX){
             positionAngleshoot = (positionAngleshoot + 1) % 5;
@@ -205,20 +205,41 @@ public class TeleOpDecode extends OpMode {
             }
         }
 
-        if (gamepad2.a && !lastA) {
-            double vitessetirmanuel = 4600;
-            tireurManager.startTirManuel(vitessetirmanuel);
-
-        }
-        lastA = gamepad2.a;
-
+        lastX = gamepad2.x;
 
         double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
         tourelle.rotationtourelle(powertourelle);
 
-        lastX = gamepad2.x;
+        if (gamepad2.b && !lastB){
+            vitesseShooter++;
+            if (vitesseShooter > 3) {
+                vitesseShooter = 0;
+            }// boucle 3 positions
+            switch (vitesseShooter) {
+                case 0:
+                    shooter.setShooterTargetRPM(0);
+                    break;
 
+                    case 1:
+                        shooter.setShooterTargetRPM(4500);
+                        break;
+                        case 3:
+                            shooter.setShooterTargetRPM(4800);
+                            break;
+                            case 4:
+                                shooter.setShooterTargetRPM(5100);
+                                break;
+            }
+        }
 
+        lastleftbumper = gamepad1.left_bumper;
+
+        if (gamepad2.a && !lastA) {
+            //double vitessetirmanuel = 4600;
+            tireurManager.startTirManuel();
+
+        }
+        lastA = gamepad2.a;
 
 
         telemetryM.debug("position", follower.getPose());
