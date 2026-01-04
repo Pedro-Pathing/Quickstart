@@ -37,8 +37,9 @@ public class DecodeBlueAuto extends OpMode {
     private AfficheurLeft afficheurLeft;
     private AfficheurRight afficheurRight;
 
-
     private TireurManager tireurManager;
+
+    private boolean shotsTriggered = false;
 
     public enum PathState {
         //Start Position -End Position
@@ -142,15 +143,20 @@ public class DecodeBlueAuto extends OpMode {
 
             case PremierTir:
                 if (!follower.isBusy()) {
+                    // avons nous deja demandé des tirs :
 
-                    // Lancer tir automatique
-                    tireurManager.startTirAuto(
-                            0,   // angle tourelle (exemple)
-                            0.35,  // angle shooter
-                            4500   // RPM
-                    );
-
-                    setPathState(PathState.align_RANGEE1Blue);
+                    if (!shotsTriggered){
+                        tireurManager.startTirAuto(// Lancer tir automatique
+                                0,   // angle tourelle (exemple)
+                                0.35,  // angle shooter
+                                4500   // RPM
+                        );
+                        shotsTriggered = true;
+                        else if (shotsTriggered && !tireurManager.isBusy()){
+                            setPathState(PathState.align_RANGEE1Blue);
+                            shotsTriggered = false;
+                        }
+                    }
                 }
                 break;
 
@@ -210,14 +216,22 @@ public class DecodeBlueAuto extends OpMode {
 
             case DrivedeuxiemeShoot:
                 ;
-                // check is follow done is path
                 if (!follower.isBusy()) {
-                    telemetry.addLine("Shooting");
-                    // transition to next state
-                    follower.followPath(DrivedeuxiemeShoot, true);
-                    setPathState(PathState.align_rangee2blue);
-                }
+                    // Le robot est arrivé en position de tir :
 
+                    if (!shotsTriggered){
+                        tireurManager.startTirAuto(// Lancer tir automatique
+                                0,   // angle tourelle (exemple)
+                                0.35,  // angle shooter
+                                4500   // RPM
+                        );
+                        shotsTriggered = true;
+                        else if (shotsTriggered && !tireurManager.isBusy()){
+                            setPathState(PathState.align_RANGEE1Blue);
+                            shotsTriggered = false;
+                        }
+                    }
+                }
                 break;
 
             case align_rangee2blue:
@@ -246,15 +260,22 @@ public class DecodeBlueAuto extends OpMode {
 
             case DriveTroisiemeTir:
                 if (!follower.isBusy()) {
-                    follower.followPath(driveAvaler2emeLignetotroisemeShoot,true);
-                    // TO DO demarer intake , tourner indexeur des dectetion balles)
-                    telemetry.addLine("ramassage terminé");
-                    // transition to next state
-                    setPathState(PathState.Drive2Gate);
+                    // le robot est arrivé sur la troisieme position de tir :
 
+                    if (!shotsTriggered){
+                        tireurManager.startTirAuto(// Lancer tir automatique
+                                0,   // angle tourelle (exemple)
+                                0.35,  // angle shooter
+                                4500   // RPM
+                        );
+                        shotsTriggered = true;
+                        else if (shotsTriggered && !tireurManager.isBusy()){
+                            setPathState(PathState.align_RANGEE1Blue);
+                            shotsTriggered = false;
+                        }
+                    }
                 }
                 break;
-
             case Drive2Gate:
                 // shoot logique 3eme Tir
                 if (!follower.isBusy()&& pathTimer.getElapsedTimeSeconds()>5) {
@@ -277,6 +298,7 @@ public class DecodeBlueAuto extends OpMode {
     public void setPathState (PathState newState){
         pathState = newState;
         pathTimer.resetTimer();
+        shotsTriggered = false;
 
     }
     @Override

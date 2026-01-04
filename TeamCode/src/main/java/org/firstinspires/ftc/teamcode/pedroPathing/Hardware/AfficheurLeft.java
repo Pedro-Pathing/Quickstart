@@ -40,16 +40,32 @@ public class AfficheurLeft {
 
     public void update() {
         switch (etat) {
-            case IDLE:   RGBLeft(0.0); break;
-            case Vert:   RGBLeft(vert); break;
-            case Bleu:   RGBLeft(bleu); break;
-            case Jaune:  RGBLeft(jaune); break;
-            case Rouge:  RGBLeft(rouge); break;
-            case Orange: RGBLeft(orange); break;
-            case Violet: RGBLeft(violet); break;
-            case Blanc:  RGBLeft(blanc); break;
+            case IDLE:
+                RGBLeft(0.0);
+                break;
+            case Vert:
+                RGBLeft(vert);
+                break;
+            case Bleu:
+                RGBLeft(bleu);
+                break;
+            case Jaune:
+                RGBLeft(jaune);
+                break;
+            case Rouge:
+                RGBLeft(rouge);
+                break;
+            case Orange:
+                RGBLeft(orange);
+                break;
+            case Violet:
+                RGBLeft(violet);
+                break;
+            case Blanc:
+                RGBLeft(blanc);
+                break;
             case ClignoteOrange:
-                if (timer.milliseconds() > 300){
+                if (timer.milliseconds() > 300) {
                     if (RGBLeft.getPosition() == orange)
                         setPosition(0.0);
                     else
@@ -61,14 +77,37 @@ public class AfficheurLeft {
     }
 
     // Méthodes publiques pour changer la couleur
-    public void setIdle()  { etat = Etat.IDLE; }
-    public void setVert()  { etat = Etat.Vert; }
-    public void setBleu()  { etat = Etat.Bleu; }
-    public void setJaune() { etat = Etat.Jaune; }
-    public void setRouge() { etat = Etat.Rouge; }
-    public void setOrange(){ etat = Etat.Orange; }
-    public void setViolet(){ etat = Etat.Violet; }
-    public void setBlanc() { etat = Etat.Blanc; }
+    public void setIdle() {
+        etat = Etat.IDLE;
+    }
+
+    public void setVert() {
+        etat = Etat.Vert;
+    }
+
+    public void setBleu() {
+        etat = Etat.Bleu;
+    }
+
+    public void setJaune() {
+        etat = Etat.Jaune;
+    }
+
+    public void setRouge() {
+        etat = Etat.Rouge;
+    }
+
+    public void setOrange() {
+        etat = Etat.Orange;
+    }
+
+    public void setViolet() {
+        etat = Etat.Violet;
+    }
+
+    public void setBlanc() {
+        etat = Etat.Blanc;
+    }
 
     private void RGBLeft(double pos) {
         RGBLeft.setPosition(pos);
@@ -77,9 +116,11 @@ public class AfficheurLeft {
     //Mode clignotant pour l’intake
     public void setClignoteOrange() {
         etat = Etat.ClignoteOrange;
-        timer.reset(); }
+        timer.reset();
+    }
 
     private void setPosition(double pos) {
         RGBLeft.setPosition(pos);
+    }
 }
 

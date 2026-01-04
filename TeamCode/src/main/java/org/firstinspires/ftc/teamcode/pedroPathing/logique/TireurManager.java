@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
 
 
 public class TireurManager {
@@ -38,6 +38,13 @@ public class TireurManager {
     private TirState state = TirState.IDLE;
     private final ElapsedTime timer = new ElapsedTime();
     private int tirsEffectues = 0;
+
+    private int shotsRemaining = 0;
+
+    private double Min_shooterRPM = 4000;
+    private double TargetFlyWheelRPM = 4700;
+
+    private double shootermaxspintime = 2;
 
     // --- Cibles dynamiques ---
     private double angleCibleTourelle = 0;
@@ -78,16 +85,18 @@ public class TireurManager {
 
             // --- 1) Shooter spin-up ---
             case SHOOTER_SPINUP:
-                intake.disableRamassage();
-                tourelle.allerVersAngle(angleCibleTourelle);
-                if (!indexeur.isHomingDone()) {
-                    indexeur.lancerHoming();
-                    return; }
-
-                if ((shooter.getShooterVelocityRPM() >= vitesseCibleShooter)&&(indexeur.isHomingDone()))
-                {   state = TirState.TURRET_POSITION;
-                    timer.reset();
-
+                if (shotsRemaining >0) {
+                    intake.disableRamassage();
+                    tourelle.allerVersAngle(angleCibleTourelle);
+                    if (!indexeur.isHomingDone()) {
+                        indexeur.lancerHoming();
+                        return;
+                    }
+                    if ((shooter.getShooterVelocityRPM() >= vitesseCibleShooter) && (indexeur.isHomingDone())) {
+                        state = TirState.TURRET_POSITION;
+                        timer.reset();
+                    }
+                    else {state = TirState.IDLE;}
                 }
                 break;
 
@@ -129,9 +138,11 @@ public class TireurManager {
 
                 if (timer.milliseconds() > 300) {
 
+                    shotsRemaining--; // retrait d'un tir
                     tirsEffectues++;   // Tir réellement terminé ici
 
-                    if (tirsEffectues >= 3) {
+
+                    if (shotsRemaining = 0) {
                         shooter.setShooterTargetRPM(0);
                         intake.repriseApresTir();
                         state = TirState.IDLE;
@@ -174,6 +185,21 @@ public class TireurManager {
     public void startTirAuto(double angleTourelle, double angleShooter, double vitesseShooter) {
         intake.arretPourTir();
         tirEnCours = true;
+        shotsRemaining = 3;
+        this.angleCibleTourelle = angleTourelle;
+        this.angleCibleShooter = angleShooter;
+        this.vitesseCibleShooter = vitesseShooter;
+
+        tirsEffectues = 0;
+
+        shooter.setShooterTargetRPM(vitesseShooter);  // Démarre immédiatement
+        state = TirState.SHOOTER_SPINUP;
+    }
+
+    public void startTirIndividuel(double angleTourelle, double angleShooter, double vitesseShooter) {
+        intake.arretPourTir();
+        tirEnCours = true;
+        shotsRemaining = 1;
         this.angleCibleTourelle = angleTourelle;
         this.angleCibleShooter = angleShooter;
         this.vitesseCibleShooter = vitesseShooter;
@@ -187,6 +213,11 @@ public class TireurManager {
     public TirState getState() {
         return state;
     }
+
+    public boolean isBusy(){
+        return state != TirState.IDLE;
+    }
+
     public boolean isTirEnCours() {
         return tirEnCours; }
 }

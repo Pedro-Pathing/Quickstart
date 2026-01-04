@@ -327,14 +327,16 @@ public class Indexeur {
 
         // --- Mise à jour du comptage ---
         if (rotationPourAmassage) {
-            if (!"Inconnue".equals(couleurSousCapteurs)) {
-                ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
-            }
+            ballComptage = Math.min(ballComptage + 1, MAX_BALLS)
+            //if (!"Inconnue".equals(couleurSousCapteurs)) {
+            //    ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
+            //}
         } else if (rotationPourTir) {
             String couleurAuTir = couleurBalleDansCompartiment[slotTir];
-            if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {
-                ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
-            }
+            //if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {
+            //    ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
+            //}
+            ballComptage = Math.max(ballComptage - 1, MIN_BALLS)
             couleurBalleDansCompartiment[slotTir] = "Inconnue";
         }
 

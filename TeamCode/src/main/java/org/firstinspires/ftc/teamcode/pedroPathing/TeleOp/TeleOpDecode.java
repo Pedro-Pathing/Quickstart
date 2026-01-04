@@ -12,10 +12,16 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
+import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 
 import java.util.function.Supplier;
 
@@ -33,23 +39,56 @@ public class TeleOpDecode extends OpMode {
     private Indexeur indexeur;
 
     private AfficheurLeft afficheurLeft;
+    private TireurManager tireurManager;
+    private Shooter shooter;
+    private SpinTurret tourelle;
+    private AngleShooter angleShooter;
+    private ServoTireur servoTireur;
+
+    private AfficheurLeft afficheurLeft;
+    private AfficheurRight afficheurRight;
+    private boolean lastX = false;
 
     @Override
     public void init() {
+
+        tourelle = new SpinTurret();
+        tourelle.init(hardwareMap);
+
+        angleShooter = new AngleShooter();
+        angleShooter.init(hardwareMap);
         indexeur = new Indexeur();
         indexeur.init(hardwareMap);
 
         afficheurLeft = new AfficheurLeft();
         afficheurLeft.init(hardwareMap);
 
+        afficheurRight = new AfficheurRight();
+        afficheurRight.init(hardwareMap);
+
+
         intake = new Intake(indexeur, afficheurLeft);
         intake.init(hardwareMap);
         indexeur.setIntake(intake);
+
+        shooter = new Shooter();
+        shooter.setIndexeur(indexeur);   // ✔️ on passe l’indexeur
+        shooter.init(hardwareMap);       // ✔️ on initialise le hardware
+
+
+        servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
+        servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
+        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
+        ;
+
+
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
+        ;
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
                 .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
@@ -119,11 +158,28 @@ public class TeleOpDecode extends OpMode {
             slowModeMultiplier -= 0.25;
         }
 
+        // --- Déclenchement tir auto ---
+        if (gamepad2.x && !lastX) {
+
+            // Exemple : tir droit devant
+            double angleTourelle = 0;      // à adapter
+            double angleShooter = 15;      // à adapter
+            double vitesseShooter = 4800;  // à adapter
+
+            tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
+        }
+
+
+        lastX = gamepad2.x;
+        // --- Mise à jour du manager ---
+
+
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
         intake.update();
         indexeur.update();
+        tireurManager.update();
 
         telemetry.addData("RPM", intake.getRPM());
         telemetry.addData("DistanceBalle", intake.getCapteurDistance());
@@ -133,6 +189,12 @@ public class TeleOpDecode extends OpMode {
         telemetry.addData("Pale detectée", indexeur.detectionpale());
         telemetry.addData("Nombre de balles", indexeur.getBalles());
         for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
+        telemetry.addData("État tireur manager", tireurManager.getState());
+        telemetry.addData("État indexeur", indexeur.getEtat());
+        telemetry.addData("Etat de l'intake", intake.getEtat());
+        telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
+        telemetry.addData("Servo pos", servoTireur.getPosition());
+        telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
 
         telemetry.update();
 

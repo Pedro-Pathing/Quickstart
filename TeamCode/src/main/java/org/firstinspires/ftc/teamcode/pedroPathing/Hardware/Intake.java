@@ -32,8 +32,8 @@ public class Intake {
     }
     private Intakeetat intakeState = Intakeetat.IDLE;
 
-    private double intake_reverse = -500;
-    private double intake_fast = 1500;
+    private double intake_reverse = -1800;
+    private double intake_fast = 1800;
 
 
 

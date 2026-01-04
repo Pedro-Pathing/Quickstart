@@ -95,10 +95,11 @@ public class TestTirAuto extends OpMode {
                 // Exemple : tir droit devant
                 double angleTourelle = 0;      // à adapter
                 double angleShooter = 15;      // à adapter
-                double vitesseShooter = 5100;  // à adapter
+                double vitesseShooter = 4800;  // à adapter
 
-                tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter, afficheurRight);
+                tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
             }
+
 
             lastX = gamepad2.x;
             // --- Mise à jour du manager ---
