@@ -48,6 +48,13 @@ public class TeleOpDecode extends OpMode {
     private AfficheurLeft afficheurLeft;
     private AfficheurRight afficheurRight;
     private boolean lastX = false;
+    private boolean lastA = false;
+    private boolean lastB = false;
+    private boolean lastY = false;
+    private boolean lastrightbumper = false ;
+    private boolean lastleftbumper = false;
+    private double positionAngleshoot =0.5 ;
+
 
     @Override
     public void init() {
@@ -159,7 +166,7 @@ public class TeleOpDecode extends OpMode {
         }
 
         // --- Déclenchement tir auto ---
-        if (gamepad2.x && !lastX) {
+        if (gamepad2.right_bumper && !lastrightbumper) {
 
             // Exemple : tir droit devant
             double angleTourelle = 0;      // à adapter
@@ -169,9 +176,49 @@ public class TeleOpDecode extends OpMode {
             tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
         }
 
+        lastrightbumper = gamepad2.right_bumper;
+        // --- Mise à jour du manager ---
+
+        if (gamepad2.left_bumper && !lastleftbumper){
+
+            double angleTourelle = 0;      // à adapter
+            double angleShooter = 15;      // à adapter
+            double vitesseShooter = 4800;  // à adapter
+
+            tireurManager.startTirAutoIndividuel(angleTourelle, angleShooter, vitesseShooter);
+
+
+        }
+
+        lastleftbumper = gamepad1.left_bumper;
+
+        if (gamepad2.x && !lastX){
+            positionAngleshoot = (positionAngleshoot + 1) % 5;
+
+            switch (positionAngleshoot){
+                case 0 : angleShooter.angleShoot(0.5); break;
+                case 1 : angleShooter.angleShoot(0.55); break;
+                case 2 : angleShooter.angleShoot(0.60); break;
+                case 3 : angleShooter.angleShoot(0.65); break;
+                case 4 : angleShooter.angleShoot(0.70); break;
+
+            }
+        }
+
+        if (gamepad2.a && !lastA) {
+            double vitessetirmanuel = 4600;
+            tireurManager.startTirManuel(vitessetirmanuel);
+
+        }
+        lastA = gamepad2.a;
+
+
+        double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
+        tourelle.rotationtourelle(powertourelle);
 
         lastX = gamepad2.x;
-        // --- Mise à jour du manager ---
+
+
 
 
         telemetryM.debug("position", follower.getPose());
