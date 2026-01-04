@@ -12,10 +12,10 @@ public class MecanumTeleOpSingleController extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         //initialize motors
-        DcMotor frontLeft = hardwareMap.dcMotor.get("front_left_motor");
-        DcMotor backLeft = hardwareMap.dcMotor.get("back_left_motor");
-        DcMotor frontRight = hardwareMap.dcMotor.get("front_right_motor");
-        DcMotor backRight = hardwareMap.dcMotor.get("back_right_motor");
+        DcMotor frontLeft = hardwareMap.dcMotor.get("fl");
+        DcMotor backLeft = hardwareMap.dcMotor.get("bl");
+        DcMotor frontRight = hardwareMap.dcMotor.get("fr");
+        DcMotor backRight = hardwareMap.dcMotor.get("br");
         DcMotor intake1 = hardwareMap.dcMotor.get("intake1");
         DcMotor intake2 = hardwareMap.dcMotor.get("intake2");
         DcMotor outtake = hardwareMap.dcMotor.get("outtake");
