@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
@@ -40,12 +41,16 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
+@Configurable
 @TeleOp(name="Teleop_Tuning_", group="TeleOp")
 public class Teleop_Tuning_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
+    // Panels variables
+    public static double hoodTargetPos = 0;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(88.5,7.8, Math.toRadians(90));
@@ -100,6 +105,8 @@ public class Teleop_Tuning_ extends LinearOpMode {
                 Robot.turret.setHood(Robot.turret.getHood() + 2);
             }else if (gamepad1.dpad_down){
                 Robot.turret.setHood(Robot.turret.getHood() - 2);
+            }else if (gamepad1.dpadLeftWasPressed()){
+                Robot.turret.setHood(hoodTargetPos);
             }
             telemetry.addLine();
             telemetry.addLine("HOOD DATA");
