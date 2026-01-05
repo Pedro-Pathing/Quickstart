@@ -25,8 +25,10 @@ public class SpinTurret {
 
     public void init(@NonNull HardwareMap hwMap) {
         SpinTourelle = hwMap.get(CRServo.class, "SpinTourelle");
+        SpinTourelle.setDirection(CRServo.Direction.REVERSE);
         //SpinTourelle.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         //Mettre le moteur en mode BRAKE
+
         //SpinTourelle.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //SpinTourelle.setPower(0);
 
@@ -76,8 +78,9 @@ public class SpinTurret {
         power = Math.max(-maxPower, Math.min(power, maxPower)); // clamp entre -1 et +1
 
         double angletourelle = lectureangletourelle();
-        if ((angletourelle >= 100 && power > 0) || (angletourelle <= -100 && power < 0)) {
+        if ((angletourelle >= 45 && power < 0) || (angletourelle <= -45 && power > 0)) {
             SpinTourelle.setPower(0);
+
         } else {
             SpinTourelle.setPower(power);
         }

@@ -18,6 +18,7 @@ public class AngleShooter {
     private enum AngleShooteretat {
         IDLE,  //Repos
         TirProche,
+
         TirMoyenneDistance,
         TirLoin,
 
@@ -29,7 +30,6 @@ public class AngleShooter {
 
         switch (angleshooteretat) {
             case IDLE:
-                angleShoot(Positioninit);
                 break;
 
             case TirProche:

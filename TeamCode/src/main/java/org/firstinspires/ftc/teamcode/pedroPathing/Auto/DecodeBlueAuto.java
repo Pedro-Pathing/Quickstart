@@ -29,7 +29,7 @@ public class DecodeBlueAuto extends OpMode {
     //private ElapsedTime opModeTimer = new ElapsedTime();
     private Shooter shooter;
     private SpinTurret tourelle;
-    private AngleShooter angleShooter;
+    private AngleShooter ServoAngleShoot;
     private ServoTireur servoTireur;
     private Indexeur indexeur;
     private Intake intake;
@@ -151,12 +151,12 @@ public class DecodeBlueAuto extends OpMode {
                                 0.35,  // angle shooter
                                 4500   // RPM
                         );
-                        shotsTriggered = true;
-                        else if (shotsTriggered && !tireurManager.isBusy()){
+                        shotsTriggered = true;}
+                    else if (shotsTriggered && !tireurManager.isBusy()){
                             setPathState(PathState.align_RANGEE1Blue);
                             shotsTriggered = false;
                         }
-                    }
+
                 }
                 break;
 
@@ -219,18 +219,19 @@ public class DecodeBlueAuto extends OpMode {
                 if (!follower.isBusy()) {
                     // Le robot est arrivé en position de tir :
 
-                    if (!shotsTriggered){
+                    if (!shotsTriggered) {
                         tireurManager.startTirAuto(// Lancer tir automatique
                                 0,   // angle tourelle (exemple)
                                 0.35,  // angle shooter
                                 4500   // RPM
                         );
                         shotsTriggered = true;
-                        else if (shotsTriggered && !tireurManager.isBusy()){
+                    }
+                    else if (shotsTriggered && !tireurManager.isBusy()){
                             setPathState(PathState.align_RANGEE1Blue);
                             shotsTriggered = false;
                         }
-                    }
+
                 }
                 break;
 
@@ -268,12 +269,12 @@ public class DecodeBlueAuto extends OpMode {
                                 0.35,  // angle shooter
                                 4500   // RPM
                         );
-                        shotsTriggered = true;
-                        else if (shotsTriggered && !tireurManager.isBusy()){
+                        shotsTriggered = true;}
+                    else if (shotsTriggered && !tireurManager.isBusy()){
                             setPathState(PathState.align_RANGEE1Blue);
                             shotsTriggered = false;
                         }
-                    }
+
                 }
                 break;
             case Drive2Gate:
@@ -320,8 +321,8 @@ public class DecodeBlueAuto extends OpMode {
         tourelle = new SpinTurret();
         tourelle.init(hardwareMap);
 
-        angleShooter = new AngleShooter();
-        angleShooter.init(hardwareMap);
+        ServoAngleShoot = new AngleShooter();
+        ServoAngleShoot.init(hardwareMap);
 
         indexeur = new Indexeur();
         indexeur.init(hardwareMap);
@@ -339,7 +340,7 @@ public class DecodeBlueAuto extends OpMode {
         servoTireur.init(hardwareMap);
 
         // --- TireurManager ---
-        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
+        tireurManager = new TireurManager(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
 
     }
 

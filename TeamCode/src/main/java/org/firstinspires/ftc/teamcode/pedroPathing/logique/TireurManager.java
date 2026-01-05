@@ -16,7 +16,7 @@ public class TireurManager {
     private final Shooter shooter;
     private boolean tirEnCours = false;
     private final SpinTurret tourelle;
-    private final AngleShooter angleShooter;
+    private final AngleShooter ServoAngleShoot;
     private final ServoTireur servoTireur;
     private final Indexeur indexeur;
     private final Intake intake;
@@ -53,13 +53,13 @@ public class TireurManager {
 
     public TireurManager(Shooter shooter,
                          SpinTurret tourelle,
-                         AngleShooter angleShooter,
+                         AngleShooter ServoAngleShoot,
                          ServoTireur servoTireur,
                          Indexeur indexeur, Intake intake, AfficheurRight afficheurRight) {
 
         this.shooter = shooter;
         this.tourelle = tourelle;
-        this.angleShooter = angleShooter;
+        this.ServoAngleShoot = ServoAngleShoot;
         this.servoTireur = servoTireur;
         this.indexeur = indexeur;
         this.intake = intake;
@@ -112,7 +112,7 @@ public class TireurManager {
 
             // --- 3) Positionnement angle shooter ---
             case ANGLE_POSITION:
-                angleShooter.setAngle(angleCibleShooter);
+                ServoAngleShoot.setAngle(angleCibleShooter);
                 state = TirState.SERVO_PUSH;
                 timer.reset();
                 //if (angleShooter.isAtAngle(angleCibleShooter)) {
@@ -142,7 +142,7 @@ public class TireurManager {
                     tirsEffectues++;   // Tir réellement terminé ici
 
 
-                    if (shotsRemaining = 0) {
+                    if (shotsRemaining == 0) {
                         shooter.setShooterTargetRPM(0);
                         intake.repriseApresTir();
                         state = TirState.IDLE;

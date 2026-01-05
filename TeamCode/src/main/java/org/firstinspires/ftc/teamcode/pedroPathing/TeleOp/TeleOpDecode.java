@@ -42,10 +42,9 @@ public class TeleOpDecode extends OpMode {
     private TireurManager tireurManager;
     private Shooter shooter;
     private SpinTurret tourelle;
-    private AngleShooter angleShooter;
+    private AngleShooter ServoAngleShoot;
     private ServoTireur servoTireur;
 
-    private AfficheurLeft afficheurLeft;
     private AfficheurRight afficheurRight;
     private boolean lastX = false;
     private boolean lastA = false;
@@ -53,7 +52,8 @@ public class TeleOpDecode extends OpMode {
     private boolean lastY = false;
     private boolean lastrightbumper = false ;
     private boolean lastleftbumper = false;
-    private double positionAngleshoot =0.5 ;
+    int positionAngleshoot =0 ;
+
     int vitesseShooter = 0;
 
 
@@ -63,8 +63,8 @@ public class TeleOpDecode extends OpMode {
         tourelle = new SpinTurret();
         tourelle.init(hardwareMap);
 
-        angleShooter = new AngleShooter();
-        angleShooter.init(hardwareMap);
+        ServoAngleShoot = new AngleShooter();
+        ServoAngleShoot.init(hardwareMap);
         indexeur = new Indexeur();
         indexeur.init(hardwareMap);
 
@@ -86,7 +86,7 @@ public class TeleOpDecode extends OpMode {
 
         servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
         servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
-        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
+        tireurManager = new TireurManager(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
         ;
 
 
@@ -95,7 +95,7 @@ public class TeleOpDecode extends OpMode {
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        tireurManager = new TireurManager(shooter, tourelle, angleShooter, servoTireur, indexeur, intake, afficheurRight);
+        tireurManager = new TireurManager(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
         ;
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
@@ -193,17 +193,29 @@ public class TeleOpDecode extends OpMode {
         lastleftbumper = gamepad2.left_bumper;
 
         if (gamepad2.x && !lastX){
-            positionAngleshoot = (positionAngleshoot + 1) % 5;
-
-            switch (positionAngleshoot){
-                case 0 : angleShooter.angleShoot(0.5); break;
-                case 1 : angleShooter.angleShoot(0.55); break;
-                case 2 : angleShooter.angleShoot(0.60); break;
-                case 3 : angleShooter.angleShoot(0.65); break;
-                case 4 : angleShooter.angleShoot(0.70); break;
-
+            positionAngleshoot++;
+            if (positionAngleshoot > 4) {
+                positionAngleshoot = 0;
+                switch (positionAngleshoot) {
+                    case 0:
+                        ServoAngleShoot.angleShoot(0.1);
+                        break;
+                    case 1:
+                        ServoAngleShoot.angleShoot(0.15);
+                        break;
+                    case 2:
+                        ServoAngleShoot.angleShoot(0.20);
+                        break;
+                    case 3:
+                        ServoAngleShoot.angleShoot(0.35);
+                        break;
+                    case 4:
+                        ServoAngleShoot.angleShoot(0.40);
+                        break;
+                }
             }
         }
+
 
         lastX = gamepad2.x;
 
