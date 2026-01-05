@@ -50,6 +50,9 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 
+// FIRST COMMENT FROM MY NEW COMPUTER =D
+// - ARI
+
 @Configurable
 @TeleOp(name="Teleop_Main_", group="TeleOp")
 public class Teleop_Main_ extends LinearOpMode {
