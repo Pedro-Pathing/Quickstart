@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
+
+import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.commands.utility.LambdaCommand;
@@ -15,14 +18,23 @@ import dev.nextftc.hardware.impl.MotorEx;
 public class Storage implements Subsystem {
     public static final Storage INSTANCE = new Storage();
     private static boolean manualMode = true;
-    private static double manualPower = 1;
+    private static boolean pidControlMode = false;
+    private static double manualPower = 0;
     private static double runPower = 0;
-    private static MotorEx spin = new MotorEx("motor2").brakeMode();
-
+    private static MotorEx spin = new MotorEx("motor1").brakeMode();
     private static DigitalChannel limitSwitch;
     private static NormalizedColorSensor colorSensor;
     private static boolean lastState = false;
     private static int index = 0;
+    private static double startPos = 0;
+    private static int tolerance = 10;
+
+    static ControlSystem controller = ControlSystem.builder()
+            .velPid(1, 0, 0)
+            .basicFF(0)
+            .build();
+
+
     public static final State[] STATES = {
             State.NONE,
             State.NONE,
@@ -38,38 +50,42 @@ public class Storage implements Subsystem {
 
     @Override
     public void initialize() {
-        limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class, "limitSwitch");
-        limitSwitch.setMode(DigitalChannel.Mode.INPUT);
-
-        colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class, "sensor_color");
-
-        ((SwitchableLight) colorSensor).enableLight(false);
-        // TODO: optimize this so that the light only turns on when we need it to
+//        limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class, "limitSwitch");
+//        limitSwitch.setMode(DigitalChannel.Mode.INPUT);
+//
+//        colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class, "sensor_color");
+//
+//        ((SwitchableLight) colorSensor).enableLight(false);
     }
 
     @Override
     public void periodic() {
 
         // Track Indexes
-        if (wasJustPressed()) {
-            index++;
-            if (index >= STATES.length) {
-                index = 0;
-            }
-        }
+//        if (wasJustPressed()) {
+//            index++;
+//            if (index >= STATES.length) {
+//                index = 0;
+//            }
+//        }
 
         // Should be the only location we're setting the power, default to manualMode
         if (manualMode) {
             spin.setPower(manualPower);
+        } else if (pidControlMode) {
+            // Update the control system target
+            spin.setPower(controller.calculate(spin.getState()));
+
         } else {
+            // Fallback for legacy "runPower" commands if not fully converted
             spin.setPower(runPower);
         }
 
         // Write Telemetry
         ActiveOpMode.telemetry().addLine("Storage | Ticks: " + spin.getCurrentPosition() + " | Index: " + index);
         ActiveOpMode.telemetry().addLine("Manual: " + manualMode + " | Power: " + manualPower);
-        ActiveOpMode.telemetry().addLine("Limit: " + limitSwitch.getState());
-        ActiveOpMode.telemetry().addLine("Color: " + getColor().red + ", " + getColor().green + ", " + getColor().blue );
+//        ActiveOpMode.telemetry().addLine("Limit: " + limitSwitch.getState());
+//        ActiveOpMode.telemetry().addLine("Color: " + getColor().red + ", " + getColor().green + ", " + getColor().blue );
 
     }
 
@@ -79,7 +95,7 @@ public class Storage implements Subsystem {
     public static void setManualMode(boolean newMode) {
         manualMode = newMode;
     }
-    public static void resetEncoder(){
+    public static void resetEncoder() {
         spin.zero();
     }
 
@@ -204,5 +220,25 @@ public class Storage implements Subsystem {
         }
         return new SequentialGroup(clears)
                 .named("reset index states");
+    }
+
+    public static Command spinForwardTicks(int ticks) {
+        return new LambdaCommand()
+                .setStart(() -> {
+                    manualMode = false;
+                    startPos = spin.getCurrentPosition();
+                    pidControlMode = true;
+                    controller.setGoal(new KineticState(startPos + 180));
+                })
+                .setIsDone(() ->
+                        Math.abs(spin.getCurrentPosition() - startPos) <= tolerance
+                )
+                .setStop(interrupted -> {
+                    manualPower = 0;
+                    manualMode = true;
+                })
+                .requires(Storage.INSTANCE)
+                .setInterruptible(false)
+                .named("Spin Forward " + ticks + " Ticks");
     }
 }

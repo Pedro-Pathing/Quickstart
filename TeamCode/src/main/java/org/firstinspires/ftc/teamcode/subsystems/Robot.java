@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.subsystems.SubsystemGroup;
 
 public class Robot extends SubsystemGroup {
@@ -8,8 +7,9 @@ public class Robot extends SubsystemGroup {
 
     private Robot() {
         super(
-                Drive.INSTANCE,
                 Intake.INSTANCE,
+                Transitions.INSTANCE,
+                Storage.INSTANCE,
                 Outtake.INSTANCE
         );
     }

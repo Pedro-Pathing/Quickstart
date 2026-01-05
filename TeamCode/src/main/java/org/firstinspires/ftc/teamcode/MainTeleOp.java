@@ -14,15 +14,15 @@ import org.firstinspires.ftc.teamcode.subsystems.*;
 public class MainTeleOp extends NextFTCOpMode {
     {
         addComponents(
-                BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
+                //BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
                 CommandManager.INSTANCE,
                 new SubsystemComponent(
                         Storage.INSTANCE,
                         //Robot.INSTANCE,
-                        Drive.INSTANCE,
+                        //Drive.INSTANCE,
                         Intake.INSTANCE,
-                        Outtake.INSTANCE,
+                        //Outtake.INSTANCE,
                         Transitions.INSTANCE
                 )
                 //new PedroComponent(Constants::createFollower)
@@ -36,11 +36,18 @@ public class MainTeleOp extends NextFTCOpMode {
     }
     @Override public void onStartButtonPressed() {
         Gamepads.gamepad1().x()
-                .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Storage.setManualPower(1))
                 .whenBecomesFalse(() -> Storage.setManualPower(0));
         Gamepads.gamepad1().a()
                 .whenBecomesTrue(Storage::resetEncoder);
+        Gamepads.gamepad1().y()
+                .whenBecomesTrue(() -> Intake.setIntakePower(1))
+                .whenBecomesFalse(() -> Intake.setIntakePower(0));
+        Gamepads.gamepad1().b()
+                .whenBecomesTrue(() -> Transitions.setOuttakePosition(0.1))
+                .whenBecomesFalse(() -> Transitions.setOuttakePosition(0.9));
+        Gamepads.gamepad1().dpadDown()
+                .whenBecomesTrue(() -> Storage.spinForwardTicks(180).schedule());
     }
     @Override public void onUpdate() {
         ActiveOpMode.telemetry().update();

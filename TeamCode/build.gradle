@@ -46,10 +46,10 @@ repositories {
 dependencies {
     implementation project(':FtcRobotController')
 
-    implementation 'dev.nextftc:ftc:1.0.1'
+    implementation 'dev.nextftc:ftc:1.1.0-beta.1'
     implementation 'dev.nextftc:control:1.0.0'
     implementation 'dev.nextftc:bindings:1.0.1'
-    implementation 'dev.nextftc:hardware:1.0.1'
+    implementation 'dev.nextftc:hardware:1.1.0-beta.1'
     implementation 'dev.nextftc.extensions:pedro:1.0.0'
 
     /*
