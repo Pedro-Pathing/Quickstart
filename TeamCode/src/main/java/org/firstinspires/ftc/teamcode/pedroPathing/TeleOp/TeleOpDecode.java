@@ -53,6 +53,7 @@ public class TeleOpDecode extends OpMode {
     private boolean lastrightbumper = false ;
     private boolean lastleftbumper = false;
     int positionAngleshoot =0 ;
+    boolean anglePresetMode = false;
 
     int vitesseShooter = 0;
 
@@ -180,7 +181,7 @@ public class TeleOpDecode extends OpMode {
         lastrightbumper = gamepad2.right_bumper;
         // --- Mise à jour du manager ---
 
-        if (gamepad2.left_bumper && !lastleftbumper){
+        if (gamepad2.left_bumper && !lastleftbumper) {
 
             double angleTourelle = 0;      // à adapter
             double angleShooter = 15;      // à adapter
@@ -192,32 +193,63 @@ public class TeleOpDecode extends OpMode {
 
         lastleftbumper = gamepad2.left_bumper;
 
-        if (gamepad2.x && !lastX){
-            positionAngleshoot++;
-            if (positionAngleshoot > 4) {
-                positionAngleshoot = 0;
-                switch (positionAngleshoot) {
-                    case 0:
-                        ServoAngleShoot.angleShoot(0.1);
-                        break;
-                    case 1:
-                        ServoAngleShoot.angleShoot(0.15);
-                        break;
-                    case 2:
-                        ServoAngleShoot.angleShoot(0.20);
-                        break;
-                    case 3:
-                        ServoAngleShoot.angleShoot(0.35);
-                        break;
-                    case 4:
-                        ServoAngleShoot.angleShoot(0.40);
-                        break;
-                }
+        //1) gestion des prereglages tourelles avec le bouton X en manuel
+
+        if (gamepad2.x && !lastX) {
+            positionAngleshoot = (positionAngleshoot + 1) % 5;
+            anglePresetMode = true;
+
+            switch (positionAngleshoot) {
+                case 0:
+                    ServoAngleShoot.angleShoot(0.5);
+                    break;
+                case 1:
+                    ServoAngleShoot.angleShoot(0.55);
+                    break;
+                case 2:
+                    ServoAngleShoot.angleShoot(0.60);
+                    break;
+                case 3:
+                    ServoAngleShoot.angleShoot(0.65);
+                    break;
+                case 4:
+                    ServoAngleShoot.angleShoot(0.75);
+                    break;
+
             }
         }
 
 
         lastX = gamepad2.x;
+
+        //2) gestion angleshoot tourelles avec le joystick
+
+        double angleshootjoy = gamepad2.right_stick_y;
+        boolean joystickActif = Math.abs(angleshootjoy) > 0.05; //deadzone
+
+        if (joystickActif) {
+            anglePresetMode = false; //priorité au joystick
+            ServoAngleShoot.angleShoot(angleshootjoy);
+        } else if (anglePresetMode) {
+            //reappliquer les valeurs selectionnées
+            case 0:
+                ServoAngleShoot.angleShoot(0.5);
+                break;
+            case 1:
+                ServoAngleShoot.angleShoot(0.55);
+                break;
+            case 2:
+                ServoAngleShoot.angleShoot(0.60);
+                break;
+            case 3:
+                ServoAngleShoot.angleShoot(0.65);
+                break;
+            case 4:
+                ServoAngleShoot.angleShoot(0.75);
+                break;
+        }
+
+
 
         double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
         tourelle.rotationtourelle(powertourelle);
@@ -231,15 +263,14 @@ public class TeleOpDecode extends OpMode {
                 case 0:
                     shooter.setShooterTargetRPM(0);
                     break;
-
                     case 1:
                         shooter.setShooterTargetRPM(4500);
                         break;
                         case 3:
-                            shooter.setShooterTargetRPM(4800);
+                            shooter.setShooterTargetRPM(4700);
                             break;
                             case 4:
-                                shooter.setShooterTargetRPM(5100);
+                                shooter.setShooterTargetRPM(4800);
                                 break;
             }
         }
@@ -253,7 +284,6 @@ public class TeleOpDecode extends OpMode {
         }
         lastA = gamepad2.a;
 
-
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
@@ -261,6 +291,8 @@ public class TeleOpDecode extends OpMode {
         indexeur.update();
         tireurManager.update();
 
+        telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
+        telemetry.addData("AngleShoot", positionAngleshoot);
         telemetry.addData("RPM", intake.getRPM());
         telemetry.addData("DistanceBalle", intake.getCapteurDistance());
         telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
