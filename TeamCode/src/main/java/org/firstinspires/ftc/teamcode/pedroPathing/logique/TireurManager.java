@@ -96,8 +96,8 @@ public class TireurManager {
                         state = TirState.TURRET_POSITION;
                         timer.reset();
                     }
-                    else {state = TirState.IDLE;}
                 }
+                else { state = TirState.IDLE; }
                 break;
 
             // --- 2) Positionnement tourelle ---
@@ -123,7 +123,7 @@ public class TireurManager {
 
             // --- 4) Pousser la balle ---
             case SERVO_PUSH:
-                tourelle.stopTourelle();
+                //tourelle.stopTourelle();
                 servoTireur.push();
 
                 if (timer.milliseconds() > 300) {

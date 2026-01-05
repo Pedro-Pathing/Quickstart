@@ -153,6 +153,7 @@ public class Indexeur {
 
 
             case BOURRAGE:
+                reculerIndexeurbourrage();
                 break;
 
             case STABILISATION:
@@ -344,7 +345,7 @@ public class Indexeur {
         rotationPourTir = false;
         rotationEnCours = false;
 
-        IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE : Indexeuretat.IDLE;
+        IndexeurState = finParTimerErreur ? Indexeuretat.IDLE : Indexeuretat.IDLE; //Retrait Bourrage
     }
 
 

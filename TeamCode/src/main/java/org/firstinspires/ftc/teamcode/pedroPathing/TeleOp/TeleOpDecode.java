@@ -171,9 +171,9 @@ public class TeleOpDecode extends OpMode {
         if (gamepad2.right_bumper && !lastrightbumper) {
 
             // Exemple : tir droit devant
-            double angleTourelle = 0;      // à adapter
-            double angleShooter = 15;      // à adapter
-            double vitesseShooter = 4800;  // à adapter
+            double angleTourelle = 45;      // à adapter
+            double angleShooter = 0.84;      // à adapter
+            double vitesseShooter = 4500;
 
             tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
         }
@@ -183,9 +183,9 @@ public class TeleOpDecode extends OpMode {
 
         if (gamepad2.left_bumper && !lastleftbumper) {
 
-            double angleTourelle = 0;      // à adapter
-            double angleShooter = 15;      // à adapter
-            double vitesseShooter = 4800;  // à adapter
+            double angleTourelle = -45;      // à adapter
+            double angleShooter = 0.84;      // à adapter
+            double vitesseShooter = 4500;  // à adapter
 
             tireurManager.startTirAutoIndividuel(angleTourelle, angleShooter, vitesseShooter);
 
@@ -195,27 +195,26 @@ public class TeleOpDecode extends OpMode {
 
         //1) gestion des prereglages tourelles avec le bouton X en manuel
 
-        if (gamepad2.x && !lastX) {
+        /*if (gamepad2.x && !lastX) {
             positionAngleshoot = (positionAngleshoot + 1) % 5;
             anglePresetMode = true;
 
             switch (positionAngleshoot) {
                 case 0:
-                    ServoAngleShoot.angleShoot(0.5);
+                    ServoAngleShoot.angleShoot(0.90);
                     break;
                 case 1:
-                    ServoAngleShoot.angleShoot(0.55);
+                    ServoAngleShoot.angleShoot(0.88);
                     break;
                 case 2:
-                    ServoAngleShoot.angleShoot(0.60);
+                    ServoAngleShoot.angleShoot(0.86);
                     break;
                 case 3:
-                    ServoAngleShoot.angleShoot(0.65);
+                    ServoAngleShoot.angleShoot(0.84);
                     break;
                 case 4:
-                    ServoAngleShoot.angleShoot(0.75);
+                    ServoAngleShoot.angleShoot(0.82);
                     break;
-
             }
         }
 
@@ -232,23 +231,24 @@ public class TeleOpDecode extends OpMode {
             ServoAngleShoot.angleShoot(angleshootjoy);
         } else if (anglePresetMode) {
             //reappliquer les valeurs selectionnées
-            case 0:
-                ServoAngleShoot.angleShoot(0.5);
-                break;
-            case 1:
-                ServoAngleShoot.angleShoot(0.55);
-                break;
-            case 2:
-                ServoAngleShoot.angleShoot(0.60);
-                break;
-            case 3:
-                ServoAngleShoot.angleShoot(0.65);
-                break;
-            case 4:
-                ServoAngleShoot.angleShoot(0.75);
-                break;
+            switch (positionAngleshoot) {
+                case 0:
+                    ServoAngleShoot.angleShoot(0.90);
+                    break;
+                case 1:
+                    ServoAngleShoot.angleShoot(0.88);
+                    break;
+                case 2:
+                    ServoAngleShoot.angleShoot(0.86);
+                    break;
+                case 3:
+                    ServoAngleShoot.angleShoot(0.84);
+                    break;
+                case 4:
+                    ServoAngleShoot.angleShoot(0.82);
+                    break;
+            }
         }
-
 
 
         double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
@@ -283,7 +283,7 @@ public class TeleOpDecode extends OpMode {
 
         }
         lastA = gamepad2.a;
-
+    */
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);

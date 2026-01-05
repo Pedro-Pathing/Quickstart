@@ -6,16 +6,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class AngleShooter {
     private Servo AngleShoot;
-    private double Positioninit = 1.0;
-    private double Positionlow = 0.5;
-    private double Positionmedium = 0.6;
-    private double Positionhaute = 0.8;
+    private double Positioninit = 0.90;
+    private double Positionlow = 0.90;
+    private double Positionmedium = 0.86;
+    private double Positionhaute = 0.82;
 
     public void init(@NonNull HardwareMap hwMap) {
     AngleShoot = hwMap.get(Servo.class, "AngleShoot");
-        AngleShoot.setPosition(1.00);}
+        AngleShoot.setPosition(0.90);}
 
     private enum AngleShooteretat {
+
         IDLE,  //Repos
         TirProche,
 
