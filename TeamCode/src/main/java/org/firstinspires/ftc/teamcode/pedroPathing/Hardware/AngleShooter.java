@@ -6,14 +6,22 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class AngleShooter {
     private Servo AngleShoot;
-    private double Positioninit = 0.90;
-    private double Positionlow = 0.90;
-    private double Positionmedium = 0.86;
-    private double Positionhaute = 0.82;
+
+    private double positionInitiale;
+    private double Positionlow = 0.12;
+    private double Positionmedium = 0.30;
+
+    private double PositionInterMdHaut = 0.40;
+    private double Positionhaute = 0.52;
 
     public void init(@NonNull HardwareMap hwMap) {
-    AngleShoot = hwMap.get(Servo.class, "AngleShoot");
-        AngleShoot.setPosition(0.90);}
+        AngleShoot = hwMap.get(Servo.class, "AngleShoot");
+        AngleShoot.setDirection(Servo.Direction.REVERSE);
+        // Position de départ sécurisée
+        positionInitiale = Positionlow;
+        AngleShoot.setPosition(positionInitiale);
+
+    }
 
     private enum AngleShooteretat {
 
