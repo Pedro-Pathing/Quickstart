@@ -63,6 +63,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
     // Variables for storing data for the second gamepad controls
     public static double DylanStickDeadzones = 0.2;
+
     public int shootingState = 0;
     public TimerEx stateTimer = new TimerEx(1);
     public static double hoodSpeed = 4;
@@ -263,6 +264,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Turret Aimbot
         //Robot.turret.updateAimbot();
+        // DO NOT RE-ENABLE THIS UNTIL HALL EFFECT SENSOR CALIBRATED
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
