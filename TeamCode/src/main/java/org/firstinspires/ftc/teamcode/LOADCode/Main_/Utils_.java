@@ -2,7 +2,9 @@ package org.firstinspires.ftc.teamcode.LOADCode.Main_;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+
 
 public class Utils_ {
 
@@ -165,9 +167,17 @@ public class Utils_ {
      */
     public class TelemetryManager{
         List<TelemetryObject> telemtryList = new ArrayList<>();
+        List<TelemetryObject> sortedTelemetryList = new ArrayList<>();
 
         public void addLine(TelemetryObject telemetryline){
             telemtryList.add(telemetryline);
+        }
+
+        public void updateTelemetry(){
+            //sortedTelemetryList = telemtryList.sort(Comparator.comparing(TelemetryObject::getName));
+            //for(TelemetryObject telemObj : telemtryList){
+
+            //}
         }
     }
 
@@ -207,4 +217,6 @@ public class Utils_ {
         }
 
     }
+
+
 }

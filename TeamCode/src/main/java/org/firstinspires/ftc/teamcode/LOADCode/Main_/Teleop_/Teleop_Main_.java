@@ -117,6 +117,10 @@ public class Teleop_Main_ extends LinearOpMode {
 
             Robot.turret.updatePIDs();
 
+            double flywheelPercentage = (int) Math.round(Robot.turret.getFlywheelRPM()/Robot.turret.getFlywheelMaxRPM()*100);
+            telemetry.addData("Flywheel Percentage", flywheelPercentage+"%");
+            panelsTelemetry.addData("Flywheel Percentage", flywheelPercentage+"%");
+
             telemetry.addData("SpeedMult", Robot.drivetrain.speedMultiplier);
             telemetry.addLine();
             //positional telemetry

@@ -85,6 +85,10 @@ public class Turret {
         rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         rotation.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        //Runmodes for encoder
+        flywheel.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheel2.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
         flywheel.setPidCoefficients(flywheelCoefficients);
@@ -234,5 +238,9 @@ public class Turret {
         } else if (flywheelState == flywheelstate.OFF){
             setFlywheelRPM(0);
         }
+    }
+
+    public double getFlywheelMaxRPM(){
+        return flywheelSpeed;
     }
 }

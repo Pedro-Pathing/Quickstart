@@ -30,4 +30,5 @@ dependencies {
     implementation 'dev.nextftc:ftc:1.0.1'
     implementation 'dev.nextftc.extensions:pedro:1.0.0'
     implementation "com.bylazar:graph:1.0.4"
+    //implementation 'com.github.goBILDA-Official:FtcRobotController-Add-Prism:goBILDA-Prism-Driver' // For Light Strips
 }
