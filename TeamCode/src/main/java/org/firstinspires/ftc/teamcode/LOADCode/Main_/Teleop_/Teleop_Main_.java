@@ -45,6 +45,7 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake.intakeMode;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake.transferState;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelstate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
@@ -117,7 +118,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
             Robot.turret.updatePIDs();
 
-            double flywheelPercentage = (int) Math.round(Robot.turret.getFlywheelRPM()/Robot.turret.getFlywheelMaxRPM()*100);
+            double flywheelPercentage = (int) Math.round(Robot.turret.getFlywheelRPM()/Turret.flywheelMaxSpeed *100);
             telemetry.addData("Flywheel Percentage", flywheelPercentage+"%");
             panelsTelemetry.addData("Flywheel Percentage", flywheelPercentage+"%");
 

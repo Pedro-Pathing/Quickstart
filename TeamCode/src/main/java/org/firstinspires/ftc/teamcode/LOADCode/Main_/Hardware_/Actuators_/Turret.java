@@ -47,7 +47,7 @@ public class Turret {
     /** Stores the current state of the flywheel.*/
     public flywheelstate flywheelState = flywheelstate.OFF;
     /** Controls the target speed of the flywheel when it is on.*/
-    public static double flywheelSpeed = 4500;
+    public static double flywheelMaxSpeed = 4500;
     /** Controls the upper software limit of the hood.*/
     public static double upperHoodLimit = 260;
     /** Controls the speed at which the turret will move to zero itself.*/
@@ -234,13 +234,9 @@ public class Turret {
      */
     public void updateFlywheel(){
         if (flywheelState == flywheelstate.ON){
-            setFlywheelRPM(flywheelSpeed);
+            setFlywheelRPM(flywheelMaxSpeed);
         } else if (flywheelState == flywheelstate.OFF){
             setFlywheelRPM(0);
         }
-    }
-
-    public double getFlywheelMaxRPM(){
-        return flywheelSpeed;
     }
 }
