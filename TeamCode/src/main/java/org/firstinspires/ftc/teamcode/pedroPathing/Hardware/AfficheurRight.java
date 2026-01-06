@@ -83,7 +83,7 @@ public class AfficheurRight {
         timer.reset();
     }
 
-    private void setPosition(double pos) {
+    public void setPosition(double pos) {
         RGBRight.setPosition(pos);
     }
 }
