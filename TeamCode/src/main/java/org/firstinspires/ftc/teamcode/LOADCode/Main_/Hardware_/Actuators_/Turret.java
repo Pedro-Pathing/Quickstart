@@ -88,6 +88,8 @@ public class Turret {
         //Runmodes for encoder
         flywheel.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheel2.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheel.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheel2.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.FLOAT);
 
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
