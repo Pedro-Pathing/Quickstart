@@ -36,8 +36,14 @@ public class MainTeleOp extends NextFTCOpMode {
     }
     @Override public void onStartButtonPressed() {
         Gamepads.gamepad1().x()
-                .whenBecomesTrue(() -> Storage.setManualPower(1))
-                .whenBecomesFalse(() -> Storage.setManualPower(0));
+                .whenBecomesTrue(() -> {
+                    Storage.setManualMode(true);
+                    Storage.setManualPower(1);
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualMode(true);
+                    Storage.setManualPower(0);
+                });
         Gamepads.gamepad1().a()
                 .whenBecomesTrue(Storage::resetEncoder);
         Gamepads.gamepad1().y()
@@ -47,7 +53,9 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(() -> Transitions.setOuttakePosition(0.1))
                 .whenBecomesFalse(() -> Transitions.setOuttakePosition(0.9));
         Gamepads.gamepad1().dpadDown()
-                .whenBecomesTrue(() -> Storage.spinForwardTicks(180).schedule());
+                .whenBecomesTrue(() -> Storage.spinToNextIntakeIndex().schedule());
+        Gamepads.gamepad1().dpadUp()
+                .whenBecomesTrue(() -> Storage.spinToNextOuttakeIndex().schedule());
     }
     @Override public void onUpdate() {
         ActiveOpMode.telemetry().update();
