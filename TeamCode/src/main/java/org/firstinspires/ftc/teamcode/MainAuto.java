@@ -20,10 +20,10 @@ public class MainAuto extends OpMode {
 
 
     
-    private final Pose poseA = new Pose(28.5, 128, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose poseB = new Pose(60, 85, Math.toRadians(135));
+    private final Pose poseA = new Pose(5, 20, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose poseB = new Pose(50, 50, Math.toRadians(135));
 
-    private final Pose poseC = new Pose(30, 105, Math.toRadians(50));
+    private final Pose poseC = new Pose(15, 40, Math.toRadians(50));
 
 
     private Path scorePreload;
@@ -64,4 +64,38 @@ public class MainAuto extends OpMode {
         pathState = pState;
         pathTimer.resetTimer();
     }
+
+
+
+
+
+    @Override
+    public void init() {
+        pathTimer = new Timer();
+        opmodeTimer = new Timer();
+        opmodeTimer.resetTimer();
+        follower = Constants.createFollower(hardwareMap);
+        buildPaths();
+        follower.setStartingPose(startPose);
+    }
+
+    /** This method is called continuously after Init while waiting for "play". **/
+    @Override
+    public void init_loop() {}
+
+
+    /** This method is called once at the start of the OpMode.
+     * It runs all the setup actions, including building paths and starting the path system **/
+    @Override
+    public void start() {
+        opmodeTimer.resetTimer();
+        setPathState(0);
+    }
+    /** We do not use this because everything should automatically disable **/
+    @Override
+    public void stop() {}
+
+
+
+
 }
