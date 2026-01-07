@@ -18,7 +18,7 @@ public class ServoTireur  {
     private Servo ServoTir;
     private Indexeur indexeur;
     private double tirpositionretour = 0.79; // position basse
-    private double tirpositionhaute = 0.32; // position haute
+    private double tirpositionhaute = 0.31; // position haute
 
     private ElapsedTime timeretat = new ElapsedTime();
     private boolean tirServoEnCours = false;

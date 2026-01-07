@@ -70,7 +70,7 @@ public class DecodeBlueAuto extends OpMode {
 
     private final Pose drivetoligne1= new Pose (48.3920653, 82.8378063, Math.toRadians(180));
 
-    private final Pose avalerballeRangee1 = new Pose (18.4830805, 84.1820303, Math.toRadians(180));
+    private final Pose avalerballeRangee1 = new Pose (30.4830805, 84.1820303, Math.toRadians(180));
 
     private final Pose Shoot2 = new Pose (60.3220536, 84.0140023, Math.toRadians(137));
 
@@ -147,9 +147,9 @@ public class DecodeBlueAuto extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                0,   // angle tourelle (exemple)
-                                0.35,  // angle shooter
-                                4500   // RPM
+                                -40,   // angle tourelle (exemple)
+                                0.28,  // angle shooter
+                                3880   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
@@ -165,7 +165,8 @@ public class DecodeBlueAuto extends OpMode {
                 // check is follow done is path
                 intake.update();
                 indexeur.update();
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>5) {
+                //if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>5) {
+                if (!follower.isBusy()) {
                     telemetry.addLine("Done with Shooting 1, deplacement vers premiere rangée");
                     // transition to next state
                     follower.followPath(driveShoot2pickup1Pos , true);
@@ -174,61 +175,32 @@ public class DecodeBlueAuto extends OpMode {
                 break;
 
             case intakeballeRangee1:
-
                 // Toujours mettre à jour les systèmes
                 intake.update();
                 indexeur.update();
-
                 // On ne décide de rien tant que le path n'est pas fini
                 if (!follower.isBusy()) {
-
-                    // Condition normale : 3 balles validées par l'indexeur
-                    if (indexeur.getBalles() >= 3) {
-
-                        telemetry.addLine("ramassage terminé (3 balles)");
-
-                        // 1. Couper l'intake
-                        intake.setIntakeBallTargetRPM(0);
-
-                        // 2. Couper l'indexeur
-                        indexeur.setEtat(Indexeur.Indexeuretat.IDLE);
-
-                        // 3. Lancer le path suivant
-                        follower.followPath(driveAvalerpremiereLigne, true);
-                        setPathState(PathState.DrivedeuxiemeShoot);
-                        break;
+                    follower.followPath(driveAvalerpremiereLigne, 0.4,true);
+                    setPathState(PathState.DrivedeuxiemeShoot);
                     }
-
-                    // Optionnel : sécurité si pas 3 balles mais path terminé depuis trop longtemps
-                    if (pathTimer.getElapsedTimeSeconds()> 3.0) {
-                        telemetry.addLine(" ramassage incomplet, on continue quand même");
-
-                        intake.setIntakeBallTargetRPM(0);
-                        indexeur.setEtat(Indexeur.Indexeuretat.IDLE);
-
-                        follower.followPath(driveAvalerpremiereLigne, true);
-                        setPathState(PathState.DrivedeuxiemeShoot);
-                        break;
-                    }
-                }
-
                 break;
 
             case DrivedeuxiemeShoot:
                 ;
                 if (!follower.isBusy()) {
+                    follower.followPath(DrivedeuxiemeShoot, true);
                     // Le robot est arrivé en position de tir :
 
                     if (!shotsTriggered) {
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                0,   // angle tourelle (exemple)
-                                0.35,  // angle shooter
-                                4500   // RPM
+                                -45,   // angle tourelle (exemple)
+                                0.28,  // angle shooter
+                                3880   // RPM
                         );
                         shotsTriggered = true;
                     }
                     else if (shotsTriggered && !tireurManager.isBusy()){
-                            setPathState(PathState.align_RANGEE1Blue);
+                            setPathState(PathState.align_rangee2blue);
                             shotsTriggered = false;
                         }
 
@@ -238,10 +210,11 @@ public class DecodeBlueAuto extends OpMode {
             case align_rangee2blue:
 
                 // Zone de Tir , apres départ
-                if (!follower.isBusy()&& pathTimer.getElapsedTimeSeconds()>5) {
+                //if (!follower.isBusy()&& pathTimer.getElapsedTimeSeconds()>5) {
+                if (!follower.isBusy()) {
                     follower.followPath(drivetorangee2, true);
                 // TO DO demarer intake , tourner indexeur des dectetion balles)
-                telemetry.addLine("ramassage terminé");
+                telemetry.addLine("alignement ramassage ligne 2");
                 // transition to next state
                 setPathState(PathState.intakerange2);
 
@@ -265,9 +238,9 @@ public class DecodeBlueAuto extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                0,   // angle tourelle (exemple)
-                                0.35,  // angle shooter
-                                4500   // RPM
+                                -45,   // angle tourelle (exemple)
+                                0.28,  // angle shooter
+                                3880   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
@@ -335,12 +308,16 @@ public class DecodeBlueAuto extends OpMode {
 
         intake = new Intake(indexeur, afficheurLeft);
         intake.init(hardwareMap);
+        indexeur.setIntake(intake);
 
         servoTireur = new ServoTireur(indexeur);
         servoTireur.init(hardwareMap);
 
         // --- TireurManager ---
         tireurManager = new TireurManager(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
+
+        indexeur.setBalles(3);
+        indexeur.resetCompartiments();
 
     }
 

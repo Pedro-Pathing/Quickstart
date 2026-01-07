@@ -123,10 +123,17 @@ public class TireurManager {
 
             // --- 4) Pousser la balle ---
             case SERVO_PUSH:
-                //tourelle.stopTourelle();
-                servoTireur.push();
 
-                if (timer.milliseconds() > 300) {
+                double toleranceVelocityMax = 1.03
+                        * vitesseCibleShooter;
+                double toleranceVelocityMin = 0.9 * vitesseCibleShooter;
+
+                if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){
+                servoTireur.push();
+                indexeur.decrementerBalle();
+                };
+
+                if (timer.milliseconds() > 600) {
                     timer.reset();
                     state = TirState.SERVO_RETRACT;
                 }

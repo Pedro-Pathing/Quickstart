@@ -171,9 +171,9 @@ public class TeleOpDecode extends OpMode {
         if (gamepad2.right_bumper && !lastrightbumper) {
 
             // Exemple : tir droit devant
-            double angleTourelle = 45;      // à adapter
-            double angleShooter = 0.84;      // à adapter
-            double vitesseShooter = 4500;
+            double angleTourelle = -39;      // à adapter
+            double angleShooter = 0.35;      // à adapter
+            double vitesseShooter = 4000;
 
             tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
         }
@@ -183,9 +183,9 @@ public class TeleOpDecode extends OpMode {
 
         if (gamepad2.left_bumper && !lastleftbumper) {
 
-            double angleTourelle = -45;      // à adapter
-            double angleShooter = 0.84;      // à adapter
-            double vitesseShooter = 4500;  // à adapter
+            double angleTourelle = -39;      // à adapter
+            double angleShooter = 0.35;      // à adapter
+            double vitesseShooter = 4000;  // à adapter
 
             tireurManager.startTirAutoIndividuel(angleTourelle, angleShooter, vitesseShooter);
 
@@ -195,58 +195,12 @@ public class TeleOpDecode extends OpMode {
 
         //1) gestion des prereglages tourelles avec le bouton X en manuel
 
-        /*if (gamepad2.x && !lastX) {
-            positionAngleshoot = (positionAngleshoot + 1) % 5;
-            anglePresetMode = true;
-
-            switch (positionAngleshoot) {
-                case 0:
-                    ServoAngleShoot.angleShoot(0.90);
-                    break;
-                case 1:
-                    ServoAngleShoot.angleShoot(0.88);
-                    break;
-                case 2:
-                    ServoAngleShoot.angleShoot(0.86);
-                    break;
-                case 3:
-                    ServoAngleShoot.angleShoot(0.84);
-                    break;
-                case 4:
-                    ServoAngleShoot.angleShoot(0.82);
-                    break;
-            }
-        }
-
-
-        lastX = gamepad2.x;
-
-        //2) gestion angleshoot tourelles avec le joystick
-
-        double angleshootjoy = gamepad2.right_stick_y;
-        boolean joystickActif = Math.abs(angleshootjoy) > 0.05; //deadzone
-
-        if (joystickActif) {
-            anglePresetMode = false; //priorité au joystick
-            ServoAngleShoot.angleShoot(angleshootjoy);
-        } else if (anglePresetMode) {
-            //reappliquer les valeurs selectionnées
-            switch (positionAngleshoot) {
-                case 0:
-                    ServoAngleShoot.angleShoot(0.90);
-                    break;
-                case 1:
-                    ServoAngleShoot.angleShoot(0.88);
-                    break;
-                case 2:
-                    ServoAngleShoot.angleShoot(0.86);
-                    break;
-                case 3:
-                    ServoAngleShoot.angleShoot(0.84);
-                    break;
-                case 4:
-                    ServoAngleShoot.angleShoot(0.82);
-                    break;
+        /* //tourelle.allerVersAngle(45);
+            double[] presets = {0.12, 0.25, 0.30, 0.40, 0.52};
+            if (gamepad2.x && !lastX) {
+                positionAngleshoot = (positionAngleshoot + 1) % presets.length;
+                angleShooter.angleShoot(presets[positionAngleshoot]); }
+            lastX = gamepad2.x;
             }
         }
 

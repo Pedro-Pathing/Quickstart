@@ -337,7 +337,7 @@ public class Indexeur {
             //if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {
             //    ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
             //}
-            ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
+            //ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
             couleurBalleDansCompartiment[slotTir] = "Inconnue";
         }
 
@@ -446,6 +446,21 @@ public class Indexeur {
         homingDemarre = true;
     }
     public boolean isHomingDone() { return homingDone; }
+
+    public void decrementerBalle() {
+        ballComptage = Math.max(ballComptage - 1, 0); }
+
+
+    public void setBalles(int n) {
+        ballComptage = Math.max(MIN_BALLS, Math.min(n, MAX_BALLS));
+    }
+
+    public void resetCompartiments() {
+        for (int i = 0; i < COMPARTIMENTS; i++) {
+            couleurBalleDansCompartiment[i] = "Inconnue";
+        }
+    }
+
 
 }
 
