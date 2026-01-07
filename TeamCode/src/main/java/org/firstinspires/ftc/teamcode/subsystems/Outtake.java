@@ -12,7 +12,7 @@ public class Outtake implements Subsystem {
 
     public static final Outtake INSTANCE = new Outtake();
 
-    private static final MotorEx motor = new MotorEx("motor1");
+    private static final MotorEx motor = new MotorEx("motorExp1");
     private static final CRServoEx outtakeServo = new CRServoEx("servo4");
 
     private static final ControlSystem controller = ControlSystem.builder()

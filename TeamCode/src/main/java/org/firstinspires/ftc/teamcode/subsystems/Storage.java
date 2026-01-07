@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 
+import org.firstinspires.ftc.teamcode.utils.Logger;
+
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
@@ -16,11 +18,12 @@ public class Storage implements Subsystem {
     private static boolean manualMode = true;
     private static boolean pidControlMode = false;
     private static double manualPower = 0;
-    private final static MotorEx spin = new MotorEx("motor1").brakeMode();
+    private final static MotorEx spin = new MotorEx("motorExp0").brakeMode();
     private static DigitalChannel limitSwitch;
     private static NormalizedColorSensor colorSensor;
     private static int index = 0;
     private static double startPos = 0;
+    private static final int TICKS = 180;
 
     static ControlSystem controller = ControlSystem.builder()
             .posPid(0.01, 0, 0)
@@ -69,13 +72,12 @@ public class Storage implements Subsystem {
         } else if (pidControlMode) {
             // Update the control system target
             spin.setPower(controller.calculate(spin.getState()));
-            ActiveOpMode.telemetry().addLine("pid power?: " + controller.calculate(spin.getState()));
         }
 
         // Write Telemetry
-        ActiveOpMode.telemetry().addLine("Storage | Ticks: " + spin.getCurrentPosition() + " | Index: " + index);
-        ActiveOpMode.telemetry().addLine("Manual: " + manualMode + " | Power: " + manualPower);
-        ActiveOpMode.telemetry().addLine("PID?: " + pidControlMode);
+        Logger.add("Storage", Logger.Level.DEBUG, "ticks: " + spin.getCurrentPosition());
+        Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode +  "power: " + controller.calculate(spin.getState()));
+        Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode +  "power: " + manualPower);
 
         // ActiveOpMode.telemetry().addLine("Limit: " + limitSwitch.getState());
         // ActiveOpMode.telemetry().addLine("Color: " + getColor().red + ", " +
@@ -87,11 +89,11 @@ public class Storage implements Subsystem {
                 .setStart(() -> {
                     manualMode = false;
                     pidControlMode = true;
-                    startPos = spin.getCurrentPosition();
-                    double nextPos = startPos + (180 - (startPos % 180));
+                    startPos = spin.getCurrentPosition() + 10;
+                    double nextPos = startPos + (TICKS - (startPos % TICKS));
                     controller.setGoal(new KineticState(nextPos));
                 })
-                .setIsDone(() -> manualMode)
+                .setIsDone(() -> true)
                 .setStop(interrupted -> {})
                 .requires(Storage.INSTANCE)
                 .setInterruptible(true)
@@ -103,15 +105,15 @@ public class Storage implements Subsystem {
                 .setStart(() -> {
                     manualMode = false;
                     pidControlMode = true;
-                    startPos = spin.getCurrentPosition();
-                    double ticksToMove = 90 - startPos % 180;
+                    startPos = spin.getCurrentPosition() + 10;
+                    double ticksToMove = TICKS/2.0 - startPos % TICKS;
 
                     if (ticksToMove <= 0) {
-                        ticksToMove += 180;
+                        ticksToMove += TICKS;
                     }
                     double nextPos = startPos + ticksToMove;
                     controller.setGoal(new KineticState(nextPos));})
-                .setIsDone(() -> manualMode)
+                .setIsDone(() -> true)
                 .setStop(interrupted -> {
                 })
                 .requires(Storage.INSTANCE)

@@ -5,22 +5,24 @@ import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.ActiveOpMode;
+import dev.nextftc.ftc.GamepadEx;
 import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 import org.firstinspires.ftc.teamcode.subsystems.*;
+import org.firstinspires.ftc.teamcode.utils.Logger;
 
 @TeleOp(name="MainTeleOp", group="TeleOp")
 public class MainTeleOp extends NextFTCOpMode {
     {
         addComponents(
-                //BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
+                BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
                 CommandManager.INSTANCE,
                 new SubsystemComponent(
                         Storage.INSTANCE,
                         //Robot.INSTANCE,
-                        //Drive.INSTANCE,
+                        Drive.INSTANCE,
                         Intake.INSTANCE,
                         //Outtake.INSTANCE,
                         Transitions.INSTANCE
@@ -35,7 +37,18 @@ public class MainTeleOp extends NextFTCOpMode {
         ActiveOpMode.telemetry().update();
     }
     @Override public void onStartButtonPressed() {
-        Gamepads.gamepad1().x()
+
+        GamepadEx caimo = Gamepads.gamepad1();
+        GamepadEx jeff = Gamepads.gamepad2();
+
+        caimo.rightBumper()
+                .whenBecomesTrue(() -> Intake.setIntakePower(1))
+                .whenBecomesFalse(() -> Intake.setIntakePower(0));
+        caimo.leftBumper()
+                .whenBecomesTrue(() -> Intake.setIntakePower(-1))
+                .whenBecomesFalse(() -> Intake.setIntakePower(0));
+
+        jeff.x()
                 .whenBecomesTrue(() -> {
                     Storage.setManualMode(true);
                     Storage.setManualPower(1);
@@ -44,22 +57,24 @@ public class MainTeleOp extends NextFTCOpMode {
                     Storage.setManualMode(true);
                     Storage.setManualPower(0);
                 });
-        Gamepads.gamepad1().a()
+        jeff.a()
                 .whenBecomesTrue(Storage::resetEncoder);
-        Gamepads.gamepad1().y()
-                .whenBecomesTrue(() -> Intake.setIntakePower(1))
-                .whenBecomesFalse(() -> Intake.setIntakePower(0));
-        Gamepads.gamepad1().b()
-                .whenBecomesTrue(() -> Transitions.setOuttakePosition(0.1))
-                .whenBecomesFalse(() -> Transitions.setOuttakePosition(0.9));
-        Gamepads.gamepad1().dpadDown()
+        jeff.b()
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(() -> Transitions.setOuttakePosition(0.75))
+                .whenBecomesFalse(() -> Transitions.setOuttakePosition(1.00));
+        jeff.dpadDown()
                 .whenBecomesTrue(() -> Storage.spinToNextIntakeIndex().schedule());
-        Gamepads.gamepad1().dpadUp()
+        jeff.dpadUp()
                 .whenBecomesTrue(() -> Storage.spinToNextOuttakeIndex().schedule());
     }
     @Override public void onUpdate() {
-        ActiveOpMode.telemetry().update();
+        for (String cname : CommandManager.INSTANCE.snapshot()) {
+            Logger.add("Commands", Logger.Level.DEBUG, cname);
+        }
+        Logger.update(Logger.Level.DEBUG);
     }
+
     @Override public void onStop() {
     }
 }

@@ -9,6 +9,7 @@ import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.utils.Logger;
 
 public class Drive implements Subsystem {
     public static final Drive INSTANCE = new Drive();
@@ -17,7 +18,7 @@ public class Drive implements Subsystem {
     private static TelemetryManager telemetryM;
     private static boolean slowMode = false;
     private static double slowModeMultiplier = 0.5;
-    private static boolean robotCentric = true;
+    private static boolean robotCentric = false;
 
     @Override
     public void initialize() {
@@ -38,6 +39,7 @@ public class Drive implements Subsystem {
     public void periodic() {
         // This runs every loop, attempts to schedule the drive command
         drive.schedule();
+
     }
 
     public static Command drive = new LambdaCommand()
@@ -58,10 +60,8 @@ public class Drive implements Subsystem {
                     slowMode = !slowMode;
                 }
 
-                //log verbosely to telemetry
-                //ActiveOpMode.telemetry().addLine("forward: " + forward + " strafe: " + strafe + " turn: " + turn);
-                //ActiveOpMode.telemetry().addData("slowMode?", slowMode);
-                ActiveOpMode.telemetry().update();
+                Logger.add("Drive", Logger.Level.DEBUG, "forward: " + forward + " strafe: " + strafe + " turn: " + turn);
+                Logger.add("Drive", Logger.Level.DEBUG, "slowmode? " + slowMode + "multiplier? " + slowModeMultiplier);
             })
             .setStop(interrupted -> {})
             .setIsDone(() -> false)
