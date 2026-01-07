@@ -23,7 +23,7 @@ public class Storage implements Subsystem {
     private static NormalizedColorSensor colorSensor;
     private static int index = 0;
     private static double startPos = 0;
-    private static final int TICKS = 180;
+    private static final double TICKS = 188.2166666667;
 
     static ControlSystem controller = ControlSystem.builder()
             .posPid(0.01, 0, 0)

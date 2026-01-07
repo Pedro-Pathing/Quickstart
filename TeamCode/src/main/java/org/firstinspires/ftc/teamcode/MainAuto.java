@@ -23,9 +23,9 @@ public class MainAuto extends OpMode {
 
     
     private final Pose poseA = new Pose(36, 36, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose poseB = new Pose(70, 50, Math.toRadians(135));
+    private final Pose poseB = new Pose(36, 50, Math.toRadians(0));
 
-    private final Pose poseC = new Pose(50, 40, Math.toRadians(50));
+    private final Pose poseC = new Pose(50, 50, Math.toRadians(90));
 
 
     private Path scorePreload;
