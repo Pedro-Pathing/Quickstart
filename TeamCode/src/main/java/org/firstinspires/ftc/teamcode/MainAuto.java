@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
+package org.firstinspires.ftc.teamcode; // make sure this aligns with class location
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -8,6 +8,8 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Main Auto")
 public class MainAuto extends OpMode {
@@ -20,21 +22,21 @@ public class MainAuto extends OpMode {
 
 
     
-    private final Pose poseA = new Pose(5, 20, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose poseB = new Pose(50, 50, Math.toRadians(135));
+    private final Pose poseA = new Pose(36, 36, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose poseB = new Pose(70, 50, Math.toRadians(135));
 
-    private final Pose poseC = new Pose(15, 40, Math.toRadians(50));
+    private final Pose poseC = new Pose(50, 40, Math.toRadians(50));
 
 
     private Path scorePreload;
-    private PathChain testMove;
+    private PathChain moveA;
 
     public void buildPaths() {
         scorePreload = new Path(new BezierLine(poseA, poseB));
         scorePreload.setLinearHeadingInterpolation(poseA.getHeading(), poseB.getHeading());
 
 
-        testMove = follower.pathBuilder()
+        moveA = follower.pathBuilder()
             .addPath(new BezierLine(poseB, poseC))
             .setLinearHeadingInterpolation(poseB.getHeading(), poseC.getHeading())
             .build();
@@ -52,7 +54,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(grabPickup1,true);
+                    follower.followPath(moveA,true);
                     setPathState(-1); // I think -1 just makes it stop
                 }
                 break;
@@ -66,6 +68,18 @@ public class MainAuto extends OpMode {
     }
 
 
+    @Override
+    public void loop() {
+        // These loop the movements of the robot, these must be called continuously in order to work
+        follower.update();
+        autonomousPathUpdate();
+        // Feedback to Driver Hub for debugging
+        telemetry.addData("path state", pathState);
+        telemetry.addData("x", follower.getPose().getX());
+        telemetry.addData("y", follower.getPose().getY());
+        telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.update();
+    }
 
 
 
@@ -76,7 +90,7 @@ public class MainAuto extends OpMode {
         opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(startPose);
+        follower.setStartingPose(poseA);
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
