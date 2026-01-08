@@ -23,13 +23,9 @@ public class Drive implements Subsystem {
     private static final boolean slowMode = false;
     private static final double slowModeMultiplier = 0.5;
     private static final boolean robotCentric = false;
-
-    public static Pose startingPos = new Pose(8 + 24, 6.25 + 24, Math.toRadians(0));
-
-    public static Pose shootTarget = new Pose(6, 144 - 6, 0);
-
+    private static Pose startingPos = new Pose(8 + 24, 6.25 + 24, Math.toRadians(0));
+    private static Pose shootTarget = new Pose(6, 144 - 6, 0);
     public static Robot.Alliance currentAlliance = Robot.Alliance.BLUE;
-
     private static double headingGoal; // Radians
     private static PIDFController controller;
     private static boolean headingLock = true;
@@ -38,10 +34,9 @@ public class Drive implements Subsystem {
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        follower.setStartingPose(startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         follower.update();
-        controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
         setShootTarget();
     }
 
@@ -53,15 +48,15 @@ public class Drive implements Subsystem {
     public static void setHeadingLock(boolean lock){
         headingLock = lock;
     }
-    public static void setHeadingGoal(Pose targetPose, Pose robotPose) {
+    private static void setHeadingGoal(Pose targetPose, Pose robotPose) {
         headingGoal = Math.atan2(targetPose.getY() - robotPose.getY(), targetPose.getX() - robotPose.getX());
 
     }
-    public static double getHeadingError() {
+    private static double getHeadingError() {
         return MathFunctions.getTurnDirection(follower.getPose().getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(follower.getPose().getHeading(), headingGoal);
     }
 
-    public static void setShootTarget() {
+    private static void setShootTarget() {
         if (currentAlliance == Robot.Alliance.BLUE && shootTarget.getX() != 6)
             shootTarget = new Pose(6, 144 - 6, 0);
         else if (currentAlliance == Robot.Alliance.RED && shootTarget.getX() != (144 - 6))
@@ -81,13 +76,13 @@ public class Drive implements Subsystem {
 
 
                 if (headingLock) {
+                    controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
                     setHeadingGoal(shootTarget, follower.getPose());
                     controller.updateError(getHeadingError());
 
-                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, controller.run());
-
+                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, controller.run(), robotCentric);
                 } else {
-                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, -ActiveOpMode.gamepad1().right_stick_x);
+                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, -ActiveOpMode.gamepad1().right_stick_x, robotCentric);
                 }
 
                 Logger.add("Drive", Logger.Level.DEBUG, "forward: " + forward + " strafe: " + strafe + " turn: " + turn);

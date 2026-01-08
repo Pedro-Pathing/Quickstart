@@ -48,7 +48,7 @@ public class MainTeleOp extends NextFTCOpMode {
         GamepadEx caimo = Gamepads.gamepad1();
         GamepadEx jeff = Gamepads.gamepad2();
 
-        jeff.a()
+        jeff.back()
                 .whenBecomesTrue(() -> {
                     Storage.resetEncoderCommand().schedule();
                 });
@@ -83,7 +83,6 @@ public class MainTeleOp extends NextFTCOpMode {
         caimo.leftBumper()
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(-1).schedule())
                 .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
-
 
         jeff.dpadDown()
                 .whenBecomesTrue(() -> Storage.spinToNextIntakeIndex().schedule());
