@@ -24,7 +24,7 @@ public class MainTeleOp extends NextFTCOpMode {
                         //Robot.INSTANCE,
                         Drive.INSTANCE,
                         Intake.INSTANCE,
-                        //Outtake.INSTANCE,
+                        Outtake.INSTANCE,
                         Transitions.INSTANCE
                 )
                 //new PedroComponent(Constants::createFollower)
@@ -59,6 +59,13 @@ public class MainTeleOp extends NextFTCOpMode {
                 });
         jeff.a()
                 .whenBecomesTrue(Storage::resetEncoder);
+        jeff.rightBumper()
+                .whenBecomesTrue(() -> Outtake.setOuttakePower(1))
+                .whenBecomesFalse(() -> Outtake.setOuttakePower(0));
+        jeff.leftBumper()
+                .whenBecomesTrue(() -> Outtake.setOuttakePower(-1))
+                .whenBecomesFalse(() -> Outtake.setOuttakePower(0));
+
         jeff.b()
                 .whenBecomesTrue(() -> Transitions.setOuttakePosition(Transitions.DOWN_POS))
                 .whenBecomesFalse(() -> Transitions.setOuttakePosition(Transitions.UP_POS));
