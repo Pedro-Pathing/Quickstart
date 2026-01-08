@@ -1,6 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.subsystems.Drive;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Storage;
+import org.firstinspires.ftc.teamcode.subsystems.Transitions;
+import org.firstinspires.ftc.teamcode.utils.Logger;
+
 import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
@@ -9,8 +18,6 @@ import dev.nextftc.ftc.GamepadEx;
 import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
-import org.firstinspires.ftc.teamcode.subsystems.*;
-import org.firstinspires.ftc.teamcode.utils.Logger;
 
 @TeleOp(name="MainTeleOp", group="TeleOp")
 public class MainTeleOp extends NextFTCOpMode {
@@ -21,10 +28,10 @@ public class MainTeleOp extends NextFTCOpMode {
                 CommandManager.INSTANCE,
                 new SubsystemComponent(
                         Storage.INSTANCE,
-                        //Robot.INSTANCE,
+                        Robot.INSTANCE,
                         Drive.INSTANCE,
                         Intake.INSTANCE,
-                        //Outtake.INSTANCE,
+                        Outtake.INSTANCE,
                         Transitions.INSTANCE
                 )
                 //new PedroComponent(Constants::createFollower)
@@ -41,32 +48,59 @@ public class MainTeleOp extends NextFTCOpMode {
         GamepadEx caimo = Gamepads.gamepad1();
         GamepadEx jeff = Gamepads.gamepad2();
 
-        caimo.rightBumper()
-                .whenBecomesTrue(() -> Intake.setIntakePower(1))
-                .whenBecomesFalse(() -> Intake.setIntakePower(0));
-        caimo.leftBumper()
-                .whenBecomesTrue(() -> Intake.setIntakePower(-1))
-                .whenBecomesFalse(() -> Intake.setIntakePower(0));
-
-        jeff.x()
+        jeff.back()
                 .whenBecomesTrue(() -> {
-                    Storage.setManualMode(true);
-                    Storage.setManualPower(1);
+                    Storage.resetEncoderCommand().schedule();
+                });
+
+        jeff.b()
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(1).schedule();
                 })
                 .whenBecomesFalse(() -> {
-                    Storage.setManualMode(true);
-                    Storage.setManualPower(0);
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
                 });
-        jeff.a()
-                .whenBecomesTrue(Storage::resetEncoder);
-        jeff.b()
-                .toggleOnBecomesTrue()
-                .whenBecomesTrue(() -> Transitions.setOuttakePosition(0.75))
-                .whenBecomesFalse(() -> Transitions.setOuttakePosition(1.00));
+
+        caimo.a()
+                .whenBecomesTrue(() -> Drive.setHeadingLock(true))
+                .whenBecomesFalse(() -> Drive.setHeadingLock(false));
+
+        jeff.x()
+                .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule())
+                .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule());
+
+        jeff.rightBumper()
+                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
+                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
+        jeff.leftBumper()
+                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(-1).schedule())
+                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
+        caimo.rightBumper()
+                .whenBecomesTrue(() -> Intake.setIntakePowerCommand(1).schedule())
+                .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
+        caimo.leftBumper()
+                .whenBecomesTrue(() -> Intake.setIntakePowerCommand(-1).schedule())
+                .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
+
         jeff.dpadDown()
                 .whenBecomesTrue(() -> Storage.spinToNextIntakeIndex().schedule());
         jeff.dpadUp()
                 .whenBecomesTrue(() -> Storage.spinToNextOuttakeIndex().schedule());
+        caimo.dpadDown()
+                .whenBecomesTrue(() -> Storage.spinToNextIntakeIndex().schedule());
+        caimo.dpadUp()
+                .whenBecomesTrue(() -> Storage.spinToNextOuttakeIndex().schedule());
+
+        caimo.dpadLeft()
+                .whenBecomesTrue(() -> Robot.intakeAll.schedule());
+        caimo.dpadRight()
+                .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
+        jeff.dpadLeft()
+                .whenBecomesTrue(() -> Robot.intakeAll.schedule());
+        jeff.dpadRight()
+                .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
     }
     @Override public void onUpdate() {
         for (String cname : CommandManager.INSTANCE.snapshot()) {

@@ -2,44 +2,65 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.MathFunctions;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.utils.Logger;
+
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.utils.Logger;
 
 public class Drive implements Subsystem {
     public static final Drive INSTANCE = new Drive();
     private static Follower follower;
     public static Pose startingPose;
     private static TelemetryManager telemetryM;
-    private static boolean slowMode = false;
-    private static double slowModeMultiplier = 0.5;
-    private static boolean robotCentric = false;
+    private static final boolean slowMode = false;
+    private static final double slowModeMultiplier = 0.5;
+    private static final boolean robotCentric = false;
+    private static Pose startingPos = new Pose(8 + 24, 6.25 + 24, Math.toRadians(0));
+    private static Pose shootTarget = new Pose(6, 144 - 6, 0);
+    public static Robot.Alliance currentAlliance = Robot.Alliance.BLUE;
+    private static double headingGoal; // Radians
+    private static PIDFController controller;
+    private static boolean headingLock = true;
+
 
     @Override
     public void initialize() {
-        // runs only once, when OpMode initializes
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-
-        // TODO: update this to include the correct position if robotCentric is what we want
-        if (robotCentric){
-            startingPose = new Pose(12,12, Math.toRadians(90));
-            // Pose = Cartesian coordinate system (standard x,y,θ) with bottom left facing left as (0,0,0)
-        }
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        follower.setStartingPose(startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         follower.update();
+        setShootTarget();
     }
 
     @Override
     public void periodic() {
-        // This runs every loop, attempts to schedule the drive command
         drive.schedule();
+    }
 
+    public static void setHeadingLock(boolean lock){
+        headingLock = lock;
+    }
+    private static void setHeadingGoal(Pose targetPose, Pose robotPose) {
+        headingGoal = Math.atan2(targetPose.getY() - robotPose.getY(), targetPose.getX() - robotPose.getX());
+
+    }
+    private static double getHeadingError() {
+        return MathFunctions.getTurnDirection(follower.getPose().getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(follower.getPose().getHeading(), headingGoal);
+    }
+
+    private static void setShootTarget() {
+        if (currentAlliance == Robot.Alliance.BLUE && shootTarget.getX() != 6)
+            shootTarget = new Pose(6, 144 - 6, 0);
+        else if (currentAlliance == Robot.Alliance.RED && shootTarget.getX() != (144 - 6))
+            shootTarget = shootTarget.mirror();
     }
 
     public static Command drive = new LambdaCommand()
@@ -53,11 +74,15 @@ public class Drive implements Subsystem {
                 double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x : -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier;
                 double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x : -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier;
 
-                // Uses PedroPathing's Follower to drive the robot <- pedroPathing/Constants for more info
-                follower.setTeleOpDrive(forward, strafe, turn, robotCentric);
 
-                if (ActiveOpMode.gamepad1().rightBumperWasPressed()) {
-                    slowMode = !slowMode;
+                if (headingLock) {
+                    controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+                    setHeadingGoal(shootTarget, follower.getPose());
+                    controller.updateError(getHeadingError());
+
+                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, controller.run(), robotCentric);
+                } else {
+                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, -ActiveOpMode.gamepad1().right_stick_x, robotCentric);
                 }
 
                 Logger.add("Drive", Logger.Level.DEBUG, "forward: " + forward + " strafe: " + strafe + " turn: " + turn);
