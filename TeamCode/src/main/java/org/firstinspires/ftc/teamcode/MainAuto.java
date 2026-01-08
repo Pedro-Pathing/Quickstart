@@ -22,31 +22,58 @@ public class MainAuto extends OpMode {
 
 
     
-    private final Pose poseA = new Pose(36, 36, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose poseB = new Pose(70, 50, Math.toRadians(135));
+    private final Pose startPose = new Pose(48, 12, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose poseB = new Pose(18, 84, Math.toRadians(135));
+    private final Pose poseC = new Pose(74, 77, Math.toRadians(50));
+    private final Pose poseD = new Pose(21, 60, Math.toRadians(50));
+    private final Pose poseE = new Pose(73, 80, Math.toRadians(50));
+    private final Pose poseF = new Pose(18, 36, Math.toRadians(50));
+    private final Pose poseG = new Pose(75, 81, Math.toRadians(50));
 
-    private final Pose poseC = new Pose(50, 40, Math.toRadians(50));
+    private Path startPosition;
+    private PathChain moveB, moveC, moveD, moveE, moveF;
 
-
-    private Path scorePreload;
-    private PathChain moveA;
 
     public void buildPaths() {
-        scorePreload = new Path(new BezierLine(poseA, poseB));
-        scorePreload.setLinearHeadingInterpolation(poseA.getHeading(), poseB.getHeading());
+        startPosition = new Path(new BezierLine(poseA, poseB));
+        startPosition.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
 
 
-        moveA = follower.pathBuilder()
+        moveB = follower.pathBuilder()
             .addPath(new BezierLine(poseB, poseC))
-            .setLinearHeadingInterpolation(poseB.getHeading(), poseC.getHeading())
+            .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
             .build();
-        }
+
+        moveC = follower.pathBuilder()
+            .addPath(new BezierLine(poseC, poseD))
+            .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+            .build();
+
+        moveD = follower.pathBuilder()
+                .addPath(new BezierLine(poseD, poseE))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
+                .build();
+
+        moveE = follower.pathBuilder()
+                .addPath(new BezierLine(poseE, poseF))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .build();
+
+        moveF = follower.pathBuilder()
+                .addPath(new BezierLine(poseF, poseG))
+                .setLinearHeadingInterpolation(poseF.getHeading(180), poseG.getHeading(315))
+                .build();
+
+
+
+
+    }
 
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(scorePreload);
+                follower.followPath(startPosition);
                 setPathState(1);
                 break;
             case 1:
@@ -54,8 +81,45 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(moveA,true);
-                    setPathState(-1); // I think -1 just makes it stop
+                    follower.followPath(moveB,true);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Preload */
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(moveC,true);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Preload */
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(moveD,true);
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Preload */
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(moveE,true);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Preload */
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(moveF,true);
+                    setPathState(-1);
+
                 }
                 break;
 
