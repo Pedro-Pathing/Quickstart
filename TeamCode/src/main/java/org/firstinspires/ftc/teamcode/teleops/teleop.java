@@ -30,8 +30,8 @@ public class teleop extends LinearOpMode {
         // Retrieve the IMU from the hardware map
         IMU imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
+                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
 
         waitForStart();
@@ -87,7 +87,10 @@ public class teleop extends LinearOpMode {
 
             if (gamepad2.right_bumper) outtake.outtakeCharge();
             if (gamepad2.left_bumper) outtake.stopMotor();
-            intake.intakePower(gamepad2.left_stick_y);
+            if (gamepad2.left_stick_y > 0) {
+                intake.intakePower(-1 * gamepad2.left_stick_y);
+
+            } else {intake.intakePower(gamepad2.left_stick_y);}
             servoControl.servoPower(gamepad2.right_stick_y);
             robot.frontLeft.setPower(frontLeftPower);
             robot.backLeft.setPower(backLeftPower);
