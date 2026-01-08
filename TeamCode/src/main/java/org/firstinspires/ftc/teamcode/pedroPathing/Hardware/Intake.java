@@ -126,6 +126,7 @@ public class Intake {
 
                 if (score >= 1) {
                     indexeur.setEtat(Indexeur.Indexeuretat.AVANCERAPIDEAMASSAGE);
+                    IntakeBall.setVelocity(0);
                 }
 
                 // --- Bourrage ---
@@ -195,6 +196,13 @@ public class Intake {
         intakeState = Intakeetat.IDLE; }
     public Intakeetat getEtat() {
         return intakeState;
+    }
+
+    public void setetatramasage(){
+        intakeState = Intakeetat.RAMASSAGE;
+    }
+    public void setetatIDLE(){
+        intakeState = Intakeetat.IDLE;
     }
 }
 

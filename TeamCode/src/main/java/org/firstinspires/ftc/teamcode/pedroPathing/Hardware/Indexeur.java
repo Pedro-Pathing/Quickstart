@@ -332,6 +332,12 @@ public class Indexeur {
             //if (!"Inconnue".equals(couleurSousCapteurs)) {
             //    ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
             //}
+            if (ballComptage<3){
+                intake.setetatramasage();
+            }
+            if (ballComptage=3){
+                intake.setetatIDLE();
+            }
         } else if (rotationPourTir) {
             String couleurAuTir = couleurBalleDansCompartiment[slotTir];
             //if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {

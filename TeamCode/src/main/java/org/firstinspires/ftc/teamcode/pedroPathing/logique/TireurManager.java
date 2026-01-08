@@ -86,6 +86,7 @@ public class TireurManager {
 
             // --- 1) Shooter spin-up ---
             case SHOOTER_SPINUP:
+                intake.arretPourTir();
                 if (shotsRemaining >0) {
                     shooter.setShooterTargetRPM(vitesseCibleShooter);
                     intake.disableRamassage();

@@ -54,6 +54,7 @@ public class TeleOpDecode extends OpMode {
     private boolean lastY = false;
     private boolean lastrightbumper = false ;
     private boolean lastleftbumper = false;
+    private boolean lastrightbumpergamepad1 = false;
     int positionAngleshoot =0 ;
     boolean anglePresetMode = false;
 
@@ -150,10 +151,16 @@ public class TeleOpDecode extends OpMode {
             automatedDrive = false;
         }
 
-        //Slow Mode
-        if (gamepad1.rightBumperWasPressed()) {
-            slowMode = !slowMode;
+        if (gamepad1.right_bumper && !lastrightbumpergamepad1) {
+
+            intake.repriseApresTir();
         }
+        lastrightbumpergamepad1 = gamepad1.right_bumper;
+
+        //Slow Mode
+        //if (gamepad1.rightBumperWasPressed()) {
+        //    slowMode = !slowMode;
+        //}
 
         //Optional way to change slow mode strength
         if (gamepad1.xWasPressed()) {
