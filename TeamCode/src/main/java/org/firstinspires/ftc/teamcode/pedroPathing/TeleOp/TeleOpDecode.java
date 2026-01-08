@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp (name="Pedro TeleOp with Intake, Indexeur, Shooter, Tir", group="OpMode")
+@TeleOp (name="TeleOp Competiton Bleu", group="OpMode")
 public class TeleOpDecode extends OpMode {
     private Follower follower;
     public static Pose startingPose; //See ExampleAuto to understand how to use this
@@ -171,9 +171,9 @@ public class TeleOpDecode extends OpMode {
         if (gamepad2.right_bumper && !lastrightbumper) {
 
             // Exemple : tir droit devant
-            double angleTourelle = -39;      // à adapter
-            double angleShooter = 0.35;      // à adapter
-            double vitesseShooter = 4000;
+            double angleTourelle = 0;      // à adapter
+            double angleShooter = 0.12;      // à adapter
+            double vitesseShooter = 3775;
 
             tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
         }
@@ -183,11 +183,11 @@ public class TeleOpDecode extends OpMode {
 
         if (gamepad2.left_bumper && !lastleftbumper) {
 
-            double angleTourelle = -39;      // à adapter
-            double angleShooter = 0.35;      // à adapter
-            double vitesseShooter = 4000;  // à adapter
+            double angleTourelle = 0;      // à adapter
+            double angleShooter = 0.12;      // à adapter
+            double vitesseShooter = 3750;  // à adapter
 
-            tireurManager.startTirAutoIndividuel(angleTourelle, angleShooter, vitesseShooter);
+            tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
 
         }
 

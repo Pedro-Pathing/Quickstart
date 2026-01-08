@@ -128,12 +128,15 @@ public class TireurManager {
                         * vitesseCibleShooter;
                 double toleranceVelocityMin = 0.9 * vitesseCibleShooter;
 
-                if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){
-                servoTireur.push();
+                if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){;
+                    servoTireur.push();
+                    timer.reset();
+                    state = TirState.SERVO_RETRACT;
                 indexeur.decrementerBalle();
                 };
 
-                if (timer.milliseconds() > 600) {
+
+                if (timer.milliseconds() > 1000) {
                     timer.reset();
                     state = TirState.SERVO_RETRACT;
                 }
@@ -141,9 +144,10 @@ public class TireurManager {
 
             // --- 5) Rétracter le servo ---
             case SERVO_RETRACT:
-                servoTireur.retract();
+                if (timer.milliseconds() > 300)
+                    servoTireur.retract();
 
-                if (timer.milliseconds() > 300) {
+                if (timer.milliseconds() > 600) {
 
                     shotsRemaining--; // retrait d'un tir
                     tirsEffectues++;   // Tir réellement terminé ici

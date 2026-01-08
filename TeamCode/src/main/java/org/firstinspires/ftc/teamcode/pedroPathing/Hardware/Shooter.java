@@ -32,7 +32,7 @@ public class Shooter {
         Shooter = hwMap.get(DcMotorEx.class, "Shooter");
         Shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        Shooter.setVelocityPIDFCoefficients(10, 3, 0, 12);
+        //Shooter.setVelocityPIDFCoefficients(10, 3, 0, 12);
 
         //Test avec deux moteurs
         Shooter2 = hwMap.get(DcMotorEx.class, "Shooter2");
@@ -40,7 +40,7 @@ public class Shooter {
         Shooter2.setDirection(DcMotor.Direction.REVERSE);
         Shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        Shooter2.setVelocityPIDFCoefficients(10, 3, 0, 12);
+        //Shooter2.setVelocityPIDFCoefficients(10, 3, 0, 12);
 
     }
     public void update() {
