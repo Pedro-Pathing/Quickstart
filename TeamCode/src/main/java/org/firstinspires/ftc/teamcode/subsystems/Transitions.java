@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
+import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
 
@@ -26,7 +28,11 @@ public class Transitions implements Subsystem {
         Logger.add("Transition", Logger.Level.DEBUG, "position: " + outtakeServo.getPosition());
     }
 
-    public static void setOuttakePosition(double newPosition) {
+    private static void setOuttakePosition(double newPosition) {
         outtakePosition = newPosition;
+    }
+
+    public static Command setOuttakePositionCommand(double newPosition) {
+        return new InstantCommand(() -> setOuttakePosition(newPosition));
     }
 }
