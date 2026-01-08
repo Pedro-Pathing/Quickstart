@@ -1,16 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
-import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
 
 public class Storage implements Subsystem {
@@ -19,9 +16,10 @@ public class Storage implements Subsystem {
     private static boolean pidControlMode = false;
     private static double manualPower = 0;
     private final static MotorEx spin = new MotorEx("motorExp0").brakeMode();
-    private static DigitalChannel limitSwitch;
-    private static NormalizedColorSensor colorSensor;
-    private static int index = 0;
+
+    //private static DigitalChannel limitSwitch;
+    //private static NormalizedColorSensor colorSensor;
+    //private static int index = 0;
     private static double startPos = 0;
     private static final double TICKS = 188.2166666667;
 
@@ -58,15 +56,6 @@ public class Storage implements Subsystem {
     @Override
     public void periodic() {
 
-        // Track Indexes
-        // if (wasJustPressed()) {
-        // index++;
-        // if (index >= STATES.length) {
-        // index = 0;
-        // }
-        // }
-
-        // Should be the only location we're setting the power, default to manualMode
         if (manualMode) {
             spin.setPower(manualPower);
         } else if (pidControlMode) {
@@ -78,9 +67,26 @@ public class Storage implements Subsystem {
         Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode +  "power: " + controller.calculate(spin.getState()));
         Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode +  "power: " + manualPower);
 
+        // Track Indexes
+        // if (wasJustPressed()) {
+        // index++;
+        // if (index >= STATES.length) {
+        // index = 0;
+        // }
+        // }
         // ActiveOpMode.telemetry().addLine("Limit: " + limitSwitch.getState());
         // ActiveOpMode.telemetry().addLine("Color: " + getColor().red + ", " +
         // getColor().green + ", " + getColor().blue );
+    }
+
+    public static Command setManualPowerCommand(double newPower) {
+        return new InstantCommand(() -> setManualPower(newPower));
+    }
+    public static Command setManualModeCommand(boolean newMode) {
+        return new InstantCommand(() -> setManualMode(newMode));
+    }
+    public static Command resetEncoderCommand() {
+        return new InstantCommand(Storage::resetEncoder);
     }
 
     public static Command spinToNextIntakeIndex() {
@@ -120,21 +126,20 @@ public class Storage implements Subsystem {
                 .named("Spin to next index");
     }
 
-    public static void setManualPower(double newPower) {
+    private static void setManualPower(double newPower) {
         manualPower = newPower;
     }
-
-    public static void setPidControlMode(boolean newBoolean) {
+    private static void setPidControlMode(boolean newBoolean) {
         pidControlMode = newBoolean;
     }
-
-    public static void setManualMode(boolean newMode) {
+    private static void setManualMode(boolean newMode) {
         manualMode = newMode;
     }
-
-    public static void resetEncoder() {
+    private static void resetEncoder() {
         spin.zero();
     }
+
+
 
 //    public static NormalizedRGBA getColor() {
 //        return colorSensor.getNormalizedColors();
