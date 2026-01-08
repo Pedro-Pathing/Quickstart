@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.control.ControlSystem;
@@ -8,6 +11,7 @@ import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
+import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
 
 public class Storage implements Subsystem {
@@ -43,10 +47,10 @@ public class Storage implements Subsystem {
 
     @Override
     public void initialize() {
-        // limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
-        // "limitSwitch");
-        // limitSwitch.setMode(DigitalChannel.Mode.INPUT);
-        //
+//         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
+//         "limitSwitch");
+//         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
+
         // colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class,
         // "sensor_color");
         //
@@ -66,7 +70,7 @@ public class Storage implements Subsystem {
         Logger.add("Storage", Logger.Level.DEBUG, "ticks: " + spin.getCurrentPosition());
         Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode +  "power: " + controller.calculate(spin.getState()));
         Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode +  "power: " + manualPower);
-
+        //Logger.add("Storage", Logger.Level.DEBUG, "limit switch" + limitSwitch.getState());
         // Track Indexes
         // if (wasJustPressed()) {
         // index++;

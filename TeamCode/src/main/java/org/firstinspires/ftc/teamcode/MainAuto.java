@@ -22,7 +22,7 @@ public class MainAuto extends OpMode {
 
 
     
-    private final Pose startPose = new Pose(48, 12, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose poseA = new Pose(48, 12, Math.toRadians(180)); // Start Pose of our robot.
     private final Pose poseB = new Pose(18, 84, Math.toRadians(135));
     private final Pose poseC = new Pose(74, 77, Math.toRadians(50));
     private final Pose poseD = new Pose(21, 60, Math.toRadians(50));
@@ -61,7 +61,7 @@ public class MainAuto extends OpMode {
 
         moveF = follower.pathBuilder()
                 .addPath(new BezierLine(poseF, poseG))
-                .setLinearHeadingInterpolation(poseF.getHeading(180), poseG.getHeading(315))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(315))
                 .build();
 
 

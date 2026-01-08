@@ -18,25 +18,24 @@ import dev.nextftc.ftc.ActiveOpMode;
 public class Drive implements Subsystem {
     public static final Drive INSTANCE = new Drive();
     private static Follower follower;
-    public static Pose startingPose;
     private static TelemetryManager telemetryM;
     private static final boolean slowMode = false;
     private static final double slowModeMultiplier = 0.5;
     private static final boolean robotCentric = false;
-    private static Pose startingPos = new Pose(8 + 24, 6.25 + 24, Math.toRadians(0));
+    private static Pose startingPose = new Pose(24, 24, Math.toRadians(0));
     private static Pose shootTarget = new Pose(6, 144 - 6, 0);
     public static Robot.Alliance currentAlliance = Robot.Alliance.BLUE;
     private static double headingGoal; // Radians
     private static PIDFController controller;
-    private static boolean headingLock = true;
+    private static boolean headingLock = false;
 
 
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
         follower.setStartingPose(startingPose);
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         follower.update();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
     }
 
@@ -73,7 +72,6 @@ public class Drive implements Subsystem {
                 double forward = slowMode ? -ActiveOpMode.gamepad1().left_stick_y : -ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier;
                 double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x : -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier;
                 double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x : -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier;
-
 
                 if (headingLock) {
                     controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);

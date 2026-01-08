@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
+import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.controllable.RunToVelocity;
 import dev.nextftc.hardware.impl.MotorEx;
 
@@ -13,6 +16,8 @@ public class Outtake implements Subsystem {
 
     public static final Outtake INSTANCE = new Outtake();
     private static final MotorEx outtake = new MotorEx("motorExp3");
+    private Servo outtakeServo;
+
     private static final ControlSystem controller = ControlSystem.builder()
             .velPid(0.005, 0, 0)
             .basicFF(0.01, 0.02, 0.03)
@@ -30,8 +35,12 @@ public class Outtake implements Subsystem {
     }
 
     @Override
+    public void initialize() {
+        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servo5");
+    }
+    @Override
     public void periodic() {
-
+        outtakeServo.setPosition(0);
         outtake.setPower(outtakePower);
         Logger.add("Outtake", Logger.Level.DEBUG, "power: " + outtakePower);
         //motor.setPower(controller.calculate(motor.getState()));
