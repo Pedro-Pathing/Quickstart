@@ -44,11 +44,9 @@ public class DecodeBlueAutoFond extends OpMode {
         //Start Position -End Position
         //drive > Movement
         //Shoot >Attempts to Score the Artifact
-
         DRIVE_STARTPOSITIONTOSHOOT,
         align_RANGEE1Blue,
         align_rangee2blue,
-
         align_rangee3blue,
         intakeballeRangee1,
         intakerange2,
@@ -56,14 +54,11 @@ public class DecodeBlueAutoFond extends OpMode {
         PremierTir,
         DrivedeuxiemeShoot,
         deuxiemetir,
-
         DriveTroisiemeTir,
         troisiemetir,
         Drive2Gate,
         atgate
-
     }
-
     PathState pathState;
 
     private final Pose startPose = new Pose(33.9416569,135.598599, Math.toRadians(180));
@@ -136,22 +131,20 @@ public class DecodeBlueAutoFond extends OpMode {
     }
     public void statePathUpdate(){
         switch(pathState) {
-            intake.update();
-            indexeur.update();
             case DRIVE_STARTPOSITIONTOSHOOT:
                 follower.followPath(driveStartofirstShootPos, true); //true will hold the positon
                 setPathState(PathState.PremierTir); // Reset Timer + make new staet
                 break;
 
             case PremierTir: // Premier tir en cours
-                intake.update();
-                indexeur.update();
+                //intake.update();
+                //indexeur.update();
                 if (!follower.isBusy()) {
                     // avons nous deja demandé des tirs :
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                0,   // angle tourelle (exemple)
+                                -38,   // angle tourelle (exemple)
                                 0.28,  // angle shooter
                                 3880   // RPM
                         );
@@ -184,34 +177,33 @@ public class DecodeBlueAutoFond extends OpMode {
                 indexeur.update();
 
                 if (!follower.isBusy()) {// attendre que le path soit fini
-                    follower.followPath(driveAvalerpremiereLigne, 0.3,true); // on avance doucement pour avaler les balles
+                    follower.followPath(driveAvalerpremiereLigne, 0.25,true); // on avance doucement pour avaler les balles
                     setPathState(PathState.DrivedeuxiemeShoot);
                     }
                 break;
 
             case DrivedeuxiemeShoot:
-                intake.update();
-                indexeur.update();
                 ;
                 if (!follower.isBusy()) { // Attendre que l'on est fini d'avoir pris toutes les balles
                     follower.followPath(DrivedeuxiemeShoot, true);
                     // Le robot est arrivé en position de tir :
+                    setPathState(PathState.deuxiemetir);
                 }
                 break;
 
             case deuxiemetir:
-                intake.update();
-                indexeur.update();
-                if (!shotsTriggered) { // deuxieme période de tir
-                    tireurManager.startTirAuto(// Lancer tir automatique
-                            0,   // angle tourelle (exemple)
-                            0.28,  // angle shooter
-                            3880   // RPM
-                    );
-                    shotsTriggered = true;}
-                else if (shotsTriggered && !tireurManager.isBusy()){
-                    setPathState(PathState.align_rangee2blue);
-                    shotsTriggered = false;
+                if (!follower.isBusy()) {
+                    if (!shotsTriggered) { // deuxieme période de tir
+                        tireurManager.startTirAuto(// Lancer tir automatique
+                                -38,   // angle tourelle (exemple)
+                                0.28,  // angle shooter
+                                3880   // RPM
+                        );
+                        shotsTriggered = true;
+                    } else if (shotsTriggered && !tireurManager.isBusy()) {
+                        setPathState(PathState.align_rangee2blue);
+                        shotsTriggered = false;
+                    }
                 }
                 break;
 
@@ -232,7 +224,7 @@ public class DecodeBlueAutoFond extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetavalerdeuxiemeligne, 0.30 , true);
+                    follower.followPath(drivetavalerdeuxiemeligne, 0.25 , true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("ramassage 2 terminé");
                     // transition to next state
@@ -241,10 +233,10 @@ public class DecodeBlueAutoFond extends OpMode {
                 break;
 
             case DriveTroisiemeTir:
-                intake.update(); // mise à jour de nos systemes (constate les balles )
+                intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(driveAvaler2emeLignetotroisemeShoot, , true);
+                    follower.followPath(driveAvaler2emeLignetotroisemeShoot, true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("Position 3 de tir");
                     // transition to next state
@@ -253,14 +245,12 @@ public class DecodeBlueAutoFond extends OpMode {
                 break;
 
             case troisiemetir:
-                intake.update(); // mise à jour de nos systemes (constate les balles )
-                indexeur.update();
                 if (!follower.isBusy()) {
                     // le robot est arrivé sur la troisieme position de tir :
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                0,   // angle tourelle (exemple)
+                                -38,   // angle tourelle (exemple)
                                 0.28,  // angle shooter
                                 3880   // RPM
                         );
@@ -363,6 +353,22 @@ public class DecodeBlueAutoFond extends OpMode {
         telemetry.addData("y",follower.getPose().getY());
         telemetry.addData("heading",follower.getPose().getHeading());
         telemetry.addData("Path time", pathTimer.getElapsedTimeSeconds());
+        telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
+        telemetry.addData("RPM", intake.getRPM());
+        telemetry.addData("DistanceBalle", intake.getCapteurDistance());
+        telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
+        telemetry.addData("Score", intake.getScore());
+        telemetry.addData("État Indexeur", indexeur.getEtat());
+        telemetry.addData("Pale detectée", indexeur.detectionpale());
+        telemetry.addData("Nombre de balles", indexeur.getBalles());
+        for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
+        telemetry.addData("État tireur manager", tireurManager.getState());
+        telemetry.addData("État indexeur", indexeur.getEtat());
+        telemetry.addData("Etat de l'intake", intake.getEtat());
+        telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
+        telemetry.addData("Servo pos", servoTireur.getPosition());
+        telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
 
+        telemetry.update();
     }
 }

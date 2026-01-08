@@ -33,7 +33,7 @@ public class Shooter {
 
         double maxVelRPM = 4700.0;
         double maxVel = (maxVelRPM * TICKS_PER_REV_6000) / 60.0;
-        double kF = 32767.0 / maxVel;
+        double kF = 1;
         double kP = 6.0; // Agressif car systeme rapide
         double kI = 0.0 ; // nuisible voir inutile avec shooter
         double kD = 0.4 ; // amortissement raisonnable
@@ -90,21 +90,18 @@ public class Shooter {
 
         public void setShooterTargetRPM(double targetRPM) {
 
-            // Conversion RPM -> ticks/sec
-            double targetTicksPerSec = (targetRPM * TICKS_PER_REV_6000) / 60.0;
+            // Conversion RPM -> ticks/sec (assure-toi que cette constante est correcte)
+            double targetTicksPerSec = (targetRPM *TICKS_PER_REV_6000 ) / 60.0;
 
-            double ramp = 600.0; //un peu plus nerveux qu'un ascenseur à dubai
-
+            double ramp = 600.0; // ticks/sec par cycle
             double error = targetTicksPerSec - currentTargetVel;
-            if (Math.abs(error)>200) {
-                double step = Math.copySign(Math.min(Math.abs(error), ramp), error);
-                currentTargetVel +=step;
+
+            if (Math.abs(error) > ramp) {
+                currentTargetVel += Math.copySign(ramp, error);
             } else {
-                currentTargetVel = targetTicksPerSec; // nous sommes assez proche, on reste sur cette zone de vitesse)
+                currentTargetVel = targetTicksPerSec;
             }
 
-            Shooter.setVelocity(currentTargetVel);
-            Shooter2.setVelocity(currentTargetVel);
         }
         public void displayShooterVelocity(Telemetry telemetry) {
             telemetry.addData("Shooter Speed (RPM)", getShooterVelocityRPM());

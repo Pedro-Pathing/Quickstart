@@ -88,17 +88,30 @@ public class TireurManagerTeleop {
             // --- 4) Pousser la balle ---
 
             case AVANCE1TIR:
-                indexeur.avancerPourTir();
-                timer.reset();
-                state = TirState.WAIT_AFTER_INDEX;
+                if (!indexeur.isHomingDone()) {
+                    indexeur.lancerHoming();
+                    return;
+                }
+                if (indexeur.isHomingDone()) {
+                    indexeur.avancerPourTir();
+                    timer.reset();
+                    state = TirState.WAIT_AFTER_INDEX;
+                }
+
                 break;
 
             case SERVO_PUSH:
-                servoTireur.push();
-                if (timer.milliseconds() > 280) {
-                    timer.reset();
-                    indexeur.decrementerBalle();
-                    state = TirState.SERVO_RETRACT;
+                if (!indexeur.isHomingDone()) {
+                    indexeur.lancerHoming();
+                    return;
+                }
+                if (indexeur.isHomingDone()) {
+                    servoTireur.push();
+                    if (timer.milliseconds() > 280) {
+                        timer.reset();
+                        indexeur.decrementerBalle();
+                        state = TirState.SERVO_RETRACT;
+                    }
                 }
                 break;
 

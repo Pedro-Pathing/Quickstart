@@ -80,7 +80,6 @@ public class TireurManager {
 
         switch (state) {
 
-
             case IDLE:
                 shooter.setShooterTargetRPM(0);
                 break;
@@ -130,7 +129,7 @@ public class TireurManager {
             // --- 4) Pousser la balle ---
             case SERVO_PUSH:
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
-                double toleranceVelocityMax = 1.04 * vitesseCibleShooter;
+                double toleranceVelocityMax = 1.06 * vitesseCibleShooter;
                 double toleranceVelocityMin = 0.94 * vitesseCibleShooter;
                 if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){;
                     servoTireur.push();
@@ -147,8 +146,8 @@ public class TireurManager {
 
             // --- 5) Rétracter le servo ---
             case SERVO_RETRACT:
-                servoTireur.retract();
                 if (timer.milliseconds() > 300) {
+                    servoTireur.retract();
                     timer.reset();
                     shotsRemaining--; // retrait d'un tir
                     tirsEffectues++;   // Tir réellement terminé ici
