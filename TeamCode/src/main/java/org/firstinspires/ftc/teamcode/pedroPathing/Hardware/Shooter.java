@@ -31,7 +31,8 @@ public class Shooter {
 
     public void init(@NonNull HardwareMap hwMap) {
 
-        double maxVel = 4700.0;
+        double maxVelRPM = 4700.0;
+        double maxVel = (maxVelRPM * TICKS_PER_REV_6000) / 60.0;
         double kF = 32767.0 / maxVel;
         double kP = 6.0; // Agressif car systeme rapide
         double kI = 0.0 ; // nuisible voir inutile avec shooter
