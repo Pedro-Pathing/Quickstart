@@ -17,11 +17,10 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@Autonomous (name="bleuFond", group="PedroPathing")
-public class DecodeBlueAuto extends OpMode {
+@Autonomous (name="bleuFond", group="Competition")
+public class DecodeBlueAutoFond extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opModeTimer;

@@ -114,19 +114,19 @@ public class TireurManager {
             case ANGLE_POSITION:
                 ServoAngleShoot.setAngle(angleCibleShooter);
                 state = TirState.SERVO_PUSH;
-                timer.reset();
-                //if (angleShooter.isAtAngle(angleCibleShooter)) {
-                    //timer.reset();
-                    //state = TirState.SERVO_PUSH;
-                //}
+                //timer.reset();
+
+                if (ServoAngleShoot.isAtAngle(angleCibleShooter)) {
+                    timer.reset();
+                    state = TirState.SERVO_PUSH;
+                }
                 break;
 
             // --- 4) Pousser la balle ---
             case SERVO_PUSH:
 
-                double toleranceVelocityMax = 1.03
-                        * vitesseCibleShooter;
-                double toleranceVelocityMin = 0.9 * vitesseCibleShooter;
+                double toleranceVelocityMax = 1.04 * vitesseCibleShooter;
+                double toleranceVelocityMin = 0.94 * vitesseCibleShooter;
 
                 if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){;
                     servoTireur.push();
@@ -134,7 +134,6 @@ public class TireurManager {
                     state = TirState.SERVO_RETRACT;
                 indexeur.decrementerBalle();
                 };
-
 
                 if (timer.milliseconds() > 1000) {
                     timer.reset();
@@ -144,22 +143,20 @@ public class TireurManager {
 
             // --- 5) Rétracter le servo ---
             case SERVO_RETRACT:
-                if (timer.milliseconds() > 300)
+                if (timer.milliseconds() > 300) {
                     servoTireur.retract();
-
-                if (timer.milliseconds() > 600) {
-
+                    timer.reset();
                     shotsRemaining--; // retrait d'un tir
                     tirsEffectues++;   // Tir réellement terminé ici
 
 
-                    if (shotsRemaining == 0) {
+                    if ((timer.milliseconds() > 300) && shotsRemaining == 0) {
                         shooter.setShooterTargetRPM(0);
                         intake.repriseApresTir();
                         state = TirState.IDLE;
 
-                    } else {
-
+                    }
+                    if (!(shotsRemaining == 0) && (timer.milliseconds() > 300)) {
                         indexeur.avancerPourTir();
                         timer.reset();
                         state = TirState.INDEX_ADVANCE;

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp;
+package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp.Debug;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -13,9 +13,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 
-@TeleOp(name="Test Tourelle", group="Test")
+@TeleOp(name="Test Lumiere", group="debug")
 
-public class TestTournerTourelle extends OpMode {
+public class TestLumiere extends OpMode {
 
         // --- Modules ---
         private Shooter shooter;
@@ -33,6 +33,7 @@ public class TestTournerTourelle extends OpMode {
 
         // Pour détecter un appui unique
         private boolean lastX = false;
+        private int positionAngleshoot = 0;
     double angleDemande = 0;
 
         @Override
@@ -74,19 +75,31 @@ public class TestTournerTourelle extends OpMode {
 
     @Override
         public void loop() {
-            tourelle.allerVersAngle(45);
+            //tourelle.allerVersAngle(45);
+            //double[] presets = {0.12, 0.25, 0.30, 0.40, 0.52};
+            afficheurRight.setPosition(0.5);
+            afficheurLeft.setVert();
+            afficheurLeft.update();
+
+            if (gamepad2.x && !lastX) {
+                afficheurLeft.setVert();
+
+            }
+                //positionAngleshoot = (positionAngleshoot + 1) % presets.length;
+                //angleShooter.angleShoot(presets[positionAngleshoot]); }
+            lastX = gamepad2.x;
 
             // --- Déclenchement tir auto ---
-            if (gamepad2.x && !lastX) {
+            //if (gamepad2.x && !lastX) {
 
                 // Exemple : tir droit devant
                 //double angleTourelle = 0;      // à adapter
                 //double angleShooter = 0;      // à adapter
                 //double vitesseShooter = 0;  // à adapter
                 //tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
-            }
+            //}
 
-            lastX = gamepad2.x;
+
             //double powertourelle = gamepad2.left_stick_x;
             //tourelle.rotationtourelle(powertourelle);
 
@@ -106,7 +119,7 @@ public class TestTournerTourelle extends OpMode {
             telemetry.addData("Servo pos", servoTireur.getPosition());
             telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
             telemetry.addData("erreur", tourelle.geterreur());
-        telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
+            telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
             telemetry.update();
         }
     }

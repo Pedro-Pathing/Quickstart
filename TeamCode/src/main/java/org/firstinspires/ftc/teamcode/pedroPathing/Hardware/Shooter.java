@@ -27,12 +27,22 @@ public class Shooter {
     private int shootermediumspeed = 4500;
     private int shootermaxspeed = 5000;
 
+    private double currentTargetVel = 0.0;
+
     public void init(@NonNull HardwareMap hwMap) {
+
+        double maxVel = 4700.0;
+        double kF = 32767.0 / maxVel;
+        double kP = 6.0; // Agressif car systeme rapide
+        double kI = 0.0 ; // nuisible voir inutile avec shooter
+        double kD = 0.4 ; // amortissement raisonnable
+
         this.indexeur = indexeur;
         Shooter = hwMap.get(DcMotorEx.class, "Shooter");
         Shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        //Shooter.setVelocityPIDFCoefficients(10, 3, 0, 12);
+
+        Shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
         //Test avec deux moteurs
         Shooter2 = hwMap.get(DcMotorEx.class, "Shooter2");
@@ -40,7 +50,7 @@ public class Shooter {
         Shooter2.setDirection(DcMotor.Direction.REVERSE);
         Shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        //Shooter2.setVelocityPIDFCoefficients(10, 3, 0, 12);
+        Shooter2.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
     }
     public void update() {
@@ -78,10 +88,22 @@ public class Shooter {
         }
 
         public void setShooterTargetRPM(double targetRPM) {
+
             // Conversion RPM -> ticks/sec
             double targetTicksPerSec = (targetRPM * TICKS_PER_REV_6000) / 60.0;
-            Shooter.setVelocity(targetTicksPerSec);
-            Shooter2.setVelocity(targetTicksPerSec);
+
+            double ramp = 600.0; //un peu plus nerveux qu'un ascenseur à dubai
+
+            double error = targetTicksPerSec - currentTargetVel;
+            if (Math.abs(error)>200) {
+                double step = Math.copySign(Math.min(Math.abs(error), ramp), error);
+                currentTargetVel +=step;
+            } else {
+                currentTargetVel = targetTicksPerSec; // nous sommes assez proche, on reste sur cette zone de vitesse)
+            }
+
+            Shooter.setVelocity(currentTargetVel);
+            Shooter2.setVelocity(currentTargetVel);
         }
         public void displayShooterVelocity(Telemetry telemetry) {
             telemetry.addData("Shooter Speed (RPM)", getShooterVelocityRPM());

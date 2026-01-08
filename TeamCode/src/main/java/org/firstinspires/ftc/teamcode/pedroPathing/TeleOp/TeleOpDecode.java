@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp (name="TeleOp Competiton Bleu", group="OpMode")
+@TeleOp (name="TeleOp Competiton Bleu", group="Competition")
 public class TeleOpDecode extends OpMode {
     private Follower follower;
     public static Pose startingPose; //See ExampleAuto to understand how to use this

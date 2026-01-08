@@ -1,21 +1,21 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp;
+package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp.Debug;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-@TeleOp(name="Test AngleShoot", group="Test")
+@TeleOp(name="Test Tir Auto", group="debug")
 
-public class TestAngleShootTourelle extends OpMode {
+public class TestTirAuto extends OpMode {
 
         // --- Modules ---
         private Shooter shooter;
@@ -33,8 +33,6 @@ public class TestAngleShootTourelle extends OpMode {
 
         // Pour détecter un appui unique
         private boolean lastX = false;
-        private int positionAngleshoot = 0;
-    double angleDemande = 0;
 
         @Override
 
@@ -75,32 +73,25 @@ public class TestAngleShootTourelle extends OpMode {
 
     @Override
         public void loop() {
-            //tourelle.allerVersAngle(45);
-            double[] presets = {0.12, 0.25, 0.30, 0.40, 0.52};
-            if (gamepad2.x && !lastX) {
-                positionAngleshoot = (positionAngleshoot + 1) % presets.length;
-                angleShooter.angleShoot(presets[positionAngleshoot]); }
-            lastX = gamepad2.x;
 
             // --- Déclenchement tir auto ---
-            //if (gamepad2.x && !lastX) {
+            if (gamepad2.x && !lastX) {
 
                 // Exemple : tir droit devant
-                //double angleTourelle = 0;      // à adapter
-                //double angleShooter = 0;      // à adapter
-                //double vitesseShooter = 0;  // à adapter
-                //tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
-            //}
+                double angleTourelle = 0;      // à adapter
+                double angleShooter = 15;      // à adapter
+                double vitesseShooter = 4800;  // à adapter
+
+                tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
+            }
 
 
-            //double powertourelle = gamepad2.left_stick_x;
-            //tourelle.rotationtourelle(powertourelle);
-
+            lastX = gamepad2.x;
             // --- Mise à jour du manager ---
 
-            //intake.update();
-            //indexeur.update();
-            //tireurManager.update();
+            intake.update();
+            indexeur.update();
+            tireurManager.update();
 
 
             // --- Telemetry utile ---
@@ -111,8 +102,7 @@ public class TestAngleShootTourelle extends OpMode {
             telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
             telemetry.addData("Servo pos", servoTireur.getPosition());
             telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
-            telemetry.addData("erreur", tourelle.geterreur());
-            telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
+            telemetry.addData("Nombre de balles", indexeur.getBalles());
             telemetry.update();
         }
     }

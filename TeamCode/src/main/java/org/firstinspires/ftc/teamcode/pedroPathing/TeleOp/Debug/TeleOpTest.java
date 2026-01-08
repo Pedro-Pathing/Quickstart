@@ -1,6 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp;
-
-import androidx.annotation.NonNull;
+package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp.Debug;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -18,15 +16,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 
 
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp (name="Pedro TeleOp Test ", group="OpMode")
+@TeleOp (name="TeleOp Test Seul ", group="debug")
 public class TeleOpTest extends OpMode {
     private Follower follower;
     public static Pose startingPose; //See ExampleAuto to understand how to use this
