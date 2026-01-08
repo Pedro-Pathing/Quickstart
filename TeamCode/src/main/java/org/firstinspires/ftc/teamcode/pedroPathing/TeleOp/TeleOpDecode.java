@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
+import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManagerTeleop;
 
 import java.util.function.Supplier;
 
@@ -38,8 +39,10 @@ public class TeleOpDecode extends OpMode {
     private Intake intake;
     private Indexeur indexeur;
 
+    private double targetRPM = 0.0;
+
     private AfficheurLeft afficheurLeft;
-    private TireurManager tireurManager;
+    private TireurManagerTeleop tireurManager;
     private Shooter shooter;
     private SpinTurret tourelle;
     private AngleShooter ServoAngleShoot;
@@ -55,7 +58,7 @@ public class TeleOpDecode extends OpMode {
     int positionAngleshoot =0 ;
     boolean anglePresetMode = false;
 
-    int vitesseShooter = 0;
+    int presetIndexShooter = 0;
 
 
     @Override
@@ -87,8 +90,9 @@ public class TeleOpDecode extends OpMode {
 
         servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
         servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
-        tireurManager = new TireurManager(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
+        tireurManager = new TireurManagerTeleop(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
         ;
+
 
 
 
@@ -96,7 +100,7 @@ public class TeleOpDecode extends OpMode {
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        tireurManager = new TireurManager(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
+        tireurManager = new TireurManagerTeleop(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
         ;
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
@@ -168,76 +172,68 @@ public class TeleOpDecode extends OpMode {
         //}
 
         // --- Déclenchement tir auto ---
-        if (gamepad2.right_bumper && !lastrightbumper) {
+        //if (gamepad2.right_bumper && !lastrightbumper) {
 
             // Exemple : tir droit devant
-            double angleTourelle = 0;      // à adapter
-            double angleShooter = 0.12;      // à adapter
-            double vitesseShooter = 3775;
+            //double angleTourelle = 0;      // à adapter
+            //double angleShooter = 0.12;      // à adapter
+            //double vitesseShooter = 3775;
 
-            tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
-        }
+            //tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
+        //}
 
-        lastrightbumper = gamepad2.right_bumper;
+        //lastrightbumper = gamepad2.right_bumper;
         // --- Mise à jour du manager ---
 
-        if (gamepad2.left_bumper && !lastleftbumper) {
+        //if (gamepad2.left_bumper && !lastleftbumper) {
 
-            double angleTourelle = 0;      // à adapter
-            double angleShooter = 0.12;      // à adapter
-            double vitesseShooter = 3750;  // à adapter
+        //    double angleTourelle = 0;      // à adapter
+        //    double angleShooter = 0.12;      // à adapter
+        //    double vitesseShooter = 3750;  // à adapter
 
-            tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
+        //    tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
 
-        }
+        //}
 
-        lastleftbumper = gamepad2.left_bumper;
+        //lastleftbumper = gamepad2.left_bumper;
 
         //1) gestion des prereglages tourelles avec le bouton X en manuel
 
-        /* //tourelle.allerVersAngle(45);
-            double[] presets = {0.12, 0.25, 0.30, 0.40, 0.52};
-            if (gamepad2.x && !lastX) {
-                positionAngleshoot = (positionAngleshoot + 1) % presets.length;
-                angleShooter.angleShoot(presets[positionAngleshoot]); }
-            lastX = gamepad2.x;
-            }
+        //tourelle.allerVersAngle(45);
+        double[] presetsAngleshoot = {0.12, 0.25, 0.30, 0.40, 0.52};
+        if (gamepad2.x && !lastX) {
+                positionAngleshoot = (positionAngleshoot + 1) % presetsAngleshoot.length;
+                ServoAngleShoot.angleShoot(presetsAngleshoot[positionAngleshoot]);
         }
-
+        lastX = gamepad2.x;
 
         double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
         tourelle.rotationtourelle(powertourelle);
 
-        if (gamepad2.b && !lastB){
-            vitesseShooter++;
-            if (vitesseShooter > 3) {
-                vitesseShooter = 0;
-            }// boucle 3 positions
-            switch (vitesseShooter) {
-                case 0:
-                    shooter.setShooterTargetRPM(0);
-                    break;
-                    case 1:
-                        shooter.setShooterTargetRPM(4500);
-                        break;
-                        case 3:
-                            shooter.setShooterTargetRPM(4700);
-                            break;
-                            case 4:
-                                shooter.setShooterTargetRPM(4800);
-                                break;
-            }
+
+        double[] presetsVitesseShooter = {0.0, 3800, 3900, 4000, 4600};
+        if (gamepad2.b && !lastB) {
+            presetIndexShooter = (presetIndexShooter + 1) % presetsVitesseShooter.length;
+            shooter.setShooterTargetRPM(presetsVitesseShooter[presetIndexShooter]);
+        }
+        lastB = gamepad2.b;
+
+
+
+        if (gamepad2.right_bumper && !lastrightbumper) {
+
+            tireurManager.startTirManuel3Tirs();
+        }
+        lastrightbumper = gamepad2.right_bumper;
+
+        if (gamepad2.left_bumper && !lastleftbumper) {
+
+            tireurManager.startTirManuel1tir();
         }
 
-        lastleftbumper = gamepad1.left_bumper;
+        lastleftbumper = gamepad2.left_bumper;
 
-        if (gamepad2.a && !lastA) {
-            //double vitessetirmanuel = 4600;
-            tireurManager.startTirManuel();
 
-        }
-        lastA = gamepad2.a;
-    */
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
