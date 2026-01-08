@@ -77,7 +77,6 @@ public class TeleOpDecode extends OpMode {
         afficheurRight = new AfficheurRight();
         afficheurRight.init(hardwareMap);
 
-
         intake = new Intake(indexeur, afficheurLeft);
         intake.init(hardwareMap);
         indexeur.setIntake(intake);
@@ -89,11 +88,7 @@ public class TeleOpDecode extends OpMode {
 
         servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
         servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
-        tireurManager = new TireurManagerTeleop(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
         ;
-
-
-
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -165,40 +160,6 @@ public class TeleOpDecode extends OpMode {
             slowModeMultiplier += 0.25;
         }
 
-        //Optional way to change slow mode strength
-        //if (gamepad2.yWasPressed()) {
-        //    slowModeMultiplier -= 0.25;
-        //}
-
-        // --- Déclenchement tir auto ---
-        //if (gamepad2.right_bumper && !lastrightbumper) {
-
-            // Exemple : tir droit devant
-            //double angleTourelle = 0;      // à adapter
-            //double angleShooter = 0.12;      // à adapter
-            //double vitesseShooter = 3775;
-
-            //tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
-        //}
-
-        //lastrightbumper = gamepad2.right_bumper;
-        // --- Mise à jour du manager ---
-
-        //if (gamepad2.left_bumper && !lastleftbumper) {
-
-        //    double angleTourelle = 0;      // à adapter
-        //    double angleShooter = 0.12;      // à adapter
-        //    double vitesseShooter = 3750;  // à adapter
-
-        //    tireurManager.startTirAuto(angleTourelle, angleShooter, vitesseShooter);
-
-        //}
-
-        //lastleftbumper = gamepad2.left_bumper;
-
-        //1) gestion des prereglages tourelles avec le bouton X en manuel
-
-        //tourelle.allerVersAngle(45);
         double[] presetsAngleshoot = {0.12, 0.25, 0.30, 0.40, 0.52};
         if (gamepad2.x && !lastX) {
                 positionAngleshoot = (positionAngleshoot + 1) % presetsAngleshoot.length;

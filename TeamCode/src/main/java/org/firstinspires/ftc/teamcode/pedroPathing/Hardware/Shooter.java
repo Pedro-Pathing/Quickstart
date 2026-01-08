@@ -90,18 +90,30 @@ public class Shooter {
 
         public void setShooterTargetRPM(double targetRPM) {
 
-            // Conversion RPM -> ticks/sec (assure-toi que cette constante est correcte)
-            double targetTicksPerSec = (targetRPM *TICKS_PER_REV_6000 ) / 60.0;
+            //Conversion RPM -> ticks/sec
+            double targetTicksPerSec = (targetRPM * TICKS_PER_REV_6000) / 60.0;
 
-            double ramp = 600.0; // ticks/sec par cycle
+            if (targetRPM > 0){
+            double ramp = 10.0; //un peu plus nerveux qu'un ascenseur à dubai
+
+           double tolerancemoteur = 25; // ticks/s  50PMx28/60
+
             double error = targetTicksPerSec - currentTargetVel;
-
-            if (Math.abs(error) > ramp) {
-                currentTargetVel += Math.copySign(ramp, error);
+            if (Math.abs(error)>tolerancemoteur) {
+                double step = Math.copySign(Math.min(Math.abs(error), ramp), error);
+                currentTargetVel +=step;
             } else {
-                currentTargetVel = targetTicksPerSec;
+                currentTargetVel = targetTicksPerSec; // nous sommes assez proche, on reste sur cette zone de vitesse)
             }
 
+            Shooter.setVelocity(currentTargetVel);
+            Shooter2.setVelocity(currentTargetVel);}
+            else {
+                currentTargetVel =0;
+                Shooter.setVelocity(0.0);
+                Shooter2.setVelocity(0.0);
+
+            }
         }
         public void displayShooterVelocity(Telemetry telemetry) {
             telemetry.addData("Shooter Speed (RPM)", getShooterVelocityRPM());

@@ -177,7 +177,7 @@ public class DecodeBlueAutoFond extends OpMode {
                 indexeur.update();
 
                 if (!follower.isBusy()) {// attendre que le path soit fini
-                    follower.followPath(driveAvalerpremiereLigne, 0.25,true); // on avance doucement pour avaler les balles
+                    follower.followPath(driveAvalerpremiereLigne, 0.28,true); // on avance doucement pour avaler les balles
                     setPathState(PathState.DrivedeuxiemeShoot);
                     }
                 break;
@@ -224,7 +224,7 @@ public class DecodeBlueAutoFond extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetavalerdeuxiemeligne, 0.25 , true);
+                    follower.followPath(drivetavalerdeuxiemeligne, 0.28 , true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("ramassage 2 terminé");
                     // transition to next state
