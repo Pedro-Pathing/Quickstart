@@ -60,9 +60,8 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.a()
                 .whenBecomesTrue(Storage::resetEncoder);
         jeff.b()
-                .toggleOnBecomesTrue()
-                .whenBecomesTrue(() -> Transitions.setOuttakePosition(0.75))
-                .whenBecomesFalse(() -> Transitions.setOuttakePosition(1.00));
+                .whenBecomesTrue(() -> Transitions.setOuttakePosition(Transitions.DOWN_POS))
+                .whenBecomesFalse(() -> Transitions.setOuttakePosition(Transitions.UP_POS));
         jeff.dpadDown()
                 .whenBecomesTrue(() -> Storage.spinToNextIntakeIndex().schedule());
         jeff.dpadUp()

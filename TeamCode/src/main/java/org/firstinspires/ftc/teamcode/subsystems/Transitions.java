@@ -10,7 +10,9 @@ import dev.nextftc.ftc.ActiveOpMode;
 public class Transitions implements Subsystem {
 
     public static final Transitions INSTANCE = new Transitions();
-    public static double outtakePosition = 0.75;
+    public static double DOWN_POS = 1.00;
+    public static double UP_POS = 0.75;
+    private static double outtakePosition = 1.00;
     private Servo outtakeServo;
 
     @Override
