@@ -22,18 +22,14 @@ public class Constants {
             .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0.05))
             .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0, 0))
             .useSecondaryTranslationalPIDF(true)
-<<<<<<< Updated upstream
-            .headingPIDFCoefficients(new PIDFCoefficients(3, 0, 0.1, 0.05))
+            .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.1, 0.05))
             .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(4, 0, 0.1, 0))
-=======
-            .headingPIDFCoefficients(new PIDFCoefficients(4, 0, 0.1, 0.04))
-            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3, 0, 0.1, 0))
->>>>>>> Stashed changes
             .useSecondaryHeadingPIDF(true)
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.06, 0.01, 0.000001, 0.6, 0.01))
             .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.06, 0, 0.000005, 0.6, 0.01))
             .useSecondaryDrivePIDF(true)
-            .centripetalScaling(0.00015);
+            .centripetalScaling(0.00015)
+            ;
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.8, 1);
 
@@ -57,6 +53,7 @@ public class Constants {
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .xVelocity(67)
             .yVelocity(56.27);
+
 
     public static PinpointConstants localizerConstants = new PinpointConstants() // TODO: tune pinpoint localizers
             .forwardPodY(3.75)
