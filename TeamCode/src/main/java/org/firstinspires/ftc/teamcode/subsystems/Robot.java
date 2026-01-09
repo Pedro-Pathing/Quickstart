@@ -11,8 +11,6 @@ public class Robot extends SubsystemGroup {
         BLUE
     }
 
-
-
     private Robot() {
         super(
                 Intake.INSTANCE,

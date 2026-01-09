@@ -56,7 +56,11 @@ public class Outtake implements Subsystem {
         if (runDown) {
             outtake.setPower(0);
         } else {
-            outtake.setPower(testPower);
+            if (Math.abs(testPower) > 0.05){
+                outtake.setPower(testPower);
+            } else {
+                outtake.setPower(0);
+            }
         }
 
     }
