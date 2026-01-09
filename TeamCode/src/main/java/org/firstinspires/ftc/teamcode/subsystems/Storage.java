@@ -28,7 +28,7 @@ public class Storage implements Subsystem {
     private static final double TICKS = 185;
 
     static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.02, 0, 0)
+            .posPid(0.007, 0, 0)
             .build();
 
     public static final State[] STATES = {
@@ -46,6 +46,7 @@ public class Storage implements Subsystem {
 
     @Override
     public void initialize() {
+        spin.zero();
 //         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
 //         "limitSwitch");
 //         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
@@ -61,13 +62,9 @@ public class Storage implements Subsystem {
 
         if (manualMode) {
             spin.setPower(manualPower);
-//            double testpower = ActiveOpMode.gamepad2().left_stick_x/4;
-//            if (ActiveOpMode.gamepad2().left_stick_button) {
-//                testpower *= 3;
-//            }
-           // spin.setPower(testpower);
-        } else if (pidControlMode) {
-            spin.setPower(controller.calculate(spin.getState()));
+        } else if (pidControlMode){
+            double testPower = controller.calculate(spin.getState());
+            spin.setPower(testPower);
         }
 
         // Write Telemetry
@@ -93,6 +90,10 @@ public class Storage implements Subsystem {
     public static Command setManualModeCommand(boolean newMode) {
         return new InstantCommand(() -> setManualMode(newMode));
     }
+    public static Command setPIDMode(boolean newMode) {
+        return new InstantCommand(() -> setPidControlMode(newMode));
+    }
+
     public static Command resetEncoderCommand() {
         return new InstantCommand(Storage::resetEncoder);
     }
@@ -118,11 +119,11 @@ public class Storage implements Subsystem {
                 .setStart(() -> {
                     manualMode = false;
                     pidControlMode = true;
-                    startPos = spin.getCurrentPosition() + 10;
+                    startPos = spin.getCurrentPosition() - 10;
                     double ticksToMove = TICKS/2.0 - startPos % TICKS;
 
-                    if (ticksToMove <= 0) {
-                        ticksToMove += TICKS;
+                    if (ticksToMove >= 0) {
+                        ticksToMove -= TICKS;
                     }
                     double nextPos = startPos + ticksToMove;
                     controller.setGoal(new KineticState(nextPos));})

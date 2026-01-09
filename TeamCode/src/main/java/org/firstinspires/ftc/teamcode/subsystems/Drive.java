@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -37,6 +38,7 @@ public class Drive implements Subsystem {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
+        controller = new PIDFController(new PIDFCoefficients(0.5, 0, 0, 0));
     }
 
     @Override
@@ -77,18 +79,17 @@ public class Drive implements Subsystem {
                 telemetryM.update();
 
                 // Calculate the correct values based on Gamepad 1
-                double forward = slowMode ? -ActiveOpMode.gamepad1().left_stick_y : -ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier;
-                double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x : -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier;
-                double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x : -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier;
+                double forward = slowMode ? -ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier: -ActiveOpMode.gamepad1().left_stick_y;
+                double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier: -ActiveOpMode.gamepad1().left_stick_x;
+                double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier: -ActiveOpMode.gamepad1().right_stick_x;
 
                 if (headingLock) {
-                    controller = new PIDFController(follower.constants.coefficientsSecondaryHeadingPIDF);
                     setHeadingGoal(shootTarget, follower.getPose());
                     controller.updateError(getHeadingError());
 
-                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, controller.run(), robotCentric);
+                    follower.setTeleOpDrive(forward, strafe, controller.run(), robotCentric);
                 } else {
-                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, -ActiveOpMode.gamepad1().right_stick_x, robotCentric);
+                    follower.setTeleOpDrive(forward, strafe, turn, robotCentric);
                 }
 
                 Logger.add("Drive", Logger.Level.DEBUG, "forward: " + forward + " strafe: " + strafe + " turn: " + turn);

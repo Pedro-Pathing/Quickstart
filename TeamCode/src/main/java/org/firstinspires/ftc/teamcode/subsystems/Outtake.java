@@ -46,6 +46,7 @@ public class Outtake implements Subsystem {
     @Override
     public void initialize() {
         outtakeServo = ActiveOpMode.hardwareMap().servo.get("servo5");
+        setRunDownCommand(true).schedule();
     }
     @Override
     public void periodic() {

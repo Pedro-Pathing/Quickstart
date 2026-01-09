@@ -55,25 +55,14 @@ public class MainTeleOp extends NextFTCOpMode {
                     Storage.setManualModeCommand(true);
                     Storage.resetEncoderCommand().schedule();
                 });
-//
-//        jeff.leftStickX()
-//                .atLeast(0.05).whenBecomesTrue(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    if(jeff.leftStickButton().equals(true)){
-//                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
-//                    }
-//                    else{
-//                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
-//
-//                    }
-//                })
-//                .whenBecomesFalse(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0).schedule();
-//                });
 
-        jeff.leftStickX()
-                .atLeast(0.05).and(jeff.leftStickButton()
+        jeff.start()
+                .whenBecomesTrue(() -> {
+                    Storage.setPIDMode(false);
+                });
+
+        // Storage nonsense
+        jeff.leftStickX().greaterThan(0.1).and(jeff.leftStickButton()
                 .whenTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
                     Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
@@ -83,24 +72,24 @@ public class MainTeleOp extends NextFTCOpMode {
                     Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
                 }));
 
+        jeff.leftStickX().lessThan(-0.1).and(jeff.leftStickButton()
+                        .whenTrue(() -> {
+                            Storage.setManualModeCommand(true).schedule();
+                            Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
+                        })
+                        .whenFalse(() -> {
+                            Storage.setManualModeCommand(true).schedule();
+                            Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
+                        }));
+
         jeff.leftStickX()
-                .atMost(0.05)
-                .whenTrue(() -> {
+                .inRange(-0.05, 0.05)
+                .whenBecomesTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
                     Storage.setManualPowerCommand(0).schedule();
                 });
 
-
-//        jeff.a()
-//                .whenBecomesTrue(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0.025).schedule();
-//                })
-//                .whenBecomesFalse(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0).schedule();
-//                });
-
+        // Run Outake
         jeff.a()
                 .whenBecomesTrue(() -> {
                     Outtake.setRunDownCommand(false).schedule();
@@ -110,36 +99,23 @@ public class MainTeleOp extends NextFTCOpMode {
                     Outtake.setRunDownCommand(true).schedule();
                 });
 
+        jeff.y()
+                .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
+                .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule());
+
+
+        // Drive Stuff
         caimo.y()
                 .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Drive.setSlowModeCommand(true).schedule())
                 .whenBecomesFalse(() -> Drive.setSlowModeCommand(false).schedule());
-
-//        jeff.b()
-//                .whenBecomesTrue(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0.33).schedule();
-//                })
-//                .whenBecomesFalse(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0).schedule();
-//                });
 
         caimo.back()
                 .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Drive.setHeadingLock(true))
                 .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
-        jeff.y()
-                .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
-                .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule());
 
-//        jeff.rightBumper()
-//                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
-//                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
-//        jeff.leftBumper()
-//                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(0.8).schedule())
-//                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
         caimo.rightBumper()
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(1).schedule())
                 .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
@@ -164,6 +140,32 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(() -> Robot.intakeAll.schedule());
         jeff.dpadRight()
                 .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
+
+        //        jeff.a()
+//                .whenBecomesTrue(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0.025).schedule();
+//                })
+//                .whenBecomesFalse(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0).schedule();
+//                });
+//        jeff.b()
+//                .whenBecomesTrue(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0.33).schedule();
+//                })
+//                .whenBecomesFalse(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0).schedule();
+//                });
+//        jeff.rightBumper()
+//                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
+//                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
+//        jeff.leftBumper()
+//                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(0.8).schedule())
+//                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
+
     }
     @Override public void onUpdate() {
         for (String cname : CommandManager.INSTANCE.snapshot()) {
