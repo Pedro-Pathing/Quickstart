@@ -31,21 +31,27 @@ public class Robot extends SubsystemGroup {
     }
 
     public static SequentialGroup outtakeAll = new SequentialGroup(
-            Outtake.setOuttakePowerCommand(1),
-            new Delay(0.1),
+            Outtake.on,
+            new Delay(1),
             Storage.spinToNextOuttakeIndex(),
+            new Delay(0.5),
             Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            new Delay(0.25),
             Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
-            new Delay(0.1),
+            new Delay(1),
             Storage.spinToNextOuttakeIndex(),
+            new Delay(0.5),
             Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            new Delay(0.25),
             Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
-            new Delay(0.1),
+            new Delay(1),
             Storage.spinToNextOuttakeIndex(),
+            new Delay(0.5),
             Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            new Delay(0.25),
             Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
-            new Delay(0.1),
-            Outtake.setOuttakePowerCommand(0)
+            new Delay(1),
+            Outtake.setRunDownCommand(true)
     );
 
     public static SequentialGroup intakeAll = new SequentialGroup(

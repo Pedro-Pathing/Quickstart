@@ -28,7 +28,7 @@ public class Storage implements Subsystem {
     private static final double TICKS = 185;
 
     static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.025, 0.00000000, 0.0003)
+            .posPid(0.00, 0.00000000, 0.000)
             .basicFF(0)
             .build();
 
@@ -61,7 +61,12 @@ public class Storage implements Subsystem {
     public void periodic() {
 
         if (manualMode) {
-            spin.setPower(ActiveOpMode.gamepad2().left_stick_y);
+            spin.setPower(manualPower);
+//            double testpower = ActiveOpMode.gamepad2().left_stick_x/4;
+//            if (ActiveOpMode.gamepad2().left_stick_button) {
+//                testpower *= 3;
+//            }
+           // spin.setPower(testpower);
         } else if (pidControlMode) {
             spin.setPower(controller.calculate(spin.getState()));
         }

@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
@@ -19,7 +20,7 @@ public class Drive implements Subsystem {
     public static final Drive INSTANCE = new Drive();
     private static Follower follower;
     private static TelemetryManager telemetryM;
-    private static final boolean slowMode = false;
+    private static boolean slowMode = false;
     private static final double slowModeMultiplier = 0.5;
     private static final boolean robotCentric = false;
     private static Pose startingPose = new Pose(24, 24, Math.toRadians(0));
@@ -60,6 +61,14 @@ public class Drive implements Subsystem {
             shootTarget = new Pose(6, 144 - 6, 0);
         else if (currentAlliance == Robot.Alliance.RED && shootTarget.getX() != (144 - 6))
             shootTarget = shootTarget.mirror();
+    }
+
+    private static void setSlowMode(boolean newMode) {
+        slowMode = newMode;
+    }
+
+    public static Command setSlowModeCommand(boolean newMode) {
+        return new InstantCommand(() -> setSlowMode(newMode));
     }
 
     public static Command drive = new LambdaCommand()

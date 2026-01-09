@@ -49,9 +49,7 @@ public class MainTeleOp extends NextFTCOpMode {
         GamepadEx jeff = Gamepads.gamepad2();
 
         jeff.back()
-                .whenBecomesTrue(() -> {
-                    Storage.resetEncoderCommand().schedule();
-                });
+                .whenBecomesTrue(() -> Storage.resetEncoderCommand().schedule());
 
         jeff.a()
                 .whenBecomesTrue(() -> {
@@ -76,11 +74,15 @@ public class MainTeleOp extends NextFTCOpMode {
 
         caimo.a()
                 .whenBecomesTrue(() -> {
+                    Outtake.setRunDownCommand(false).schedule();
                     Outtake.on.schedule();
                 })
-                .whenBecomesFalse(() -> {
+                .whenBecomesFalse(() -> Outtake.setRunDownCommand(true).schedule());
 
-                });
+        caimo.y()
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(() -> Drive.setSlowModeCommand(true).schedule())
+                .whenBecomesFalse(() -> Drive.setSlowModeCommand(false).schedule());
 
         jeff.b()
                 .whenBecomesTrue(() -> {
@@ -98,8 +100,8 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
         jeff.x()
-                .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule())
-                .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule());
+                .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
+                .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule());
 
         jeff.rightBumper()
                 .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
