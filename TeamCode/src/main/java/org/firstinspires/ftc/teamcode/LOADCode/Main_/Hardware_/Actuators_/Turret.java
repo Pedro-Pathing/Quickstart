@@ -22,11 +22,10 @@ public class Turret {
     private final Devices.DcMotorExClass flywheel2 = new Devices.DcMotorExClass();
     private final Devices.ServoClass hood = new Devices.ServoClass();
     private final Devices.ServoClass gate = new Devices.ServoClass();
-    private final Devices.REVHallEffectSensorClass hall = new Devices.REVHallEffectSensorClass();
+    public final Devices.REVHallEffectSensorClass hall = new Devices.REVHallEffectSensorClass(); // Offset 20 degrees from directly forwards
 
     // Turret PID coefficients
-    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.06, 0, 0); // 223RPM Motor
-    //public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.3, 0, 0.007); // 1150RPM Motor
+    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.0002, 0.0000000001, 0.005); // 223RPM Motor
 
     // Flywheel PID coefficients
     // 4500RPM
@@ -47,11 +46,15 @@ public class Turret {
     /** Stores the current state of the flywheel.*/
     public flywheelstate flywheelState = flywheelstate.OFF;
     /** Controls the target speed of the flywheel when it is on.*/
-    public static double flywheelMaxSpeed = 4500;
+    public static double flywheelMaxSpeed = 3500;
     /** Controls the upper software limit of the hood.*/
     public static double upperHoodLimit = 260;
     /** Controls the speed at which the turret will move to zero itself.*/
     public static double zeroSpeed = 0.2;
+    /**
+     * Stores the offset of the turret's rotation
+     */
+    public static double turretOffset = -90;
 
     // Stores important objects for later access
     OpMode opMode = null;
@@ -66,7 +69,7 @@ public class Turret {
         Robot = robot;
 
         // Initialize hardware objects
-        rotation.init(opmode, "turret", 145.1 * ((double) 131 /24)); //Previously 103.8
+        rotation.init(opmode, "turret", 751.8 * ((double) 131 / 36));
         flywheel.init(opmode, "flywheel", 28);
         flywheel2.init(opmode, "flywheel2", 28);
         hood.init(opmode, "hood");
@@ -80,16 +83,16 @@ public class Turret {
         // Set servo directions
         hood.setDirection(Servo.Direction.REVERSE);
 
-        // Set motor directions and zero power behaviour
+        // Flywheel Motor Settings
         flywheel2.setDirection(DcMotorSimple.Direction.REVERSE);
-        rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
-        rotation.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        //Runmodes for encoder
         flywheel.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheel2.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheel.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.FLOAT);
         flywheel2.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        // Rotation  Motor Settings
+        rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
+        rotation.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
@@ -111,6 +114,7 @@ public class Turret {
         flywheel.setFFCoefficients(flywheelFFCoefficients);
         flywheel2.setPidCoefficients(flywheelCoefficients);
         flywheel2.setFFCoefficients(flywheelFFCoefficients);
+        rotation.setOffsetDegrees(turretOffset);
     }
 
     /**
@@ -119,7 +123,7 @@ public class Turret {
      */
     public void updateAimbot(){
         // Set the turret rotation
-        rotation.setAngle(calcLocalizer());
+        rotation.setAngle(Math.min(Math.max(0, calcLocalizer()), 360));
         // Set the hood angle
         Pose goalPose = new Pose(4,140,0);
         if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
@@ -185,10 +189,10 @@ public class Turret {
         Pose goalPose = new Pose(4,140,0);
         if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
 
-        return Math.toDegrees(Math.atan2(
+        return (Math.toDegrees(Math.atan2(
                 goalPose.getY()-Robot.drivetrain.follower.getPose().getY(),
                 goalPose.getX()-Robot.drivetrain.follower.getPose().getX())
-        ) - Math.toDegrees(Robot.drivetrain.follower.getPose().getHeading());
+        ) - Math.toDegrees(Robot.drivetrain.follower.getPose().getHeading()) + 90)%360;
     }
 
     /**

@@ -157,14 +157,14 @@ public class Pedro_Paths {
     }
     public void buildPreload1ToShootings(LoadHardwareClass.Alliance alliance){
         nearPreload_to_nearShoot = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(nearPreload, alliance),
                         autoMirror(nearShoot, alliance)
                 ))
                 .setLinearHeadingInterpolation(nearPreload.getHeading(), nearShoot.getHeading())
                 .build();
         nearPreload_to_midShoot = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(nearPreload, alliance),
                         autoMirror(midShoot, alliance)
                 ))
@@ -224,7 +224,7 @@ public class Pedro_Paths {
                 .setLinearHeadingInterpolation(midPreload.getHeading(), midShoot.getHeading())
                 .build();
         farPreload_to_farShoot = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(farPreload, alliance),
                         autoMirror(farShoot, alliance)
                 ))
@@ -259,7 +259,7 @@ public class Pedro_Paths {
     }
     public void buildShooting2ToPreloads(LoadHardwareClass.Alliance alliance){
         midShoot_to_nearPreload = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(midShoot, alliance),
                         autoMirror(nearPreload, alliance)
                 ))
@@ -310,14 +310,14 @@ public class Pedro_Paths {
     }
     public void buildShooting1ToLeaves(LoadHardwareClass.Alliance alliance){
         nearShoot_to_nearLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(nearShoot, alliance),
                         autoMirror(nearLeave, alliance)
                 ))
                 .setConstantHeadingInterpolation(nearShoot.getHeading())
                 .build();
         nearShoot_to_midLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(nearShoot, alliance),
                         autoMirror(midLeave, alliance)
                 ))
@@ -326,14 +326,14 @@ public class Pedro_Paths {
     }
     public void buildShooting2ToLeaves(LoadHardwareClass.Alliance alliance){
         midShoot_to_nearLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(midShoot, alliance),
                         autoMirror(nearLeave, alliance)
                 ))
                 .setConstantHeadingInterpolation(midShoot.getHeading())
                 .build();
         midShoot_to_midLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(midShoot, alliance),
                         autoMirror(midLeave, alliance)
                 ))
@@ -342,14 +342,14 @@ public class Pedro_Paths {
     }
     public void buildShooting3ToLeaves(LoadHardwareClass.Alliance alliance){
         farShoot_to_midLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(farShoot, alliance),
                         autoMirror(midLeave, alliance)
                 ))
                 .setConstantHeadingInterpolation(farShoot.getHeading())
                 .build();
         farShoot_to_farLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(farShoot, alliance),
                         autoMirror(farLeave, alliance)
                 ))
@@ -358,14 +358,14 @@ public class Pedro_Paths {
     }
     public void buildStart1ToLeaves(LoadHardwareClass.Alliance alliance){
         nearStart_to_nearLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(nearStart, alliance),
                         autoMirror(nearLeave, alliance)
                 ))
                 .setConstantHeadingInterpolation(nearStart.getHeading())
                 .build();
         nearStart_to_midLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(nearStart, alliance),
                         autoMirror(farLeave, alliance)
                 ))
@@ -374,14 +374,14 @@ public class Pedro_Paths {
     }
     public void buildStart2ToLeaves(LoadHardwareClass.Alliance alliance){
         farStart_to_midLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(farStart, alliance),
                         autoMirror(nearLeave, alliance)
                 ))
                 .setConstantHeadingInterpolation(farStart.getHeading())
                 .build();
         farStart_to_farLeave = follower.pathBuilder()
-                .addPath(new BezierCurve(
+                .addPath(new BezierLine(
                         autoMirror(farStart, alliance),
                         autoMirror(farLeave, alliance)
                 ))

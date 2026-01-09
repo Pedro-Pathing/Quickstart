@@ -69,6 +69,8 @@ public class Devices {
         public double ticksPerRotation = 103.8;
         // Target position/velocity of the motor
         public double target = 0;
+        // Offset position of the motor
+        public double offset = 0;
         // Motor object
         private DcMotorEx motorObject = null;
 
@@ -132,6 +134,15 @@ public class Devices {
             motorObject.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
         /**
+         * Sets a position offset on the motor in encoder ticks.
+         */
+        public void setOffsetTicks(double ticks){
+            offset = ticks;
+        }
+        public void setOffsetDegrees(double degrees){
+            setOffsetTicks(degrees * (ticksPerRotation/360));
+        }
+        /**
          * Sets the runMode of the motor.
          * @param runMode The mode to set the motor to.
          */
@@ -159,7 +170,7 @@ public class Devices {
          * @return The current position of the turret motor in encoder ticks. Can be any value.
          */
         public double getEncoderTicks(){
-            return motorObject.getCurrentPosition();
+            return motorObject.getCurrentPosition() + offset;
         }
         /**
          * @param power A value between -1 and 1 that the turret motor's power will be set to.

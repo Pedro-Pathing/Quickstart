@@ -269,7 +269,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Turret Aimbot
         //Robot.turret.updateAimbot();
-        // DO NOT RE-ENABLE THIS UNTIL HALL EFFECT SENSOR CALIBRATED
+        // TODO: DO NOT RE-ENABLE THIS UNTIL HALL EFFECT SENSOR CALIBRATED
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {

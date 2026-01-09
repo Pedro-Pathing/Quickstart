@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
@@ -187,8 +188,15 @@ public class Auto_Main_ extends NextFTCOpMode {
             new SequentialGroup(
                     new Delay(1),
                     Commands.shootBalls(),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
                     Commands.runPath(paths.farStart_to_farPreload, true, 1),
+                    Commands.setIntakeMode(Intake.intakeMode.OFF),
                     Commands.runPath(paths.farPreload_to_farShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.farStart_to_midPreload, true, 1),
+                    Commands.setIntakeMode(Intake.intakeMode.OFF),
+                    Commands.runPath(paths.midPreload_to_farShoot, true, 1),
                     Commands.shootBalls(),
                     Commands.runPath(paths.farShoot_to_farLeave, true, 1)
             ).schedule();

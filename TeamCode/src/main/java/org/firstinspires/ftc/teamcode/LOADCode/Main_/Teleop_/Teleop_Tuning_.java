@@ -47,6 +47,7 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime loopTimer = new ElapsedTime();
     private TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     // Panels variables
@@ -66,7 +67,7 @@ public class Teleop_Tuning_ extends LinearOpMode {
         Robot.init(startPose);
 
         if (gamepad1.guide){
-            Robot.turret.rotation.resetEncoder();
+            Robot.turret.zeroTurret(isStopRequested());
         }
 
         // Wait for the game to start (driver presses START)
@@ -94,11 +95,22 @@ public class Teleop_Tuning_ extends LinearOpMode {
             telemetry.addData("Lower Sensor Array Triggered", Robot.intake.getBottomSensorState());
 
             // Controls for turret rotation testing
-            if (!gamepad1.x){
-                Robot.turret.rotation.setAngle(0);
-            }else{
+            if (gamepad1.x){
                 Robot.turret.rotation.setAngle(180);
+            }else if (gamepad1.b){
+                Robot.turret.updateAimbot();
+            }else{
+                Robot.turret.rotation.setAngle(0);
             }
+            Robot.turret.updatePIDs();
+            telemetry.addLine();
+            telemetry.addLine("TURRET DATA");
+            telemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
+            telemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
+            telemetry.addData("Hall Effect Detected", Robot.turret.hall.getTriggered());
+            panelsTelemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
+            panelsTelemetry.addData("Turret Actual Angle", Robot.turret.rotation.getAngleAbsolute());
+
 
             // Controls for hood testing
             if (gamepad1.dpad_up){
@@ -128,14 +140,23 @@ public class Teleop_Tuning_ extends LinearOpMode {
             panelsTelemetry.addData("Flywheel Target Velocity", Robot.turret.flywheel.target);
             panelsTelemetry.addData("Flywheel Actual Velocity", Robot.turret.getFlywheelRPM());
 
+            if (gamepad1.a){
+                Robot.intake.setMode(Intake.intakeMode.INTAKING);
+            }else{
+                Robot.intake.setMode(Intake.intakeMode.OFF);
+            }
+
 
             // System-related Telemetry
             telemetry.addLine();
             telemetry.addLine("SYSTEM DATA");
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Loop Time", loopTimer.toString());
+            panelsTelemetry.addData("Loop Time", loopTimer.toString());
             telemetry.addData("Version: ", "12/26/25");
             telemetry.update();
             panelsTelemetry.update();
+            loopTimer.reset();
         }
     }
 }

@@ -70,8 +70,8 @@ public class Commands {
     public Command shootBalls(){
         return new SequentialGroup(
                 // Ensure the flywheel is up to speed, if not, spin up first
-                setFlywheelState(Turret.flywheelstate.ON),
-                new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.flywheelMaxSpeed-100),
+                //setFlywheelState(Turret.flywheelstate.ON),
+                //new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.flywheelMaxSpeed-100),
 
                 // Shoot the first two balls
                 setIntakeMode(Intake.intakeMode.INTAKING),

@@ -29,3 +29,5 @@
 //5. TODO, make hood autoaim using InterpLUT
 //6. TODO, test turret hood and rotation autoaim together
 //7. TODO, test turret autoaim with the generic autos                            - ADD THE TURRET CONTROL FUNCTIONALITY TO COMMANDS
+
+// TODO: create paths to pick up human player zone Artifacts and to open the gate
