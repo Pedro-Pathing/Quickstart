@@ -61,7 +61,7 @@ public class Storage implements Subsystem {
     public void periodic() {
 
         if (manualMode) {
-            spin.setPower(manualPower);
+            spin.setPower(ActiveOpMode.gamepad2().left_stick_y);
         } else if (pidControlMode) {
             spin.setPower(controller.calculate(spin.getState()));
         }
