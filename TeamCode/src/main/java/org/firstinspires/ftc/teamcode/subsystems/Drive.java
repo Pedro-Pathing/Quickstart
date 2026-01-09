@@ -30,7 +30,6 @@ public class Drive implements Subsystem {
     private static PIDFController controller;
     private static boolean headingLock = false;
 
-
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
@@ -83,7 +82,7 @@ public class Drive implements Subsystem {
                 double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x : -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier;
 
                 if (headingLock) {
-                    controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+                    controller = new PIDFController(follower.constants.coefficientsSecondaryHeadingPIDF);
                     setHeadingGoal(shootTarget, follower.getPose());
                     controller.updateError(getHeadingError());
 

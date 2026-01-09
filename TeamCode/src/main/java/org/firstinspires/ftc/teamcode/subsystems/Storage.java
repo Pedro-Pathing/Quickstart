@@ -28,7 +28,7 @@ public class Storage implements Subsystem {
     private static final double TICKS = 185;
 
     static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.01, 0.00000000, 0.000)
+            .posPid(0.02, 0, 0)
             .build();
 
     public static final State[] STATES = {

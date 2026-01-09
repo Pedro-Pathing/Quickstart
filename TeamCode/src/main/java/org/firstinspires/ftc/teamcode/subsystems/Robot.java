@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.groups.SequentialGroup;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.SubsystemGroup;
 public class Robot extends SubsystemGroup {
     public static final Robot INSTANCE = new Robot();
@@ -29,38 +30,38 @@ public class Robot extends SubsystemGroup {
     }
 
     public static SequentialGroup outtakeAll = new SequentialGroup(
-            Outtake.on,
+            new InstantCommand(Outtake.on),
             new Delay(1),
-            Storage.spinToNextOuttakeIndex(),
+            new InstantCommand(Storage.spinToNextOuttakeIndex()),
             new Delay(0.5),
-            Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.UP_POS)),
             new Delay(0.25),
-            Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
+            new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.DOWN_POS)),
             new Delay(1),
-            Storage.spinToNextOuttakeIndex(),
+            new InstantCommand(Storage.spinToNextOuttakeIndex()),
             new Delay(0.5),
-            Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.UP_POS)),
             new Delay(0.25),
-            Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
+            new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.DOWN_POS)),
             new Delay(1),
-            Storage.spinToNextOuttakeIndex(),
+            new InstantCommand(Storage.spinToNextOuttakeIndex()),
             new Delay(0.5),
-            Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.UP_POS)),
             new Delay(0.25),
-            Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
+            new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.DOWN_POS)),
             new Delay(1),
-            Outtake.setRunDownCommand(true)
+            new InstantCommand(Outtake.setRunDownCommand(true))
     );
 
     public static SequentialGroup intakeAll = new SequentialGroup(
-            Storage.spinToNextIntakeIndex(),
-            Intake.setIntakePowerCommand(1),
-            Storage.spinToNextIntakeIndex(),
+            new InstantCommand(Storage.spinToNextIntakeIndex()),
+            new InstantCommand(Intake.setIntakePowerCommand(1)),
+            new InstantCommand(Storage.spinToNextIntakeIndex()),
             new Delay(0.25),
-            Storage.spinToNextIntakeIndex(),
+            new InstantCommand(Storage.spinToNextIntakeIndex()),
             new Delay(0.25),
-            Intake.setIntakePowerCommand(-1),
-            new Delay(0.25),
-            Intake.setIntakePowerCommand(0)
+            new InstantCommand(Intake.setIntakePowerCommand(-1)),
+            new Delay(0.5),
+            new InstantCommand(Intake.setIntakePowerCommand(0))
             );
 }

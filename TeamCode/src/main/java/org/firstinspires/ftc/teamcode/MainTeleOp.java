@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static dev.nextftc.bindings.Bindings.button;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drive;
@@ -50,22 +52,42 @@ public class MainTeleOp extends NextFTCOpMode {
 
         jeff.back()
                 .whenBecomesTrue(() -> Storage.resetEncoderCommand().schedule());
+//
+//        jeff.leftStickX()
+//                .atLeast(0.05).whenBecomesTrue(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    if(jeff.leftStickButton().equals(true)){
+//                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
+//                    }
+//                    else{
+//                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
+//
+//                    }
+//                })
+//                .whenBecomesFalse(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0).schedule();
+//                });
 
         jeff.leftStickX()
-                .atLeast(0.05).whenBecomesTrue(() -> {
+                .atLeast(0.05).and(jeff.leftStickButton()
+                .whenTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
-                    if(jeff.leftStickButton().equals(true)){
-                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
-                    }
-                    else{
-                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
-
-                    }
+                    Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
                 })
-                .whenBecomesFalse(() -> {
+                .whenFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
+                }));
+
+        jeff.leftStickX()
+                .atMost(0.05)
+                .whenTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
                     Storage.setManualPowerCommand(0).schedule();
                 });
+
+
 
 //        jeff.a()
 //                .whenBecomesTrue(() -> {
@@ -101,10 +123,10 @@ public class MainTeleOp extends NextFTCOpMode {
 //                    Storage.setManualPowerCommand(0).schedule();
 //                });
 
-//        caimo.back()
-//                .toggleOnBecomesTrue()
-//                .whenBecomesTrue(() -> Drive.setHeadingLock(true))
-//                .whenBecomesFalse(() -> Drive.setHeadingLock(false));
+        caimo.back()
+                .toggleOnBecomesTrue()
+                .whenBecomesTrue(() -> Drive.setHeadingLock(true))
+                .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
         jeff.y()
                 .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
