@@ -21,7 +21,7 @@ public class Drive implements Subsystem {
     private static Follower follower;
     private static TelemetryManager telemetryM;
     private static boolean slowMode = false;
-    private static final double slowModeMultiplier = 0.5;
+    private static final double slowModeMultiplier = 0.2;
     private static final boolean robotCentric = false;
     private static Pose startingPose = new Pose(24, 24, Math.toRadians(0));
     private static Pose shootTarget = new Pose(6, 144 - 6, 0);
