@@ -55,7 +55,7 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.back()
                 .whenBecomesTrue(() -> {
                     Storage.setManualModeCommand(true);
-                    Storage.resetEncoderCommand().schedule();
+                    Storage.resetEncoderAtOuttakeCommand();
                 });
 
         jeff.start()
@@ -117,7 +117,7 @@ public class MainTeleOp extends NextFTCOpMode {
 
 
         // Drive Stuff
-        caimo.y()
+        caimo.rightBumper()
                 .whenBecomesTrue(() -> Drive.setSlowModeCommand(true).schedule())
                 .whenBecomesFalse(() -> Drive.setSlowModeCommand(false).schedule());
 
@@ -127,10 +127,10 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
 
-        caimo.rightBumper()
+        caimo.rightTrigger().greaterThan(0.5)
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(1).schedule())
                 .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
-        caimo.leftBumper()
+        caimo.leftTrigger().greaterThan(0.5)
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(-1).schedule())
                 .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
 

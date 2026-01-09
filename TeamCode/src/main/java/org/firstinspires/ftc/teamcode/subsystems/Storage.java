@@ -105,6 +105,8 @@ public class Storage implements Subsystem {
         return new InstantCommand(Storage::resetEncoder);
     }
 
+
+
     public static Command spinToNextIntakeIndex() {
         return new LambdaCommand()
                 .setStart(() -> {
@@ -198,6 +200,15 @@ public class Storage implements Subsystem {
     private static void resetEncoder() {
         spin.zero();
         controller.setGoal(new KineticState(0));
+    }
+
+    private static void resetEncoderAtOuttake() {
+        spin.setCurrentPosition(270);
+        controller.setGoal(new KineticState(270));
+    }
+
+    public static void resetEncoderAtOuttakeCommand() {
+        new InstantCommand(Storage::resetEncoderAtOuttake);
     }
 
 

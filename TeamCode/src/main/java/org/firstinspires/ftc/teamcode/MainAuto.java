@@ -52,7 +52,7 @@ public class MainAuto extends OpMode {
     private final Pose pickUp3C1 = new Pose(72, 30);
     private final Pose pickUp3C2 = new Pose(72, 36);
 
-    private final Pose shootPose = new Pose(48, 12, Math.toRadians(330));
+    private final Pose shootPose = new Pose(75, 87, Math.toRadians(330));
 
 
     private Path startPosition;
@@ -111,7 +111,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(shoot1, 0.5, true);
+                    follower.followPath(shoot1, 0.7, true);
                     setPathState(2);
                 }
                 break;
@@ -120,7 +120,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(intake2, .5,true);
+                    follower.followPath(intake2, .7,true);
                     setPathState(3);
                 }
                 break;
@@ -129,7 +129,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(shoot2, .5,true);
+                    follower.followPath(shoot2, .7,true);
                     setPathState(4);
                 }
                 break;
@@ -138,7 +138,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(intake3, .5,true);
+                    follower.followPath(intake3, .7,true);
                     setPathState(5);
                 }
                 break;
@@ -147,7 +147,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(shoot3, .5,true);
+                    follower.followPath(shoot3, .7,true);
                     setPathState(6);
 
                 }
@@ -157,7 +157,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(goToStart, .5,true);
+                    follower.followPath(goToStart, .7,true);
                     setPathState(-1);
 
                 }
