@@ -38,7 +38,7 @@ public class Drive implements Subsystem {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
-        controller = new PIDFController(new PIDFCoefficients(0.5, 0, 0, 0));
+        controller = new PIDFController(new PIDFCoefficients(1, 0, 0, 0));
     }
 
     @Override

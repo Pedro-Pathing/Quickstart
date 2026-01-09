@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode; // make sure this aligns with class location
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -36,29 +37,42 @@ public class MainAuto extends OpMode {
     */
 
     private final Pose startPose = new Pose(48, 12, Math.toRadians(90)); // Start Pose of our robot.
-
     private final Pose pickUp1 = new Pose(18, 84, Math.toRadians(180));
+
+    private final Pose pickUp1C1 = new Pose(57, 90);
+    private final Pose pickUp1C2 = new Pose(57, 84);
+
     private final Pose pickUp2 = new Pose(18, 60, Math.toRadians(180));
+
+    private final Pose pickUp2C1 = new Pose(75, 57);
+    private final Pose pickUp2C2 = new Pose(66, 60);
+
     private final Pose pickUp3 = new Pose(18, 36, Math.toRadians(180));
+
+    private final Pose pickUp3C1 = new Pose(72, 30);
+    private final Pose pickUp3C2 = new Pose(72, 36);
+
     private final Pose shootPose = new Pose(48, 12, Math.toRadians(330));
 
 
     private Path startPosition;
     private PathChain shoot1, intake2, shoot2, intake3, shoot3, goToStart;
     public void buildPaths() {
-        startPosition = new Path(new BezierLine(startPose, pickUp1));
+        //startPosition = new Path(new BezierLine(startPose, pickUp1));
+        startPosition = new Path(new BezierCurve(startPose, pickUp1C1, pickUp1C2, pickUp1));
         startPosition.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
 
 
         shoot1 = follower.pathBuilder()
-            .addPath(new BezierLine(pickUp1, shootPose))
-            .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
-            .build();
+                .addPath(new BezierLine(pickUp1, shootPose))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
+                .build();
 
         intake2 = follower.pathBuilder()
-            .addPath(new BezierLine(shootPose, pickUp2))
-            .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-            .build();
+                //.addPath(new BezierLine(shootPose, pickUp2))
+                .addPath(new BezierCurve(shootPose, pickUp2C1, pickUp2C2 ,pickUp2))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .build();
 
         shoot2 = follower.pathBuilder()
                 .addPath(new BezierLine(pickUp2, shootPose))
@@ -66,7 +80,8 @@ public class MainAuto extends OpMode {
                 .build();
 
         intake3 = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, pickUp3))
+                //.addPath(new BezierLine(shootPose, pickUp3))
+                .addPath(new BezierCurve(shootPose, pickUp3C1, pickUp3C2 ,pickUp3))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 

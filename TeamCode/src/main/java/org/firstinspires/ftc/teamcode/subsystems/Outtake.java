@@ -64,6 +64,5 @@ public class Outtake implements Subsystem {
                 outtake.setPower(0);
             }
         }
-
     }
 }
