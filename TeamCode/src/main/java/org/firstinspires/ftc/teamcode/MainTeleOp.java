@@ -51,64 +51,71 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.back()
                 .whenBecomesTrue(() -> Storage.resetEncoderCommand().schedule());
 
+        jeff.leftStickX()
+                .atLeast(0.05).whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    if(jeff.leftStickButton().equals(true)){
+                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
+                    }
+                    else{
+                        Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
+
+                    }
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+//        jeff.a()
+//                .whenBecomesTrue(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0.025).schedule();
+//                })
+//                .whenBecomesFalse(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0).schedule();
+//                });
+
         jeff.a()
-                .whenBecomesTrue(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0.025).schedule();
-                })
-                .whenBecomesFalse(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0).schedule();
-                });
-
-        jeff.y()
-                .whenBecomesTrue(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0.15).schedule();
-                })
-                .whenBecomesFalse(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0).schedule();
-                });
-
-
-        caimo.a()
                 .whenBecomesTrue(() -> {
                     Outtake.setRunDownCommand(false).schedule();
                     Outtake.on.schedule();
                 })
-                .whenBecomesFalse(() -> Outtake.setRunDownCommand(true).schedule());
+                .whenBecomesFalse(() -> {
+                    Outtake.setRunDownCommand(true).schedule();
+                });
 
         caimo.y()
                 .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Drive.setSlowModeCommand(true).schedule())
                 .whenBecomesFalse(() -> Drive.setSlowModeCommand(false).schedule());
 
-        jeff.b()
-                .whenBecomesTrue(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0.33).schedule();
-                })
-                .whenBecomesFalse(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0).schedule();
-                });
+//        jeff.b()
+//                .whenBecomesTrue(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0.33).schedule();
+//                })
+//                .whenBecomesFalse(() -> {
+//                    Storage.setManualModeCommand(true).schedule();
+//                    Storage.setManualPowerCommand(0).schedule();
+//                });
 
-        caimo.back()
-                .toggleOnBecomesTrue()
-                .whenBecomesTrue(() -> Drive.setHeadingLock(true))
-                .whenBecomesFalse(() -> Drive.setHeadingLock(false));
+//        caimo.back()
+//                .toggleOnBecomesTrue()
+//                .whenBecomesTrue(() -> Drive.setHeadingLock(true))
+//                .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
-        jeff.x()
+        jeff.y()
                 .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
                 .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule());
 
-        jeff.rightBumper()
-                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
-                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
-        jeff.leftBumper()
-                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(0.8).schedule())
-                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
+//        jeff.rightBumper()
+//                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
+//                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
+//        jeff.leftBumper()
+//                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(0.8).schedule())
+//                .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
         caimo.rightBumper()
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(1).schedule())
                 .whenBecomesFalse(() -> Intake.setIntakePowerCommand(0).schedule());
