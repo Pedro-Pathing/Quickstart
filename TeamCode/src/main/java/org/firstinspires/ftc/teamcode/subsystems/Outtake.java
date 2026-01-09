@@ -20,11 +20,12 @@ public class Outtake implements Subsystem {
     private static boolean runDown = false;
 
     private static final ControlSystem controller = ControlSystem.builder()
-            .velPid(0.04, 0, 0)
-            .basicFF(0.00035, 0, 0.075)
+            .velPid(0.035, 0, 0)
+            .basicFF(0.00030, 0, 0.075)
             .build();
     public static Command off = new RunToVelocity(controller, 0.0).requires(INSTANCE).named("FlywheelOff");
     public static Command on = new RunToVelocity(controller, 2050).requires(INSTANCE).named("FlywheelOn");
+
     private static void setRunDown(boolean newBoolean) {
         runDown = newBoolean;
     }
@@ -36,7 +37,7 @@ public class Outtake implements Subsystem {
     private static double outtakePower = 0;
 
     private static void setOuttakePower(double newPower) {
-        outtakePower = newPower;
+        outtake.setPower(newPower);
     }
 
     public static Command setOuttakePowerCommand(double newPower) {

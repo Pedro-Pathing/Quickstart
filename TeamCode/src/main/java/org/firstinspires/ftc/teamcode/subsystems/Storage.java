@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.control.ControlSystem;
@@ -12,7 +8,6 @@ import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
-import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
 
 public class Storage implements Subsystem {
@@ -32,7 +27,7 @@ public class Storage implements Subsystem {
         return manualMode;
     }
 
-    static ControlSystem controller = ControlSystem.builder()
+    public static ControlSystem controller = ControlSystem.builder()
             .posPid(0.007, 0, 0)
             .build();
 
@@ -52,6 +47,9 @@ public class Storage implements Subsystem {
     @Override
     public void initialize() {
         spin.zero();
+        controller.setGoal(new KineticState(0));
+
+
 //         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
 //         "limitSwitch");
 //         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
@@ -69,7 +67,11 @@ public class Storage implements Subsystem {
             spin.setPower(manualPower);
         } else if (pidControlMode){
             double testPower = controller.calculate(spin.getState());
-            spin.setPower(testPower);
+            if (Math.abs(testPower) > 0.05) {
+                spin.setPower(testPower);
+            } else {
+                spin.setPower(0);
+            }
         }
 
         // Write Telemetry
@@ -195,6 +197,7 @@ public class Storage implements Subsystem {
     }
     private static void resetEncoder() {
         spin.zero();
+        controller.setGoal(new KineticState(0));
     }
 
 

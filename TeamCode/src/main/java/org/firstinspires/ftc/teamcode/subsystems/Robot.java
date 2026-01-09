@@ -30,23 +30,24 @@ public class Robot extends SubsystemGroup {
     }
 
     public static SequentialGroup outtakeAll = new SequentialGroup(
+            new InstantCommand(Outtake.setRunDownCommand(false)),
             new InstantCommand(Outtake.on),
             new InstantCommand(Storage.spinToNextOuttakeIndex()),
-            new Delay(0.5),
+            new Delay(1.5),
             new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.UP_POS)),
-            new Delay(0.1),
+            new Delay(1),
             new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.DOWN_POS)),
             new Delay(1),
             new InstantCommand(Storage.spinToNextOuttakeIndex()),
-            new Delay(0.5),
+            new Delay(1.5),
             new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.UP_POS)),
-            new Delay(0.1),
+            new Delay(1),
             new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.DOWN_POS)),
             new Delay(1),
             new InstantCommand(Storage.spinToNextOuttakeIndex()),
-            new Delay(0.5),
+            new Delay(1.5),
             new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.UP_POS)),
-            new Delay(0.1),
+            new Delay(1),
             new InstantCommand(Transitions.setOuttakePositionCommand(Transitions.DOWN_POS)),
             new Delay(1),
             new InstantCommand(Outtake.setRunDownCommand(true))
@@ -55,11 +56,11 @@ public class Robot extends SubsystemGroup {
     public static SequentialGroup intakeAll = new SequentialGroup(
             new InstantCommand(Storage.spinToNextIntakeIndex()),
             new InstantCommand(Intake.setIntakePowerCommand(1)),
-            new InstantCommand(Storage.spinToNextIntakeIndex()),
-            new Delay(0.25),
-            new InstantCommand(Storage.spinToNextIntakeIndex()),
-            new Delay(0.25),
-            new InstantCommand(Intake.setIntakePowerCommand(-1)),
             new Delay(0.5),
-            new InstantCommand(Intake.setIntakePowerCommand(0)));
+            new InstantCommand(Storage.spinToNextIntakeIndex()),
+            new Delay(0.5),
+            new InstantCommand(Storage.spinToNextIntakeIndex()),
+            new Delay(0.5),
+            new InstantCommand(Intake.setIntakePowerCommand(0))
+    );
 }
