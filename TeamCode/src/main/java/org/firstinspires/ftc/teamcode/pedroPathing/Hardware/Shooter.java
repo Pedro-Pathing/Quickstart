@@ -43,7 +43,7 @@ public class Shooter {
         Shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        Shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
+        //Shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
         //Test avec deux moteurs
         Shooter2 = hwMap.get(DcMotorEx.class, "Shooter2");
@@ -51,7 +51,7 @@ public class Shooter {
         Shooter2.setDirection(DcMotor.Direction.REVERSE);
         Shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        Shooter2.setVelocityPIDFCoefficients(kP, kI, kD, kF);
+        //Shooter2.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
     }
     public void update() {
@@ -92,28 +92,8 @@ public class Shooter {
 
             //Conversion RPM -> ticks/sec
             double targetTicksPerSec = (targetRPM * TICKS_PER_REV_6000) / 60.0;
-
-            if (targetRPM > 0){
-            double ramp = 10.0; //un peu plus nerveux qu'un ascenseur à dubai
-
-           double tolerancemoteur = 25; // ticks/s  50PMx28/60
-
-            double error = targetTicksPerSec - currentTargetVel;
-            if (Math.abs(error)>tolerancemoteur) {
-                double step = Math.copySign(Math.min(Math.abs(error), ramp), error);
-                currentTargetVel +=step;
-            } else {
-                currentTargetVel = targetTicksPerSec; // nous sommes assez proche, on reste sur cette zone de vitesse)
-            }
-
-            Shooter.setVelocity(currentTargetVel);
-            Shooter2.setVelocity(currentTargetVel);}
-            else {
-                currentTargetVel =0;
-                Shooter.setVelocity(0.0);
-                Shooter2.setVelocity(0.0);
-
-            }
+            Shooter.setVelocity(targetTicksPerSec);
+            Shooter2.setVelocity(targetTicksPerSec);
         }
         public void displayShooterVelocity(Telemetry telemetry) {
             telemetry.addData("Shooter Speed (RPM)", getShooterVelocityRPM());

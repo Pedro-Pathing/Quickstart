@@ -178,7 +178,7 @@ public class TeleOpDecode extends OpMode {
         tourelle.rotationtourelle(powertourelle);
 
 
-        double[] presetsVitesseShooter = {0.0, 3800, 3900, 4000, 4600};
+        double[] presetsVitesseShooter = {3800, 3900, 4000, 4500, 5000};
         if (gamepad2.b && !lastB) {
             presetIndexShooter = (presetIndexShooter + 1) % presetsVitesseShooter.length;
             shooter.setShooterTargetRPM(presetsVitesseShooter[presetIndexShooter]);

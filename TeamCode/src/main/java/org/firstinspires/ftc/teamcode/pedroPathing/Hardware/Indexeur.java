@@ -300,7 +300,7 @@ public class Indexeur {
 
         // --- Gestion de la vitesse progressive ---
         if (erreur > 300) {
-            indexeur.setPower(0.9);   // loin de la cible → rapide
+            indexeur.setPower(0.95);   // loin de la cible → rapide
         } else {
             indexeur.setPower(0.5);   // proche de la cible → lent
         }
@@ -335,7 +335,7 @@ public class Indexeur {
             if (ballComptage<3){
                 intake.setetatramasage();
             }
-            if (ballComptage=3){
+            if (ballComptage==3){
                 intake.setetatIDLE();
             }
         } else if (rotationPourTir) {
@@ -357,19 +357,21 @@ public class Indexeur {
 
 
     public void reculerIndexeurbourrage() {
-            int positionbourrage = indexeur.getCurrentPosition();
-            int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
-            int target = positionbourrage - delta;
-            indexeur.setTargetPosition(target);
+            //int positionbourrage = indexeur.getCurrentPosition();
+            //int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
+            //int target = positionbourrage - delta;
+            //indexeur.setTargetPosition(target);
             indexeur.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             // Power ceiling controls max speed in
-            indexeur.setPower(0.2); // augmente si besoin, attention au couple, pas besoin de mettre puissance negative car calcul auto }
-            int erreur = Math.abs(target - indexeur.getCurrentPosition());
-            if (erreur < 15) { // tolérance de 15 ticks // Stop net
-                indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                indexeur.setPower(0);
+            //indexeur.setPower(0.2); // augmente si besoin, attention au couple, pas besoin de mettre puissance negative car calcul auto }
+            //int erreur = Math.abs(target - indexeur.getCurrentPosition());
+            //if (erreur < 15) { // tolérance de 15 ticks // Stop net
+            //    indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //    indexeur.setPower(0);
+
+            indexeur.setPower(-0.2);
+
             }
-        }
 
 
     public boolean avanceTerminee() {

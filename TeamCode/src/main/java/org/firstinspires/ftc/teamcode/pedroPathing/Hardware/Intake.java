@@ -32,9 +32,10 @@ public class Intake {
     }
     private Intakeetat intakeState = Intakeetat.IDLE;
 
-    private double intake_reverse = -1800;
+    private double intake_reverse = -5000;
 
-    private double intake_fast = 2000;
+    private double intake_fast = 1500;
+
 
 
 
@@ -126,18 +127,19 @@ public class Intake {
 
                 if (score >= 1) {
                     indexeur.setEtat(Indexeur.Indexeuretat.AVANCERAPIDEAMASSAGE);
-                    IntakeBall.setVelocity(0);
+                    //IntakeBall.setVelocity(0);
                 }
 
                 // --- Bourrage ---
                 if (rpm < MINRPM && statetimer.milliseconds() > tempsblocage) {
+                    statetimer.reset();
                     intakeState = Intakeetat.EJECTION;
                 }
                 break;
 
             case EJECTION:
                 setIntakeBallTargetRPM(intake_reverse);
-                if (statetimer.milliseconds() > 500) {
+                if (statetimer.milliseconds() > 50) {
                     if (ballcomptage > 3) {
                         intakeState = Intakeetat.IDLE;
                     } else {
