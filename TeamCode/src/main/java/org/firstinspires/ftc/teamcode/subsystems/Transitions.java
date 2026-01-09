@@ -19,7 +19,7 @@ public class Transitions implements Subsystem {
 
     @Override
     public void initialize() {
-        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servoExp0");
+        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servo0");
     }
 
     @Override

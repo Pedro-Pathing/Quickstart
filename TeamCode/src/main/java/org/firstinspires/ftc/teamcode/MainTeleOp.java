@@ -53,17 +53,47 @@ public class MainTeleOp extends NextFTCOpMode {
                     Storage.resetEncoderCommand().schedule();
                 });
 
-        jeff.b()
+        jeff.a()
                 .whenBecomesTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(1).schedule();
+                    Storage.setManualPowerCommand(0.025).schedule();
                 })
                 .whenBecomesFalse(() -> {
                     Storage.setManualModeCommand(true).schedule();
                     Storage.setManualPowerCommand(0).schedule();
                 });
 
+        jeff.y()
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.15).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+
         caimo.a()
+                .whenBecomesTrue(() -> {
+                    Outtake.on.schedule();
+                })
+                .whenBecomesFalse(() -> {
+
+                });
+
+        jeff.b()
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.33).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+        caimo.back()
+                .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Drive.setHeadingLock(true))
                 .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
@@ -75,7 +105,7 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(1).schedule())
                 .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
         jeff.leftBumper()
-                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(-1).schedule())
+                .whenBecomesTrue(() -> Outtake.setOuttakePowerCommand(0.8).schedule())
                 .whenBecomesFalse(() -> Outtake.setOuttakePowerCommand(0).schedule());
         caimo.rightBumper()
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(1).schedule())

@@ -31,10 +31,7 @@ public class Robot extends SubsystemGroup {
     }
 
     public static SequentialGroup outtakeAll = new SequentialGroup(
-            Outtake.on,
-            Storage.spinToNextOuttakeIndex(),
-            Transitions.setOuttakePositionCommand(Transitions.UP_POS),
-            Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
+            Outtake.setOuttakePowerCommand(1),
             new Delay(0.1),
             Storage.spinToNextOuttakeIndex(),
             Transitions.setOuttakePositionCommand(Transitions.UP_POS),
@@ -44,7 +41,11 @@ public class Robot extends SubsystemGroup {
             Transitions.setOuttakePositionCommand(Transitions.UP_POS),
             Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
             new Delay(0.1),
-            Outtake.off
+            Storage.spinToNextOuttakeIndex(),
+            Transitions.setOuttakePositionCommand(Transitions.UP_POS),
+            Transitions.setOuttakePositionCommand(Transitions.DOWN_POS),
+            new Delay(0.1),
+            Outtake.setOuttakePowerCommand(0)
     );
 
     public static SequentialGroup intakeAll = new SequentialGroup(
