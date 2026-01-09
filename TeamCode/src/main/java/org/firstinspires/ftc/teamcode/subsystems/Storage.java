@@ -28,6 +28,10 @@ public class Storage implements Subsystem {
     private static double startPos = 0;
     private static final double TICKS = 185;
 
+    public static boolean getManualMode(){
+        return manualMode;
+    }
+
     static ControlSystem controller = ControlSystem.builder()
             .posPid(0.007, 0, 0)
             .build();

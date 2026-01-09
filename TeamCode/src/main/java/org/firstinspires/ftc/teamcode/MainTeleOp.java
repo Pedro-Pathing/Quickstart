@@ -60,38 +60,78 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.start()
                 .whenBecomesTrue(() -> {
                     Storage.setPIDMode(false);
+                    CommandManager.INSTANCE.cancelCommands();
                 });
 
-        // Storage nonsense
-        jeff.leftStickX().greaterThan(0.1).and(jeff.leftStickButton()
+        jeff.leftStickButton()
                 .whenTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
+                    Storage.setManualPowerCommand(-1).schedule();
                 })
-                .whenFalse(() -> {
-                    Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
-                }));
-
-        jeff.leftStickX().lessThan(-0.1).and(jeff.leftStickButton()
-                        .whenTrue(() -> {
-                            Storage.setManualModeCommand(true).schedule();
-                            Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
-                        })
-                        .whenFalse(() -> {
-                            Storage.setManualModeCommand(true).schedule();
-                            Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
-                        }));
-
-        jeff.leftStickX()
-                .inRange(-0.05, 0.05)
-                .whenBecomesTrue(() -> {
+                .whenBecomesFalse(() -> {
                     Storage.setManualModeCommand(true).schedule();
                     Storage.setManualPowerCommand(0).schedule();
                 });
 
-        // Run Outake
+        jeff.rightStickButton()
+                .whenTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(1).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+        // Storage nonsense
+
+        jeff.y()
+                .whenTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.25).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+        jeff.b()
+                .whenTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.5).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
         jeff.a()
+                .whenTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.1).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+        jeff.leftBumper()
+                .whenTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(-0.5).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+
+        if(!jeff.y().get() && !jeff.b().get() && !jeff.a().get() && !jeff.leftBumper().get() && !jeff.leftStickButton().get() && !jeff.rightStickButton().get()){
+            Storage.setManualPowerCommand(0).schedule();
+            Storage.setManualModeCommand(false).schedule();
+        }
+
+        // Run Outake
+        jeff.rightBumper()
                 .whenBecomesTrue(() -> {
                     Outtake.setRunDownCommand(false).schedule();
                     Outtake.on.schedule();
@@ -100,7 +140,7 @@ public class MainTeleOp extends NextFTCOpMode {
                     Outtake.setRunDownCommand(true).schedule();
                 });
 
-        jeff.y()
+        jeff.x()
                 .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
                 .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule());
 
@@ -133,14 +173,14 @@ public class MainTeleOp extends NextFTCOpMode {
         caimo.dpadUp()
                 .whenBecomesTrue(() -> Storage.spinToNextOuttakeIndex().schedule());
 
-        caimo.dpadLeft()
-                .whenBecomesTrue(() -> Robot.intakeAll.schedule());
-        caimo.dpadRight()
-                .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
-        jeff.dpadLeft()
-                .whenBecomesTrue(() -> Robot.intakeAll.schedule());
-        jeff.dpadRight()
-                .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
+//        caimo.dpadLeft()
+//                .whenBecomesTrue(() -> Robot.intakeAll.schedule());
+//        caimo.dpadRight()
+//                .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
+//        jeff.dpadLeft()
+//                .whenBecomesTrue(() -> Robot.intakeAll.schedule());
+//        jeff.dpadRight()
+//                .whenBecomesTrue(() -> Robot.outtakeAll.schedule());
 
         //        jeff.a()
 //                .whenBecomesTrue(() -> {
