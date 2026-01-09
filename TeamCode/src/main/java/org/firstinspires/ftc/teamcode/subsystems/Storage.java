@@ -28,7 +28,7 @@ public class Storage implements Subsystem {
     }
 
     public static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.007, 0, 0)
+            .posPid(0.015, 0, 0)
             .build();
 
     public static final State[] STATES = {
@@ -67,7 +67,7 @@ public class Storage implements Subsystem {
             spin.setPower(manualPower);
         } else if (pidControlMode){
             double testPower = controller.calculate(spin.getState());
-            if (Math.abs(testPower) > 0.05) {
+            if (Math.abs(testPower) > 0.025) {
                 spin.setPower(testPower);
             } else {
                 spin.setPower(0);

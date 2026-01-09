@@ -36,6 +36,8 @@ public class MainAuto extends OpMode {
     */
 
     private final Pose startPose = new Pose(48, 12, Math.toRadians(90)); // Start Pose of our robot.
+
+    private final Pose pickUp1 = new Pose(18, 84, Math.toRadians(180));
     private final Pose pickUp2 = new Pose(18, 60, Math.toRadians(180));
     private final Pose pickUp3 = new Pose(18, 36, Math.toRadians(180));
     private final Pose shootPose = new Pose(48, 12, Math.toRadians(330));
