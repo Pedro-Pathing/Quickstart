@@ -146,6 +146,40 @@ public class Storage implements Subsystem {
                 .named("Spin to next index");
     }
 
+//    public static Command spinToNextIntakeIndex() {
+//        return new LambdaCommand()
+//                .setStart(() -> {
+//                    manualMode = false;
+//                    pidControlMode = true;
+//                    startPos = spin.getCurrentPosition() + 10;
+//                    double nextPos = startPos + (TICKS - (startPos % TICKS));
+//                    controller.setGoal(new KineticState(nextPos));
+//                })
+//                .setIsDone(() -> true)
+//                .setStop(interrupted -> {})
+//                .requires(Storage.INSTANCE)
+//                .setInterruptible(true)
+//                .named("Spin to next index");
+//    }
+//    public static Command spinToNextOuttakeIndex() {
+//        return new LambdaCommand()
+//                .setStart(() -> {
+//                    manualMode = false;
+//                    pidControlMode = true;
+//                    startPos = spin.getCurrentPosition() - 10;
+//                    double ticksToMove = TICKS/2.0 - startPos % TICKS;
+//                    if (ticksToMove >= 0) {
+//                        ticksToMove -= TICKS;
+//                    }
+//                    double nextPos = startPos + ticksToMove;
+//                    controller.setGoal(new KineticState(nextPos));})
+//                .setIsDone(() -> true)
+//                .setStop(interrupted -> {
+//                })
+//                .requires(Storage.INSTANCE)
+//                .setInterruptible(true)
+//                .named("Spin to next index");
+//    }
     private static void setManualPower(double newPower) {
         manualPower = newPower;
     }
