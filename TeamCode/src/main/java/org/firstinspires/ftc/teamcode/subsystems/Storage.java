@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import org.firstinspires.ftc.teamcode.utils.Logger;
@@ -25,11 +26,14 @@ public class Storage implements Subsystem {
     //private static NormalizedColorSensor colorSensor;
     //private static int index = 0;
     private static double startPos = 0;
-    private static final double TICKS = 188.2166666667;
+    private static final double TICKS = 185;
+
+    public static boolean getManualMode(){
+        return manualMode;
+    }
 
     static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.01, 0, 0)
-            .basicFF(0)
+            .posPid(0.007, 0, 0)
             .build();
 
     public static final State[] STATES = {
@@ -47,6 +51,7 @@ public class Storage implements Subsystem {
 
     @Override
     public void initialize() {
+        spin.zero();
 //         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
 //         "limitSwitch");
 //         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
@@ -62,8 +67,9 @@ public class Storage implements Subsystem {
 
         if (manualMode) {
             spin.setPower(manualPower);
-        } else if (pidControlMode) {
-            spin.setPower(controller.calculate(spin.getState()));
+        } else if (pidControlMode){
+            double testPower = controller.calculate(spin.getState());
+            spin.setPower(testPower);
         }
 
         // Write Telemetry
@@ -89,6 +95,10 @@ public class Storage implements Subsystem {
     public static Command setManualModeCommand(boolean newMode) {
         return new InstantCommand(() -> setManualMode(newMode));
     }
+    public static Command setPIDMode(boolean newMode) {
+        return new InstantCommand(() -> setPidControlMode(newMode));
+    }
+
     public static Command resetEncoderCommand() {
         return new InstantCommand(Storage::resetEncoder);
     }
@@ -99,7 +109,13 @@ public class Storage implements Subsystem {
                     manualMode = false;
                     pidControlMode = true;
                     startPos = spin.getCurrentPosition() + 10;
-                    double nextPos = startPos + (TICKS - (startPos % TICKS));
+
+                    double remainder = startPos % TICKS;
+                    if (remainder < 0) remainder += TICKS;
+
+                    double ticksToMove = TICKS - remainder;
+
+                    double nextPos = startPos + ticksToMove;
                     controller.setGoal(new KineticState(nextPos));
                 })
                 .setIsDone(() -> true)
@@ -114,11 +130,15 @@ public class Storage implements Subsystem {
                 .setStart(() -> {
                     manualMode = false;
                     pidControlMode = true;
-                    startPos = spin.getCurrentPosition() + 10;
-                    double ticksToMove = TICKS/2.0 - startPos % TICKS;
+                    startPos = spin.getCurrentPosition() - 10;
 
-                    if (ticksToMove <= 0) {
-                        ticksToMove += TICKS;
+                    double remainder = startPos % TICKS;
+                    if (remainder < 0) remainder += TICKS;
+
+                    double ticksToMove = (TICKS / 2.0) - remainder;
+
+                    if (ticksToMove >= 0) {
+                        ticksToMove -= TICKS;
                     }
                     double nextPos = startPos + ticksToMove;
                     controller.setGoal(new KineticState(nextPos));})
@@ -130,6 +150,40 @@ public class Storage implements Subsystem {
                 .named("Spin to next index");
     }
 
+//    public static Command spinToNextIntakeIndex() {
+//        return new LambdaCommand()
+//                .setStart(() -> {
+//                    manualMode = false;
+//                    pidControlMode = true;
+//                    startPos = spin.getCurrentPosition() + 10;
+//                    double nextPos = startPos + (TICKS - (startPos % TICKS));
+//                    controller.setGoal(new KineticState(nextPos));
+//                })
+//                .setIsDone(() -> true)
+//                .setStop(interrupted -> {})
+//                .requires(Storage.INSTANCE)
+//                .setInterruptible(true)
+//                .named("Spin to next index");
+//    }
+//    public static Command spinToNextOuttakeIndex() {
+//        return new LambdaCommand()
+//                .setStart(() -> {
+//                    manualMode = false;
+//                    pidControlMode = true;
+//                    startPos = spin.getCurrentPosition() - 10;
+//                    double ticksToMove = TICKS/2.0 - startPos % TICKS;
+//                    if (ticksToMove >= 0) {
+//                        ticksToMove -= TICKS;
+//                    }
+//                    double nextPos = startPos + ticksToMove;
+//                    controller.setGoal(new KineticState(nextPos));})
+//                .setIsDone(() -> true)
+//                .setStop(interrupted -> {
+//                })
+//                .requires(Storage.INSTANCE)
+//                .setInterruptible(true)
+//                .named("Spin to next index");
+//    }
     private static void setManualPower(double newPower) {
         manualPower = newPower;
     }

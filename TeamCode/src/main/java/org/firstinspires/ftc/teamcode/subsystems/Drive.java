@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
@@ -19,8 +21,8 @@ public class Drive implements Subsystem {
     public static final Drive INSTANCE = new Drive();
     private static Follower follower;
     private static TelemetryManager telemetryM;
-    private static final boolean slowMode = false;
-    private static final double slowModeMultiplier = 0.5;
+    private static boolean slowMode = false;
+    private static final double slowModeMultiplier = 0.2;
     private static final boolean robotCentric = false;
     private static Pose startingPose = new Pose(24, 24, Math.toRadians(0));
     private static Pose shootTarget = new Pose(6, 144 - 6, 0);
@@ -29,7 +31,6 @@ public class Drive implements Subsystem {
     private static PIDFController controller;
     private static boolean headingLock = false;
 
-
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
@@ -37,6 +38,7 @@ public class Drive implements Subsystem {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
+        controller = new PIDFController(new PIDFCoefficients(0.5, 0, 0, 0));
     }
 
     @Override
@@ -62,6 +64,14 @@ public class Drive implements Subsystem {
             shootTarget = shootTarget.mirror();
     }
 
+    private static void setSlowMode(boolean newMode) {
+        slowMode = newMode;
+    }
+
+    public static Command setSlowModeCommand(boolean newMode) {
+        return new InstantCommand(() -> setSlowMode(newMode));
+    }
+
     public static Command drive = new LambdaCommand()
             .setStart(() -> follower.startTeleopDrive())
             .setUpdate(() -> {
@@ -69,18 +79,17 @@ public class Drive implements Subsystem {
                 telemetryM.update();
 
                 // Calculate the correct values based on Gamepad 1
-                double forward = slowMode ? -ActiveOpMode.gamepad1().left_stick_y : -ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier;
-                double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x : -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier;
-                double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x : -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier;
+                double forward = slowMode ? -ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier: -ActiveOpMode.gamepad1().left_stick_y;
+                double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier: -ActiveOpMode.gamepad1().left_stick_x;
+                double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier: -ActiveOpMode.gamepad1().right_stick_x;
 
                 if (headingLock) {
-                    controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
                     setHeadingGoal(shootTarget, follower.getPose());
                     controller.updateError(getHeadingError());
 
-                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, controller.run(), robotCentric);
+                    follower.setTeleOpDrive(forward, strafe, controller.run(), robotCentric);
                 } else {
-                    follower.setTeleOpDrive(-ActiveOpMode.gamepad1().left_stick_y, -ActiveOpMode.gamepad1().left_stick_x, -ActiveOpMode.gamepad1().right_stick_x, robotCentric);
+                    follower.setTeleOpDrive(forward, strafe, turn, robotCentric);
                 }
 
                 Logger.add("Drive", Logger.Level.DEBUG, "forward: " + forward + " strafe: " + strafe + " turn: " + turn);
