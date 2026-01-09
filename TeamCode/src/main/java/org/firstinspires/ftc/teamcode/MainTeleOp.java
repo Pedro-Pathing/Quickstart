@@ -147,7 +147,6 @@ public class MainTeleOp extends NextFTCOpMode {
 
         // Drive Stuff
         caimo.y()
-                .toggleOnBecomesTrue()
                 .whenBecomesTrue(() -> Drive.setSlowModeCommand(true).schedule())
                 .whenBecomesFalse(() -> Drive.setSlowModeCommand(false).schedule());
 
