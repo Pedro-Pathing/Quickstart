@@ -52,6 +52,7 @@ dependencies {
     implementation 'dev.nextftc:hardware:1.1.0-beta.1'
     implementation 'dev.nextftc.extensions:pedro:1.0.0'
 
+
     /*
     the dependency below breaks Panels features (starting + stopping opmodes, configurables)
     the telemetry, field, graph will all still work (allegedly, hopefully, not sure)

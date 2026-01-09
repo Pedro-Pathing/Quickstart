@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Main Auto")
+@Autonomous(name = "Main Auto 2")
 public class MainAuto2 extends OpMode {
 
     private Follower follower;
@@ -35,13 +35,12 @@ public class MainAuto2 extends OpMode {
 //                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
 //                .build();
 
-
-
     }
 
 
     public void autonomousPathUpdate() {
         switch (pathState) {
+
         }
     }
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
