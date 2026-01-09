@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 @Autonomous(name = "Main Auto")
 public class MainAuto extends OpMode {
@@ -21,7 +22,7 @@ public class MainAuto extends OpMode {
 
 
 
-    
+    /*
     private final Pose poseA = new Pose(48, 12, Math.toRadians(180)); // Start Pose of our robot.
     private final Pose poseB = new Pose(18, 84, Math.toRadians(135));
     private final Pose poseC = new Pose(74, 77, Math.toRadians(50));
@@ -32,38 +33,50 @@ public class MainAuto extends OpMode {
 
     private Path startPosition;
     private PathChain moveB, moveC, moveD, moveE, moveF;
+    */
+
+    private final Pose startPose = new Pose(48, 12, Math.toRadians(90)); // Start Pose of our robot.
+    private final Pose pickUp2 = new Pose(18, 60, Math.toRadians(180));
+    private final Pose pickUp3 = new Pose(18, 36, Math.toRadians(180));
+    private final Pose shootPose = new Pose(48, 12, Math.toRadians(330));
 
 
+    private Path startPosition;
+    private PathChain shoot1, intake2, shoot2, intake3, shoot3, goToStart;
     public void buildPaths() {
-        startPosition = new Path(new BezierLine(poseA, poseB));
+        startPosition = new Path(new BezierLine(startPose, pickUp1));
         startPosition.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180));
 
 
-        moveB = follower.pathBuilder()
-            .addPath(new BezierLine(poseB, poseC))
+        shoot1 = follower.pathBuilder()
+            .addPath(new BezierLine(pickUp1, shootPose))
             .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
             .build();
 
-        moveC = follower.pathBuilder()
-            .addPath(new BezierLine(poseC, poseD))
+        intake2 = follower.pathBuilder()
+            .addPath(new BezierLine(shootPose, pickUp2))
             .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
             .build();
 
-        moveD = follower.pathBuilder()
-                .addPath(new BezierLine(poseD, poseE))
+        shoot2 = follower.pathBuilder()
+                .addPath(new BezierLine(pickUp2, shootPose))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
                 .build();
 
-        moveE = follower.pathBuilder()
-                .addPath(new BezierLine(poseE, poseF))
+        intake3 = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, pickUp3))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
-        moveF = follower.pathBuilder()
-                .addPath(new BezierLine(poseF, poseG))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(315))
+        shoot3 = follower.pathBuilder()
+                .addPath(new BezierLine(pickUp3, shootPose))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(330))
                 .build();
 
+        goToStart = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, startPose))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
+                .build();
 
 
 
@@ -81,7 +94,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(moveB,true);
+                    follower.followPath(shoot1, 0.5, true);
                     setPathState(2);
                 }
                 break;
@@ -90,7 +103,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(moveC,true);
+                    follower.followPath(intake2, .5,true);
                     setPathState(3);
                 }
                 break;
@@ -99,7 +112,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(moveD,true);
+                    follower.followPath(shoot2, .5,true);
                     setPathState(4);
                 }
                 break;
@@ -108,7 +121,7 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(moveE,true);
+                    follower.followPath(intake3, .5,true);
                     setPathState(5);
                 }
                 break;
@@ -117,12 +130,20 @@ public class MainAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(moveF,true);
-                    setPathState(-1);
+                    follower.followPath(shoot3, .5,true);
+                    setPathState(6);
 
                 }
                 break;
+            case 6:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Preload */
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(goToStart, .5,true);
+                    setPathState(-1);
 
+                }
         }
     }
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
@@ -154,7 +175,7 @@ public class MainAuto extends OpMode {
         opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(poseA);
+        follower.setStartingPose(startPose);
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
