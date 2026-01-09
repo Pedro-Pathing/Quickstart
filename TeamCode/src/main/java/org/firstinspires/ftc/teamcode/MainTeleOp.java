@@ -50,6 +50,7 @@ public class MainTeleOp extends NextFTCOpMode {
         GamepadEx caimo = Gamepads.gamepad1();
         GamepadEx jeff = Gamepads.gamepad2();
 
+        // Debug stuff
         jeff.back()
                 .whenBecomesTrue(() -> {
                     Storage.setManualModeCommand(true);

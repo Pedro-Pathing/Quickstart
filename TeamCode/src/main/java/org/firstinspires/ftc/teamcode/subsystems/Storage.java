@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import org.firstinspires.ftc.teamcode.utils.Logger;
@@ -104,7 +105,13 @@ public class Storage implements Subsystem {
                     manualMode = false;
                     pidControlMode = true;
                     startPos = spin.getCurrentPosition() + 10;
-                    double nextPos = startPos + (TICKS - (startPos % TICKS));
+
+                    double remainder = startPos % TICKS;
+                    if (remainder < 0) remainder += TICKS;
+
+                    double ticksToMove = TICKS - remainder;
+
+                    double nextPos = startPos + ticksToMove;
                     controller.setGoal(new KineticState(nextPos));
                 })
                 .setIsDone(() -> true)
@@ -120,7 +127,11 @@ public class Storage implements Subsystem {
                     manualMode = false;
                     pidControlMode = true;
                     startPos = spin.getCurrentPosition() - 10;
-                    double ticksToMove = TICKS/2.0 - startPos % TICKS;
+
+                    double remainder = startPos % TICKS;
+                    if (remainder < 0) remainder += TICKS;
+
+                    double ticksToMove = (TICKS / 2.0) - remainder;
 
                     if (ticksToMove >= 0) {
                         ticksToMove -= TICKS;
