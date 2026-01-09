@@ -83,12 +83,12 @@ public class MainTeleOp extends NextFTCOpMode {
                             Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
                         }));
 
-//        jeff.leftStickX()
-//                .inRange(-0.05, 0.05)
-//                .whenBecomesTrue(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0).schedule();
-//                });
+        jeff.leftStickX()
+                .inRange(-0.05, 0.05)
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
 
         // Run Outake
         jeff.a()
@@ -103,6 +103,7 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.y()
                 .whenBecomesTrue(() -> Transitions.setOuttakePositionCommand(Transitions.UP_POS).schedule())
                 .whenBecomesFalse(() -> Transitions.setOuttakePositionCommand(Transitions.DOWN_POS).schedule());
+
 
         // Drive Stuff
         caimo.y()
