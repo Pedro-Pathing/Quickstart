@@ -51,7 +51,10 @@ public class MainTeleOp extends NextFTCOpMode {
         GamepadEx jeff = Gamepads.gamepad2();
 
         jeff.back()
-                .whenBecomesTrue(() -> Storage.resetEncoderCommand().schedule());
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true);
+                    Storage.resetEncoderCommand().schedule();
+                });
 //
 //        jeff.leftStickX()
 //                .atLeast(0.05).whenBecomesTrue(() -> {
@@ -86,7 +89,6 @@ public class MainTeleOp extends NextFTCOpMode {
                     Storage.setManualModeCommand(true).schedule();
                     Storage.setManualPowerCommand(0).schedule();
                 });
-
 
 
 //        jeff.a()
