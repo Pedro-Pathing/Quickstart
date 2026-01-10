@@ -21,7 +21,6 @@ public class Transitions implements Subsystem {
     public void initialize() {
         outtakeServo = ActiveOpMode.hardwareMap().servo.get("servo0");
         outtakeServo.setDirection(Servo.Direction.REVERSE);
-
     }
 
     @Override
