@@ -24,7 +24,7 @@ public class Outtake implements Subsystem {
             .basicFF(0.00030, 0, 0.075)
             .build();
     public static Command off = new RunToVelocity(controller, 0.0).requires(INSTANCE).named("FlywheelOff");
-    public static Command on = new RunToVelocity(controller, 2150).requires(INSTANCE).named("FlywheelOn");
+    public static Command on = new RunToVelocity(controller, 2100).requires(INSTANCE).named("FlywheelOn");
 
     private static void setRunDown(boolean newBoolean) {
         runDown = newBoolean;
