@@ -27,7 +27,7 @@ import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
 
-@Autonomous(name = "TheGoodAuto Use This One")
+@Autonomous(name = "TheGoodAutoRed Use This One")
 public class TheGoodAutoRed extends NextFTCOpMode {
 
 

@@ -29,7 +29,7 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 
 
-@Autonomous(name = "TheGoodAuto Use This One")
+@Autonomous(name = "TheGoodAutoBlue Use This One")
 public class TheGoodAutoBlue extends NextFTCOpMode {
 
 
