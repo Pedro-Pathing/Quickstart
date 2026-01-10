@@ -17,7 +17,6 @@ import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.commands.Command;
 
 import dev.nextftc.core.commands.delays.Delay;
-import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
@@ -30,11 +29,13 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 
 
-@Autonomous(name = "NextFTC Autonomous Program Java")
-public class AutonomousProgram extends NextFTCOpMode {
+@Autonomous(name = "TheGoodAuto Use This One")
+public class TheGoodAuto extends NextFTCOpMode {
+
+    public static Pose endPose;
 
 
-    public AutonomousProgram() {
+    public TheGoodAuto() {
         addComponents(
                 BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
@@ -73,11 +74,16 @@ public class AutonomousProgram extends NextFTCOpMode {
     public void onStartButtonPressed() {
         follower().setStartingPose(startPose);
         autonomousRoutine().schedule();
+        follower().breakFollowing();
     }
 
     public void onUpdate(){
         Drive.telemetryM.update();
         follower().update();
+    }
+
+    public void onStop(){
+        endPose = follower().getPose();
     }
 
 
