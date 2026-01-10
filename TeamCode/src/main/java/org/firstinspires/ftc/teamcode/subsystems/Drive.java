@@ -8,7 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 
-import org.firstinspires.ftc.teamcode.AutonomousProgram;
+import org.firstinspires.ftc.teamcode.TheGoodAuto;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
@@ -16,7 +16,6 @@ import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
-import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.ActiveOpMode;
 
 public class Drive implements Subsystem {
@@ -38,7 +37,7 @@ public class Drive implements Subsystem {
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-        follower.setStartingPose(AutonomousProgram.stopPos);
+        follower.setStartingPose(TheGoodAuto.endPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
