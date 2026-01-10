@@ -17,7 +17,6 @@ import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.commands.Command;
 
 import dev.nextftc.core.commands.delays.Delay;
-import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
@@ -30,11 +29,13 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 
 
-@Autonomous(name = "NextFTC Autonomous Program Java")
-public class AutonomousProgram extends NextFTCOpMode {
+@Autonomous(name = "TheGoodAuto Use This One")
+public class TheGoodAuto extends NextFTCOpMode {
+
+    public static Pose endPose;
 
 
-    public AutonomousProgram() {
+    public TheGoodAuto() {
         addComponents(
                 BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
@@ -56,7 +57,6 @@ public class AutonomousProgram extends NextFTCOpMode {
     public static final Pose scorePose = new Pose(73, 70, Math.toRadians(315)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
-    public Pose stopPos;
 
     Path scorePreload = new Path(new BezierLine(startPose, scorePose));
 
@@ -74,6 +74,7 @@ public class AutonomousProgram extends NextFTCOpMode {
     public void onStartButtonPressed() {
         follower().setStartingPose(startPose);
         autonomousRoutine().schedule();
+        follower().breakFollowing();
     }
 
     public void onUpdate(){
@@ -81,8 +82,8 @@ public class AutonomousProgram extends NextFTCOpMode {
         follower().update();
     }
 
-    public void stop() {
-        stopPos = follower.getPose();
+    public void onStop(){
+        endPose = follower().getPose();
     }
 
 
