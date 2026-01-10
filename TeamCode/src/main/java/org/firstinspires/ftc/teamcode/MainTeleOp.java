@@ -157,7 +157,7 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.a()
                 .whenBecomesTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0.1).schedule();
+                    Storage.setManualPowerCommand(0.075).schedule();
                 })
                 .whenBecomesFalse(() -> {
                     Storage.setManualModeCommand(true).schedule();
@@ -175,7 +175,7 @@ public class MainTeleOp extends NextFTCOpMode {
         jeff.y()
                 .whenBecomesTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0.25).schedule();
+                    Storage.setManualPowerCommand(0.2).schedule();
                 })
                 .whenBecomesFalse(() -> {
                     Storage.setManualModeCommand(true).schedule();

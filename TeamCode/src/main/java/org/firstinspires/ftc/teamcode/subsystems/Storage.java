@@ -67,7 +67,7 @@ public class Storage implements Subsystem {
             spin.setPower(manualPower);
         } else if (pidControlMode){
             double testPower = controller.calculate(spin.getState());
-            if (Math.abs(testPower) > 0.025) {
+            if (Math.abs(testPower) > 0.05) {
                 spin.setPower(testPower);
             } else {
                 spin.setPower(0);
