@@ -59,6 +59,7 @@ public class AutonomousProgram extends NextFTCOpMode {
 
     Path scorePreload = new Path(new BezierLine(startPose, scorePose));
 
+
     private Command autonomousRoutine() {
         return new SequentialGroup(
                 new FollowPath(scorePreload),
@@ -71,9 +72,13 @@ public class AutonomousProgram extends NextFTCOpMode {
     public void onStartButtonPressed() {
         follower().setStartingPose(startPose);
         autonomousRoutine().schedule();
-        while(true){
-            follower().update();
-            Drive.telemetryM.update();
-        }
     }
+
+    public void onUpdate(){
+        Drive.telemetryM.update();
+        follower().update();
+    }
+
+
+
 }
