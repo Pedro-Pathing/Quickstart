@@ -30,11 +30,11 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 
 @Autonomous(name = "TheGoodAuto Use This One")
-public class TheGoodAuto extends NextFTCOpMode {
+public class TheGoodAutoBlue extends NextFTCOpMode {
 
 
 
-    public TheGoodAuto() {
+    public TheGoodAutoBlue() {
         addComponents(
                 BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
