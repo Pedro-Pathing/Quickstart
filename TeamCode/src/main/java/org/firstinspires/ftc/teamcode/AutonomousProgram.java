@@ -56,6 +56,7 @@ public class AutonomousProgram extends NextFTCOpMode {
     public static final Pose scorePose = new Pose(73, 70, Math.toRadians(315)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
+    public Pose stopPos;
 
     Path scorePreload = new Path(new BezierLine(startPose, scorePose));
 
@@ -78,6 +79,10 @@ public class AutonomousProgram extends NextFTCOpMode {
     public void onUpdate(){
         Drive.telemetryM.update();
         follower().update();
+    }
+
+    public void stop() {
+        stopPos = follower.getPose();
     }
 
 

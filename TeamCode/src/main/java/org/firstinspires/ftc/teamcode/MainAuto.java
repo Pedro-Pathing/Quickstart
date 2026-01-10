@@ -36,7 +36,7 @@ public class MainAuto extends OpMode {
     private PathChain moveB, moveC, moveD, moveE, moveF;
     */
 
-    private final Pose startPose = new Pose(48, 12, Math.toRadians(90)); // Start Pose of our robot.
+    public final Pose startPose = new Pose(48, 12, Math.toRadians(90)); // Start Pose of our robot.
     private final Pose pickUp1 = new Pose(18, 84, Math.toRadians(180));
 
     private final Pose pickUp1C1 = new Pose(57, 90);
@@ -54,6 +54,8 @@ public class MainAuto extends OpMode {
 
     private final Pose shootPose = new Pose(75, 87, Math.toRadians(330));
 
+
+    public Pose stopPos;
 
     private Path startPosition;
     private PathChain shoot1, intake2, shoot2, intake3, shoot3, goToStart;
@@ -209,7 +211,9 @@ public class MainAuto extends OpMode {
     }
     /** We do not use this because everything should automatically disable **/
     @Override
-    public void stop() {}
+    public void stop() {
+        stopPos = follower.getPose();
+    }
 
 
 

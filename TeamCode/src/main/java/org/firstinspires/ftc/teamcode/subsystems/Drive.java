@@ -38,7 +38,7 @@ public class Drive implements Subsystem {
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-        follower.setStartingPose(AutonomousProgram.scorePosebutActually);
+        follower.setStartingPose(AutonomousProgram.stopPos);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
