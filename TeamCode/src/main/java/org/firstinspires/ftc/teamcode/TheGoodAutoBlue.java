@@ -64,8 +64,8 @@ public class TheGoodAutoBlue extends NextFTCOpMode {
 
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
-
-    public static Pose endPose;
+    // COACH CHANGE THIS B4 MATCH
+    public static Pose endPose = startPoseBlue;
 
 
 
@@ -82,8 +82,6 @@ public class TheGoodAutoBlue extends NextFTCOpMode {
             startPose = startPoseBlue;
             scorePose = startPoseBlue;
         }
-
-        endPose = startPose;
 
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
         return new SequentialGroup(
