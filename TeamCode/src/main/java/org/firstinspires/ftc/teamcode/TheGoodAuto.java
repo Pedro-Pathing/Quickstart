@@ -32,7 +32,6 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 @Autonomous(name = "TheGoodAuto Use This One")
 public class TheGoodAuto extends NextFTCOpMode {
 
-    public static Pose endPose;
 
 
     public TheGoodAuto() {
@@ -53,9 +52,11 @@ public class TheGoodAuto extends NextFTCOpMode {
         );
     }
 
-    private final Pose startPose = new Pose(56, 8, Math.toRadians(270)); // Start Pose of our robot.
+    private static final Pose startPose = new Pose(56, 8, Math.toRadians(270)); // Start Pose of our robot.
     public static final Pose scorePose = new Pose(73, 70, Math.toRadians(315)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static Pose endPose = startPose;
+
 
 
     Path scorePreload = new Path(new BezierLine(startPose, scorePose));
