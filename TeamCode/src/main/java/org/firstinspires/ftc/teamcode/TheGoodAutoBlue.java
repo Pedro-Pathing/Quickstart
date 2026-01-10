@@ -58,14 +58,14 @@ public class TheGoodAutoBlue extends NextFTCOpMode {
     public static final Pose startPoseRed = new Pose(87, 8, Math.toRadians(270)); // Start Pose of our robot.
     public static final Pose scorePoseRed = new Pose(73, 70, Math.toRadians(225)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
-    public static Pose startPose; // Start Pose of our robot.
-    public static Pose scorePose; // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static Pose startPose = startPoseBlue; // Start Pose of our robot.
+    public static Pose scorePose = scorePoseBlue; // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
     // COACH CHANGE THIS B4 MATCH
-    public static Pose endPose = startPoseBlue;
+    public static Pose endPose = startPose;
 
 
 
@@ -73,15 +73,6 @@ public class TheGoodAutoBlue extends NextFTCOpMode {
 
 
     private Command autonomousRoutine() {
-        if(Drive.currentAlliance == Robot.Alliance.RED){
-            startPose = startPoseRed;
-            scorePose = startPoseRed;
-
-        }
-        else {
-            startPose = startPoseBlue;
-            scorePose = startPoseBlue;
-        }
 
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
         return new SequentialGroup(
