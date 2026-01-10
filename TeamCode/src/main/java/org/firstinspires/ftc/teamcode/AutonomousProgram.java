@@ -29,8 +29,11 @@ import dev.nextftc.ftc.components.BulkReadComponent;
 import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 
+
 @Autonomous(name = "NextFTC Autonomous Program Java")
 public class AutonomousProgram extends NextFTCOpMode {
+
+
     public AutonomousProgram() {
         addComponents(
                 BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
@@ -47,6 +50,8 @@ public class AutonomousProgram extends NextFTCOpMode {
                 new PedroComponent(Constants::createFollower)
 
         );
+
+
     }
 
     private final Pose startPose = new Pose(56, 8, Math.toRadians(90)); // Start Pose of our robot.
@@ -64,6 +69,7 @@ public class AutonomousProgram extends NextFTCOpMode {
 
     @Override
     public void onStartButtonPressed() {
+        follower().setStartingPose(startPose);
         autonomousRoutine().schedule();
     }
 }
