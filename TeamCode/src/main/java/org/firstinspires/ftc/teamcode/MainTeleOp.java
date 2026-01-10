@@ -54,13 +54,13 @@ public class MainTeleOp extends NextFTCOpMode {
         // Debug stuff
         jeff.back()
                 .whenBecomesTrue(() -> {
-                    Storage.setManualModeCommand(true);
-                    Storage.resetEncoderAtOuttakeCommand();
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.resetEncoderAtOuttakeCommand().schedule();
                 });
 
         jeff.start()
                 .whenBecomesTrue(() -> {
-                    Storage.setPIDMode(false);
+                    Storage.setPIDMode(false).schedule();
                 });
 
 //        // Storage nonsense
@@ -126,6 +126,8 @@ public class MainTeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(() -> Drive.setHeadingLock(true))
                 .whenBecomesFalse(() -> Drive.setHeadingLock(false));
 
+        caimo.back().and(caimo.start())
+                .whenBecomesTrue(() -> Drive.resetDriveCommand().schedule());
 
         caimo.rightTrigger().greaterThan(0.5)
                 .whenBecomesTrue(() -> Intake.setIntakePowerCommand(1).schedule())

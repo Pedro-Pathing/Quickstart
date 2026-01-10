@@ -28,7 +28,7 @@ public class Storage implements Subsystem {
     }
 
     public static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.015, 0, 0)
+            .posPid(0.02, 0, 0)
             .build();
 
     public static final State[] STATES = {
@@ -207,8 +207,8 @@ public class Storage implements Subsystem {
         controller.setGoal(new KineticState(270));
     }
 
-    public static void resetEncoderAtOuttakeCommand() {
-        new InstantCommand(Storage::resetEncoderAtOuttake);
+    public static Command resetEncoderAtOuttakeCommand() {
+        return new InstantCommand(Storage::resetEncoderAtOuttake);
     }
 
 

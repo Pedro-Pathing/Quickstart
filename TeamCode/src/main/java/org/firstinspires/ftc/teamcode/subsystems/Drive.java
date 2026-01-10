@@ -8,6 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 
+import org.firstinspires.ftc.teamcode.AutonomousProgram;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
@@ -15,6 +16,7 @@ import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
+import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.ActiveOpMode;
 
 public class Drive implements Subsystem {
@@ -31,10 +33,12 @@ public class Drive implements Subsystem {
     private static PIDFController controller;
     private static boolean headingLock = false;
 
+
+
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-        follower.setStartingPose(startingPose);
+        follower.setStartingPose(AutonomousProgram.scorePosebutActually);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
@@ -72,6 +76,17 @@ public class Drive implements Subsystem {
         return new InstantCommand(() -> setSlowMode(newMode));
     }
 
+    public static void resetDrive() {
+        if (currentAlliance.equals(Robot.Alliance.BLUE)) {
+            follower.setPose(new Pose(8, 6.25, Math.toRadians(0)).mirror());
+        } else {
+            follower.setPose(new Pose(8, 6.25, Math.toRadians(0)));
+        }
+    }
+
+    public static Command resetDriveCommand() {
+        return new InstantCommand(() -> resetDrive());
+    }
     public static Command drive = new LambdaCommand()
             .setStart(() -> follower.startTeleopDrive())
             .setUpdate(() -> {
