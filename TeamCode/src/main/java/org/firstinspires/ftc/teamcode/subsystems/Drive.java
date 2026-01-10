@@ -8,6 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 
+import org.firstinspires.ftc.teamcode.ANewJeffreyAuto;
 import org.firstinspires.ftc.teamcode.TheGoodAutoBlue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.Logger;
@@ -39,7 +40,7 @@ public class Drive implements Subsystem {
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-        follower.setStartingPose(TheGoodAutoBlue.endPose);
+        follower.setStartingPose(ANewJeffreyAuto.endPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();

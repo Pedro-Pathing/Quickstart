@@ -91,7 +91,4 @@ public class ANewJeffreyAuto extends NextFTCOpMode {
     public void onStop(){
         endPose = follower().getPose();
     }
-
-
-
 }
