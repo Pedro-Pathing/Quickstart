@@ -27,7 +27,7 @@ public class Drive implements Subsystem {
     private static final boolean robotCentric = false;
     private static Pose startingPose = new Pose(24, 24, Math.toRadians(0));
     private static Pose shootTarget = new Pose(6, 144 - 6, 0);
-    public static Robot.Alliance currentAlliance = Robot.Alliance.BLUE;
+    public static Robot.Alliance currentAlliance = Robot.Alliance.RED;
     private static double headingGoal; // Radians
     private static PIDFController controller;
     private static boolean headingLock = false;
@@ -95,8 +95,8 @@ public class Drive implements Subsystem {
                 telemetryM.update();
 
                 // Calculate the correct values based on Gamepad 1
-                double forward = slowMode ? -ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier: -ActiveOpMode.gamepad1().left_stick_y;
-                double strafe = slowMode ? -ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier: -ActiveOpMode.gamepad1().left_stick_x;
+                double forward = slowMode ? ActiveOpMode.gamepad1().left_stick_y * slowModeMultiplier: ActiveOpMode.gamepad1().left_stick_y;
+                double strafe = slowMode ? ActiveOpMode.gamepad1().left_stick_x * slowModeMultiplier: ActiveOpMode.gamepad1().left_stick_x;
                 double turn = slowMode ? -ActiveOpMode.gamepad1().right_stick_x * slowModeMultiplier: -ActiveOpMode.gamepad1().right_stick_x;
 
                 if (headingLock) {
