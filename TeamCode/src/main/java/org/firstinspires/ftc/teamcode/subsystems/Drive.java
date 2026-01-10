@@ -33,7 +33,9 @@ public class Drive implements Subsystem {
     private static boolean headingLock = false;
 
 
-
+    public static Robot.Alliance getCurrentAlliance(){
+        return currentAlliance;
+    }
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
