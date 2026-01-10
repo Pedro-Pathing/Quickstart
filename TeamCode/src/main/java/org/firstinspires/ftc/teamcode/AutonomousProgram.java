@@ -71,5 +71,9 @@ public class AutonomousProgram extends NextFTCOpMode {
     public void onStartButtonPressed() {
         follower().setStartingPose(startPose);
         autonomousRoutine().schedule();
+        while(true){
+            follower().update();
+            Drive.telemetryM.update();
+        }
     }
 }

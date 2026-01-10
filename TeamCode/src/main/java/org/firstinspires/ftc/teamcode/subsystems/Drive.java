@@ -20,7 +20,7 @@ import dev.nextftc.ftc.ActiveOpMode;
 public class Drive implements Subsystem {
     public static final Drive INSTANCE = new Drive();
     private static Follower follower;
-    private static TelemetryManager telemetryM;
+    public static TelemetryManager telemetryM;
     private static boolean slowMode = false;
     private static final double slowModeMultiplier = 0.2;
     private static final boolean robotCentric = false;
