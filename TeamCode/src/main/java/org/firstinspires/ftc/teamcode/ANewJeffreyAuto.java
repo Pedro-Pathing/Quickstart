@@ -27,7 +27,7 @@ import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
 
-@Autonomous(name = "a-new-jeffrey-auto-run-this-one")
+@Autonomous
 public class ANewJeffreyAuto extends NextFTCOpMode {
 
     public static Pose endPose;
