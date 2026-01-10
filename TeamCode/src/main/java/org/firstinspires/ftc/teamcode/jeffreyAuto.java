@@ -29,7 +29,7 @@ import static dev.nextftc.extensions.pedro.PedroComponent.follower;
 
 
 
-@Autonomous(name = "run-this-one")
+@Autonomous
 public class jeffreyAuto extends NextFTCOpMode {
 
     public static Pose endPose;
