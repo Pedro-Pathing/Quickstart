@@ -59,8 +59,8 @@ public class ANewJeffreyAuto extends NextFTCOpMode {
     public static final Pose scorePoseRed = new Pose(76, 76, Math.toRadians(225)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
-    private final Pose startPose = startPoseRed;
-    public static final Pose scorePose = scorePoseRed;
+    private final Pose startPose = startPoseBlue;
+    public static final Pose scorePose = scorePoseBlue;
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
