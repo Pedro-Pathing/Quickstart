@@ -8,8 +8,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 
-import org.firstinspires.ftc.teamcode.ANewJeffreyAuto;
-import org.firstinspires.ftc.teamcode.TheGoodAutoBlue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
