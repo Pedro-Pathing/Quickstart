@@ -118,7 +118,8 @@ public class Indexeur {
             homingDemarre = true;
         }
 
-        updateRotation();
+        updateRotation(); // on accelere la rotation apres son enclenchement
+
         switch (IndexeurState) {
 
             case HOMING:

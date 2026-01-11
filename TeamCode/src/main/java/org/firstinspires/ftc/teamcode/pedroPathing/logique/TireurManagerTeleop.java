@@ -50,7 +50,6 @@ public class TireurManagerTeleop {
     private double shootermaxspintime = 2;
 
     // --- Cibles dynamiques ---
-    private double angleCibleTourelle = 0;
     private double angleCibleShooter = 0;
     private double vitesseCibleShooter = 0;
 
@@ -88,6 +87,7 @@ public class TireurManagerTeleop {
             // --- 4) Pousser la balle ---
 
             case AVANCE1TIR:
+                shooter.setShooterTargetRPM(vitesseCibleShooter);
                 if (!indexeur.isHomingDone()) {
                     indexeur.lancerHoming();
                     return;
@@ -98,6 +98,25 @@ public class TireurManagerTeleop {
                     state = TirState.WAIT_AFTER_INDEX;
                 }
 
+                break;
+
+            case ANGLE_POSITION:
+                shooter.setShooterTargetRPM(vitesseCibleShooter);
+                ServoAngleShoot.setAngle(angleCibleShooter);
+
+                if (ServoAngleShoot.isAtAngle(angleCibleShooter)) {
+                    timer.reset();
+                    state = TireurManager.TirState.SHOOTER_SPINUP;
+                }
+                break;
+
+            case SHOOTER_SPINUP:
+                shooter.setShooterTargetRPM(vitesseCibleShooter);
+                double toleranceVelocityMax = 1.05 * vitesseCibleShooter;
+                double toleranceVelocityMin = 0.95 * vitesseCibleShooter;
+                if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){;
+                    state = TireurManager.TirState.SERVO_PUSH;
+                };
                 break;
 
             case SERVO_PUSH:
@@ -152,31 +171,34 @@ public class TireurManagerTeleop {
 
                 if (indexeur.isRotationTerminee()){
                     timer.reset();
-                    state = TirState.SERVO_PUSH;
+                    state = TirState.ANGLE_POSITION;
                 }
                 break;
         }
     }
 
     // --- Lancer un tir automatique ---
-    public void startTirManuel3Tirs() {
+    public void startTirManuel3Tirs(double angleShooter, double vitesseShooter) {
         intake.arretPourTir();
         tirEnCours = true;
         shotsRemaining = 3;
         tirsEffectues = 0;
+        this.angleCibleShooter = angleShooter;
+        this.vitesseCibleShooter = vitesseShooter;
+        shooter.setShooterTargetRPM(vitesseShooter);
         timer.reset();
         state = TirState.SERVO_PUSH;
     }
 
-    public void startTirManuel1tir() {
+    public void startTirManuel1tir(double angleShooter, double vitesseShooter) {
         intake.arretPourTir();
         tirEnCours = true;
         shotsRemaining = 1;
+        this.angleCibleShooter = angleShooter;
+        this.vitesseCibleShooter = vitesseShooter;
         //this.vitesseCibleShooter = vitesseShooter;
-
         tirsEffectues = 0;
-
-        //shooter.setShooterTargetRPM(vitesseShooter);  // Démarre immédiatement
+        shooter.setShooterTargetRPM(vitesseShooter);  // Démarre immédiatement
         timer.reset();
         state = TirState.AVANCE1TIR;
 

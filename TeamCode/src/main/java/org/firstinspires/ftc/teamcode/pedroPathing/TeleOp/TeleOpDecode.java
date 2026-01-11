@@ -33,8 +33,6 @@ public class TeleOpDecode extends OpMode {
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
     private TelemetryManager telemetryM;
-    private boolean slowMode = false;
-    private double slowModeMultiplier = 0.5;
     private Intake intake;
     private Indexeur indexeur;
 
@@ -47,18 +45,17 @@ public class TeleOpDecode extends OpMode {
     private AngleShooter ServoAngleShoot;
     private ServoTireur servoTireur;
 
-    private AfficheurRight afficheurRight;
-    private boolean lastX = false;
-    private boolean lastA = false;
-    private boolean lastB = false;
-    private boolean lastY = false;
-    private boolean lastrightbumper = false ;
-    private boolean lastleftbumper = false;
-    private boolean lastrightbumpergamepad1 = false;
-    int positionAngleshoot =0 ;
-    boolean anglePresetMode = false;
+    private boolean automatedDrive = false;
 
-    int presetIndexShooter = 0;
+    private AfficheurRight afficheurRight;
+    private boolean pulseSent = false;
+    private boolean lastrightbumper = false ;
+
+    private boolean lastleftbumpergamepad1 = false;
+
+    private static final double SLOW_MULT = 0.35; // vitesse par défaut (lent)
+    private static final double BOOST_MULT = 1.0; // plein régime quand on appuie
+
 
 
     @Override
@@ -99,7 +96,7 @@ public class TeleOpDecode extends OpMode {
         ;
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
-                .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(60, 86))))
                 .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
                 .build();
     }
@@ -112,37 +109,68 @@ public class TeleOpDecode extends OpMode {
         follower.startTeleopDrive();
     }
 
-    @Override
+
+    private void fireIfReady(double angle, int rpm, int shots) {
+        if (!tireurManager.isBusy()) {
+            if (shots == 1) {
+                tireurManager.startTirManuel1tir(angle, rpm);
+                afficheurRight.setJaune();
+            } else {
+                tireurManager.startTirManuel3Tirs(angle, rpm);
+                afficheurRight.setClignoteVert();
+            }
+        } else {
+            telemetry.addData("Tir", "IGNORÉ: tireur occupé (BUSY)");
+        }
+    }
+
+        @Override
     public void loop() {
         //Call this once per loop
         follower.update();
         telemetryM.update();
+        double t = getRuntime();
+        // au bout de 20 secondes : impulsion unique
+        if (t>=20.0 && !pulseSent){
+            gamepad1.rumble(500);
+            gamepad2.rumble(500);
+            pulseSent = true;
+        }
+
 
         if (!automatedDrive) {
             //Make the last parameter false for field-centric
             //In case the drivers want to use a "slowMode" you can scale the vectors
 
-            //This is the normal version to use in the TeleOp
-            if (!slowMode) follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
-                    false // Robot Centric
-            );
 
-                //This is how it looks with slowMode on
-            else follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                    -gamepad1.left_stick_x * slowModeMultiplier,
-                    -gamepad1.right_stick_x * slowModeMultiplier,
-                    false// Robot Centric
-            );
+        // Lecture des sticks
+            double ly = -gamepad1.left_stick_y;
+            double lx = -gamepad1.left_stick_x;
+            double rx = -gamepad1.right_stick_x;
+
+        // Deadband
+            if (Math.abs(ly) < 0.05) ly = 0;
+            if (Math.abs(lx) < 0.05) lx = 0;
+            if (Math.abs(rx) < 0.05) rx = 0;
+
+        // BOOST tenu au bumper droit
+            boolean boost = gamepad1.right_bumper;
+            double mult = boost ? BOOST_MULT : SLOW_MULT;
+
+        // Si rotation non ralentie, mettre rotMult = BOOST_MULT
+            double rotMult = mult;
+
+            follower.setTeleOpDrive(
+                    ly * mult,
+                    lx * mult,
+                    rx * rotMult,
+                    false);
         }
 
         //Automated PathFollowing
-        if (gamepad1.aWasPressed()) {
+        if (gamepad1.yWasPressed()) {
             follower.followPath(pathChain.get());
-            automatedDrive = true;
+             automatedDrive = true;
         }
 
         //Stop automated following if the follower is done
@@ -151,79 +179,66 @@ public class TeleOpDecode extends OpMode {
             automatedDrive = false;
         }
 
-        if (gamepad1.right_bumper && !lastrightbumpergamepad1) {
-
-            intake.repriseApresTir();
+        if (gamepad1.left_bumper && !lastleftbumpergamepad1) {
+            intake.setetatEJECTION();
         }
-        lastrightbumpergamepad1 = gamepad1.right_bumper;
+        lastleftbumpergamepad1 = gamepad1.left_bumper;
 
-        //Slow Mode
-        //if (gamepad1.rightBumperWasPressed()) {
-        //    slowMode = !slowMode;
-        //}
 
-        //Optional way to change slow mode strength
-        if (gamepad1.xWasPressed()) {
-            slowModeMultiplier += 0.25;
+       if (gamepad1.xWasPressed()) {
+            indexeur.setBalles(0);            // reset des balles
+            // demarre l'intake automatiquement
         }
 
-        double[] presetsAngleshoot = {0.12, 0.25, 0.30, 0.40, 0.52};
-        if (gamepad2.x && !lastX) {
-                positionAngleshoot = (positionAngleshoot + 1) % presetsAngleshoot.length;
-                ServoAngleShoot.angleShoot(presetsAngleshoot[positionAngleshoot]);
-        }
-        lastX = gamepad2.x;
 
         double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
         tourelle.rotationtourelle(powertourelle);
 
+        int shotsMode = (gamepad2.left_bumper ? 1 : 3);
 
-        double[] presetsVitesseShooter = {3800, 3900, 4000, 4500, 5000};
-        if (gamepad2.b && !lastB) {
-            presetIndexShooter = (presetIndexShooter + 1) % presetsVitesseShooter.length;
-            shooter.setShooterTargetRPM(presetsVitesseShooter[presetIndexShooter]);
-        }
-        lastB = gamepad2.b;
-
-
-
+        // RB (g2) : position fréquente de tir & en autonome
         if (gamepad2.right_bumper && !lastrightbumper) {
+                fireIfReady(0.35, 4000, shotsMode);
+            }
+            lastrightbumper = gamepad2.right_bumper;
 
-            tireurManager.startTirManuel3Tirs();
-        }
-        lastrightbumper = gamepad2.right_bumper;
+        // Y : très proche du goal dans zone proche
+        if (gamepad2.yWasPressed()) {
+                fireIfReady(0.12, 3500, shotsMode);}
 
-        if (gamepad2.left_bumper && !lastleftbumper) {
+        // B : intermédiaire
+        if (gamepad2.bWasPressed()) {
+                fireIfReady(0.28, 3800, shotsMode);
+            }
 
-            tireurManager.startTirManuel1tir();
-        }
+        // X : longue distance 1
+        if (gamepad2.xWasPressed()) {
+                fireIfReady(0.38, 4100, shotsMode);
+            }
 
-        lastleftbumper = gamepad2.left_bumper;
-
-
-        telemetryM.debug("position", follower.getPose());
-        telemetryM.debug("velocity", follower.getVelocity());
-        telemetryM.debug("automatedDrive", automatedDrive);
+        // A : longue distance 2 (RPM plus haut)
+        if (gamepad2.aWasPressed()) {
+                fireIfReady(0.38, 4700, shotsMode);
+            }
         intake.update();
-        indexeur.update();
+        //indexeur.update();
         tireurManager.update();
 
-        telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
-        telemetry.addData("AngleShoot", positionAngleshoot);
-        telemetry.addData("RPM", intake.getRPM());
-        telemetry.addData("DistanceBalle", intake.getCapteurDistance());
+        //telemetryM.debug("position", follower.getPose());
+        //telemetryM.debug("velocity", follower.getVelocity());
+        //telemetryM.debug("automatedDrive", automatedDrive);
+        //telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
+        //telemetry.addData("AngleShoot", positionAngleshoot);
+        //telemetry.addData("RPM", intake.getRPM());
+        //telemetry.addData("DistanceBalle", intake.getCapteurDistance());
         telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
-        telemetry.addData("Score", intake.getScore());
-        telemetry.addData("État Indexeur", indexeur.getEtat());
-        telemetry.addData("Pale detectée", indexeur.detectionpale());
-        telemetry.addData("Nombre de balles", indexeur.getBalles());
-        for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
-        telemetry.addData("État tireur manager", tireurManager.getState());
-        telemetry.addData("État indexeur", indexeur.getEtat());
-        telemetry.addData("Etat de l'intake", intake.getEtat());
+        //telemetry.addData("Score", intake.getScore());
+        //telemetry.addData("État Indexeur", indexeur.getEtat());
+        //telemetry.addData("Pale detectée", indexeur.detectionpale());
+        //for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
+        //telemetry.addData("État tireur manager", tireurManager.getState());
         telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
-        telemetry.addData("Servo pos", servoTireur.getPosition());
-        telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
+        //telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
 
         telemetry.update();
 

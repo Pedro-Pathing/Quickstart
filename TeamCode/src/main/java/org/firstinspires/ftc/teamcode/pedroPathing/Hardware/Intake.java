@@ -32,11 +32,9 @@ public class Intake {
     }
     private Intakeetat intakeState = Intakeetat.IDLE;
 
-    private double intake_reverse = -5000;
+    private double intake_reverse = -1000;
 
-    private double intake_fast = 1500;
-
-
+    private double intake_fast = 1000;
 
 
     private final double MINRPM = 0;
@@ -47,7 +45,7 @@ public class Intake {
     private boolean ralentissement = false;
     private int score = 0;
 
-    private final int tempsblocage = 300;
+    private final int tempsblocage = 200;
     private final double CHUTE_RPM = 0.85;
     private final float SEUIL_LUM_INDEXEUR = 0.250f;
 
@@ -55,7 +53,7 @@ public class Intake {
     private NormalizedColorSensor ColorIndexeur, ColorIntake;
     private Rev2mDistanceSensor distSensorIndexeur;
 
-    private static final int TICKS_PER_REV_6000 = 28;
+    private static final double TICKS_PER_REV_6000 = 145.1;  // ancien valeur 28
 
     public void init(@NonNull HardwareMap hwMap) {
 
@@ -127,26 +125,26 @@ public class Intake {
 
                 if (score >= 1) {
                     indexeur.setEtat(Indexeur.Indexeuretat.AVANCERAPIDEAMASSAGE);
+                    statetimer.reset();
                     //IntakeBall.setVelocity(0);
                 }
 
                 // --- Bourrage ---
-                if (rpm < MINRPM && statetimer.milliseconds() > tempsblocage) {
-                    statetimer.reset();
-                    intakeState = Intakeetat.EJECTION;
-                }
+                //if (rpm <= MINRPM && statetimer.milliseconds() > tempsblocage) {
+                //    statetimer.reset();
+                //    intakeState = Intakeetat.EJECTION;
+                //}
                 break;
 
             case EJECTION:
                 setIntakeBallTargetRPM(intake_reverse);
-                if (statetimer.milliseconds() > 50) {
-                    if (ballcomptage > 3) {
-                        intakeState = Intakeetat.IDLE;
-                    } else {
-                        statetimer.reset();
-                        intakeState = Intakeetat.RAMASSAGE;
+                if (statetimer.milliseconds() > 400) {
+                    //if (ballcomptage == 3) {
+                    //    intakeState = Intakeetat.IDLE;
+                    //} else {
+                    statetimer.reset();
+                    intakeState = Intakeetat.RAMASSAGE;
                     }
-                }
                 break;
         }
     }
@@ -205,6 +203,10 @@ public class Intake {
     }
     public void setetatIDLE(){
         intakeState = Intakeetat.IDLE;
+    }
+    public void setetatEJECTION(){
+        statetimer.reset();
+        intakeState = Intakeetat.EJECTION;
     }
 }
 
