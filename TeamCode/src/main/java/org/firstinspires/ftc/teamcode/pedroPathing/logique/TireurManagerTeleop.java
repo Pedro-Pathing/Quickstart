@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing.logique;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
@@ -87,6 +88,7 @@ public class TireurManagerTeleop {
             // --- 4) Pousser la balle ---
 
             case AVANCE1TIR:
+                afficheurRight.setRouge();
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
                 if (!indexeur.isHomingDone()) {
                     indexeur.lancerHoming();
@@ -103,10 +105,11 @@ public class TireurManagerTeleop {
             case ANGLE_POSITION:
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
                 ServoAngleShoot.setAngle(angleCibleShooter);
+                afficheurRight.setJaune();
 
                 if (ServoAngleShoot.isAtAngle(angleCibleShooter)) {
                     timer.reset();
-                    state = TireurManager.TirState.SHOOTER_SPINUP;
+                    state = TirState.SHOOTER_SPINUP;
                 }
                 break;
 
@@ -115,19 +118,22 @@ public class TireurManagerTeleop {
                 double toleranceVelocityMax = 1.05 * vitesseCibleShooter;
                 double toleranceVelocityMin = 0.95 * vitesseCibleShooter;
                 if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){;
-                    state = TireurManager.TirState.SERVO_PUSH;
+                    timer.reset();
+                    state = TirState.SERVO_PUSH;
                 };
                 break;
 
             case SERVO_PUSH:
+                afficheurRight.setVert();
                 if (!indexeur.isHomingDone()) {
                     indexeur.lancerHoming();
                     return;
                 }
                 if (indexeur.isHomingDone()) {
                     servoTireur.push();
-                    if (timer.milliseconds() > 280) {
+                    if (timer.milliseconds() > 300) {
                         timer.reset();
+
                         indexeur.decrementerBalle();
                         state = TirState.SERVO_RETRACT;
                     }
@@ -137,7 +143,7 @@ public class TireurManagerTeleop {
             // --- 5) Rétracter le servo ---
             case SERVO_RETRACT:
                 servoTireur.retract();
-                if (timer.milliseconds() > 280) {
+                if (timer.milliseconds() > 300) {
                     timer.reset();
                     shotsRemaining--; // retrait d'un tir
                     tirsEffectues++;
@@ -148,6 +154,7 @@ public class TireurManagerTeleop {
             // --- 6) Attendre fin rotation indexeur ---
             case INDEX_ADVANCE:
                 if (shotsRemaining == 0) {
+                    afficheurRight.setIdle();
                     shooter.setShooterTargetRPM(0);
                     intake.repriseApresTir();
                     state = TirState.IDLE;
@@ -187,7 +194,7 @@ public class TireurManagerTeleop {
         this.vitesseCibleShooter = vitesseShooter;
         shooter.setShooterTargetRPM(vitesseShooter);
         timer.reset();
-        state = TirState.SERVO_PUSH;
+        state = TirState.ANGLE_POSITION;
     }
 
     public void startTirManuel1tir(double angleShooter, double vitesseShooter) {

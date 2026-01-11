@@ -45,7 +45,7 @@ public class TeleOpDecode extends OpMode {
     private AngleShooter ServoAngleShoot;
     private ServoTireur servoTireur;
 
-    private boolean automatedDrive = false;
+    //private boolean automatedDrive = false;
 
     private AfficheurRight afficheurRight;
     private boolean pulseSent = false;
@@ -135,6 +135,7 @@ public class TeleOpDecode extends OpMode {
             gamepad1.rumble(500);
             gamepad2.rumble(500);
             pulseSent = true;
+            afficheurRight.setClignoteVert();
         }
 
 
@@ -221,8 +222,9 @@ public class TeleOpDecode extends OpMode {
                 fireIfReady(0.38, 4700, shotsMode);
             }
         intake.update();
-        //indexeur.update();
+        indexeur.update();
         tireurManager.update();
+        afficheurRight.update();
 
         //telemetryM.debug("position", follower.getPose());
         //telemetryM.debug("velocity", follower.getVelocity());
@@ -230,15 +232,15 @@ public class TeleOpDecode extends OpMode {
         //telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
         //telemetry.addData("AngleShoot", positionAngleshoot);
         //telemetry.addData("RPM", intake.getRPM());
-        //telemetry.addData("DistanceBalle", intake.getCapteurDistance());
+        telemetry.addData("DistanceBalle", intake.getCapteurDistance());
         telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
         //telemetry.addData("Score", intake.getScore());
-        //telemetry.addData("État Indexeur", indexeur.getEtat());
+        telemetry.addData("État Indexeur", indexeur.getEtat());
         //telemetry.addData("Pale detectée", indexeur.detectionpale());
         //for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
-        //telemetry.addData("État tireur manager", tireurManager.getState());
+        telemetry.addData("État tireur manager", tireurManager.getState());
         telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
-        //telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
+        telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
 
         telemetry.update();
 

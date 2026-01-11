@@ -17,8 +17,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class ServoTireur  {
     private Servo ServoTir;
     private Indexeur indexeur;
-    private double tirpositionretour = 0.79; // position basse
-    private double tirpositionhaute = 0.31; // position haute
+    private double tirpositionretour = 0.77; // position basse 079 gobilda
+    private double tirpositionhaute = 0.35; // position haute 031 gobila speed
 
     private ElapsedTime timeretat = new ElapsedTime();
     private boolean tirServoEnCours = false;

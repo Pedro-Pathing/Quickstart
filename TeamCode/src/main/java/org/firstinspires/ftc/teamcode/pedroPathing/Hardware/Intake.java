@@ -47,7 +47,8 @@ public class Intake {
 
     private final int tempsblocage = 200;
     private final double CHUTE_RPM = 0.85;
-    private final float SEUIL_LUM_INDEXEUR = 0.250f;
+    private final float SEUIL_LUM_INDEXEUR = 0.0700f;
+    private final float LUM_Indexeursansballes = 0.0577f;
 
     private Indexeur indexeur;
     private NormalizedColorSensor ColorIndexeur, ColorIntake;
