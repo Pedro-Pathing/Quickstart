@@ -40,7 +40,7 @@ public class Drive implements Subsystem {
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
-        follower.setStartingPose(new Pose(68, 76, Math.toRadians(315));
+        follower.setStartingPose(new Pose(68, 76, Math.toRadians(315)));
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         setShootTarget();
