@@ -31,3 +31,5 @@
 //7. TODO, test turret autoaim with the generic autos                            - ADD THE TURRET CONTROL FUNCTIONALITY TO COMMANDS
 
 // TODO: create paths to pick up human player zone Artifacts and to open the gate
+
+//TODO Link the PID update to the flywheel state so it can float instead of break at zero power
