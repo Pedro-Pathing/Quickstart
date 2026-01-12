@@ -52,6 +52,9 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
     // Panels variables
     public static double hoodTargetPos = 0;
+    public static int turretTurnIncrement = 2;
+    int turretTurnMultiplier = 1;
+    int turretTurnAngle = 0;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private final Pose startPose = new Pose(88.5,7.8, Math.toRadians(90));
@@ -96,11 +99,20 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
             // Controls for turret rotation testing
             if (gamepad1.x){
-                Robot.turret.rotation.setAngle(180);
+                Robot.turret.rotation.setAngle(turretTurnAngle);
+                turretTurnAngle += turretTurnIncrement * turretTurnMultiplier;
+                if (turretTurnAngle > 360){
+                    turretTurnAngle = 360;
+                    turretTurnMultiplier *= -1;
+                }else if (turretTurnAngle < 0){
+                    turretTurnAngle = 0;
+                    turretTurnMultiplier *= -1;
+                }
+
             }else if (gamepad1.b){
                 Robot.turret.updateAimbot();
             }else{
-                Robot.turret.rotation.setAngle(0);
+                Robot.turret.rotation.setAngle(90);
             }
             Robot.turret.updatePIDs();
             telemetry.addLine();
@@ -137,8 +149,10 @@ public class Teleop_Tuning_ extends LinearOpMode {
             telemetry.addLine("FLYWHEEL DATA");
             telemetry.addData("Flywheel Target Velocity", Robot.turret.flywheel.target);
             telemetry.addData("Flywheel Actual Velocity", Robot.turret.getFlywheelRPM());
+            telemetry.addData("Flywheel Motor Power", Robot.turret.flywheel.getPower());
             panelsTelemetry.addData("Flywheel Target Velocity", Robot.turret.flywheel.target);
             panelsTelemetry.addData("Flywheel Actual Velocity", Robot.turret.getFlywheelRPM());
+            panelsTelemetry.addData("Flywheel Motor Power", Robot.turret.flywheel.getPower());
 
             if (gamepad1.a){
                 Robot.intake.setMode(Intake.intakeMode.INTAKING);

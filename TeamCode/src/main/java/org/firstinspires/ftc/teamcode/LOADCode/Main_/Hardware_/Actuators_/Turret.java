@@ -28,9 +28,9 @@ public class Turret {
     public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.0002, 0.0000000001, 0.005); // 223RPM Motor
 
     // Flywheel PID coefficients
-    // 4500RPM
     public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0002, 0, 0);
-    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000026,0,0);
+    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000026,0,0); // 4500 RPM
+    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000032,0,0); // 3200 RPM
 
     // Define any Enums here
     public enum gatestate {

@@ -294,7 +294,7 @@ public class Teleop_Main_ extends LinearOpMode {
         Robot.turret.updateFlywheel();
 
         // Hood Controls
-        if (gamepad2.dpad_up && Robot.turret.getHood() < 260){
+        if (gamepad2.dpad_up && Robot.turret.getHood() < Turret.upperHoodLimit){
             Robot.turret.setHood(Robot.turret.getHood() + hoodSpeed);
         }else if (gamepad2.dpad_down && Robot.turret.getHood() > 0){
             Robot.turret.setHood(Robot.turret.getHood() - hoodSpeed);
