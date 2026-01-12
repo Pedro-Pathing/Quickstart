@@ -26,14 +26,9 @@ import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
-
 @Autonomous
-public class ANewJeffreyAuto extends NextFTCOpMode {
-
-    public static Pose endPose;
-
-
-    public ANewJeffreyAuto() {
+public class MainAuto extends NextFTCOpMode {
+    {
         addComponents(
                 BulkReadComponent.INSTANCE, // TODO: make actual MANUAL mode bulkreading (we don't need to also read the expansion hub every loop)
                 BindingsComponent.INSTANCE,
@@ -45,11 +40,12 @@ public class ANewJeffreyAuto extends NextFTCOpMode {
                         Intake.INSTANCE,
                         Outtake.INSTANCE,
                         Transitions.INSTANCE
-                ),
-                new PedroComponent(Constants::createFollower)
-
+                )
         );
     }
+
+    public static Pose endPose;
+
 
 
     public static final Pose startPoseBlue = new Pose(56, 8, Math.toRadians(270)); // Start Pose of our robot.
@@ -72,7 +68,7 @@ public class ANewJeffreyAuto extends NextFTCOpMode {
         return new SequentialGroup(
                 new FollowPath(scorePreload),
                 new Delay(2),
-                Robot.INSTANCE.outtakeAll
+                Robot.outtakeAll
         );
     }
 

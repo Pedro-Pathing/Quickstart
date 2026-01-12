@@ -25,16 +25,12 @@ public class Drive implements Subsystem {
     private static final double slowModeMultiplier = 0.2;
     private static final boolean robotCentric = false;
     private static Pose startingPose = new Pose(24, 24, Math.toRadians(0));
-    private static Pose shootTarget = new Pose(6, 144 - 6, 0);
-    public static Robot.Alliance currentAlliance = Robot.Alliance.RED;
-    private static double headingGoal; // Radians
+    private static Pose shootTarget = new Pose(6, 144 - 6, 0);private static double headingGoal; // Radians
     private static PIDFController controller;
     private static boolean headingLock = false;
 
 
-    public static Robot.Alliance getCurrentAlliance(){
-        return currentAlliance;
-    }
+
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());
@@ -62,9 +58,9 @@ public class Drive implements Subsystem {
     }
 
     private static void setShootTarget() {
-        if (currentAlliance == Robot.Alliance.BLUE && shootTarget.getX() != 6)
+        if (Robot.getCurrentAlliance() == Robot.Alliance.BLUE && shootTarget.getX() != 6)
             shootTarget = new Pose(6, 144 - 6, 0);
-        else if (currentAlliance == Robot.Alliance.RED && shootTarget.getX() != (144 - 6))
+        else if (Robot.getCurrentAlliance() == Robot.Alliance.RED && shootTarget.getX() != (144 - 6))
             shootTarget = shootTarget.mirror();
     }
 
@@ -77,7 +73,7 @@ public class Drive implements Subsystem {
     }
 
     public static void resetDrive() {
-        if (currentAlliance.equals(Robot.Alliance.BLUE)) {
+        if (Robot.getCurrentAlliance().equals(Robot.Alliance.BLUE)) {
             follower.setPose(new Pose(8, 6.25, Math.toRadians(0)).mirror());
         } else {
             follower.setPose(new Pose(8, 6.25, Math.toRadians(0)));
@@ -85,7 +81,7 @@ public class Drive implements Subsystem {
     }
 
     public static Command resetDriveCommand() {
-        return new InstantCommand(() -> resetDrive());
+        return new InstantCommand(Drive::resetDrive);
     }
     public static Command drive = new LambdaCommand()
             .setStart(() -> follower.startTeleopDrive())

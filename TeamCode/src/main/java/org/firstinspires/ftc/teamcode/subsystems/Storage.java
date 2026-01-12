@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
+
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.control.ControlSystem;
@@ -8,6 +13,7 @@ import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
+import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
 
 public class Storage implements Subsystem {
@@ -17,9 +23,8 @@ public class Storage implements Subsystem {
     private static double manualPower = 0;
     private final static MotorEx spin = new MotorEx("motorExp0").brakeMode();
 
-    //private static DigitalChannel limitSwitch;
-    //private static NormalizedColorSensor colorSensor;
-    //private static int index = 0;
+    private static DigitalChannel limitSwitch;
+    private static NormalizedColorSensor colorSensor;
     private static double startPos = 0;
     private static final double TICKS = 185;
 
@@ -54,10 +59,9 @@ public class Storage implements Subsystem {
 //         "limitSwitch");
 //         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
 
-        // colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class,
-        // "sensor_color");
-        //
-        // ((SwitchableLight) colorSensor).enableLight(false);
+         colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class,
+         "colorSensor");
+
     }
 
     @Override
@@ -79,16 +83,7 @@ public class Storage implements Subsystem {
         Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode +  "power: " + controller.calculate(spin.getState()));
         Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode +  "power: " + manualPower);
         //Logger.add("Storage", Logger.Level.DEBUG, "limit switch" + limitSwitch.getState());
-        // Track Indexes
-        // if (wasJustPressed()) {
-        // index++;
-        // if (index >= STATES.length) {
-        // index = 0;
-        // }
-        // }
-        // ActiveOpMode.telemetry().addLine("Limit: " + limitSwitch.getState());
-        // ActiveOpMode.telemetry().addLine("Color: " + getColor().red + ", " +
-        // getColor().green + ", " + getColor().blue );
+        Logger.add("Storage", Logger.Level.DEBUG, "Color: " + getColor().red + ", " + getColor().green + ", " + getColor().blue);
     }
 
     public static Command setManualPowerCommand(double newPower) {
@@ -213,38 +208,32 @@ public class Storage implements Subsystem {
 
 
 
-//    public static NormalizedRGBA getColor() {
-//        return colorSensor.getNormalizedColors();
-//    }
-//
-//    public static State readColor() {
-//        NormalizedRGBA colors = getColor();
-//
-//        double red = colors.red;
-//        double green = colors.green;
-//        double blue = colors.blue;
-//
-//        double sum = red + green + blue;
-//
-//        double r = red / sum;
-//        double g = green / sum;
-//        double b = blue / sum;
-//
-//        if (r > 0.35 && b > 0.35 && g < 0.25) {
-//            return State.PURPLE;
-//        }
-//        if (g > 0.45 && r < 0.3 && b < 0.3) {
-//            return State.GREEN;
-//        }
-//        return State.NONE;
-//    }
-//
-//    public boolean wasJustPressed() {
-//        boolean current = limitSwitch.getState();
-//        boolean triggered = current && !lastState;
-//        lastState = current;
-//        return triggered;
-//    }
+    public static NormalizedRGBA getColor() {
+        return colorSensor.getNormalizedColors();
+    }
+
+    public static State readColor() {
+        NormalizedRGBA colors = getColor();
+
+        double red = colors.red;
+        double green = colors.green;
+        double blue = colors.blue;
+
+        double sum = red + green + blue;
+
+        double r = red / sum;
+        double g = green / sum;
+        double b = blue / sum;
+
+        if (r > 0.35 && b > 0.35 && g < 0.25) {
+            return State.PURPLE;
+        }
+        if (g > 0.45 && r < 0.3 && b < 0.3) {
+            return State.GREEN;
+        }
+        return State.NONE;
+    }
+
 //
 //    public static Command prioritySpin(int targetIndex) {
 //        return new LambdaCommand()
