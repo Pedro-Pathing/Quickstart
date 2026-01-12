@@ -52,12 +52,9 @@ dependencies {
     implementation 'dev.nextftc:hardware:1.1.0-beta.1'
     implementation 'dev.nextftc.extensions:pedro:1.0.0'
 
+    implementation 'com.pedropathing:ftc:2.0.5'
+    implementation 'com.pedropathing:telemetry:1.0.0'
+
     implementation("com.bylazar.sloth:fullpanels:0.2.4+1.0.12")
-
-
-    /*
-    the dependency below breaks Panels features (starting + stopping opmodes, configurables)
-    the telemetry, field, graph will all still work (allegedly, hopefully, not sure)
-     */
     implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
 }
