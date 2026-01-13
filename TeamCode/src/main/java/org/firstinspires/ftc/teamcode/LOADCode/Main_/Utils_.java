@@ -156,7 +156,7 @@ public class Utils_ {
         public InterpLUTPoint(
                 double X,
                 double Y,
-                string Name
+                String Name
         ){
 
         }
