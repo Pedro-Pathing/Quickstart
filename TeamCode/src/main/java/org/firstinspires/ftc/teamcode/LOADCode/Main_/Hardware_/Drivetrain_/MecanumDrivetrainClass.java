@@ -7,6 +7,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 public class MecanumDrivetrainClass {
@@ -68,6 +69,12 @@ public class MecanumDrivetrainClass {
     public void runPath(PathChain path, boolean holdEndpoint){
         follower.followPath(path, holdEndpoint);
         follower.update();
+    }
+
+    public double distanceFromGoal(){
+        Pose goalPose = new Pose(4,140,0);
+        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
+        return follower.getPose().distanceFrom(goalPose);
     }
 
     public boolean pathComplete(){

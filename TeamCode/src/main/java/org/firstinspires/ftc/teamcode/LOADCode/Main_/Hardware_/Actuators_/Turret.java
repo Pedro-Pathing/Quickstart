@@ -25,12 +25,19 @@ public class Turret {
     public final Devices.REVHallEffectSensorClass hall = new Devices.REVHallEffectSensorClass(); // Offset 20 degrees from directly forwards
 
     // Turret PID coefficients
-    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.0002, 0.0000000001, 0.005); // 223RPM Motor
+    public static PIDCoefficients turretCoefficients = new PIDCoefficients(0.10, 0.0000000001, 0.002); // 223RPM Motor
 
     // Flywheel PID coefficients
-    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0002, 0, 0);
-    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000026,0,0); // 4500 RPM
-    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000032,0,0); // 3200 RPM
+    //public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0002, 0, 0); // 4500 RPM
+    public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.0004, 0, 0); // 4200 RPM
+    //public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.00025, 0, 0); // 3500 RPM
+    //public static PIDCoefficients flywheelCoefficients = new PIDCoefficients(0.00025, 0, 0); // 3000 RPM
+
+    // Flywheel FF coefficients
+    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000026,0,0); // 4500 RPM
+    public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000032,0,0); // 4200 RPM
+    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000032,0,0); // 3500 RPM
+    //public static BasicFeedforwardParameters flywheelFFCoefficients = new BasicFeedforwardParameters(0.000031,0,0); // 3000 RPM
 
     // Define any Enums here
     public enum gatestate {
@@ -46,15 +53,19 @@ public class Turret {
     /** Stores the current state of the flywheel.*/
     public flywheelstate flywheelState = flywheelstate.OFF;
     /** Controls the target speed of the flywheel when it is on.*/
-    public static double flywheelMaxSpeed = 3500;
+    public static double flywheelMaxSpeed = 4200;
     /** Controls the upper software limit of the hood.*/
     public static double upperHoodLimit = 260;
     /** Controls the speed at which the turret will move to zero itself.*/
-    public static double zeroSpeed = 0.2;
+    public static double zeroSpeed = 1;
     /**
      * Stores the offset of the turret's rotation
      */
-    public static double turretOffset = -90;
+    public static double turretOffset = 114;
+    /**
+     * Stores the zeroing state of the turret
+     */
+    public static boolean zeroed = false;
 
     // Stores important objects for later access
     OpMode opMode = null;
@@ -78,10 +89,9 @@ public class Turret {
 
         // Set servos to initial positions
         setGateState(gatestate.CLOSED);
-        setHood(0);
-
         // Set servo directions
         hood.setDirection(Servo.Direction.REVERSE);
+        setHood(0);
 
         // Flywheel Motor Settings
         flywheel2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -93,6 +103,7 @@ public class Turret {
         // Rotation  Motor Settings
         rotation.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
         rotation.setDirection(DcMotorSimple.Direction.REVERSE);
+        rotation.setOffsetDegrees(turretOffset);
 
         // Pass PID pidCoefficients to motor classes
         rotation.setPidCoefficients(turretCoefficients);
@@ -114,7 +125,6 @@ public class Turret {
         flywheel.setFFCoefficients(flywheelFFCoefficients);
         flywheel2.setPidCoefficients(flywheelCoefficients);
         flywheel2.setFFCoefficients(flywheelFFCoefficients);
-        rotation.setOffsetDegrees(turretOffset);
     }
 
     /**
@@ -123,10 +133,15 @@ public class Turret {
      */
     public void updateAimbot(){
         // Set the turret rotation
-        rotation.setAngle(Math.min(Math.max(0, calcLocalizer()), 360));
+        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED){
+            rotation.setAngle(Math.min(Math.max(0, calcLocalizer()-2), 360));
+        }else{
+            rotation.setAngle(Math.min(Math.max(0, calcLocalizer()+2), 360));
+        }
+
         // Set the hood angle
-        Pose goalPose = new Pose(4,140,0);
-        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
+        Pose goalPose = new Pose(-4,148,0);
+        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(148, 148, 0);}
         //setHood(hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)));
     }
     public void updateAimbotWithVelocity(){
@@ -222,17 +237,23 @@ public class Turret {
     }
 
     /**
-     * FIXME This function is untested!!
-     * Resets the zero position of the turret using the hall effect switch
-     * @param stopIsCalled
-     * Pass in the value of <code>isStopRequested()</code>
+     * Resets the zero position of the turret using the hall effect switch </br>
+     * Must be called within the INIT loop in the opmode to work.
+     *
      */
-    public void zeroTurret(boolean stopIsCalled){
-        while (!(hall.getTriggered() || stopIsCalled)){
+    public boolean zeroTurret(){
+        if (!zeroed){
             rotation.setPower(zeroSpeed);
+            if (hall.getTriggered()){
+                rotation.setPower(0);
+                rotation.resetEncoder();
+                zeroed = true;
+            }
         }
-        rotation.setPower(0);
-        rotation.resetEncoder();
+        opMode.telemetry.addLine("ZEROING TURRET");
+        opMode.telemetry.addData("Turret Power", rotation.getPower());
+        opMode.telemetry.update();
+        return !zeroed;
     }
 
     /**

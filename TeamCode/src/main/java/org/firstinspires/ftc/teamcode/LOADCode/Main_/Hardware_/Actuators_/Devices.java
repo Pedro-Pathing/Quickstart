@@ -336,10 +336,11 @@ public class Devices {
 
         public void init(@NonNull OpMode opMode, String sensorName){
             sensor = opMode.hardwareMap.get(DigitalChannel.class, sensorName);
+            sensor.setMode(DigitalChannel.Mode.INPUT);
         }
 
         public Boolean getTriggered(){
-            return sensor.getState();
+            return !sensor.getState();
         }
     }
 }

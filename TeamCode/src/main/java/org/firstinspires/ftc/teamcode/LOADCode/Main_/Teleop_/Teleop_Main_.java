@@ -48,6 +48,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelstate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
 
@@ -69,18 +70,20 @@ public class Teleop_Main_ extends LinearOpMode {
     public TimerEx stateTimer = new TimerEx(1);
     public static double hoodSpeed = 4;
 
-    // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
-    private final Pose startPose = new Pose(88.5, 7.8, Math.toRadians(90));
-
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
+    // Create a new Paths instance
+    Pedro_Paths Paths = new Pedro_Paths();
     // Create a new instance of Prompter for selecting the alliance
     Prompter prompter = null;
 
+    // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
+    private final Pose startPose = Paths.farStart;
+
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+        // Initialize all hardware of the robot
+        Robot.init(startPose);
 
 
         // Create a new prompter for selecting alliance
@@ -102,16 +105,22 @@ public class Teleop_Main_ extends LinearOpMode {
             }
         }
 
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
-
-        // Initialize all hardware of the robot
-        Robot.init(startPose);
+        Paths.buildPaths(selectedAlliance, Robot.drivetrain.follower);
         Robot.drivetrain.startTeleOpDrive();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            if (!Turret.zeroed){
+                while (!isStopRequested() && Robot.turret.zeroTurret()){
+                    sleep(0);
+                }
+            }
 
             Gamepad1();
             Gamepad2();
@@ -127,6 +136,8 @@ public class Teleop_Main_ extends LinearOpMode {
             //positional telemetry
             telemetry.addData("X Position: ", Robot.drivetrain.follower.getPose().getX());
             telemetry.addData("Y Position: ", Robot.drivetrain.follower.getPose().getY());
+            telemetry.addData("Distance From Goal", Robot.drivetrain.distanceFromGoal());
+
             telemetry.addLine();
             // Turret-related Telemetry
             panelsTelemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
@@ -268,8 +279,8 @@ public class Teleop_Main_ extends LinearOpMode {
     public void Gamepad2() {
 
         // Turret Aimbot
-        //Robot.turret.updateAimbot();
-        // TODO: DO NOT RE-ENABLE THIS UNTIL HALL EFFECT SENSOR CALIBRATED
+        Robot.turret.updateAimbot();
+        //Robot.turret.rotation.setAngle(90);
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
@@ -294,15 +305,18 @@ public class Teleop_Main_ extends LinearOpMode {
         Robot.turret.updateFlywheel();
 
         // Hood Controls
-        if (gamepad2.dpad_up && Robot.turret.getHood() < Turret.upperHoodLimit){
+        if (gamepad2.dpad_up){
             Robot.turret.setHood(Robot.turret.getHood() + hoodSpeed);
-        }else if (gamepad2.dpad_down && Robot.turret.getHood() > 0){
+        }else if (gamepad2.dpad_down){
             Robot.turret.setHood(Robot.turret.getHood() - hoodSpeed);
+        }else if (gamepad2.dpadLeftWasPressed()){
+            Robot.turret.setHood(152);
         }
+        Robot.turret.setHood(Math.max(Math.min(Robot.turret.getHood(), Turret.upperHoodLimit), 0));
 
         //Shoot (B Button Press)
         // Increment the shooting state
-        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > 5000) {
+        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > Turret.flywheelMaxSpeed-200) {
             shootingState++;
         }
         switch (shootingState) {

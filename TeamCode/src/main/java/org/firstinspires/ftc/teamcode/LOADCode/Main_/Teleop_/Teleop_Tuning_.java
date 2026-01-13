@@ -61,17 +61,17 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
 
         // Create a new instance of our Robot class
         LoadHardwareClass Robot = new LoadHardwareClass(this);
         // Initialize all hardware of the robot
         Robot.init(startPose);
 
-        if (gamepad1.guide){
-            Robot.turret.zeroTurret(isStopRequested());
+        while (opModeInInit() && Robot.turret.zeroTurret()){
+            sleep(0);
         }
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -79,6 +79,7 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
         // Begin TeleOp driving
         Robot.drivetrain.startTeleOpDrive();
+        Robot.turret.setGateState(Turret.gatestate.OPEN);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -111,10 +112,12 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
             }else if (gamepad1.b){
                 Robot.turret.updateAimbot();
+            }else if (gamepad1.y){
+                Robot.turret.rotation.setAngle(0);
             }else{
                 Robot.turret.rotation.setAngle(90);
             }
-            Robot.turret.updatePIDs();
+            //Robot.turret.updatePIDs();
             telemetry.addLine();
             telemetry.addLine("TURRET DATA");
             telemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
@@ -125,19 +128,19 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
 
             // Controls for hood testing
-            if (gamepad1.dpad_up){
-                Robot.turret.setHood(Robot.turret.getHood() + 2);
-            }else if (gamepad1.dpad_down){
-                Robot.turret.setHood(Robot.turret.getHood() - 2);
-            }else if (gamepad1.dpadLeftWasPressed()){
-                Robot.turret.setHood(hoodTargetPos);
-            }
+//            if (gamepad1.dpad_up){
+//                Robot.turret.setHood(Robot.turret.getHood() + 2);
+//            }else if (gamepad1.dpad_down){
+//                Robot.turret.setHood(Robot.turret.getHood() - 2);
+//            }else if (gamepad1.dpadLeftWasPressed()){
+//                Robot.turret.setHood(hoodTargetPos);
+//            }
             telemetry.addLine();
             telemetry.addLine("HOOD DATA");
             telemetry.addData("Hood Angle", Robot.turret.getHood());
 
             // Controls for flywheel testing
-            if (gamepad1.yWasPressed()){
+            if (gamepad1.backWasPressed()){
                 if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
                     Robot.turret.setFlywheelState(Turret.flywheelstate.ON);
                 }else{
@@ -154,12 +157,13 @@ public class Teleop_Tuning_ extends LinearOpMode {
             panelsTelemetry.addData("Flywheel Actual Velocity", Robot.turret.getFlywheelRPM());
             panelsTelemetry.addData("Flywheel Motor Power", Robot.turret.flywheel.getPower());
 
-            if (gamepad1.a){
-                Robot.intake.setMode(Intake.intakeMode.INTAKING);
-            }else{
-                Robot.intake.setMode(Intake.intakeMode.OFF);
+            if (gamepad1.aWasPressed()){
+                if (Robot.intake.getMode() == Intake.intakeMode.INTAKING){
+                    Robot.intake.setMode(Intake.intakeMode.OFF);
+                }else{
+                    Robot.intake.setMode(Intake.intakeMode.INTAKING);
+                }
             }
-
 
             // System-related Telemetry
             telemetry.addLine();

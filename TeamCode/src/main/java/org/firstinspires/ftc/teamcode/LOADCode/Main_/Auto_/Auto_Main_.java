@@ -48,6 +48,9 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     @Override
     public void onInit() {
+        while (opModeInInit() && Robot.turret.zeroTurret()){
+            sleep(0);
+        }
         prompter = new Prompter(this);
         prompter.prompt("alliance",
                 new OptionPrompt<>("Select Alliance",
