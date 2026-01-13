@@ -152,6 +152,16 @@ public class Utils_ {
 
     }
 
+    public class InterpLUTPoint{
+        public InterpLUTPoint(
+                double X,
+                double Y,
+                string Name
+        ){
+
+        }
+    }
+
     public enum telemetrySortCategory {
         DRIVETRAIN,
         INTAKE,
