@@ -12,14 +12,14 @@ import dev.nextftc.ftc.ActiveOpMode;
 public class Transitions implements Subsystem {
 
     public static final Transitions INSTANCE = new Transitions();
-    public static double DOWN_POS = 0.95;
-    public static double UP_POS = 0.55;
+    public static double DOWN_POS = 0.62;
+    public static double UP_POS = 0.25;
     private static double outtakePosition = DOWN_POS;
     private Servo outtakeServo;
 
     @Override
     public void initialize() {
-        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servo0");
+        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servoExp0");
         outtakeServo.setDirection(Servo.Direction.REVERSE);
     }
 

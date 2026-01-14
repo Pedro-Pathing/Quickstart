@@ -37,7 +37,6 @@ public class MainTeleOp extends NextFTCOpMode {
                         Outtake.INSTANCE,
                         Transitions.INSTANCE
                 )
-                //new PedroComponent(Constants::createFollower)
         );
     }
 

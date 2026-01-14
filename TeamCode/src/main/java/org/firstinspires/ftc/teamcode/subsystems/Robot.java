@@ -7,6 +7,13 @@ import dev.nextftc.core.subsystems.SubsystemGroup;
 public class Robot extends SubsystemGroup {
     public static final Robot INSTANCE = new Robot();
 
+    public static Robot.Alliance getCurrentAlliance(){
+        return currentAlliance;
+    }
+
+    public static Robot.Alliance currentAlliance = Robot.Alliance.RED;
+
+
     public enum Alliance {
         RED,
         BLUE
