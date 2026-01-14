@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
 
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
@@ -28,12 +27,14 @@ public class Storage implements Subsystem {
     private static double startPos = 0;
     private static final double TICKS = 185;
 
+    private static boolean lastState = false;
+
     public static boolean getManualMode(){
         return manualMode;
     }
 
     public static ControlSystem controller = ControlSystem.builder()
-            .posPid(0.02, 0, 0)
+            .posPid(0.0075, 0, 0)
             .build();
 
     public static final State[] STATES = {
@@ -55,9 +56,9 @@ public class Storage implements Subsystem {
         controller.setGoal(new KineticState(0));
 
 
-//         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
-//         "limitSwitch");
-//         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
+         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
+         "limitSwitch");
+         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
 
          colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class,
          "colorSensor");
@@ -67,22 +68,27 @@ public class Storage implements Subsystem {
     @Override
     public void periodic() {
 
+//        if (wasJustPressed()) {
+//            resetEncoderAtOuttake();
+//        }
+
         if (manualMode) {
             spin.setPower(manualPower);
         } else if (pidControlMode){
-            double testPower = controller.calculate(spin.getState());
-            if (Math.abs(testPower) > 0.05) {
-                spin.setPower(testPower);
-            } else {
-                spin.setPower(0);
-            }
+//            double testPower = controller.calculate(spin.getState());
+//            if (Math.abs(testPower) > 0.05) {
+//                spin.setPower(testPower);
+//            } else {
+//                spin.setPower(0);
+//            }
         }
 
         // Write Telemetry
         Logger.add("Storage", Logger.Level.DEBUG, "ticks: " + spin.getCurrentPosition());
         Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode +  "power: " + controller.calculate(spin.getState()));
         Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode +  "power: " + manualPower);
-        //Logger.add("Storage", Logger.Level.DEBUG, "limit switch" + limitSwitch.getState());
+        Logger.add("Storage", Logger.Level.DEBUG, "limit switch" + limitSwitch.getState());
+        Logger.add("Storage", Logger.Level.DEBUG, "test");
         Logger.add("Storage", Logger.Level.DEBUG, "Color: " + getColor().red + ", " + getColor().green + ", " + getColor().blue);
     }
 
@@ -127,6 +133,8 @@ public class Storage implements Subsystem {
     public static Command spinToNextOuttakeIndex() {
         return new LambdaCommand()
                 .setStart(() -> {
+                    manualMode = true;
+                    manualPower = 0.1;
                     manualMode = false;
                     pidControlMode = true;
                     startPos = spin.getCurrentPosition() - 10;
@@ -140,7 +148,8 @@ public class Storage implements Subsystem {
                         ticksToMove -= TICKS;
                     }
                     double nextPos = startPos + ticksToMove;
-                    controller.setGoal(new KineticState(nextPos));})
+                    controller.setGoal(new KineticState(nextPos));
+                })
                 .setIsDone(() -> true)
                 .setStop(interrupted -> {
                 })
@@ -232,6 +241,13 @@ public class Storage implements Subsystem {
             return State.GREEN;
         }
         return State.NONE;
+    }
+
+    public static boolean wasJustPressed() {
+        boolean currentState = limitSwitch.getState();
+        boolean justPressed = currentState && !lastState;
+        lastState = currentState;
+        return justPressed;
     }
 
 //
