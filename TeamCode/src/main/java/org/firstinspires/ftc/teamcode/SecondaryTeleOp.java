@@ -49,7 +49,7 @@ public class SecondaryTeleOp extends NextFTCOpMode {
 
         GamepadEx caimo = Gamepads.gamepad1();
         GamepadEx jeff = Gamepads.gamepad2();
-
+        //gamepad1.
         // Debug stuff
         jeff.back()
                 .whenBecomesTrue(() -> {
@@ -62,34 +62,7 @@ public class SecondaryTeleOp extends NextFTCOpMode {
                     Storage.setPIDMode(false).schedule();
                 });
 
-//        // Storage nonsense
-//        jeff.leftStickX().greaterThan(0.1).and(jeff.leftStickButton()
-//                .whenTrue(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
-//                })
-//                .whenFalse(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
-//                }));
 //
-//        jeff.leftStickX().lessThan(-0.1).and(jeff.leftStickButton()
-//                        .whenTrue(() -> {
-//                            Storage.setManualModeCommand(true).schedule();
-//                            Storage.setManualPowerCommand(jeff.leftStickX().get() / 1.5).schedule();
-//                        })
-//                        .whenFalse(() -> {
-//                            Storage.setManualModeCommand(true).schedule();
-//                            Storage.setManualPowerCommand(jeff.leftStickX().get() / 4).schedule();
-//                        }));
-//
-//        jeff.leftStickX()
-//                .inRange(-0.05, 0.05)
-//                .whenBecomesTrue(() -> {
-//                    Storage.setManualModeCommand(true).schedule();
-//                    Storage.setManualPowerCommand(0).schedule();
-//                });
-
         // Run Outake
         jeff.rightBumper()
                 .whenBecomesTrue(() -> {
