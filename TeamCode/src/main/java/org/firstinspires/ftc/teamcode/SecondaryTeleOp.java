@@ -19,6 +19,8 @@ import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
+//PLEASE PUSHHH!H!!
+
 @TeleOp(name="SecondTeleOp", group="TeleOp")
 public class SecondaryTeleOp extends NextFTCOpMode {
     {
