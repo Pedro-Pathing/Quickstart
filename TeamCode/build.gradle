@@ -25,8 +25,7 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
-    implementation 'io.github.skeleton-army.marrow:core:0.1.2'
-    implementation 'io.github.skeleton-army.marrow:nextftc:0.1.2' // For NextFTC
+    implementation 'com.skeletonarmyftc.marrow:core:1.0.0'
     implementation 'dev.nextftc:ftc:1.0.1'
     implementation 'dev.nextftc.extensions:pedro:1.0.0'
     implementation "com.bylazar:graph:1.0.4"

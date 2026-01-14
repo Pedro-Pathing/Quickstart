@@ -33,13 +33,13 @@ public class Commands {
         return new FollowPath(path, holdEnd, maxPower);
     }
 
-    public Command setFlywheelState(Turret.flywheelstate state) {
+    public Command setFlywheelState(Turret.flywheelState state) {
         return new LambdaCommand("setFlywheelState()")
                 .setInterruptible(false)
                 .setStart(() -> Robot.turret.setFlywheelState(state))
                 .setIsDone(() -> {
-                    if (state == Turret.flywheelstate.ON){
-                        return Robot.turret.getFlywheelRPM() > Turret.flywheelMaxSpeed-100;
+                    if (state == Turret.flywheelState.ON){
+                        return Robot.turret.getFlywheelRPM() > Robot.turret.getFlywheelCurrentMaxSpeed();
                     }else{
                         return Robot.turret.getFlywheelRPM() < 100;
                     }
@@ -70,8 +70,7 @@ public class Commands {
     public Command shootBalls(){
         return new SequentialGroup(
                 // Ensure the flywheel is up to speed, if not, spin up first
-                //setFlywheelState(Turret.flywheelstate.ON),
-                //new WaitUntil(() -> Robot.turret.getFlywheelRPM() > Turret.flywheelMaxSpeed-100),
+                setFlywheelState(Turret.flywheelState.ON),
 
                 // Shoot the first two balls
                 setIntakeMode(Intake.intakeMode.INTAKING),

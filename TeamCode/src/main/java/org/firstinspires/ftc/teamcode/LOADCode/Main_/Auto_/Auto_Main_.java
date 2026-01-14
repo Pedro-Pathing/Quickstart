@@ -190,17 +190,17 @@ public class Auto_Main_ extends NextFTCOpMode {
         void runAuto() {
             new SequentialGroup(
                     new Delay(1),
-                    Commands.shootBalls(),
+                    //Commands.shootBalls(),
                     Commands.setIntakeMode(Intake.intakeMode.INTAKING),
                     Commands.runPath(paths.farStart_to_farPreload, true, 1),
                     Commands.setIntakeMode(Intake.intakeMode.OFF),
                     Commands.runPath(paths.farPreload_to_farShoot, true, 1),
-                    Commands.shootBalls(),
+                    //Commands.shootBalls(),
                     Commands.setIntakeMode(Intake.intakeMode.INTAKING),
                     Commands.runPath(paths.farStart_to_midPreload, true, 1),
                     Commands.setIntakeMode(Intake.intakeMode.OFF),
                     Commands.runPath(paths.midPreload_to_farShoot, true, 1),
-                    Commands.shootBalls(),
+                    //Commands.shootBalls(),
                     Commands.runPath(paths.farShoot_to_farLeave, true, 1)
             ).schedule();
         }

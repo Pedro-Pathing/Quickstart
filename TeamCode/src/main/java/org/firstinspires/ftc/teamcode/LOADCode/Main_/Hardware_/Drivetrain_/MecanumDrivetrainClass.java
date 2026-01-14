@@ -72,8 +72,8 @@ public class MecanumDrivetrainClass {
     }
 
     public double distanceFromGoal(){
-        Pose goalPose = new Pose(4,140,0);
-        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(140, 140, 0);}
+        Pose goalPose = new Pose(0,144,0);
+        if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(144, 144, 0);}
         return follower.getPose().distanceFrom(goalPose);
     }
 

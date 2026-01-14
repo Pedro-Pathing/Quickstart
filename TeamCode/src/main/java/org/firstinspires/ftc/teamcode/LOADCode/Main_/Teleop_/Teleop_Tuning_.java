@@ -22,7 +22,7 @@
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * CAUSED AND NEAR ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
@@ -111,13 +111,13 @@ public class Teleop_Tuning_ extends LinearOpMode {
                 }
 
             }else if (gamepad1.b){
-                Robot.turret.updateAimbot();
-            }else if (gamepad1.y){
+                Robot.turret.updateAimbotWithVelocity();
+            }else if (gamepad1.a){
                 Robot.turret.rotation.setAngle(0);
             }else{
                 Robot.turret.rotation.setAngle(90);
             }
-            //Robot.turret.updatePIDs();
+            Robot.turret.updatePIDs();
             telemetry.addLine();
             telemetry.addLine("TURRET DATA");
             telemetry.addData("Turret Target Angle", Robot.turret.rotation.target);
@@ -141,10 +141,10 @@ public class Teleop_Tuning_ extends LinearOpMode {
 
             // Controls for flywheel testing
             if (gamepad1.backWasPressed()){
-                if (Robot.turret.flywheelState == Turret.flywheelstate.OFF){
-                    Robot.turret.setFlywheelState(Turret.flywheelstate.ON);
+                if (Robot.turret.flywheelMode == Turret.flywheelState.OFF){
+                    Robot.turret.setFlywheelState(Turret.flywheelState.ON);
                 }else{
-                    Robot.turret.setFlywheelState(Turret.flywheelstate.OFF);
+                    Robot.turret.setFlywheelState(Turret.flywheelState.OFF);
                 }
             }
             Robot.turret.updateFlywheel();

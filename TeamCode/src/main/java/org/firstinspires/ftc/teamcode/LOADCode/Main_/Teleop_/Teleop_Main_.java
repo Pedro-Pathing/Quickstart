@@ -22,7 +22,7 @@
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * CAUSED AND NEAR ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
@@ -46,7 +46,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake.intakeMode;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake.transferState;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
-import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelstate;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelState;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
@@ -67,6 +67,7 @@ public class Teleop_Main_ extends LinearOpMode {
     public static double DylanStickDeadzones = 0.2;
 
     public int shootingState = 0;
+    public boolean turretOn = true;
     public TimerEx stateTimer = new TimerEx(1);
     public static double hoodSpeed = 4;
 
@@ -127,7 +128,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
             Robot.turret.updatePIDs();
 
-            double flywheelPercentage = (int) Math.round(Robot.turret.getFlywheelRPM()/Turret.flywheelMaxSpeed *100);
+            double flywheelPercentage = (int) Math.round(Robot.turret.getFlywheelRPM()/Robot.turret.getFlywheelCurrentMaxSpeed() *100);
             telemetry.addData("Flywheel Percentage", flywheelPercentage+"%");
             panelsTelemetry.addData("Flywheel Percentage", flywheelPercentage+"%");
 
@@ -279,26 +280,37 @@ public class Teleop_Main_ extends LinearOpMode {
     public void Gamepad2() {
 
         // Turret Aimbot
-        Robot.turret.updateAimbot();
-        //Robot.turret.rotation.setAngle(90);
+        if (gamepad2.aWasPressed()){
+            turretOn = !turretOn;
+        }
+        if (turretOn){
+            Robot.turret.updateAimbot();
+        }else{
+            Robot.turret.rotation.setAngle(90);
+        }
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
-            if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones) {
-                if (gamepad2.left_stick_y < 0) { // OUT (Digital)
-                    Robot.intake.setMode(intakeMode.REVERSING);
-                } else { // IN (Digital)
-                    Robot.intake.setMode(intakeMode.INTAKING);
-                }
-            } else { // OFF
+            if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones &&
+                    Math.abs(gamepad2.right_stick_y) >= DylanStickDeadzones) {
+                Robot.intake.setMode(intakeMode.INTAKING);
+            }else if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones &&
+                    Math.abs(gamepad2.right_stick_y) < DylanStickDeadzones) {
+                Robot.intake.setMode(intakeMode.NO_BELT);
+            }else if (Math.abs(gamepad2.left_stick_y) < DylanStickDeadzones &&
+                    Math.abs(gamepad2.right_stick_y) >= DylanStickDeadzones) {
+                Robot.intake.setMode(intakeMode.SHOOTING);
+            }else if (gamepad2.back){
+                Robot.intake.setMode(intakeMode.REVERSING);
+            }else{ // OFF
                 Robot.intake.setMode(intakeMode.OFF);
             }
             //Flywheel Toggle Control (Y Button)
             if (gamepad2.yWasPressed()) {
-                if (Robot.turret.flywheelState == flywheelstate.OFF) {
-                    Robot.turret.setFlywheelState(flywheelstate.ON);
+                if (Robot.turret.flywheelMode == flywheelState.OFF) {
+                    Robot.turret.setFlywheelState(flywheelState.ON);
                 } else {
-                    Robot.turret.setFlywheelState(flywheelstate.OFF);
+                    Robot.turret.setFlywheelState(flywheelState.OFF);
                 }
             }
         }
@@ -311,12 +323,18 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.turret.setHood(Robot.turret.getHood() - hoodSpeed);
         }else if (gamepad2.dpadLeftWasPressed()){
             Robot.turret.setHood(152);
+        }else if (gamepad1.x){
+            // Set the hood angle
+            Pose goalPose = new Pose(0,144,0);
+            if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(144, 144, 0);}
+
+            Robot.turret.setHood(Robot.turret.hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)));
         }
         Robot.turret.setHood(Math.max(Math.min(Robot.turret.getHood(), Turret.upperHoodLimit), 0));
 
         //Shoot (B Button Press)
         // Increment the shooting state
-        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > Turret.flywheelMaxSpeed-200) {
+        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > Robot.turret.getFlywheelCurrentMaxSpeed()-200) {
             shootingState++;
         }
         switch (shootingState) {
@@ -348,7 +366,7 @@ public class Teleop_Main_ extends LinearOpMode {
                 }
                 return;
             case 3:
-                Robot.turret.setFlywheelState(flywheelstate.OFF);
+                Robot.turret.setFlywheelState(flywheelState.OFF);
                 Robot.turret.setGateState(gatestate.CLOSED);
                 Robot.intake.setMode(intakeMode.OFF);
                 Robot.intake.setTransfer(transferState.DOWN);

@@ -19,6 +19,7 @@ public class Intake {
     public enum intakeMode {
         INTAKING,
         SHOOTING,
+        NO_BELT,
         REVERSING,
         OFF
     }
@@ -71,6 +72,9 @@ public class Intake {
         }else if (direction == intakeMode.REVERSING){
             intake.setPower(-1);
             belt.setPower(-1);
+        }else if (direction == intakeMode.NO_BELT){
+            intake.setPower(1);
+            belt.setPower(0);
         }else{
             intake.setPower(0);
             belt.setPower(0);
