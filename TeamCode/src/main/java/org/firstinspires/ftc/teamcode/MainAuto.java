@@ -7,7 +7,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Drive;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -22,7 +21,6 @@ import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.extensions.pedro.FollowPath;
-import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
@@ -48,15 +46,17 @@ public class MainAuto extends NextFTCOpMode {
 
 
 
-    public static final Pose startPoseBlue = new Pose(56, 8, Math.toRadians(270)); // Start Pose of our robot.
-    public static final Pose scorePoseBlue = new Pose(68, 76, Math.toRadians(315)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose startPoseFarBlue = new Pose(56, 8, Math.toRadians(270)); // Start Pose of our robot.
+    public static final Pose scorePoseCloseRed = new Pose(20, 123, Math.toRadians(323)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose scorePoseFarBlue = new Pose(68, 76, Math.toRadians(315)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
-    public static final Pose startPoseRed = new Pose(87, 8, Math.toRadians(270)); // Start Pose of our robot.
-    public static final Pose scorePoseRed = new Pose(76, 76, Math.toRadians(225)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose startPoseFarRed = new Pose(87, 8, Math.toRadians(270)); // Start Pose of our robot.
+    public static final Pose startPoseCloseRed = new Pose(124, 123, Math.toRadians(37)); // Start Pose of our robot.
+    public static final Pose scorePoseFarRed = new Pose(76, 76, Math.toRadians(225)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
-    private final Pose startPose = startPoseBlue;
-    public static final Pose scorePose = scorePoseBlue;
+    private final Pose startPose = startPoseFarBlue;
+    public static final Pose scorePose = scorePoseFarBlue;
     public static final Pose scorePosebutActually = new Pose(73, 70, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
 
