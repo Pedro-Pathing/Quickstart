@@ -17,6 +17,8 @@ public class MecanumDrivetrainClass {
     // Misc Constants
     public Follower follower = null;
 
+    public static Pose robotPose = null;
+
     /**
      * Initializes the PedroPathing follower.
      * Needs to be run once after all hardware is initialized.

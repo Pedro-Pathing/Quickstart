@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
+import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass.robotPose;
 import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -48,6 +49,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelState;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
@@ -76,22 +78,19 @@ public class Teleop_Main_ extends LinearOpMode {
     // Create a new Paths instance
     Pedro_Paths Paths = new Pedro_Paths();
     // Create a new instance of Prompter for selecting the alliance
-    Prompter prompter = null;
+    Prompter prompterAlliance = null;
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
-    private final Pose startPose = Paths.farStart;
+    private Pose startPose = Paths.farStart;
 
     @Override
     public void runOpMode() {
-        // Initialize all hardware of the robot
-        Robot.init(startPose);
-
 
         // Create a new prompter for selecting alliance
-        prompter = new Prompter(this);
-        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE));
-        prompter.onComplete(() -> {
-                    selectedAlliance = prompter.get("alliance");
+        prompterAlliance = new Prompter(this);
+        prompterAlliance.prompt("alliance", new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE));
+        prompterAlliance.onComplete(() -> {
+                    selectedAlliance = prompterAlliance.get("alliance");
                     telemetry.addData("Selection", "Complete");
                     telemetry.addData("Alliance", selectedAlliance);
                     telemetry.update();
@@ -102,9 +101,15 @@ public class Teleop_Main_ extends LinearOpMode {
         while (opModeInInit()) {
             // If an auto was not run, run the prompter to select the correct alliance
             if (selectedAlliance == null) {
-                prompter.run();
+                prompterAlliance.run();
             }
         }
+        if (robotPose != null){
+            startPose = robotPose;
+        }
+
+        // Initialize all hardware of the robot
+        Robot.init(Paths.autoMirror(startPose, selectedAlliance));
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();

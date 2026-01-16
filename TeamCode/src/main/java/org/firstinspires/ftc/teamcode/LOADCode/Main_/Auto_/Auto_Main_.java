@@ -12,6 +12,7 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -104,9 +105,17 @@ public class Auto_Main_ extends NextFTCOpMode {
         }
         Robot.turret.updateFlywheel();
 
+        MecanumDrivetrainClass.robotPose = Robot.drivetrain.follower.getPose();
+
         telemetry.addLine();
         telemetry.addData("Current Robot Pose", Robot.drivetrain.follower.getPose());
         telemetry.update();
+    }
+
+    @Override
+    public void onStop(){
+        Robot.drivetrain.follower.holdPoint(Robot.drivetrain.follower.getPose());
+        MecanumDrivetrainClass.robotPose = Robot.drivetrain.follower.getPose();
     }
 
     /**
