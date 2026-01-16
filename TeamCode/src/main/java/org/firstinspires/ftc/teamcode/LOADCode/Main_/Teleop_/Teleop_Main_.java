@@ -83,9 +83,6 @@ public class Teleop_Main_ extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        // Initialize all hardware of the robot
-        Robot.init(startPose);
-
 
         // Create a new prompter for selecting alliance
         prompter = new Prompter(this);
@@ -98,10 +95,15 @@ public class Teleop_Main_ extends LinearOpMode {
                 }
         );
 
+        // Initialize all hardware of the robot
+        Robot.init(Paths.autoMirror(startPose, selectedAlliance));
+
         // Runs repeatedly while in init
         while (opModeInInit()) {
             // If an auto was not run, run the prompter to select the correct alliance
             if (selectedAlliance == null) {
+                prompter.run();
+            }else{
                 prompter.run();
             }
         }
@@ -283,11 +285,7 @@ public class Teleop_Main_ extends LinearOpMode {
         if (gamepad2.aWasPressed()){
             turretOn = !turretOn;
         }
-        if (turretOn){
-            Robot.turret.updateAimbot();
-        }else{
-            Robot.turret.rotation.setAngle(90);
-        }
+        Robot.turret.updateAimbot(turretOn, true);
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
@@ -316,6 +314,7 @@ public class Teleop_Main_ extends LinearOpMode {
         }
         Robot.turret.updateFlywheel();
 
+        /* Uncomment all this if reenableing manual hood controls
         // Hood Controls
         if (gamepad2.dpad_up){
             Robot.turret.setHood(Robot.turret.getHood() + hoodSpeed);
@@ -323,14 +322,9 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.turret.setHood(Robot.turret.getHood() - hoodSpeed);
         }else if (gamepad2.dpadLeftWasPressed()){
             Robot.turret.setHood(152);
-        }else if (gamepad1.x){
-            // Set the hood angle
-            Pose goalPose = new Pose(0,144,0);
-            if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(144, 144, 0);}
-
-            Robot.turret.setHood(Robot.turret.hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)));
         }
         Robot.turret.setHood(Math.max(Math.min(Robot.turret.getHood(), Turret.upperHoodLimit), 0));
+        */
 
         //Shoot (B Button Press)
         // Increment the shooting state
