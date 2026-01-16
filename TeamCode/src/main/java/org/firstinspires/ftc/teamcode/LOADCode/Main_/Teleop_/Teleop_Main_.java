@@ -245,10 +245,10 @@ public class Teleop_Main_ extends LinearOpMode {
      *     <li><b>Analog Inputs</b><ul>
      *         <li>Left Stick:<ul>
      *             <li>X: <code>N/A</code></li>
-     *             <li>Y: <code>Intake Direction/Power</code></li>
+     *             <li>Y: <code>Intake IN</code></li>
      *         </ul></li>
      *         <li>Right Stick:<ul>
-     *             <li>X: <code>Turret Angle Override</code></li>
+     *             <li>X: <code>Belt IN</code></li>
      *             <li>Y: <code>N/A</code></li>
      *         </ul></li>
      *         <li>Left Trigger: <code>N/A</code></li>
@@ -257,15 +257,15 @@ public class Teleop_Main_ extends LinearOpMode {
      *
      *     <li><b>Button Inputs</b></li><ul>
      *         <li>Letter Buttons:<ul>
-     *             <li>A: <code>N/A</code></li>
+     *             <li>A: <code>Toggle Turret Autoaim (Default on, locks to forward when off</code></li>
      *             <li>B: <code>Shoot</code></li>
      *             <li>X: <code>N/A</code></li>
      *             <li>Y: <code>Flywheel Toggle</code></li>
      *         </ul></li>
      *         <li>Letter Buttons:<ul>
-     *             <li>DpadUp: <code>N/A</code></li>
-     *             <li>DpadDown: <code>N/A</code></li>
-     *             <li>DpadLeft: <code>N/A</code></li>
+     *             <li>DpadUp: <code>Hood Up (Does not work currently)</code></code></li>
+     *             <li>DpadDown: <code>Hood Down (Does not work currently)</code></li>
+     *             <li>DpadLeft: <code>Sets hood to ideal angle for far zone shooting</code></li>
      *             <li>DpadRight: <code>N/A</code></li>
      *         </ul></li>
      *         <li>Bumpers:<ul>
@@ -275,6 +275,9 @@ public class Teleop_Main_ extends LinearOpMode {
      *         <li>Stick Buttons:<ul>
      *             <li>Left Stick Button: <code>N/A</code></li>
      *             <li>Right Stick Button: <code>N/A</code></li>
+     *         </ul></li>
+     *         <li>Other Buttons:<ul>
+     *             <li>Back Button: <code>Intake Reverse</code></li>
      *         </ul></li>
      *     </ul>
      * </ul>
