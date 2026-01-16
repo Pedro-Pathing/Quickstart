@@ -57,7 +57,7 @@ public class Pedro_Paths {
         if (alliance == LoadHardwareClass.Alliance.BLUE){
             return new Pose(
                     144 - pose.getX(),
-                    144 - pose.getY(),
+                    pose.getY(),
                     Math.atan2(Math.sin(pose.getHeading()), -Math.cos(pose.getHeading()))
             );
         }
