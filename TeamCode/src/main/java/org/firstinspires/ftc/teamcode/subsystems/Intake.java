@@ -1,5 +1,12 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.util.Log;
+
+import com.bylazar.panels.Panels;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.utils.Logger;
 
 import dev.nextftc.core.commands.Command;
@@ -11,11 +18,14 @@ public class Intake implements Subsystem {
 
     public static final Intake INSTANCE = new Intake();
     private static double intakePower = 0;
+    public double currentVelocity;
 
-    private MotorEx intake = new MotorEx("motorExp2");
+    private ElapsedTime timer = new ElapsedTime();
+    private MotorEx intake = new MotorEx("motor3");
 
     @Override
     public void initialize() {
+        timer.reset();
     }
 
     @Override
@@ -31,4 +41,7 @@ public class Intake implements Subsystem {
     public static Command setIntakePowerCommand(double newPower) {
         return new InstantCommand(() -> setIntakePower(newPower));
     }
+
+
+
 }

@@ -93,21 +93,28 @@ public class MainTeleOp extends NextFTCOpMode {
         // Run Outake
         jeff.rightBumper()
                 .whenBecomesTrue(() -> {
+//                    Outtake.setOuttakePowerCommand(1).schedule();
                     Outtake.setRunDownCommand(false).schedule();
                     Outtake.on.schedule();
                 })
                 .whenBecomesFalse(() -> {
+//                    Outtake.setOuttakePowerCommand(0).schedule();
+
                     Outtake.setRunDownCommand(true).schedule();
                 });
 
         jeff.leftBumper()
                 .whenBecomesTrue(() -> {
-                    Outtake.setRunDownCommand(true).schedule();
-                    Outtake.setOuttakePowerCommand(1).schedule();
+                    Outtake.setOuttakePowerCommand(-1).schedule();
+
+//                    Outtake.setRunDownCommand(true).schedule();
+//                    Outtake.setOuttakePowerCommand(1).schedule();
                 })
                 .whenBecomesFalse(() -> {
-                    Outtake.setRunDownCommand(true).schedule();
                     Outtake.setOuttakePowerCommand(0).schedule();
+
+//                    Outtake.setRunDownCommand(true).schedule();
+//                    Outtake.setOuttakePowerCommand(0).schedule();
                 });
 
         jeff.x()
@@ -172,9 +179,11 @@ public class MainTeleOp extends NextFTCOpMode {
                     Storage.setManualPowerCommand(0).schedule();
                 });
         jeff.y()
-                .whenBecomesTrue(() -> {
+                .whenTrue(() -> {
                     Storage.setManualModeCommand(true).schedule();
-                    Storage.setManualPowerCommand(0.2).schedule();
+                    if (Outtake.isOuttakeAbove(2100)) {
+                        Storage.setManualPowerCommand(0.35).schedule();
+                    }
                 })
                 .whenBecomesFalse(() -> {
                     Storage.setManualModeCommand(true).schedule();

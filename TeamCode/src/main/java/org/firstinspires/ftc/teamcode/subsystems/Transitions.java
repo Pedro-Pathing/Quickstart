@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Logger;
@@ -12,21 +13,20 @@ import dev.nextftc.ftc.ActiveOpMode;
 public class Transitions implements Subsystem {
 
     public static final Transitions INSTANCE = new Transitions();
-    public static double DOWN_POS = 0.62;
-    public static double UP_POS = 0.25;
+    public static double DOWN_POS = 0;
+    public static double UP_POS = 1;
     private static double outtakePosition = DOWN_POS;
-    private Servo outtakeServo;
+    private CRServo outtakeServo;
 
     @Override
     public void initialize() {
-        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servoExp0");
-        outtakeServo.setDirection(Servo.Direction.REVERSE);
+        outtakeServo = ActiveOpMode.hardwareMap().crservo.get("servoExp0");
     }
 
     @Override
     public void periodic() {
-        outtakeServo.setPosition(outtakePosition);
-        Logger.add("Transition", Logger.Level.DEBUG, "position: " + outtakeServo.getPosition());
+        outtakeServo.setPower(outtakePosition);
+        Logger.add("Transition", Logger.Level.DEBUG, "position: " + outtakeServo.getPower());
     }
 
     private static void setOuttakePosition(double newPosition) {
