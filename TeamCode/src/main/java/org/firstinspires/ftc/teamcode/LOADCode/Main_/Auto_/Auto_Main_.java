@@ -58,7 +58,8 @@ public class Auto_Main_ extends NextFTCOpMode {
                 ));
         prompter.prompt("auto",
                 new OptionPrompt<>("Select Auto",
-                        new Leave_Far_Generic(),
+                        new Near_12Ball(),
+                        new Near_9Ball(),
                         new Leave_Far_Generic()
                         //new test_Auto(),
                         //new Complex_Test_Auto()
@@ -181,7 +182,7 @@ public class Auto_Main_ extends NextFTCOpMode {
         public String toString(){return "Far Zone No Turret Generic";}
     }
 
-    private class Near_Generic extends Auto{
+    private class Near_9Ball extends Auto{
         public Pose startPose = paths.nearStart;
         public boolean turretEnabled = true;
 
@@ -217,7 +218,51 @@ public class Auto_Main_ extends NextFTCOpMode {
 
         @NonNull
         @Override
-        public String toString(){return "Near Zone No Turret Generic";}
+        public String toString(){return "Near Zone 9 Ball Auto";}
+    }
+
+    private class Near_12Ball extends Auto{
+        public Pose startPose = paths.nearStart;
+        public boolean turretEnabled = true;
+
+        @Override
+        public Pose getStartPose(){
+            return startPose;
+        }
+        @Override
+        public boolean getTurretEnabled(){
+            return turretEnabled;
+        }
+
+        @Override
+        public void runAuto(){
+            new SequentialGroup(
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    new InstantCommand(Commands.setFlywheelState(Turret.flywheelState.ON)),
+                    Commands.runPath(paths.nearStart_to_midShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.setFlywheelState(Turret.flywheelState.ON),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.midShoot_to_nearPreload, true, 1),
+                    Commands.runPath(paths.nearPreload_to_midShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.setFlywheelState(Turret.flywheelState.ON),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.midShoot_to_midPreload, true, 1),
+                    Commands.runPath(paths.midPreload_to_midShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.setFlywheelState(Turret.flywheelState.ON),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.midShoot_to_farPreload, true, 1),
+                    Commands.runPath(paths.farPreload_to_midShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.runPath(paths.midShoot_to_nearLeave, true, 1)
+            ).schedule();
+        }
+
+        @NonNull
+        @Override
+        public String toString(){return "Near Zone 12 Ball Auto";}
     }
 
     /**

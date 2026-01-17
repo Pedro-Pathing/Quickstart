@@ -68,7 +68,7 @@ public class Teleop_Main_ extends LinearOpMode {
     public static double DylanStickDeadzones = 0.2;
 
     public int shootingState = 0;
-    public boolean turretOn = false;
+    public boolean turretOn = true;
     public TimerEx stateTimer = new TimerEx(1);
     public double hoodOffset = 0;
 
@@ -255,6 +255,14 @@ public class Teleop_Main_ extends LinearOpMode {
             Robot.drivetrain.speedMultiplier = 0.66;
         }
 
+        if (gamepad1.bWasPressed()){
+            if (selectedAlliance == LoadHardwareClass.Alliance.RED){
+                Robot.drivetrain.follower.setPose(new Pose(8, 8, Math.toRadians(90)));
+            }else if (selectedAlliance == LoadHardwareClass.Alliance.BLUE){
+                Robot.drivetrain.follower.setPose(new Pose(136, 8, Math.toRadians(90)));
+            }
+        }
+
         double turnMult = 2;
 //        if (gamepad1.left_stick_y == 0 && gamepad1.left_stick_x == 0){
 //            turnMult = 1;
@@ -364,7 +372,7 @@ public class Teleop_Main_ extends LinearOpMode {
 
         //Shoot (B Button Press)
         // Increment the shooting state
-        if (gamepad2.bWasPressed() && shootingState < 2 && Robot.turret.getFlywheelRPM() > Robot.turret.getFlywheelCurrentMaxSpeed()-200) {
+        if (gamepad2.bWasPressed() && shootingState < 1 && Robot.turret.getFlywheelRPM() > Robot.turret.getFlywheelCurrentMaxSpeed()-100) {
             shootingState++;
         }
         switch (shootingState) {
