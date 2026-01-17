@@ -117,7 +117,7 @@ public class AutoMechanism extends LinearOpMode {
                     break;
 
                 case DONE:
-                    // Optional: add parking logic here
+                    //  add parking code here
                     break;
             }
 
