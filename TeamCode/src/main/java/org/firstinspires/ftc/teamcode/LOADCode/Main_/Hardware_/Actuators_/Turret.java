@@ -127,7 +127,7 @@ public class Turret {
         hoodLUT.add(94.5,190);
         // Far zone measurements
         hoodLUT.add(103, 200);
-        hoodLUT.add(204, 100);
+        hoodLUT.add(204, 200);
 
         // Generate Lookup Table & Initialize servo position
         hoodLUT.createLUT();
