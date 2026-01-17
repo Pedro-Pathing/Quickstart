@@ -7,24 +7,15 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
-
-
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 
 import com.pedropathing.follower.Follower;
 
-import java.util.ArrayList;
-
-
-
-
-
 import org.firstinspires.ftc.teamcode.friends.HardwareMap;
 
-@Autonomous(name = "Pedro Multi-Ball")
+@Autonomous(name = "Pedro Multi-Ball Optimized")
 public class AutoMechanism extends LinearOpMode {
 
     // ===== Robot Systems =====
@@ -34,7 +25,6 @@ public class AutoMechanism extends LinearOpMode {
     // ===== State Machine =====
     enum AutoState {
         DRIVE_TO_INTAKE,
-        INTAKE_BALLS,
         DRIVE_TO_SHOOT,
         SPIN_UP_SHOOTER,
         FEED_BALL,
@@ -42,7 +32,7 @@ public class AutoMechanism extends LinearOpMode {
     }
     AutoState currentState = AutoState.DRIVE_TO_INTAKE;
 
-    // ===== Timing =====
+    // ===== Timing & Counters =====
     ElapsedTime stateTimer = new ElapsedTime();
     int ballsShot = 0;
 
@@ -54,59 +44,50 @@ public class AutoMechanism extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-// ===== INIT =====
+        // ===== INIT =====
         robot = new HardwareMap(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
 
-// ===== POSES =====
+        // ===== POSES =====
         Pose startPose  = new Pose(0.0, 0.0, 0.0);
-        Pose intakePose = new Pose(24.0, 0.0, 0.0);
+        Pose intakeEnd  = new Pose(24.0, 0.0, 0.0); // drive straight line while intaking
         Pose shootPose  = new Pose(48.0, 12.0, Math.toRadians(90));
-
 
         follower.setPose(startPose);
 
-// ===== PATHS =====
-        PathChain toIntake = new PathBuilder(follower)
-                .addPath(new Path(new BezierCurve(startPose, intakePose)))
+        // ===== PATHS =====
+        PathChain intakePath = new PathBuilder(follower)
+                .addPath(new Path(new BezierCurve(startPose, intakeEnd)))
                 .build();
 
         PathChain toShoot = new PathBuilder(follower)
-                .addPath(new Path(new BezierCurve(intakePose, shootPose)))
+                .addPath(new Path(new BezierCurve(intakeEnd, shootPose)))
                 .build();
 
         telemetry.addLine("Ready");
         telemetry.update();
         waitForStart();
 
-// ===== START AUTO =====
-        follower.followPath(toIntake);
-        robot.startIntake();
+        // ===== START AUTO =====
+        robot.startIntake();           // start intake immediately
+        follower.followPath(intakePath); // drive straight while intaking
 
         while (opModeIsActive()) {
             follower.update();
 
-            switch (currentState) {
+            switch(currentState) {
 
                 case DRIVE_TO_INTAKE:
-                    if (!follower.isBusy()) {
-                        stateTimer.reset();
-                        currentState = AutoState.INTAKE_BALLS;
-                    }
-                    break;
-
-                case INTAKE_BALLS:
-// intake for 1.5 seconds
-                    if (stateTimer.seconds() > 1.5) {
+                    if (!follower.isBusy()) {  // finished intake line
                         robot.stopIntake();
-                        follower.followPath(toShoot);
+                        follower.followPath(toShoot); // drive to shooting position
+                        robot.setShooterRPM(TARGET_RPM); // spin up shooter while driving
                         currentState = AutoState.DRIVE_TO_SHOOT;
                     }
                     break;
 
                 case DRIVE_TO_SHOOT:
-                    if (!follower.isBusy()) {
-                        robot.setShooterRPM(TARGET_RPM);
+                    if (!follower.isBusy()) { // arrived at shooting position
                         stateTimer.reset();
                         currentState = AutoState.SPIN_UP_SHOOTER;
                     }
@@ -125,7 +106,7 @@ public class AutoMechanism extends LinearOpMode {
                         robot.resetFeeder();
                         ballsShot++;
 
-                        if (ballsShot < 2) {
+                        if (ballsShot < 3) { // number of balls to shoot
                             stateTimer.reset();
                             currentState = AutoState.SPIN_UP_SHOOTER;
                         } else {
@@ -136,11 +117,11 @@ public class AutoMechanism extends LinearOpMode {
                     break;
 
                 case DONE:
-//  parking can go here
+                    // Optional: add parking logic here
                     break;
             }
 
-// ===== TELEMETRY =====
+            // ===== TELEMETRY =====
             telemetry.addData("State", currentState);
             telemetry.addData("Balls Shot", ballsShot);
             telemetry.addData("Shooter RPM", robot.getShooterRPM());
