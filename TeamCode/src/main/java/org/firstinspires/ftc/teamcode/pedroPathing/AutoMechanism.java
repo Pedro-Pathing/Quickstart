@@ -15,7 +15,7 @@ import com.pedropathing.follower.Follower;
 
 import org.firstinspires.ftc.teamcode.friends.HardwareMap;
 
-@Autonomous(name = "Pedro Multi-Ball Optimized")
+@Autonomous(name = "Pedro Multi-Ball")
 public class AutoMechanism extends LinearOpMode {
 
     // ===== Robot Systems =====
