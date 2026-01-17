@@ -125,7 +125,7 @@ public class AutoMechanism extends LinearOpMode {
                         robot.resetFeeder();
                         ballsShot++;
 
-                        if (ballsShot < 2) { // number of balls to shoot
+                        if (ballsShot < 2) {
                             stateTimer.reset();
                             currentState = AutoState.SPIN_UP_SHOOTER;
                         } else {
@@ -136,7 +136,7 @@ public class AutoMechanism extends LinearOpMode {
                     break;
 
                 case DONE:
-// Optional: park logic can go here
+//  parking can go here
                     break;
             }
 
