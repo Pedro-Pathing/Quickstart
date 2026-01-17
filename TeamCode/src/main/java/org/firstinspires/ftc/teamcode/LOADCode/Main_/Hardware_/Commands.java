@@ -39,9 +39,9 @@ public class Commands {
                 .setStart(() -> Robot.turret.setFlywheelState(state))
                 .setIsDone(() -> {
                     if (state == Turret.flywheelState.ON){
-                        return Robot.turret.getFlywheelRPM() > Robot.turret.getFlywheelCurrentMaxSpeed();
+                        return Robot.turret.getFlywheelRPM() > Robot.turret.getFlywheelCurrentMaxSpeed() - 100;
                     }else{
-                        return Robot.turret.getFlywheelRPM() < 100;
+                        return true;
                     }
                 })
         ;
@@ -87,7 +87,8 @@ public class Commands {
                 // Reset the systems
                 setIntakeMode(Intake.intakeMode.OFF),
                 setGateState(Turret.gatestate.CLOSED),
-                setTransferState(Intake.transferState.DOWN)
+                setTransferState(Intake.transferState.DOWN),
+                setFlywheelState(Turret.flywheelState.OFF)
         );
     }
 

@@ -29,7 +29,6 @@
 
 package org.firstinspires.ftc.teamcode.LOADCode.Main_.Teleop_;
 
-import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass.robotPose;
 import static org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass.selectedAlliance;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -49,6 +48,7 @@ import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.flywheelState;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret.gatestate;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.LoadHardwareClass;
 
@@ -68,9 +68,9 @@ public class Teleop_Main_ extends LinearOpMode {
     public static double DylanStickDeadzones = 0.2;
 
     public int shootingState = 0;
-    public boolean turretOn = true;
+    public boolean turretOn = false;
     public TimerEx stateTimer = new TimerEx(1);
-    public static double hoodSpeed = 4;
+    public double hoodOffset = 0;
 
     // Create a new instance of our Robot class
     LoadHardwareClass Robot = new LoadHardwareClass(this);
@@ -78,6 +78,10 @@ public class Teleop_Main_ extends LinearOpMode {
     Pedro_Paths Paths = new Pedro_Paths();
     // Create a new instance of Prompter for selecting the alliance
     Prompter prompter = null;
+    enum startPoses {
+        FAR,
+        NEAR
+    }
 
     // Contains the start Pose of our robot. This can be changed or saved from the autonomous period.
     private Pose startPose = Paths.farStart;
@@ -87,36 +91,55 @@ public class Teleop_Main_ extends LinearOpMode {
 
         // Create a new prompter for selecting alliance
         prompter = new Prompter(this);
-        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE));
+        prompter.prompt("alliance", () -> {
+            if (selectedAlliance == null){
+                return new OptionPrompt<>("Select Alliance", LoadHardwareClass.Alliance.RED, LoadHardwareClass.Alliance.BLUE);
+            }else{
+                return null;
+            }
+        });
+        prompter.prompt("startPose", () -> {
+            if (MecanumDrivetrainClass.robotPose == null){
+                return new OptionPrompt<>("Select Start Pose",
+                        startPoses.FAR,
+                        startPoses.NEAR
+                        );
+            }else{
+                startPose = MecanumDrivetrainClass.robotPose;
+                return null;
+            }
+        });
         prompter.onComplete(() -> {
-                    selectedAlliance = prompter.get("alliance");
-                    telemetry.addData("Selection", "Complete");
-                    telemetry.addData("Alliance", selectedAlliance);
-                    telemetry.update();
+            if (selectedAlliance == null){
+                selectedAlliance = prompter.get("alliance");
+            }
+            telemetry.addData("Selection", "Complete");
+            telemetry.addData("Alliance", selectedAlliance);
+            if (MecanumDrivetrainClass.robotPose == null){
+                startPoses pose = prompter.get("startPose");
+                if (pose.equals(startPoses.FAR)) {
+                    startPose = Paths.autoMirror(Paths.farStart, selectedAlliance);
+                    telemetry.addData("Start Pose", "Far Start Pose");
+                } else if (pose.equals(startPoses.NEAR)) {
+                    startPose = Paths.autoMirror(Paths.nearStart, selectedAlliance);
+                    telemetry.addData("Start Pose", "Near Start Pose");
                 }
-        );
+            }else{
+                startPose = MecanumDrivetrainClass.robotPose;
+                telemetry.addData("Start Pose", "Ending Pose of Auto");
+            }
+            telemetry.update();
+        });
 
         // Runs repeatedly while in init
         while (opModeInInit()) {
-            // If an auto was not run, run the prompter to select the correct alliance
-            if (selectedAlliance == null) {
-                prompter.run();
-            }else{
-                prompter.run();
-            }
+            prompter.run();
         }
-        if (robotPose != null){
-            startPose = robotPose;
-        }
-
-        // Initialize all hardware of the robot
-        Robot.init(Paths.autoMirror(startPose, selectedAlliance));
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
+        // Initialize all hardware of the robot
+        Robot.init(startPose);
         runtime.reset();
         Paths.buildPaths(selectedAlliance, Robot.drivetrain.follower);
         Robot.drivetrain.startTeleOpDrive();
@@ -141,8 +164,9 @@ public class Teleop_Main_ extends LinearOpMode {
             telemetry.addData("SpeedMult", Robot.drivetrain.speedMultiplier);
             telemetry.addLine();
             //positional telemetry
-            telemetry.addData("X Position: ", Robot.drivetrain.follower.getPose().getX());
-            telemetry.addData("Y Position: ", Robot.drivetrain.follower.getPose().getY());
+            telemetry.addData("X Position", Robot.drivetrain.follower.getPose().getX());
+            telemetry.addData("Y Position", Robot.drivetrain.follower.getPose().getY());
+            telemetry.addData("Heading", Math.toDegrees(Robot.drivetrain.follower.getPose().getHeading()));
             telemetry.addData("Distance From Goal", Robot.drivetrain.distanceFromGoal());
 
             telemetry.addLine();
@@ -292,7 +316,7 @@ public class Teleop_Main_ extends LinearOpMode {
         if (gamepad2.aWasPressed()){
             turretOn = !turretOn;
         }
-        Robot.turret.updateAimbot(turretOn, true);
+        Robot.turret.updateAimbot(turretOn, true, hoodOffset);
 
         //Intake Controls (Left Stick Y)
         if (shootingState == 0) {
@@ -310,6 +334,15 @@ public class Teleop_Main_ extends LinearOpMode {
             }else{ // OFF
                 Robot.intake.setMode(intakeMode.OFF);
             }
+
+            /* TODO Uncomment once autobelt control is finished
+            if (Math.abs(gamepad2.left_stick_y) >= DylanStickDeadzones) {
+                Robot.intake.setMode(intakeMode.INTAKING);
+            }else{ // OFF
+                Robot.intake.setMode(intakeMode.OFF);
+            }
+             */
+
             //Flywheel Toggle Control (Y Button)
             if (gamepad2.yWasPressed()) {
                 if (Robot.turret.flywheelMode == flywheelState.OFF) {
@@ -321,17 +354,13 @@ public class Teleop_Main_ extends LinearOpMode {
         }
         Robot.turret.updateFlywheel();
 
-        /* Uncomment all this if reenableing manual hood controls
         // Hood Controls
-        if (gamepad2.dpad_up){
-            Robot.turret.setHood(Robot.turret.getHood() + hoodSpeed);
-        }else if (gamepad2.dpad_down){
-            Robot.turret.setHood(Robot.turret.getHood() - hoodSpeed);
-        }else if (gamepad2.dpadLeftWasPressed()){
-            Robot.turret.setHood(152);
+        if (gamepad2.dpadUpWasPressed()){
+            hoodOffset += 10;
+        }else if (gamepad2.dpadDownWasPressed()){
+            hoodOffset -= 10;
         }
-        Robot.turret.setHood(Math.max(Math.min(Robot.turret.getHood(), Turret.upperHoodLimit), 0));
-        */
+
 
         //Shoot (B Button Press)
         // Increment the shooting state

@@ -66,7 +66,7 @@ public class Turret {
     /**
      * Stores the offset of the turret's rotation
      */
-    private double turretOffset = 114;
+    public static double turretOffset = 116;
     /**
      * Stores the zeroing state of the turret
      */
@@ -118,14 +118,16 @@ public class Turret {
         flywheel2.setFFCoefficients(actualFlywheelFFCoefficients);
 
         // TODO Build hood InterpLUT for autoaim
+        // Near zone measurements
         hoodLUT.add(0, 0);
         hoodLUT.add(53.5,108);
         hoodLUT.add(71,168);
-        hoodLUT.add(77, 184);
-        hoodLUT.add(88,194);
-        hoodLUT.add(94.5,188);
-        hoodLUT.add(103, 188);
-        hoodLUT.add(204, 188);
+        hoodLUT.add(77, 181);
+        hoodLUT.add(88,190);
+        hoodLUT.add(94.5,190);
+        // Far zone measurements
+        hoodLUT.add(103, 200);
+        hoodLUT.add(204, 100);
 
         // Generate Lookup Table & Initialize servo position
         hoodLUT.createLUT();
@@ -143,6 +145,7 @@ public class Turret {
         flywheel.setFFCoefficients(actualFlywheelFFCoefficients);
         flywheel2.setPidCoefficients(actualFlywheelCoefficients);
         flywheel2.setFFCoefficients(actualFlywheelFFCoefficients);
+        rotation.setOffsetDegrees(turretOffset);
     }
 
     double redOffset = -2;
@@ -157,7 +160,7 @@ public class Turret {
      * @param hood If TRUE, enables the hood autoaim.
      *             Otherwise, sets the hood to the highest launch angle.
      */
-    public void updateAimbot(boolean turret, boolean hood){
+    public void updateAimbot(boolean turret, boolean hood, double hoodOffset){
         if (turret){
             // Set the turret rotation
             if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED){
@@ -172,7 +175,7 @@ public class Turret {
             // Set the hood angle
             Pose goalPose = new Pose(0,144,0);
             if (LoadHardwareClass.selectedAlliance == LoadHardwareClass.Alliance.RED) {goalPose = new Pose(144, 144, 0);}
-            setHood(hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)));
+            setHood(hoodLUT.get(Robot.drivetrain.follower.getPose().distanceFrom(goalPose)) + hoodOffset);
         }else{
             setHood(0);
         }
@@ -308,7 +311,7 @@ public class Turret {
         robotZone.setRotation(Robot.drivetrain.follower.getPose().getHeading());
 
         opMode.telemetry.addData("In Far Zone", robotZone.isInside(LoadHardwareClass.FarLaunchZone));
-        opMode.telemetry.addData("In Near Zone", robotZone.isInside(LoadHardwareClass.NearLaunchZone));
+        opMode.telemetry.addData("In Near Zone", robotZone.isInside(LoadHardwareClass.ReallyNearLaunchZoneRed));
 
         if (robotZone.isInside(LoadHardwareClass.FarLaunchZone)){
             targetRPM = flywheelFarSpeed;

@@ -11,6 +11,7 @@ import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Intake;
+import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Actuators_.Turret;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Commands;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.MecanumDrivetrainClass;
 import org.firstinspires.ftc.teamcode.LOADCode.Main_.Hardware_.Drivetrain_.Pedro_Paths;
@@ -19,6 +20,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.groups.SequentialGroup;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 
@@ -38,7 +40,6 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     // Auto parameter variables
     private boolean turretOn = true;
-    private Pose startPose = paths.farStart; // Start Pose of our robot.
 
     @SuppressWarnings("unused")
     public Auto_Main_() {
@@ -49,9 +50,6 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     @Override
     public void onInit() {
-        while (opModeInInit() && Robot.turret.zeroTurret()){
-            sleep(0);
-        }
         prompter = new Prompter(this);
         prompter.prompt("alliance",
                 new OptionPrompt<>("Select Alliance",
@@ -60,10 +58,10 @@ public class Auto_Main_ extends NextFTCOpMode {
                 ));
         prompter.prompt("auto",
                 new OptionPrompt<>("Select Auto",
-                        new Leave_Far_HP(),
-                        new Leave_Near_Launch(),
-                        new test_Auto(),
-                        new Complex_Test_Auto()
+                        new Leave_Far_Generic(),
+                        new Leave_Far_Generic()
+                        //new test_Auto(),
+                        //new Complex_Test_Auto()
                 ));
         prompter.onComplete(() -> {
                     selectedAlliance = prompter.get("alliance");
@@ -72,8 +70,14 @@ public class Auto_Main_ extends NextFTCOpMode {
                     telemetry.addData("Alliance", selectedAlliance.toString());
                     telemetry.addData("Auto", selectedAuto);
                     telemetry.update();
-                }
-        );
+                    // Build paths
+                    paths.buildPaths(selectedAlliance, follower());
+                    // Initialize all hardware of the robot
+                    Robot.init(paths.autoMirror(selectedAuto.getStartPose(), selectedAlliance), follower());
+                    while (opModeInInit() && Robot.turret.zeroTurret()){
+                        sleep(0);
+                    }
+        });
     }
 
     @Override
@@ -83,12 +87,9 @@ public class Auto_Main_ extends NextFTCOpMode {
 
     @Override
     public void onStartButtonPressed() {
-        // Build paths
-        paths.buildPaths(selectedAlliance, follower());
-        // Initialize all hardware of the robot
-        Robot.init(startPose, follower());
         // Schedule the proper auto
         selectedAuto.runAuto();
+        turretOn = selectedAuto.getTurretEnabled();
 
         // Indicate that initialization is done
         telemetry.addLine("Initialized");
@@ -100,15 +101,18 @@ public class Auto_Main_ extends NextFTCOpMode {
         telemetry.addData("Running Auto", selectedAuto.toString());
         telemetry.addLine();
         if (turretOn){
-            Robot.turret.updateAimbot(turretOn, true);
             telemetry.addData("Aimbot Target", selectedAlliance);
+        }else{
+            telemetry.addLine("Aimbot Off");
         }
+        Robot.turret.updateAimbot(turretOn, true, 0);
         Robot.turret.updateFlywheel();
 
         MecanumDrivetrainClass.robotPose = Robot.drivetrain.follower.getPose();
 
         telemetry.addLine();
-        telemetry.addData("Current Robot Pose", Robot.drivetrain.follower.getPose());
+        telemetry.addData("FarStart", paths.farStart);
+        telemetry.addData("FarShoot", paths.noTurretFarShoot);
         telemetry.update();
     }
 
@@ -122,20 +126,23 @@ public class Auto_Main_ extends NextFTCOpMode {
      * This class serves as a template for all auto programs. </br>
      * The methods runAuto() and ToString() must be overridden for each auto.
      */
-    abstract class Auto{
-        /**
-         * This constructor must be called from the child class using <code>super()</code>
-         * @param startingPose Indicates the starting pose of the robot
-         * @param runTurret Indicates whether to run the turret auto aim functions
-         */
-        Auto(Pose startingPose, Boolean runTurret){
-            turretOn = runTurret;
-            startPose = startingPose;
-        }
-        Auto(Pose startingPose){
-            turretOn = true;
-            startPose = startingPose;
-        }
+    abstract static class Auto{
+//        /**
+//         * This constructor must be called from the child class using <code>super()</code>
+//         * @param startingPose Indicates the starting pose of the robot
+//         * @param runTurret Indicates whether to run the turret auto aim functions
+//         */
+//        Auto(Pose startingPose, Boolean runTurret){
+//            turretOn = runTurret;
+//            startPose = startingPose;
+//        }
+//        Auto(Pose startingPose){
+//            turretOn = true;
+//            startPose = startingPose;
+//        }
+
+        abstract Pose getStartPose();
+        abstract boolean getTurretEnabled();
 
         /** Override this to schedule the auto command*/
         abstract void runAuto();
@@ -144,55 +151,89 @@ public class Auto_Main_ extends NextFTCOpMode {
         @Override
         public abstract String toString();
     }
-    /**
-     * This auto starts at the far zone, shoots it's preloads, </br>
-     * and goes to the leave zone next to the human player zone.
-     */
-    private class Leave_Far_HP extends Auto{
-        Leave_Far_HP(){
-            super(paths.farStart);
+
+    private class Leave_Far_Generic extends Auto{
+        public Pose startPose = paths.farStart;
+        public boolean turretEnabled = false;
+
+        @Override
+        public Pose getStartPose(){
+            return startPose;
+        }
+        @Override
+        public boolean getTurretEnabled(){
+            return turretEnabled;
         }
 
         @Override
         public void runAuto(){
             new SequentialGroup(
+                    Commands.runPath(paths.farStart_to_NoTurret_FarShoot, true, 1),
                     Commands.shootBalls(),
-                    Commands.runPath(paths.farStart_to_farLeave, true, 0.6)
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.farShoot_noTurret_to_farPreload, true, 1),
+                    Commands.setIntakeMode(Intake.intakeMode.OFF)
             ).schedule();
         }
 
         @NonNull
         @Override
-        public String toString(){return "Shoot Far Preloads";}
+        public String toString(){return "Far Zone No Turret Generic";}
     }
-    /**
-     * This auto starts at the near zone, shoots it's preloads, </br>
-     * and goes to the leave pose that is in the launch zone.
-     */
-    private class Leave_Near_Launch extends Auto{
-        Leave_Near_Launch(){
-            super(paths.nearStart, true);
+
+    private class Near_Generic extends Auto{
+        public Pose startPose = paths.nearStart;
+        public boolean turretEnabled = true;
+
+        @Override
+        public Pose getStartPose(){
+            return startPose;
+        }
+        @Override
+        public boolean getTurretEnabled(){
+            return turretEnabled;
         }
 
         @Override
         public void runAuto(){
             new SequentialGroup(
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    new InstantCommand(Commands.setFlywheelState(Turret.flywheelState.ON)),
+                    Commands.runPath(paths.nearStart_to_midShoot, true, 1),
                     Commands.shootBalls(),
-                    Commands.runPath(paths.nearStart_to_nearLeave, true, 0.6)
+                    Commands.setFlywheelState(Turret.flywheelState.ON),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.midShoot_to_nearPreload, true, 1),
+                    Commands.runPath(paths.nearPreload_to_midShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.setFlywheelState(Turret.flywheelState.ON),
+                    Commands.setIntakeMode(Intake.intakeMode.INTAKING),
+                    Commands.runPath(paths.midShoot_to_midPreload, true, 1),
+                    Commands.runPath(paths.midPreload_to_midShoot, true, 1),
+                    Commands.shootBalls(),
+                    Commands.runPath(paths.midShoot_to_nearLeave, true, 1)
             ).schedule();
         }
 
         @NonNull
         @Override
-        public String toString(){return "Shoot Near Preloads";}
+        public String toString(){return "Near Zone No Turret Generic";}
     }
 
     /**
      * This auto starts at the far zone
      */
     private class Complex_Test_Auto extends Auto{
-        Complex_Test_Auto() {
-            super(paths.farStart, true);
+        public Pose startPose = paths.farStart;
+        public boolean turretEnabled = true;
+
+        @Override
+        public Pose getStartPose(){
+            return startPose;
+        }
+        @Override
+        public boolean getTurretEnabled(){
+            return turretEnabled;
         }
 
         @Override
@@ -222,8 +263,16 @@ public class Auto_Main_ extends NextFTCOpMode {
     }
 
     private class test_Auto extends Auto{
-        test_Auto(){
-            super(paths.farStart, false);
+        public Pose startPose = paths.farStart;
+        public boolean turretEnabled = false;
+
+        @Override
+        public Pose getStartPose(){
+            return startPose;
+        }
+        @Override
+        public boolean getTurretEnabled(){
+            return turretEnabled;
         }
 
         @Override

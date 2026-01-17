@@ -69,7 +69,7 @@ public class LoadHardwareClass {
             new Point(48, 0),
             new Point(72, 24)
     );
-    public static PolygonZone NearLaunchZone = new PolygonZone(
+    public static PolygonZone ReallyNearLaunchZoneRed = new PolygonZone(
             new Point(72, 72),
             new Point(144, 144),
             new Point(0, 144)

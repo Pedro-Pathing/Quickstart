@@ -64,8 +64,10 @@ public class Intake {
      */
     public void setMode(intakeMode direction){
         if (direction == intakeMode.INTAKING){
+            //if (!(getTopSensorState() && getBottomSensorState())){
+                belt.setPower(1);
+            //}
             intake.setPower(1);
-            belt.setPower(1);
         }else if (direction == intakeMode.SHOOTING){
             intake.setPower(0);
             belt.setPower(1);
