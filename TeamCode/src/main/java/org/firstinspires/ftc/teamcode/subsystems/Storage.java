@@ -21,7 +21,6 @@ public class Storage implements Subsystem {
     private static boolean pidControlMode = false;
     private static double manualPower = 0;
     private final static MotorEx spin = new MotorEx("motorExp0").brakeMode();
-
     private static DigitalChannel limitSwitch;
     private static NormalizedColorSensor colorSensor;
     private static double startPos = 0;
@@ -29,7 +28,7 @@ public class Storage implements Subsystem {
 
     private static boolean lastState = false;
 
-    public static boolean getManualMode(){
+    public static boolean getManualMode() {
         return manualMode;
     }
 
@@ -56,12 +55,12 @@ public class Storage implements Subsystem {
         controller.setGoal(new KineticState(0));
 
 
-         limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
-         "limitSwitch");
-         limitSwitch.setMode(DigitalChannel.Mode.INPUT);
+        limitSwitch = ActiveOpMode.hardwareMap().get(DigitalChannel.class,
+                "limitSwitch");
+        limitSwitch.setMode(DigitalChannel.Mode.INPUT);
 
-         colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class,
-         "colorSensor");
+        colorSensor = ActiveOpMode.hardwareMap().get(NormalizedColorSensor.class,
+                "colorSensor");
 
     }
 
@@ -74,7 +73,7 @@ public class Storage implements Subsystem {
 
         if (manualMode) {
             spin.setPower(manualPower);
-        } else if (pidControlMode){
+        } else if (pidControlMode) {
 //            double testPower = controller.calculate(spin.getState());
 //            if (Math.abs(testPower) > 0.05) {
 //                spin.setPower(testPower);
@@ -85,19 +84,20 @@ public class Storage implements Subsystem {
 
         // Write Telemetry
         Logger.add("Storage", Logger.Level.DEBUG, "ticks: " + spin.getCurrentPosition());
-        Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode +  "power: " + controller.calculate(spin.getState()));
-        Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode +  "power: " + manualPower);
+        Logger.add("Storage", Logger.Level.DEBUG, "pid?" + pidControlMode + "power: " + controller.calculate(spin.getState()));
+        Logger.add("Storage", Logger.Level.DEBUG, "manual?" + manualMode + "power: " + manualPower);
         Logger.add("Storage", Logger.Level.DEBUG, "limit switch" + limitSwitch.getState());
-        Logger.add("Storage", Logger.Level.DEBUG, "test");
         Logger.add("Storage", Logger.Level.DEBUG, "Color: " + getColor().red + ", " + getColor().green + ", " + getColor().blue);
     }
 
     public static Command setManualPowerCommand(double newPower) {
         return new InstantCommand(() -> setManualPower(newPower));
     }
+
     public static Command setManualModeCommand(boolean newMode) {
         return new InstantCommand(() -> setManualMode(newMode));
     }
+
     public static Command setPIDMode(boolean newMode) {
         return new InstantCommand(() -> setPidControlMode(newMode));
     }
@@ -105,8 +105,6 @@ public class Storage implements Subsystem {
     public static Command resetEncoderCommand() {
         return new InstantCommand(Storage::resetEncoder);
     }
-
-
 
     public static Command spinToNextIntakeIndex() {
         return new LambdaCommand()
@@ -124,7 +122,8 @@ public class Storage implements Subsystem {
                     controller.setGoal(new KineticState(nextPos));
                 })
                 .setIsDone(() -> true)
-                .setStop(interrupted -> {})
+                .setStop(interrupted -> {
+                })
                 .requires(Storage.INSTANCE)
                 .setInterruptible(true)
                 .named("Spin to next index");
@@ -157,50 +156,18 @@ public class Storage implements Subsystem {
                 .setInterruptible(true)
                 .named("Spin to next index");
     }
-
-//    public static Command spinToNextIntakeIndex() {
-//        return new LambdaCommand()
-//                .setStart(() -> {
-//                    manualMode = false;
-//                    pidControlMode = true;
-//                    startPos = spin.getCurrentPosition() + 10;
-//                    double nextPos = startPos + (TICKS - (startPos % TICKS));
-//                    controller.setGoal(new KineticState(nextPos));
-//                })
-//                .setIsDone(() -> true)
-//                .setStop(interrupted -> {})
-//                .requires(Storage.INSTANCE)
-//                .setInterruptible(true)
-//                .named("Spin to next index");
-//    }
-//    public static Command spinToNextOuttakeIndex() {
-//        return new LambdaCommand()
-//                .setStart(() -> {
-//                    manualMode = false;
-//                    pidControlMode = true;
-//                    startPos = spin.getCurrentPosition() - 10;
-//                    double ticksToMove = TICKS/2.0 - startPos % TICKS;
-//                    if (ticksToMove >= 0) {
-//                        ticksToMove -= TICKS;
-//                    }
-//                    double nextPos = startPos + ticksToMove;
-//                    controller.setGoal(new KineticState(nextPos));})
-//                .setIsDone(() -> true)
-//                .setStop(interrupted -> {
-//                })
-//                .requires(Storage.INSTANCE)
-//                .setInterruptible(true)
-//                .named("Spin to next index");
-//    }
     private static void setManualPower(double newPower) {
         manualPower = newPower;
     }
+
     private static void setPidControlMode(boolean newBoolean) {
         pidControlMode = newBoolean;
     }
+
     private static void setManualMode(boolean newMode) {
         manualMode = newMode;
     }
+
     private static void resetEncoder() {
         spin.zero();
         controller.setGoal(new KineticState(0));
@@ -214,7 +181,6 @@ public class Storage implements Subsystem {
     public static Command resetEncoderAtOuttakeCommand() {
         return new InstantCommand(Storage::resetEncoderAtOuttake);
     }
-
 
 
     public static NormalizedRGBA getColor() {
@@ -249,117 +215,4 @@ public class Storage implements Subsystem {
         lastState = currentState;
         return justPressed;
     }
-
-//
-//    public static Command prioritySpin(int targetIndex) {
-//        return new LambdaCommand()
-//                .setStart(() -> {
-//                    manualMode = false;
-//                    runPower = .6;
-//                })
-//                .setIsDone(() -> index == targetIndex)
-//                .setStop(interrupted -> {
-//                    runPower = 0;
-//                    manualPower = 0;
-//                    manualMode = true;
-//                })
-//                .requires(Storage.INSTANCE)
-//                .setInterruptible(false)
-//                .named("Priority Spin → " + targetIndex);
-//    }
-//
-//    public static Command lazySpin(int targetIndex) {
-//        return new LambdaCommand()
-//                .setStart(() -> {
-//                    manualMode = false;
-//                    runPower = .6;
-//                })
-//                .setIsDone(() -> index == targetIndex)
-//                .setStop(interrupted -> {
-//                    if (!interrupted) {
-//                        runPower = 0;
-//                        manualPower = 0;
-//                        manualMode = true;
-//                    }
-//                })
-//                .requires(Storage.INSTANCE)
-//                .setInterruptible(true)
-//                .named("Lazy Spin → " + targetIndex);
-//    }
-//
-//    public static Command spinToState(State targetState) {
-//        int targetIndex = -1;
-//        for (int i = 0; i < STATES.length; i++) {
-//            if (STATES[i] == targetState) {
-//                targetIndex = i;
-//                break;
-//            }
-//        }
-//        if (targetIndex == -1) {
-//            return new NullCommand();
-//        }
-//        return prioritySpin(targetIndex);
-//    }
-//
-//    public static Command reIndex() {
-//
-//        Command[] steps = new Command[STATES.length * 2];
-//        int cmdIndex = 0;
-//
-//        for (int i = 0; i < STATES.length; i++) {
-//            final int target = i;
-//
-//            steps[cmdIndex++] = prioritySpin(target);
-//
-//            steps[cmdIndex++] = new LambdaCommand()
-//                    .setStart(() -> STATES[target] = readColor())
-//                    .setIsDone(() -> true)
-//                    .named("read color at " + target);
-//        }
-//
-//        return new SequentialGroup(steps)
-//                .named("reIndex");
-//    }
-//
-//    public static Command clearCurrentIndex() {
-//        return new LambdaCommand()
-//                .setStart(() -> STATES[index] = State.NONE)
-//                .setIsDone(() -> true)
-//                .named("clear current index");
-//    }
-//
-//    public static Command clearIndexState(int targetIndex) {
-//        return new LambdaCommand()
-//                .setStart(() -> STATES[targetIndex] = State.NONE)
-//                .setIsDone(() -> true)
-//                .named("clear state of " + targetIndex);
-//    }
-//
-//    public static Command resetIndexStates() {
-//
-//        Command[] clears = new Command[STATES.length];
-//
-//        for (int i = 0; i < STATES.length; i++) {
-//            clears[i] = clearIndexState(i);
-//        }
-//        return new SequentialGroup(clears)
-//                .named("reset index states");
-//    }
-
-
-//    public static Command spinForwardTicks(int ticks) {
-//        return new LambdaCommand()
-//                .setStart(() -> {
-//                    manualMode = false;
-//                    pidControlMode = true;
-//                    startPos = spin.getCurrentPosition();
-//                    controller.setGoal(new KineticState(startPos + ticks));
-//                })
-//                .setUpdate(() -> {})
-//                .setIsDone(() -> manualMode)
-//                .setStop(interrupted -> {})
-//                .requires(Storage.INSTANCE)
-//                .setInterruptible(false)
-//                .named("Spin Forward " + ticks + " Ticks");
-//    }
 }
