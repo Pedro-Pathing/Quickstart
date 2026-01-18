@@ -10,8 +10,7 @@ public class Robot extends SubsystemGroup {
         return currentAlliance;
     }
 
-    public static Robot.Alliance currentAlliance = Robot.Alliance.RED;
-
+    public static Robot.Alliance currentAlliance = Robot.Alliance.BLUE;
 
     public enum Alliance {
         RED,
