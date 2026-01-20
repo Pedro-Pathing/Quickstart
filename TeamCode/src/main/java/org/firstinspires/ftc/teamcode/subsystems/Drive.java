@@ -22,7 +22,6 @@ public class Drive implements Subsystem {
     private static final double slowModeMultiplier = 0.2;
     private static final boolean robotCentric = false;
 
-
     @Override
     public void initialize() {
         follower = Constants.createFollower(ActiveOpMode.hardwareMap());

@@ -10,9 +10,6 @@ public class Robot extends SubsystemGroup {
     public static final Robot INSTANCE = new Robot();
     private static final double DELAY = 0.5;
 
-
-
-
     private Robot() {
         super(
                 Intake.INSTANCE,

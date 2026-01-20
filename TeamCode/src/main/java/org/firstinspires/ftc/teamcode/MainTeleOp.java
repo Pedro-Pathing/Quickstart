@@ -47,6 +47,56 @@ public class MainTeleOp extends NextFTCOpMode {
         GamepadEx gamepad1 = Gamepads.gamepad1();
         GamepadEx gamepad2 = Gamepads.gamepad2();
 
+        gamepad1.x()
+                .whenBecomesTrue(() -> Outtake.on.schedule())
+                .whenBecomesFalse(() -> Outtake.off.schedule());
+        gamepad1.y()
+                .whenBecomesTrue(() -> Transitions.on().schedule())
+                .whenBecomesFalse(() -> Transitions.off().schedule());
+
+        gamepad1.rightBumper()
+                .whenBecomesTrue(() -> Intake.on().schedule())
+                .whenBecomesFalse(() -> Intake.off().schedule());
+
+        gamepad1.dpadDown()
+                .whenTrue(() -> Storage.spinToNextIntakeIndex().schedule());
+
+        gamepad1.dpadUp()
+                .whenTrue(() -> Storage.spinToNextOuttakeIndex().schedule());
+
+        gamepad1.dpadRight()
+                .whenTrue(() -> Robot.outtakeAll.schedule());
+
+        gamepad1.dpadLeft()
+                .whenTrue(() -> Robot.outtakeOne.schedule());
+
+        gamepad2.a()
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.075).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(false).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+        gamepad2.b()
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.5).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(false).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
+        gamepad2.y()
+                .whenBecomesTrue(() -> {
+                    Storage.setManualModeCommand(true).schedule();
+                    Storage.setManualPowerCommand(0.2).schedule();
+                })
+                .whenBecomesFalse(() -> {
+                    Storage.setManualModeCommand(false).schedule();
+                    Storage.setManualPowerCommand(0).schedule();
+                });
     }
     @Override public void onUpdate() {
         for (String cname : CommandManager.INSTANCE.snapshot()) {
