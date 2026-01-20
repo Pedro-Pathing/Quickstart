@@ -11,8 +11,9 @@ public class Intake implements Subsystem {
 
     public static final Intake INSTANCE = new Intake();
     private static double intakePower = 0;
-
-    private MotorEx intake = new MotorEx("motorExp2");
+    private final static double FORWARD_POWER = 1;
+    private final static double REVERSE_POWER = -1;
+    private final MotorEx intake = new MotorEx("motor3");
 
     @Override
     public void initialize() {
@@ -21,7 +22,17 @@ public class Intake implements Subsystem {
     @Override
     public void periodic() {
         intake.setPower(intakePower);
-        Logger.add("Intake", Logger.Level.DEBUG, "power: " + intakePower);
+        Logger.add("Intake", "power: " + intakePower);
+    }
+
+    public static Command on() {
+        return new InstantCommand(setIntakePowerCommand(FORWARD_POWER));
+    }
+    public static Command reverse() {
+        return new InstantCommand(setIntakePowerCommand(REVERSE_POWER));
+    }
+    public static Command off() {
+        return new InstantCommand(setIntakePowerCommand(0));
     }
 
     private static void setIntakePower(double newPower) {

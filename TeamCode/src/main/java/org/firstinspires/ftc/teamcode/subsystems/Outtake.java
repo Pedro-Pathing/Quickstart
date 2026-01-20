@@ -1,68 +1,94 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.utils.Logger;
-
+import dev.nextftc.control.KineticState;
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
-import dev.nextftc.ftc.ActiveOpMode;
-import dev.nextftc.hardware.controllable.RunToVelocity;
 import dev.nextftc.hardware.impl.MotorEx;
+import org.firstinspires.ftc.teamcode.utils.Logger;
 
 public class Outtake implements Subsystem {
 
     public static final Outtake INSTANCE = new Outtake();
-    private static final MotorEx outtake = new MotorEx("motorExp3").reversed().floatMode();
-    private Servo outtakeServo;
-    private static boolean runDown = false;
-
+    private static final MotorEx outtake = new MotorEx("motorExp2").reversed().floatMode();
+    private static Servo hoodServo;
+    private static Servo traverseServo;
+    private static final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
+    private static double targetVelocity = 2300;
+    private static double currentVelocity = 0;
+    private static double manualPower = 0;
+    private static boolean velocityMode = false;
+    private static boolean manualMode = false;
+    /*
+    TODO: retune these values
+     ks -> minimum for movement; kV -> choose a velocity, minimum to reach that movement;
+     kP until reaches other velocites
+     */
     private static final ControlSystem controller = ControlSystem.builder()
-            .velPid(0.0375, 0, 0)
-            .basicFF(0.00030, 0, 0.075)
+            .velPid(0.045, 0, 0)
+            .basicFF(0.0005, 0, 0.1)
             .build();
-    public static Command off = new RunToVelocity(controller, 0.0).requires(INSTANCE).named("FlywheelOff");
-    public static Command on = new RunToVelocity(controller, 2100).requires(INSTANCE).named("FlywheelOn");
 
-    private static void setRunDown(boolean newBoolean) {
-        runDown = newBoolean;
+    public static Command off = new InstantCommand(() -> {
+        velocityMode = false;
+        manualMode = false;
+    });
+    public static Command on = new InstantCommand(() -> {
+        manualMode = false;
+        velocityMode = true;
+    });
+
+    public static Command setOuttakeManualPowerCommand(double newPower) {
+        return new InstantCommand(() -> setManualPower(newPower));
     }
 
-    public static Command setRunDownCommand(boolean newBoolean) {
-        return new InstantCommand(() -> setRunDown(newBoolean));
-    }
-
-    private static double outtakePower = 0;
-
-    private static void setOuttakePower(double newPower) {
-        outtake.setPower(newPower);
-    }
-
-    public static Command setOuttakePowerCommand(double newPower) {
-        return new InstantCommand(() -> setOuttakePower(newPower));
+    public static Command setOuttakeManualModeCommand(boolean newMode) {
+        return new InstantCommand(() -> setManualMode(newMode));
     }
 
     @Override
     public void initialize() {
-        outtakeServo = ActiveOpMode.hardwareMap().servo.get("servo5");
-        setRunDownCommand(true).schedule();
+        manualMode = false;
+        velocityMode = false;
+        manualPower = 0;
     }
+
     @Override
     public void periodic() {
-        outtakeServo.setPosition(0);
-        //outtake.setPower(outtakePower);
-        double testPower = controller.calculate(outtake.getState());
-        Logger.add("Outtake", Logger.Level.DEBUG, "velocity: " + outtake.getVelocity() + "power: " + testPower );
-        if (runDown) {
-            outtake.setPower(0);
+        currentVelocity = outtake.getVelocity();
+
+        if (manualMode) {
+            outtake.setPower(manualPower);
+        } else if (velocityMode){
+            controller.setGoal(new KineticState(0, targetVelocity));
+            double velocityPower = controller.calculate(new KineticState(0, currentVelocity));
+
+            outtake.setPower(velocityPower);
         } else {
-            if (Math.abs(testPower) > 0.05){
-                outtake.setPower(testPower);
-            } else {
-                outtake.setPower(0);
-            }
+            outtake.setPower(0);
         }
+
+        Logger.panelsLog("velo", currentVelocity);
+        Logger.panelsLog("power", outtake.getPower());
+    }
+
+    public static boolean reachedTargetVelocity(){
+        return outtake.getVelocity() > targetVelocity;
+    }
+
+    public static void setTargetVelocity(double newTargetVelocity){
+        Outtake.targetVelocity = newTargetVelocity;
+    }
+
+    public static void setManualMode(boolean newMode){
+        manualMode = newMode;
+    }
+
+    public static void setManualPower(double newPower){
+        manualPower = newPower;
     }
 }
