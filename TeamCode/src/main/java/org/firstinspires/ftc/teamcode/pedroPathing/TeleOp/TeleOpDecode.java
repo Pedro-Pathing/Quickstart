@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManagerTeleop;
+import org.firstinspires.ftc.teamcode.pedroPathing.navigation.GlobalStartingPose;
 
 import java.util.function.Supplier;
 
@@ -61,6 +62,7 @@ public class TeleOpDecode extends OpMode {
     @Override
     public void init() {
 
+
         tourelle = new SpinTurret();
         tourelle.init(hardwareMap);
 
@@ -89,15 +91,18 @@ public class TeleOpDecode extends OpMode {
         ;
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        Pose startingPose = GlobalStartingPose.pose;
+        follower.setStartingPose(startingPose == null ? new Pose(
+
+        ) : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         tireurManager = new TireurManagerTeleop(shooter, tourelle, ServoAngleShoot, servoTireur, indexeur, intake, afficheurRight);
         ;
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
-                .addPath(new Path(new BezierLine(follower::getPose, new Pose(60, 86))))
-                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(55, 81))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(180), 0.8))
                 .build();
     }
 
@@ -154,7 +159,7 @@ public class TeleOpDecode extends OpMode {
             if (Math.abs(lx) < 0.05) lx = 0;
             if (Math.abs(rx) < 0.05) rx = 0;
 
-        // BOOST tenu au bumper droit
+        // BOOST avec au bumper droit
             boolean boost = gamepad1.right_bumper;
             double mult = boost ? BOOST_MULT : SLOW_MULT;
 
@@ -197,30 +202,31 @@ public class TeleOpDecode extends OpMode {
 
         int shotsMode = (gamepad2.left_bumper ? 1 : 3);
 
-        // RB (g2) : position fréquente de tir & en autonome
+        // RB (g2) : position fréquente de tir & en autonome Position 4 tres éloigné
         if (gamepad2.right_bumper && !lastrightbumper) {
-                fireIfReady(0.35, 4000, shotsMode);
+                fireIfReady(0.35, 4400, shotsMode);
             }
             lastrightbumper = gamepad2.right_bumper;
 
-        // Y : très proche du goal dans zone proche
+        // Y : Position 3
         if (gamepad2.yWasPressed()) {
-                fireIfReady(0.12, 3500, shotsMode);}
+                fireIfReady(0.42, 4200, shotsMode);}
 
-        // B : intermédiaire
+        // B : Position 2 proche
         if (gamepad2.bWasPressed()) {
-                fireIfReady(0.28, 3800, shotsMode);
+                fireIfReady(0.30, 3970, shotsMode);
+            }
+
+        // A : Position 1 tres proche
+            if (gamepad2.aWasPressed()) {
+                fireIfReady(0.17, 3750, shotsMode);
             }
 
         // X : longue distance 1
         if (gamepad2.xWasPressed()) {
-                fireIfReady(0.38, 4100, shotsMode);
+                fireIfReady(0.1, 3700, shotsMode);
             }
 
-        // A : longue distance 2 (RPM plus haut)
-        if (gamepad2.aWasPressed()) {
-                fireIfReady(0.38, 4700, shotsMode);
-            }
         intake.update();
         indexeur.update();
         tireurManager.update();

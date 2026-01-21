@@ -90,8 +90,9 @@ public class Intake {
             case IDLE:
                 setIntakeBallTargetRPM(0);
                 if (ballcomptage == 0) {
+                    if (indexeur.isHomingDone()){
                     statetimer.reset();
-                    intakeState = Intakeetat.RAMASSAGE;
+                    intakeState = Intakeetat.RAMASSAGE;}
                 }
                 break;
             case ARRET_POUR_TIR:
@@ -104,6 +105,7 @@ public class Intake {
 
                 //
                 setIntakeBallTargetRPM(intake_fast);
+                afficheurLeft.setRouge();
 
                 // --- Mise à jour des variables ---
                 rpm = IntakeBall.getVelocity() * 60 / TICKS_PER_REV_6000;
@@ -115,6 +117,7 @@ public class Intake {
 
                 if (ballcomptage == 3) {
                     intakeState = Intakeetat.IDLE;
+                    afficheurLeft.setVert();
                     break;
                 }
 

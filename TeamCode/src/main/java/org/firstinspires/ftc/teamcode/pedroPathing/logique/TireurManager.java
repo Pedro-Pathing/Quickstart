@@ -96,13 +96,25 @@ public class TireurManager {
                         return;
                     }
                     if (indexeur.isHomingDone()) {
-                        state = TirState.TURRET_POSITION;
+                        state = TirState.ANGLE_POSITION;
                         timer.reset();
                     }
                 }
                 else { state = TirState.IDLE;
                     shooter.setShooterTargetRPM(0);}
                 break;
+
+            case ANGLE_POSITION:
+                shooter.setShooterTargetRPM(vitesseCibleShooter);
+                ServoAngleShoot.setAngle(angleCibleShooter);
+                //timer.reset();
+
+                if (ServoAngleShoot.isAtAngle(angleCibleShooter)) {
+                    timer.reset();
+                    state = TirState.TURRET_POSITION;
+                }
+                break;
+
 
             // --- 2) Positionnement tourelle ---
             case TURRET_POSITION:
@@ -111,21 +123,12 @@ public class TireurManager {
 
                 if (tourelle.isAtAngle(angleCibleTourelle)) {
                     timer.reset();
-                    state = TirState.ANGLE_POSITION;
+                    state = TirState.SERVO_PUSH;
                 }
                 break;
 
             // --- 3) Positionnement angle shooter ---
-            case ANGLE_POSITION:
-                shooter.setShooterTargetRPM(vitesseCibleShooter);
-                ServoAngleShoot.setAngle(angleCibleShooter);
-                //timer.reset();
 
-                if (ServoAngleShoot.isAtAngle(angleCibleShooter)) {
-                    timer.reset();
-                    state = TirState.SERVO_PUSH;
-                }
-                break;
 
             // --- 4) Pousser la balle ---
             case SERVO_PUSH:

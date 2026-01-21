@@ -75,11 +75,11 @@ public class SpinTurret {
     }
     public void rotationtourelle(double power) {
         // Limitation de la puissance maximale
-        double maxPower = 0.25; // valeur maximale autorisée
+        double maxPower = 0.10; // valeur maximale autorisée
         power = Math.max(-maxPower, Math.min(power, maxPower)); // clamp entre -1 et +1
 
         double angletourelle = lectureangletourelle();
-        if ((angletourelle >= 50 && power < 0) || (angletourelle <= -50 && power > 0)) {
+        if ((angletourelle >= 62 && power < 0) || (angletourelle <= -62 && power > 0)) {
             SpinTourelle.setPower(0);
         } else {
             SpinTourelle.setPower(power);
@@ -98,16 +98,16 @@ public class SpinTurret {
             power = 0.0;  // STOP
         }
         // 2) Zone proche : on bouge lentement mais avec un minimum
-        else if (absErr < 20.0) {
-            double minPower = 0.10; //
+        else if (absErr < 10.0) {
+            double minPower = 0.1; //
             power = Math.signum(erreur) * minPower;
         }
         // 3) Zone lointaine : proportionnel normal
         else {
-            double kP = 0.10;
+            double kP = 0.05;
             power = kP * erreur;
 
-            power = Math.max(-0.3, Math.min(power, 0.3));
+            power = Math.max(-0.11, Math.min(power, 0.11));
         }
 
         SpinTourelle.setPower(power);
