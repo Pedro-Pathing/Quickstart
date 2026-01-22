@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   disable:
+    if: github.repository == 'Pedro-Pathing/Quickstart'
     runs-on: ubuntu-latest
     steps:
       - name: Disable automatic reopen
