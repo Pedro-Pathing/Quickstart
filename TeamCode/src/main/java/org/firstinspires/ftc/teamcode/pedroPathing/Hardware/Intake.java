@@ -47,7 +47,7 @@ public class Intake {
 
     private final int tempsblocage = 200;
     private final double CHUTE_RPM = 0.85;
-    private final float SEUIL_LUM_INDEXEUR = 0.0700f;
+    private final float SEUIL_LUM_INDEXEUR = 0.0800f;
     private final float LUM_Indexeursansballes = 0.0577f;
 
     private Indexeur indexeur;
@@ -74,22 +74,16 @@ public class Intake {
     public void update() {
 
         int ballcomptage = indexeur.getBalles();
-        boolean intakeEnMarche = (intakeState == Intakeetat.RAMASSAGE);
-        if (intakeEnMarche) {
-            afficheurLeft.setClignoteOrange();
-        } else {
-            afficheurLeft.setIdle();
-        }
-
-        afficheurLeft.update();
-
-
 
         switch (intakeState) {
 
             case IDLE:
+                afficheurLeft.setIdle();
+                afficheurLeft.update();
+
                 setIntakeBallTargetRPM(0);
                 if (ballcomptage == 0) {
+                    afficheurLeft.setVert();
                     if (indexeur.isHomingDone()){
                     statetimer.reset();
                     intakeState = Intakeetat.RAMASSAGE;}
@@ -105,8 +99,6 @@ public class Intake {
 
                 //
                 setIntakeBallTargetRPM(intake_fast);
-                afficheurLeft.setRouge();
-
                 // --- Mise à jour des variables ---
                 rpm = IntakeBall.getVelocity() * 60 / TICKS_PER_REV_6000;
                 lumIndexeur = ColorIndexeur.getNormalizedColors().alpha;
@@ -117,7 +109,6 @@ public class Intake {
 
                 if (ballcomptage == 3) {
                     intakeState = Intakeetat.IDLE;
-                    afficheurLeft.setVert();
                     break;
                 }
 
@@ -142,6 +133,7 @@ public class Intake {
 
             case EJECTION:
                 setIntakeBallTargetRPM(intake_reverse);
+                afficheurLeft.setOrange();
                 if (statetimer.milliseconds() > 400) {
                     //if (ballcomptage == 3) {
                     //    intakeState = Intakeetat.IDLE;
@@ -183,6 +175,7 @@ public class Intake {
     public double getCapteurDistance() { return distSensorIndexeur.getDistance(DistanceUnit.MM);}
     public boolean getBalleDetectee() { return score >= 2; }
     public boolean isIdle() { return intakeState == Intakeetat.IDLE; }
+
 
 
 

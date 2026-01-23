@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -11,24 +12,22 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
-
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManagerTeleop;
-import org.firstinspires.ftc.teamcode.pedroPathing.navigation.GlobalPoseStorage;
 
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp (name="TeleOp Competiton Bleu pos fixe", group="Competition")
-public class TeleOpDecode extends OpMode {
+@TeleOp (name="TeleOp Competiton Bleu pos enregist", group="Competition")
+public class TeleOpDecodeSensenregistre extends OpMode {
     private Follower follower;
     public static Pose startingPose; //See ExampleAuto to understand how to use this
     private boolean automatedDrive;
@@ -92,19 +91,14 @@ public class TeleOpDecode extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
 
-        follower.setStartingPose(new Pose((55), 81, Math.toRadians(0)));
-        follower.update();
-
-        Pose p = follower.getPose();
-
-        telemetry.addData("POSE Pedro", p);
-        telemetry.update();
-
-
-
-
-        //follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        //follower.setStartingPose(new Pose((55), 81, Math.toRadians(0)));
         //follower.update();
+
+
+
+        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        follower.update();
+        Pose p = follower.getPose();
 
         // 1. Injecter l'IMU
         //double imuHeading = follower.getHeading();     // ex: 0 rad
@@ -179,8 +173,8 @@ public class TeleOpDecode extends OpMode {
 
         // Lecture des sticks
             double ly = -gamepad1.left_stick_y;
-            double lx = -gamepad1.left_stick_x;
-            double rx = -gamepad1.right_stick_x;
+            double lx = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
 
         // Deadband
             if (Math.abs(ly) < 0.05) ly = 0;
@@ -251,20 +245,21 @@ public class TeleOpDecode extends OpMode {
                 fireIfReady(0.17, 3750, shotsMode);
             }
 
-        // X : collé au mur 1
+        // X : longue distance 1
         if (gamepad2.xWasPressed()) {
                 fireIfReady(0.1, 3700, shotsMode);
             }
-        // Pad tir de loin
-        if (gamepad2.dpadUpWasPressed()){
-            fireIfReady(0.5, 4770, shotsMode);
+
+
+            // Pad tir de loin
+            if (gamepad2.dpadUpWasPressed()){
+                fireIfReady(0.5, 4770, shotsMode);
             }
 
-        //tir tres eloigné.
-        if (gamepad2.dpadDownWasPressed()){
+            //tir tres eloigné.
+            if (gamepad2.dpadDownWasPressed()){
                 fireIfReady(0.5, 4900, shotsMode);
             }
-
         intake.update();
         indexeur.update();
         tireurManager.update();

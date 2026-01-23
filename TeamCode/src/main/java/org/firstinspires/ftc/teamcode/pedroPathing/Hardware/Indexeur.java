@@ -18,7 +18,7 @@ public class Indexeur {
     // Timer d'erreur (temps passé avec une erreur >= tolérance)
     private final ElapsedTime erreurTimer = new ElapsedTime();
     // Durée max erreur avant fin (avancerrapide)
-    private static final double ERREUR_TIMEOUT_S = 1.0; // 1 à 2 secondes
+    private static final double ERREUR_TIMEOUT_S = 2.0; // 1 à 2 secondes
     private boolean rotationPourTir = false;
     private String capteurDetecteur = "Aucun";   // "Left", "Right", "Fusion"
     private float hueDetectee = -1;              // Hue retenue
@@ -80,6 +80,8 @@ public class Indexeur {
     private Indexeuretat IndexeurState = Indexeuretat.IDLE;
     private ElapsedTime timeretat = new ElapsedTime();
     private ElapsedTime indexeurtimer = new ElapsedTime();
+
+    private ElapsedTime bourragetimer = new ElapsedTime();
     private int SEUIL_MMDETECTION = 5; //seuil detection capteur distance
 
     private String[] couleurBalleDansCompartiment = new String[COMPARTIMENTS];
@@ -301,7 +303,7 @@ public class Indexeur {
 
         // --- Gestion de la vitesse progressive ---
         if (erreur > 300) {
-            indexeur.setPower(0.95);   // loin de la cible → rapide
+            indexeur.setPower(0.8);   // loin de la cible → rapide
         } else {
             indexeur.setPower(0.5);   // proche de la cible → lent
         }
@@ -352,28 +354,23 @@ public class Indexeur {
         rotationPourTir = false;
         rotationEnCours = false;
 
-        IndexeurState = finParTimerErreur ? Indexeuretat.IDLE : Indexeuretat.IDLE; //Retrait Bourrage
+        IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE: Indexeuretat.IDLE; //Retrait Bourrage
     }
 
 
 
     public void reculerIndexeurbourrage() {
-            //int positionbourrage = indexeur.getCurrentPosition();
-            //int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
-            //int target = positionbourrage - delta;
-            //indexeur.setTargetPosition(target);
-            indexeur.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            // Power ceiling controls max speed in
-            //indexeur.setPower(0.2); // augmente si besoin, attention au couple, pas besoin de mettre puissance negative car calcul auto }
-            //int erreur = Math.abs(target - indexeur.getCurrentPosition());
-            //if (erreur < 15) { // tolérance de 15 ticks // Stop net
-            //    indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            //    indexeur.setPower(0);
-
+            int positionbourrage = indexeur.getCurrentPosition();
+            int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
+            int target = positionbourrage - delta;
             indexeur.setPower(-0.2);
-
-            }
-
+            if (bourragetimer.milliseconds() > 400) {
+                IndexeurState = Indexeuretat.HOMING;}
+                //if (ballcomptage == 3) {
+            //    intakeState = Intakeetat.IDLE;
+            //} else {
+                bourragetimer.reset();
+             }
 
     public boolean avanceTerminee() {
         boolean blocage = indexeur.isBusy() && Math.abs(indexeur.getVelocity()) < 10;

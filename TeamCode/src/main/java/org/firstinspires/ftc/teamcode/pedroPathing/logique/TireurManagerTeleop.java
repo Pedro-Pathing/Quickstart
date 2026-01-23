@@ -105,7 +105,7 @@ public class TireurManagerTeleop {
             case ANGLE_POSITION:
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
                 ServoAngleShoot.setAngle(angleCibleShooter);
-                afficheurRight.setJaune();
+                //afficheurRight.setJaune();
 
                 if (ServoAngleShoot.isAtAngle(angleCibleShooter)) {
                     timer.reset();
@@ -115,9 +115,9 @@ public class TireurManagerTeleop {
 
             case SHOOTER_SPINUP:
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
-                double toleranceVelocityMax = 1.05 * vitesseCibleShooter;
-                double toleranceVelocityMin = 0.95 * vitesseCibleShooter;
-                if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax)){;
+                double toleranceVelocityMax = 1.017 * vitesseCibleShooter;
+                double toleranceVelocityMin = 0.99 * vitesseCibleShooter;
+                if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax) && !indexeur.isindexeurBusy()){;
                     timer.reset();
                     state = TirState.SERVO_PUSH;
                 };
@@ -154,7 +154,7 @@ public class TireurManagerTeleop {
             // --- 6) Attendre fin rotation indexeur ---
             case INDEX_ADVANCE:
                 if (shotsRemaining == 0) {
-                    afficheurRight.setIdle();
+                    afficheurRight.setRouge();
                     shooter.setShooterTargetRPM(0);
                     intake.repriseApresTir();
                     state = TirState.IDLE;

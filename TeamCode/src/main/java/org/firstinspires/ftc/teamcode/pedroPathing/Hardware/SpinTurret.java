@@ -75,7 +75,7 @@ public class SpinTurret {
     }
     public void rotationtourelle(double power) {
         // Limitation de la puissance maximale
-        double maxPower = 0.10; // valeur maximale autorisée
+        double maxPower = 0.12; // valeur maximale autorisée
         power = Math.max(-maxPower, Math.min(power, maxPower)); // clamp entre -1 et +1
 
         double angletourelle = lectureangletourelle();
