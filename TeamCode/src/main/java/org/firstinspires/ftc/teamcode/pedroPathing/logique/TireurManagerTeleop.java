@@ -73,9 +73,9 @@ public class TireurManagerTeleop {
 
         boolean tirActif = (state != TirState.IDLE);
         if (tirActif) {
-            afficheurRight.setClignoteVert();
+            //afficheurRight.setClignoteVert();
         } else {
-            afficheurRight.setIdle();
+            //afficheurRight.setIdle();
         }
 
         afficheurRight.update();
@@ -88,7 +88,7 @@ public class TireurManagerTeleop {
             // --- 4) Pousser la balle ---
 
             case AVANCE1TIR:
-                afficheurRight.setRouge();
+                //afficheurRight.setRouge();
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
                 if (!indexeur.isHomingDone()) {
                     indexeur.lancerHoming();
@@ -124,14 +124,14 @@ public class TireurManagerTeleop {
                 break;
 
             case SERVO_PUSH:
-                afficheurRight.setVert();
+                //afficheurRight.setVert();
                 if (!indexeur.isHomingDone()) {
                     indexeur.lancerHoming();
                     return;
                 }
                 if (indexeur.isHomingDone()) {
                     servoTireur.push();
-                    if (timer.milliseconds() > 300) {
+                    if (timer.milliseconds() > 320) {
                         timer.reset();
 
                         indexeur.decrementerBalle();
@@ -143,7 +143,7 @@ public class TireurManagerTeleop {
             // --- 5) Rétracter le servo ---
             case SERVO_RETRACT:
                 servoTireur.retract();
-                if (timer.milliseconds() > 300) {
+                if (timer.milliseconds() > 320) {
                     timer.reset();
                     shotsRemaining--; // retrait d'un tir
                     tirsEffectues++;
@@ -154,7 +154,7 @@ public class TireurManagerTeleop {
             // --- 6) Attendre fin rotation indexeur ---
             case INDEX_ADVANCE:
                 if (shotsRemaining == 0) {
-                    afficheurRight.setRouge();
+                    //afficheurRight.setRouge();
                     shooter.setShooterTargetRPM(0);
                     intake.repriseApresTir();
                     state = TirState.IDLE;

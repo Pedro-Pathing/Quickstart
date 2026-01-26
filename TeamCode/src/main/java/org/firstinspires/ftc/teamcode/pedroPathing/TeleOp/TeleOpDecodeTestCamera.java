@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.TeleOp;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -11,24 +12,27 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AngleShooter;
-import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Indexeur;
-
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManagerTeleop;
-import org.firstinspires.ftc.teamcode.pedroPathing.navigation.GlobalPoseStorage;
+import org.firstinspires.ftc.teamcode.pedroPathing.navigation.Camerahusky;
 
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp (name="TeleOp Competiton Bleu pos fixe", group="Competition")
-public class TeleOpDecode extends OpMode {
+@TeleOp (name="TeleOp Competiton Bleu test Camera", group="Competition")
+public class TeleOpDecodeTestCamera extends OpMode {
+    Camerahusky Camera = new Camerahusky();
+    private double ajustementcamera = 1.5; //valeur d'ajustement caméra (erreur) a changer si probleme
+
     private Follower follower;
     public static Pose startingPose; //See ExampleAuto to understand how to use this
     private boolean automatedDrive;
@@ -53,6 +57,9 @@ public class TeleOpDecode extends OpMode {
     private boolean lastrightbumper = false ;
 
     private boolean lastleftbumpergamepad1 = false;
+
+    private double distanceCamerajustee = 0.0 ;
+    private double distanceCameramesuree = 0.0 ;
 
     private static final double SLOW_MULT = 0.35; // vitesse par défaut (lent)
     private static final double BOOST_MULT = 1.0; // plein régime quand on appuie
@@ -89,7 +96,12 @@ public class TeleOpDecode extends OpMode {
         servoTireur = new ServoTireur(indexeur);  // ✔️ constructeur correct
         servoTireur.init(hardwareMap);            // ✔️ initialisation du servo
         ;
-
+        Camera.init(hardwareMap);
+        if (!Camera.isConnected()){
+            telemetry.addData(">>>", "probleme communication caméra");}
+        else {
+            telemetry.addData(">>>","HuskyLens Prêt");
+        }
         follower = Constants.createFollower(hardwareMap);
 
         follower.setStartingPose(new Pose((55), 81, Math.toRadians(0)));
@@ -98,10 +110,6 @@ public class TeleOpDecode extends OpMode {
         Pose p = follower.getPose();
 
         telemetry.addData("POSE Pedro", p);
-        telemetry.update();
-
-
-
 
         //follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         //follower.update();
@@ -162,13 +170,13 @@ public class TeleOpDecode extends OpMode {
         //Call this once per loop
         follower.update();
         telemetryM.update();
+
         double t = getRuntime();
         // au bout de 20 secondes : impulsion unique
         if (t>=20.0 && !pulseSent){
             gamepad1.rumble(500);
             gamepad2.rumble(500);
             pulseSent = true;
-            afficheurRight.setClignoteVert();
         }
 
 
@@ -226,16 +234,17 @@ public class TeleOpDecode extends OpMode {
         }
 
 
+
         double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
         tourelle.rotationtourelle(powertourelle);
 
         int shotsMode = (gamepad2.left_bumper ? 1 : 3);
 
         // RB (g2) : position fréquente de tir & en autonome Position 4 tres éloigné
-        if (gamepad2.right_bumper && !lastrightbumper) {
-                fireIfReady(0.35, 4400, shotsMode);
-            }
-            lastrightbumper = gamepad2.right_bumper;
+        //if (gamepad2.right_bumper && !lastrightbumper) {
+        //        fireIfReady(0.35, 4400, shotsMode);
+        //    }
+        //    lastrightbumper = gamepad2.right_bumper;
 
         // Y : Position 3
         if (gamepad2.yWasPressed()) {
@@ -264,6 +273,90 @@ public class TeleOpDecode extends OpMode {
         if (gamepad2.dpadDownWasPressed()){
                 fireIfReady(0.5, 5000, shotsMode);
             }
+
+        if (Camera.hasTag() == true){
+            afficheurRight.setBleu();
+            distanceCamerajustee = Camera.getDistanceFiableCm();
+            distanceCameramesuree = Camera.getEstimatedDistanceCm();
+            telemetry.addData("Distancemesurée", distanceCameramesuree);
+            telemetry.addData("Distance_camera_apriltag", distanceCamerajustee);
+            telemetry.update();
+            if (distanceCamerajustee > 0 && distanceCamerajustee < 70) {
+                afficheurRight.setVert();
+            }
+            if (distanceCamerajustee > 68 && distanceCamerajustee < 110) {
+                afficheurRight.setJaune();
+
+            }
+
+            if (distanceCamerajustee > 110 && distanceCamerajustee < 150) {
+                    afficheurRight.setOrange();
+
+            }
+            if (distanceCamerajustee > 150 && distanceCamerajustee < 187) {
+                    afficheurRight.setRouge();
+            }
+            if (distanceCamerajustee > 187 && distanceCamerajustee < 200) {
+                    afficheurRight.setViolet();
+            }
+            afficheurRight.update();
+            distanceCamerajustee = 0;
+            distanceCameramesuree =0;
+        }
+
+        if(!Camera.hasTag() == true){
+            afficheurRight.setIdle();
+            afficheurRight.update();
+        }
+
+        // Tir automatique caméra
+        if (gamepad2.rightBumperWasPressed()) {
+            distanceCamerajustee = 0;
+
+
+            if (Camera.hasTag() == true) {
+                distanceCamerajustee = (Camera.getDistanceFiableCm())/100;
+                double rpmDouble = 541.62 * distanceCamerajustee + 3210.34;//ajout 20
+                int rpm = (int) Math.round(rpmDouble);
+
+
+                telemetry.addData("RPM dynamique", rpm);
+                telemetry.update();
+
+                if (distanceCamerajustee > 0 && distanceCamerajustee < 0.68) {
+                    fireIfReady(0.1,rpm, shotsMode); //3700
+                    distanceCamerajustee = 0;
+                    distanceCameramesuree =0;
+                    rpm = 0;
+
+                }
+                if (distanceCamerajustee > 0.68 && distanceCamerajustee < 1.10) {
+                    fireIfReady(0.17, rpm, shotsMode); //3750
+                    distanceCamerajustee = 0;
+                    distanceCameramesuree =0;
+                    rpm = 0;
+                }
+
+                if (distanceCamerajustee > 1.10 && distanceCamerajustee < 1.50) {
+                    fireIfReady(0.30, rpm, shotsMode); //3900
+                    distanceCamerajustee = 0;
+                    distanceCameramesuree =0;
+                    rpm = 0;
+
+                }
+
+                if (distanceCamerajustee > 1.50 && distanceCamerajustee < 2.50) {
+                    fireIfReady(0.44, rpm, shotsMode); //4200
+                    distanceCamerajustee = 0;
+                    distanceCameramesuree =0;
+                    rpm =0;
+                }
+
+            }
+            else {afficheurRight.setRouge();
+                afficheurRight.update();}
+
+        }
 
 
         intake.update();

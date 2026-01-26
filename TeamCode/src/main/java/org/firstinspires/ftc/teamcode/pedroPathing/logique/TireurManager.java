@@ -73,7 +73,7 @@ public class TireurManager {
         if (tirActif) {
             afficheurRight.setClignoteVert();
         } else {
-            afficheurRight.setIdle();
+            //afficheurRight.setIdle();
         }
 
         afficheurRight.update();
@@ -151,7 +151,7 @@ public class TireurManager {
 
             // --- 5) Rétracter le servo ---
             case SERVO_RETRACT:
-                if (timer.milliseconds() > 300) {
+                if (timer.milliseconds() > 320) {
                     servoTireur.retract();
                     timer.reset();
                     shotsRemaining--; // retrait d'un tir
@@ -162,7 +162,7 @@ public class TireurManager {
 
             // --- 6) Attendre fin rotation indexeur ---
             case INDEX_ADVANCE:
-                if ((timer.milliseconds() > 300) && shotsRemaining == 0) {
+                if ((timer.milliseconds() > 320) && shotsRemaining == 0) {
                     shooter.setShooterTargetRPM(0);
                     intake.repriseApresTir();
                     timer.reset();

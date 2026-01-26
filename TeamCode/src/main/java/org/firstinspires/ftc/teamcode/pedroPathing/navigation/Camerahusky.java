@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.navigation;
+package org.firstinspires.ftc.teamcode.pedroPathing.navigation;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 
@@ -6,9 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
-import java.util.Map.Entry;
-
-public class camerahusky {
+public class Camerahusky {
     HuskyLens.Block tag;
 
 
@@ -20,6 +18,11 @@ public class camerahusky {
 
     private HuskyLens huskyLensDevice;
     private Deadline rateLimit;
+
+    private double[] buffer = new double[5];
+    private int index = 0;
+    private int count = 0;
+
 
     public void init(HardwareMap hardwareMap) {
         huskyLensDevice = hardwareMap.get(HuskyLens.class, "huskylens");
@@ -63,5 +66,42 @@ public class camerahusky {
         return 0;
     }
 
+    public double getDistanceFiableCm() {
+        double cam = getEstimatedDistanceCm();
+        if (cam < 0) return -1;
 
+        // Correction en cm (calibration)
+        double reel = 0.7078 * cam - 13.25;
+
+        // Buffer circulaire de 5 valeurs
+        buffer[index] = reel;
+        index = (index + 1) % 5;
+        if (count < 5) count++;
+
+        // Pas encore 5 valeurs → pas fiable
+        if (count < 5) return -1;
+
+        // Cherche un groupe de ≥3 mesures dans ±5 cm
+        for (int i = 0; i < 5; i++) {
+            int c = 1;
+            double somme = buffer[i];
+
+            for (int j = 0; j < 5; j++) {
+                if (i != j && Math.abs(buffer[j] - buffer[i]) <= 5.0) {
+                    somme += buffer[j];
+                    c++;
+                }
+            }
+
+            if (c >= 3) {
+                return somme / c;  // Renvoie UN SEUL double
+            }
+        }
+        return -1;
+    }
 }
+
+
+
+
+
