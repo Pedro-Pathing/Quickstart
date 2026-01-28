@@ -71,6 +71,12 @@ public class Spind {
             return true;
         return spinTheDexer(index);
     }
+    private static boolean setSpindToColor(String motifPart) {
+        if(motifPart.equals("P")){
+            return setSpindToColor(Color.DetectedColor.PURPLE);
+        }
+        return setSpindToColor(Color.DetectedColor.GREEN);
+    }
 
     public static boolean intaking(Timer timer,double timeBetweenSpins){
         if(timer.getElapsedTimeSeconds()>5*timeBetweenSpins){
@@ -80,24 +86,15 @@ public class Spind {
         intake.setPower(-1);
         intaking=true;
         int index = (int)(timer.getElapsedTimeSeconds()/timeBetweenSpins);
+        if(index==0)
+            updateBallList(2);
+        else
+            updateBallList(index-1);
         spinTheDexer(index);
         return false;
     }
-    public static boolean updateBallList(Timer timer,double timeBetweenSpins) {
-        if(timer.getElapsedTimeSeconds()>3*timeBetweenSpins){
-            intake.setPower(0);
-            return true;
-        }
-        intake.setPower(-0.5);
-        intaking=false;
-        int index=(int)(timer.getElapsedTimeSeconds()/timeBetweenSpins);
-        if(spinTheDexer(index)&&Color.getColor()!= Color.DetectedColor.UNKNOWN) {
-            ballList[index] = Color.getColor();
-        }
-        return false;
-    }
-    public static int getSigmaPosition() {
-        return (int)Math.round(spindexer.getCurrentPosition() / Constants.CPR312 * 3);
+    public static void updateBallList(int index) {
+        ballList[index] = Color.getColor();
     }
     public static boolean Launch3Balls(Timer timer,String motif,double timeBetweenShots) throws InterruptedException {
         if(timer.getElapsedTimeSeconds()>(3*timeBetweenShots)) {
@@ -111,21 +108,12 @@ public class Spind {
         intake.setPower(-.5);
         int index = (int)(timer.getElapsedTimeSeconds()/timeBetweenShots);
         String[] motifList = motif.split("");
-        if(motifList[index].equals("P")){
-            if(setSpindToColor(Color.DetectedColor.PURPLE)) {
-                launchedBalls[index]=true;
-                transfer.setPosition(0.9);
-                Thread.sleep(100);
-                transfer.setPosition(0.4);
-            }
-        }
-        else if(motifList[index].equals("G")){
-            if(setSpindToColor(Color.DetectedColor.GREEN)) {
-                launchedBalls[index]=true;
-                transfer.setPosition(0.9);
-                Thread.sleep(100);
-                transfer.setPosition(0.4);
-            }
+        if(setSpindToColor(motifList[index])){
+            launchedBalls[index]=true;
+            ballList[index]= Color.DetectedColor.NOBALL;
+            transfer.setPosition(0.9);
+            Thread.sleep(100);
+            transfer.setPosition(0.4);
         }
         for(int i =0;i<3;i++){
             if(!launchedBalls[i]){
@@ -136,6 +124,46 @@ public class Spind {
             }
         }
         return false;
+    }
+    public static boolean Launch3BallsTest(Timer timer, String motif,double shooterSpeedTime) throws InterruptedException{
+        if (timer.getElapsedTimeSeconds() < .1) {
+            p1 = false;
+            p2 = false;
+            p3 = false;
+            System.out.println("please?");
+        }
+        intake.setPower(-.5);
+        if(timer.getElapsedTimeSeconds()<shooterSpeedTime)
+            return false;
+        intaking = false;
+        if (!p1 && setSpindToColor(motif.substring(0,1))) {
+            System.out.println("at least we're here");
+            transfer.setPosition(.9);
+            Thread.sleep(100);
+            transfer.setPosition(.4);
+            Thread.sleep(75);
+            p1 = true;
+        }
+
+        if (!p2 && p1 && setSpindToColor(motif.substring(1,2))) {
+            System.out.println("one step closer to freedom");
+            transfer.setPosition(.9);
+            Thread.sleep(100);
+            transfer.setPosition(.4);
+            Thread.sleep(75);
+            p2 = true;
+        }
+
+        if (!p3 && p1 && p2 && setSpindToColor(motif.substring(2,3))) {
+            System.out.println("freedom");
+            transfer.setPosition(.9);
+            Thread.sleep(100);
+            transfer.setPosition(.4);
+            Thread.sleep(75);
+            p3 = true;
+        }
+
+        return p1 && p2 && p3;
     }
     public static boolean Launch3Balls(Timer timer, double timeBetweenShots,double shooterSpeedTime) throws InterruptedException {
         if (timer.getElapsedTimeSeconds() < .1) {
