@@ -15,10 +15,14 @@ public class AprilTagLimelightTest extends OpMode{
     private Limelight3A limelight;
     private IMU imu;
 
+    //TestBench bench = new TestBench();
+
+    private double distance;
+
     @Override
     public void init(){
         limelight = hardwareMap.get(Limelight3A.class, "Limelight");
-        limelight.pipelineSwitch(0); // april tag #11 pipeline
+        limelight.pipelineSwitch(0); // april tag #20 pipeline
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.LEFT, RevHubOrientationOnRobot.UsbFacingDirection.UP);
         imu.initialize(new IMU.Parameters(revHubOrientationOnRobot));
@@ -35,14 +39,22 @@ public class AprilTagLimelightTest extends OpMode{
         limelight.updateRobotOrientation(orientation.getYaw());
         LLResult llresult = limelight.getLatestResult();
         if (llresult != null & llresult.isValid()){
-            Pose3D botPose = llresult.getBotpose();
-            //telemetry.addData('Tx', llresult.getTx());
-            //telemetry.addData('Tx', llresult.getTy());
-            //telemetry.addData('Ta', llresult.getTa());
-            //telemetry.addData("BotPose", botPose.toString());
-            //telemetry.addData("Yaw", botPose.getOrientation().getYaw());
+            Pose3D botPose = llresult.getBotpose_MT2();
+            telemetry.addData("Tx", llresult.getTx());
+            telemetry.addData("Tx", llresult.getTy());
+            telemetry.addData("Ta", llresult.getTa());
+            telemetry.addData("BotPose", botPose.toString());
+            telemetry.addData("Yaw", botPose.getOrientation().getYaw());
+
 
         }
+
+        //public double getdistancefromrange(double ta){
+        //    double scale = 30665.95;
+        //    double distance = (scale/ta);
+        //    return distance;
+
+        //}
 
 
     }

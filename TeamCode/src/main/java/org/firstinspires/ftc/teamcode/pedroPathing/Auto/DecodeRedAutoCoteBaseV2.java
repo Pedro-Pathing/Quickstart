@@ -20,8 +20,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 
 
-@Autonomous (name="bleuCoteBaseRamasseBalles", group="Competition")
-public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
+@Autonomous (name="RedCoteBase V2", group="Competition")
+public class DecodeRedAutoCoteBaseV2 extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opModeTimer;
@@ -62,32 +62,29 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
     }
     PathState pathState;
 
-    private final Pose startPose = new Pose(56.00,8.00, Math.toRadians(180));
-    private final Pose firstshootPose = new Pose(56.00,18.00,Math.toRadians(180));
+    private final Pose startPose = new Pose(90,8.00, Math.toRadians(0));
+    private final Pose firstshootPose = new Pose(92,17.00,Math.toRadians(0));
 
-    private final Pose drivetoligne3= new Pose (45.00, 35.00, Math.toRadians(180));
+    private final Pose drivetoligne3= new Pose (100.00, 32.00, Math.toRadians(0));
 
-    private final Pose avalerballeRangee3 = new Pose (17.00, 35.00, Math.toRadians(180));
+    private final Pose avalerballeRangee3 = new Pose (130.00, 35.00, Math.toRadians(0));
 
-    private final Pose drivetoballesJH= new Pose (8.50, 26.00, Math.toRadians(-90));
+    private final Pose drivetoligne2= new Pose (100.00, 50.00, Math.toRadians(0));
 
-    private final Pose avalerballeJH= new Pose (8.50, 8.50, Math.toRadians(-90));
+    private final Pose avalerballeRangee2= new Pose (127.00, 60.00, Math.toRadians(0));
+    private final Pose Shoot2 = new Pose (95.00, 78.00, Math.toRadians(0));
+    private final Pose avalerballeRangee1 = new Pose (103.00, 104.00, Math.toRadians(0));
 
-    //private final Pose Gate= new Pose (20, 83, Math.toRadians(180));
+   // private final Pose Gate= new Pose (20, 83, Math.toRadians(0));
 
     private PathChain driveStartofirstShootPos, driveShoot2pickup1Pos, driveAvalerpremiereLigne, DrivedeuxiemeShoot,drivetorangee2, drivetavalerdeuxiemeligne,driveAvaler2emeLignetotroisemeShoot, drivetroisiemeshoot,DrivetoGate;
 
     public void buildPaths() {
         //put the coordinate from start to shooting
-        driveStartofirstShootPos = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, firstshootPose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), firstshootPose.getHeading())
-                .build();
-
         //du premiershoot à la rangée numéro 1
         driveShoot2pickup1Pos = follower.pathBuilder()
-                .addPath(new BezierLine(firstshootPose, drivetoligne3))
-                .setLinearHeadingInterpolation(firstshootPose.getHeading(), drivetoligne3.getHeading())
+                .addPath(new BezierLine(startPose, drivetoligne3))
+                .setLinearHeadingInterpolation(startPose.getHeading(), drivetoligne3.getHeading())
                 .build();
 
         //de la l'alignement pickup1 à la derniere balle rangée 1
@@ -103,40 +100,28 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
                 .build();
         //Aller s'aligner à la deuxieme rangée de balle
         drivetorangee2 = follower.pathBuilder()
-                .addPath(new BezierLine(firstshootPose, drivetoballesJH))
-                .setLinearHeadingInterpolation(firstshootPose.getHeading(), drivetoballesJH.getHeading())
+                .addPath(new BezierLine(firstshootPose, drivetoligne2))
+                .setLinearHeadingInterpolation(firstshootPose.getHeading(), drivetoligne2.getHeading())
                 .build();
 
         //Aller avaler les balles de la rangee 2
         drivetavalerdeuxiemeligne = follower.pathBuilder()
-                .addPath(new BezierLine(drivetoballesJH, avalerballeJH))
-                .setLinearHeadingInterpolation(drivetoballesJH.getHeading(), avalerballeJH.getHeading())
+                .addPath(new BezierLine(drivetoligne2, avalerballeRangee2))
+                .setLinearHeadingInterpolation(drivetoligne2.getHeading(), avalerballeRangee2.getHeading())
                 .setVelocityConstraint(0.23)
                 .build();
 
         //Aller à la zone de Tir apres avoir avaler les balles de la rangée 2
         driveAvaler2emeLignetotroisemeShoot = follower.pathBuilder()
-                .addPath(new BezierLine(avalerballeJH,firstshootPose))
-                .setLinearHeadingInterpolation(avalerballeJH.getHeading(), firstshootPose.getHeading())
+                .addPath(new BezierLine(avalerballeRangee2,Shoot2))
+                .setLinearHeadingInterpolation(avalerballeRangee2.getHeading(), Shoot2.getHeading())
                 .build();
-
-        /*//Aller à la zone de Tir apres avoir avaler les balles de la rangée 2
-        drivetroisiemeshoot = follower.pathBuilder()
-                .addPath(new BezierLine(avalerballeRangee2,Shoot3))
-                .setLinearHeadingInterpolation(avalerballeRangee2.getHeading(), Shoot3.getHeading())
-                .build();*/
-        //Aller à la dernière position
-       /* DrivetoGate= follower.pathBuilder()
-                .addPath(new BezierLine(firstshootPose,Gate))
-                .setLinearHeadingInterpolation(firstshootPose.getHeading(),Gate.getHeading())
-                .build();*/
-
 
     }
     public void statePathUpdate(){
         switch(pathState) {
             case DRIVE_STARTPOSITIONTOSHOOT:
-                follower.followPath(driveStartofirstShootPos,0.8, true); //true will hold the positon
+                //follower.followPath(driveStartofirstShootPos,0.8, true); //true will hold the positon
                 setPathState(PathState.PremierTir); // Reset Timer + make new staet
                 break;
 
@@ -148,9 +133,9 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -63,   // angle tourelle (exemple)
-                                0.5,  // angle shooter
-                                4770   // RPM
+                                72,   // angle tourelle (exemple)
+                                0.62,  // angle shooter
+                                4800   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
@@ -181,15 +166,16 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
                 indexeur.update();
 
                 if (!follower.isBusy()) {// attendre que le path soit fini
-                    follower.followPath(driveAvalerpremiereLigne,0.3,true); // on avance doucement pour avaler les balles
+                    follower.followPath(driveAvalerpremiereLigne,0.45,true); // on avance doucement pour avaler les balles
                     setPathState(PathState.DrivedeuxiemeShoot);
                     }
+
                 break;
 
             case DrivedeuxiemeShoot:
                 ;
                 if (!follower.isBusy()) { // Attendre que l'on est fini d'avoir pris toutes les balles
-                    follower.followPath(DrivedeuxiemeShoot,0.8,true);
+                    follower.followPath(DrivedeuxiemeShoot,0.65,true);
                     // Le robot est arrivé en position de tir :
                     setPathState(PathState.deuxiemetir);
                 }
@@ -199,9 +185,9 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) { // deuxieme période de tir
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -64,   // angle tourelle (exemple)
-                                0.50,  // angle shooter
-                                4770   // RPM
+                                70,   // angle tourelle (exemple)
+                                0.62,  // angle shooter
+                                4750   // RPM
                         );
                         shotsTriggered = true;
                     } else if (shotsTriggered && !tireurManager.isBusy()) {
@@ -229,7 +215,7 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetavalerdeuxiemeligne, 0.30 , true);
+                    follower.followPath(drivetavalerdeuxiemeligne, 0.3 , true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("ramassage 2 terminé");
                     // transition to next state
@@ -241,7 +227,7 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(driveAvaler2emeLignetotroisemeShoot,0.7, true);
+                    follower.followPath(driveAvaler2emeLignetotroisemeShoot,0.9, true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("Position 3 de tir");
                     // transition to next state
@@ -255,14 +241,13 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -45,   // angle tourelle (exemple)
+                                50,   // angle tourelle (exemple)
                                 0.37,  // angle shooter
                                 3960   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
-                            tourelle.allerVersAngle(0);
-                            setPathState(PathState.atgate);
+                            setPathState(PathState.Drive2Gate);
                             shotsTriggered = false;
                         }
 
@@ -271,13 +256,13 @@ public class DecodeBlueAutoCoteBaseRamasseBallesJH extends OpMode {
             case Drive2Gate:
                 intake.update(); // mise à jour de nos systemes (constate les balles sont tirées )
                 indexeur.update();
-                // shoot logique 3eme Tir
-                if (!follower.isBusy()) {
-                    follower.followPath(DrivetoGate,1,true);
-                    // TO DO demarer intake , tourner indexeur des dectetion balles)
-                    telemetry.addLine("Auto Termine & A cote de la porte ");
-                    // transition to next state
-                    setPathState(PathState.atgate);
+                // fin retour tourelle
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>1) {
+                    tourelle.allerVersAngle(0);
+                    if (tourelle.isAtAngle(0)){
+                        shotsTriggered = false;
+                        setPathState(PathState.atgate);
+                    }
 
                 }
                 break;

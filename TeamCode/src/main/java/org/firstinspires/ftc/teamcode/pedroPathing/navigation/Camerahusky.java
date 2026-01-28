@@ -72,6 +72,7 @@ public class Camerahusky {
 
         // Correction en cm (calibration)
         double reel = 0.7078 * cam - 13.25;
+        //double reel = 0.5096995 * Math.pow(cam, 1.023373);
 
         // Buffer circulaire de 5 valeurs
         buffer[index] = reel;

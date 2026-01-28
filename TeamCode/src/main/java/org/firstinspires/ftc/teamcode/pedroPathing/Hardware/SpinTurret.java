@@ -128,5 +128,8 @@ public class SpinTurret {
         return erreur;
     }
 
+    public void resetImuToutelle(){
+        imuTourelle.resetYaw();
+    }
 
 }

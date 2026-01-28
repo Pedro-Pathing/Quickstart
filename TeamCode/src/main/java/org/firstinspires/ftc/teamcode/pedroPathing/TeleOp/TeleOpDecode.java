@@ -255,16 +255,19 @@ public class TeleOpDecode extends OpMode {
         if (gamepad2.xWasPressed()) {
                 fireIfReady(0.1, 3700, shotsMode);
             }
-        // Pad tir de loin
+            // Pad tir de loin
         if (gamepad2.dpadUpWasPressed()){
-            fireIfReady(0.5, 4950, shotsMode);
+                fireIfReady(0.55, 4850, shotsMode);
             }
 
-        //tir tres eloigné.
+            //tir tres eloigné.
         if (gamepad2.dpadDownWasPressed()){
-                fireIfReady(0.5, 5000, shotsMode);
+                fireIfReady(0.55, 4950, shotsMode);
             }
 
+        if (gamepad2.dpadRightWasPressed()){
+                tireurManager.setState(TireurManagerTeleop.TirState.IDLE);
+            }
 
         intake.update();
         indexeur.update();

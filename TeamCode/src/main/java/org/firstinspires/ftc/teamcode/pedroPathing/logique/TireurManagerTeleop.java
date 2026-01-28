@@ -22,6 +22,8 @@ public class TireurManagerTeleop {
     private final ServoTireur servoTireur;
     private final Indexeur indexeur;
     private final Intake intake;
+    private double angleCibleTourelle = 0;
+    private boolean tirAutoActif = false;
 
     private final AfficheurRight afficheurRight;
 
@@ -181,6 +183,17 @@ public class TireurManagerTeleop {
                     state = TirState.ANGLE_POSITION;
                 }
                 break;
+            case TURRET_POSITION:
+                shooter.setShooterTargetRPM(vitesseCibleShooter);
+                tourelle.allerVersAngle(angleCibleTourelle);
+
+                if (tourelle.isAtAngle(angleCibleTourelle)) {
+                    timer.reset();
+                    tirAutoActif = false;
+                    state = TirState.ANGLE_POSITION;
+
+                }
+                break;
         }
     }
 
@@ -203,9 +216,9 @@ public class TireurManagerTeleop {
         shotsRemaining = 1;
         this.angleCibleShooter = angleShooter;
         this.vitesseCibleShooter = vitesseShooter;
-        //this.vitesseCibleShooter = vitesseShooter;
         tirsEffectues = 0;
-        shooter.setShooterTargetRPM(vitesseShooter);  // Démarre immédiatement
+        shooter.setShooterTargetRPM(vitesseShooter);
+        // Démarre immédiatement
         timer.reset();
         state = TirState.AVANCE1TIR;
 
@@ -214,6 +227,23 @@ public class TireurManagerTeleop {
         //    state = TirState.SERVO_PUSH;
         //    timer.reset();
         //}
+    }
+
+    public void startTirAuto(double angleTourelle, double angleShooter, double vitesseShooter) {
+        intake.arretPourTir();
+        tirAutoActif = true;
+        tirEnCours = true;
+        shotsRemaining = 3;
+        this.angleCibleTourelle = angleTourelle;
+        this.angleCibleShooter = angleShooter;
+        this.vitesseCibleShooter = vitesseShooter;
+
+        tirsEffectues = 0;
+
+          // Démarre immédiatement
+        timer.reset();
+        shooter.setShooterTargetRPM(vitesseShooter);
+        state = TirState.TURRET_POSITION;
     }
 
     public TirState getState() {
@@ -226,4 +256,9 @@ public class TireurManagerTeleop {
 
     public boolean isTirEnCours() {
         return tirEnCours; }
+
+    public void setState(TirState state) {
+        this.state = state;
+    }
+    public boolean isTirAutoActif() { return tirAutoActif; }
 }

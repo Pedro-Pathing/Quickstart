@@ -19,7 +19,7 @@ public class ServoTireur  {
     private Indexeur indexeur;
     private double tirpositionretour = 0.62
             ; // position basse 079 gobilda 1 vers l'exterieur
-    private double tirpositionhaute = 0.15
+    private double tirpositionhaute = 0.11
             ; // position haute 031 gobila speed
 
     private ElapsedTime timeretat = new ElapsedTime();

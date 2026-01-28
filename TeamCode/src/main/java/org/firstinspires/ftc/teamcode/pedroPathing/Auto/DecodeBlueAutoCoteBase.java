@@ -58,6 +58,7 @@ public class DecodeBlueAutoCoteBase extends OpMode {
         DriveTroisiemeTir,
         troisiemetir,
         Drive2Gate,
+        retourzerotourelle,
         atgate
     }
     PathState pathState;
@@ -151,8 +152,8 @@ public class DecodeBlueAutoCoteBase extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -63,   // angle tourelle (exemple)
-                                0.5,  // angle shooter
+                                -70,   // angle tourelle (exemple)
+                                0.60,  // angle shooter
                                 4770   // RPM
                         );
                         shotsTriggered = true;}
@@ -202,8 +203,8 @@ public class DecodeBlueAutoCoteBase extends OpMode {
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) { // deuxieme période de tir
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -64,   // angle tourelle (exemple)
-                                0.50,  // angle shooter
+                                -70,   // angle tourelle (exemple)
+                                0.60,  // angle shooter
                                 4770   // RPM
                         );
                         shotsTriggered = true;
@@ -264,27 +265,21 @@ public class DecodeBlueAutoCoteBase extends OpMode {
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
-                            tourelle.allerVersAngle(0);
-                            setPathState(PathState.atgate);
+                            setPathState(PathState.retourzerotourelle);
                             shotsTriggered = false;
                         }
 
                 }
                 break;
-            case Drive2Gate:
-                intake.update(); // mise à jour de nos systemes (constate les balles sont tirées )
-                indexeur.update();
-                // shoot logique 3eme Tir
-                if (!follower.isBusy()) {
-                    follower.followPath(DrivetoGate,1,true);
-                    // TO DO demarer intake , tourner indexeur des dectetion balles)
-                    telemetry.addLine("Auto Termine & A cote de la porte ");
-                    // transition to next state
-                    setPathState(PathState.atgate);
 
+            case retourzerotourelle:
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>1) {
+                    tourelle.allerVersAngle(0);
+                    if (tourelle.isAtAngle(0)) {
+                        setPathState(PathState.atgate);
+                        shotsTriggered = false;
+                    }
                 }
-                break;
-
             case atgate:
                 telemetry.addLine("C'est fini");
                 break;

@@ -357,19 +357,17 @@ public class Indexeur {
         IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE: Indexeuretat.IDLE; //Retrait Bourrage
     }
 
-
-
     public void reculerIndexeurbourrage() {
             int positionbourrage = indexeur.getCurrentPosition();
             int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
             int target = positionbourrage - delta;
-            indexeur.setPower(-0.2);
-            if (bourragetimer.milliseconds() > 400) {
+            indexeur.setPower(-0.4);
+            if (bourragetimer.milliseconds() > 600) {
+                bourragetimer.reset();
                 IndexeurState = Indexeuretat.HOMING;}
                 //if (ballcomptage == 3) {
             //    intakeState = Intakeetat.IDLE;
             //} else {
-                bourragetimer.reset();
              }
 
     public boolean avanceTerminee() {

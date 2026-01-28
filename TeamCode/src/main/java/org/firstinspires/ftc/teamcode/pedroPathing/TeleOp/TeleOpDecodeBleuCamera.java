@@ -12,7 +12,6 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurLeft;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.AfficheurRight;
@@ -22,14 +21,15 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Intake;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.ServoTireur;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Hardware.SpinTurret;
+import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManager;
 import org.firstinspires.ftc.teamcode.pedroPathing.logique.TireurManagerTeleop;
 import org.firstinspires.ftc.teamcode.pedroPathing.navigation.Camerahusky;
 
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp (name="TeleOp Competiton Bleu test Camera", group="Competition")
-public class TeleOpDecodeTestCamera extends OpMode {
+@TeleOp (name="TeleOp Competiton Bleu Camera", group="Competition")
+public class TeleOpDecodeBleuCamera extends OpMode {
     Camerahusky Camera = new Camerahusky();
     private double ajustementcamera = 1.5; //valeur d'ajustement caméra (erreur) a changer si probleme
 
@@ -63,8 +63,6 @@ public class TeleOpDecodeTestCamera extends OpMode {
 
     private static final double SLOW_MULT = 0.35; // vitesse par défaut (lent)
     private static final double BOOST_MULT = 1.0; // plein régime quand on appuie
-
-
 
     @Override
     public void init() {
@@ -165,6 +163,14 @@ public class TeleOpDecodeTestCamera extends OpMode {
         }
     }
 
+    private void firefondTerrainAuto(double angletourelle, double angleshooter, int rpm) {
+        if (!tireurManager.isBusy()) {
+                tireurManager.startTirAuto(angletourelle,angleshooter,rpm);
+                }
+            else {
+            telemetry.addData("Tir", "IGNORÉ: tireur occupé (BUSY)");}
+    }
+
         @Override
     public void loop() {
         //Call this once per loop
@@ -227,51 +233,78 @@ public class TeleOpDecodeTestCamera extends OpMode {
         }
         lastleftbumpergamepad1 = gamepad1.left_bumper;
 
-
        if (gamepad1.xWasPressed()) {
             indexeur.setBalles(0);            // reset des balles
             // demarre l'intake automatiquement
         }
 
+       if (gamepad1.dpadRightWasPressed()){
+           indexeur.reculerIndexeurbourrage();
+       }
+       boolean tirautoactif = tireurManager.isTirAutoActif();
+        if (!tirautoactif) {
+            double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
+            tourelle.rotationtourelle(powertourelle);
+        }
+
+        // Deadzone pour considérer que le pilote "veut" bouger la tourelle
+        //final double TURRET_DEADZONE = 0.02;
+        //double powertourelle = gamepad2.left_stick_x;
+        // Si le pilote bouge vraiment le stick -> priorité au manuel pour CETTE boucle
+        //if (Math.abs(powertourelle) > TURRET_DEADZONE) {
+        //        tourelle.rotationtourelle(powertourelle);
+        //}
+
+       int shotsMode = (gamepad2.left_bumper ? 1 : 3);
+
+       // RB (g2) : position fréquente de tir & en autonome Position 4 tres éloigné
+       //if (gamepad2.right_bumper && !lastrightbumper) {
+       //        fireIfReady(0.35, 4400, shotsMode);
+       //    }
+       //    lastrightbumper = gamepad2.right_bumper;
+
+       // Y : Position 1 distance 1 robot de la zone de tir
+       if (gamepad2.yWasPressed()) {
+
+           fireIfReady(0.30, 3970, shotsMode);
+       }
+
+        // B : Position 3 milieu de terrain bouton 2  droite
+       if (gamepad2.bWasPressed()) {
+           fireIfReady(0.42, 4200, shotsMode);
+       }
 
 
-        double powertourelle = gamepad2.left_stick_x; // Joystick Horizontal
-        tourelle.rotationtourelle(powertourelle);
+       // A : Position 4 la plus loin bouton 1 le plus proche co driver
+       if (gamepad2.aWasPressed()) {
+                //fireIfReady(0.17, 3750, shotsMode);
+                 fireIfReady(0.44, 4400, shotsMode);
+       }
 
-        int shotsMode = (gamepad2.left_bumper ? 1 : 3);
-
-        // RB (g2) : position fréquente de tir & en autonome Position 4 tres éloigné
-        //if (gamepad2.right_bumper && !lastrightbumper) {
-        //        fireIfReady(0.35, 4400, shotsMode);
-        //    }
-        //    lastrightbumper = gamepad2.right_bumper;
-
-        // Y : Position 3
-        if (gamepad2.yWasPressed()) {
-                fireIfReady(0.42, 4200, shotsMode);}
-
-        // B : Position 2 proche
-        if (gamepad2.bWasPressed()) {
-                fireIfReady(0.30, 3970, shotsMode);
-            }
-
-        // A : Position 1 tres proche
-            if (gamepad2.aWasPressed()) {
-                fireIfReady(0.17, 3750, shotsMode);
-            }
-
-        // X : collé au mur 1
-        if (gamepad2.xWasPressed()) {
-                fireIfReady(0.1, 3700, shotsMode);
+        // X : Bouton Gauche Boutton 0  reset de l'IMU de la tourelle
+       if (gamepad2.xWasPressed()) {
+                //fireIfReady(0.1, 3700, shotsMode);
+           tourelle.resetImuToutelle();
             }
         // Pad tir de loin
         if (gamepad2.dpadUpWasPressed()){
-            fireIfReady(0.5, 4950, shotsMode);
+            fireIfReady(0.55, 4850, shotsMode);
             }
 
         //tir tres eloigné.
         if (gamepad2.dpadDownWasPressed()){
-                fireIfReady(0.5, 5000, shotsMode);
+                fireIfReady(0.55, 4950, shotsMode);
+            }
+
+        if (gamepad2.dpadLeftWasPressed()){
+                tirautoactif = true;
+                firefondTerrainAuto(-60.0,0.55,4850);
+            }
+
+        if (gamepad2.dpadRightWasPressed()){
+                tireurManager.setState(TireurManagerTeleop.TirState.IDLE);
+                shooter.setShooterTargetRPM(0);
+
             }
 
         if (Camera.hasTag() == true){
@@ -371,15 +404,15 @@ public class TeleOpDecodeTestCamera extends OpMode {
         //telemetry.addData("angle Tourelle actuel", tourelle.lectureangletourelle());
         //telemetry.addData("AngleShoot", positionAngleshoot);
         //telemetry.addData("RPM", intake.getRPM());
-        telemetry.addData("DistanceBalle", intake.getCapteurDistance());
-        telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
+        //telemetry.addData("DistanceBalle", intake.getCapteurDistance());
+        //telemetry.addData("Lum Indexeur", intake.getLumIndexeur());
         //telemetry.addData("Score", intake.getScore());
-        telemetry.addData("État Indexeur", indexeur.getEtat());
+        //telemetry.addData("État Indexeur", indexeur.getEtat());
         //telemetry.addData("Pale detectée", indexeur.detectionpale());
         //for (int i = 0; i < 3; i++) { telemetry.addData("Compartiment " + i, indexeur.getCouleurCompartiment(i)); }
-        telemetry.addData("État tireur manager", tireurManager.getState());
-        telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
-        telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
+        //telemetry.addData("État tireur manager", tireurManager.getState());
+        //telemetry.addData("Shooter RPM", shooter.getShooterVelocityRPM());
+        //telemetry.addData("Index rotation finie", indexeur.isRotationTerminee());
 
         telemetry.update();
 

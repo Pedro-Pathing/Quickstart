@@ -59,6 +59,7 @@ public class DecodeBlueAutoGoal extends OpMode {
         DriveTroisiemeTir,
         troisiemetir,
         Drive2Gate,
+        retourzerotourelle,
         atgate
     }
     PathState pathState;
@@ -264,9 +265,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
-
-                            tourelle.allerVersAngle(0);
-                            setPathState(PathState.atgate);
+                            setPathState(PathState.retourzerotourelle);
                             shotsTriggered = false;
                         }
 
@@ -274,17 +273,14 @@ public class DecodeBlueAutoGoal extends OpMode {
 
                 }
                 break;
-            case Drive2Gate: // pas utiliser sur la partie Goal
-                intake.update(); // mise à jour de nos systemes (constate les balles sont tirées )
-                indexeur.update();
-                // shoot logique 3eme Tir
-                if (!follower.isBusy()) {
-                    follower.followPath(DrivetoGate,1,true);
-                    // TO DO demarer intake , tourner indexeur des dectetion balles)
-                    telemetry.addLine("Auto Termine & A cote de la porte ");
-                    // transition to next state
-                    setPathState(PathState.atgate);
 
+            case retourzerotourelle:
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>1) {
+                    tourelle.allerVersAngle(0);
+                    if (tourelle.isAtAngle(0)) {
+                        setPathState(PathState.atgate);
+                        shotsTriggered = false;
+                    }
                 }
                 break;
 
