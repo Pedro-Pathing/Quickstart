@@ -39,31 +39,38 @@ public class Shooter {
 
     private static double hoodVal(double dist, double velocity) {
         double ret = 0;
-        if (dist <= 60)
+        if (dist < 52)
             return 1;
-        else if (dist <=81.3) {
-            double slope = -0.02662 * dist + 2.4722;
-            double y_intercept = .099844 * dist - 9.12812;
-            ret = velocity * slope + y_intercept;
-            if (ret < 0)
-                return 0;
-            return ret;
+        else if (dist < 60) {
+            double slope = .0876578 * dist - 4.38447;
+            double y_inter = -0.380435 * dist + 19.68859;
+            return slope * velocity + y_inter;
         }
-        else if (dist <= 102.12) {
-            double slope = -.00623055 * dist + .814544;
-            double y_intercept = .021861 * dist - 2.78813;
-            ret = velocity * slope + y_intercept;
-            if (ret < 0)
-                return 0;
-            return ret;
+        else if (dist < 75.85) {
+            double slope = -.0251794 * dist + 2.01077;
+            double y_inter = .0965159 * dist - 7.39096;
+            return slope * velocity + y_inter;
         }
-        else {
+        else if (dist < 81.3) {
+            double slope = .0099411 * dist - .653127;
+            double y_inter = -.0192563 * dist + 1.39036;
+            return slope * velocity + y_inter;
+        }
+        else if (dist < 88.9) {
+            double slope = -.005055 * dist + .566056;
+            double y_inter = .00353105 * dist - .462244;
+            return slope * velocity + y_inter;
+        }
+        else if (dist < 102.12) {
+            double slope = .00466059 * dist - .297659;
+            double y_inter = -.0308132 * dist + 2.59096;
+            return slope * velocity + y_inter;
+        }
+        else if (dist < 160) {
             double slope = -.000200639 * dist + .198769;
-            double y_intercept = -.0385703 * dist + 3.38311;
-            ret = velocity * slope + y_intercept;
-            if (ret < 0)
-                return 0;
-            return ret;
+            double y_inter = -.00468182 * dist - .0775751;
+            return slope * velocity + y_inter;
         }
+        return 0;
     }
 }
