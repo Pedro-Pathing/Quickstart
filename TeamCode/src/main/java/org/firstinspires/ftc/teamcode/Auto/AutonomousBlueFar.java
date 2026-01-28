@@ -108,7 +108,7 @@ public class AutonomousBlueFar extends OpMode {
                 break;
             case 2:
                 if (!follower.isBusy()) {
-                    shotPower = 1;
+                    shotPower = .9;
                     if (pathTimer.getElapsedTimeSeconds() > 7 && Spind.Launch3Balls(pathTimer, 0.75,1)) {
                         setPathState(3);
                         shotPower = 0;
@@ -132,7 +132,7 @@ public class AutonomousBlueFar extends OpMode {
                 if (!follower.isBusy()) {
                     follower.followPath(scorePickup1, true);
                     setPathState(7);
-                    shotPower = 1;
+                    shotPower = .9;
                 }
                 break;
             case 7:
@@ -151,7 +151,7 @@ public class AutonomousBlueFar extends OpMode {
                 if (!follower.isBusy()) {
                     follower.followPath(pickupGrab2, true);
                     setPathState(10);
-                    shotPower = 1;
+                    shotPower = .9;
                 }
                 break;
             case 10:
@@ -176,7 +176,7 @@ public class AutonomousBlueFar extends OpMode {
                     shotPower = 0;
                     follower.followPath(pickupGrab3, true);
                     setPathState(14);
-                    shotPower = 1;
+                    shotPower = .9;
                 }
                 break;
             case 14:
