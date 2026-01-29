@@ -65,15 +65,19 @@ public class DecodeRedAutoGoal extends OpMode {
     PathState pathState;
 
     private final Pose startPose = new Pose(110.50,135.50, Math.toRadians(0));
-    private final Pose firstshootPose = new Pose(103.00,104.50,Math.toRadians(0));
+    private final Pose firstshootPose = new Pose(102.00,104.50,Math.toRadians(0));
 
-    private final Pose drivetoligne1= new Pose (103.00, 83.50, Math.toRadians(0));
+    private final Pose shoot2 = new Pose(107.00,106,Math.toRadians(0));
 
-    private final Pose avalerballeRangee1 = new Pose (128.00, 83.50, Math.toRadians(0));
 
-    private final Pose drivetoligne2= new Pose (103.00, 59.00, Math.toRadians(0));
+    private final Pose drivetoligne1= new Pose (101.00, 87.50, Math.toRadians(0));
 
-    private final Pose avalerballeRangee2= new Pose (128.00, 59.00, Math.toRadians(0));
+
+    private final Pose avalerballeRangee1 = new Pose (122.80, 84, Math.toRadians(0));
+
+    private final Pose drivetoligne2= new Pose (102.10, 70.80, Math.toRadians(0));
+
+    private final Pose avalerballeRangee2= new Pose (119.00, 59.50, Math.toRadians(0));
 
     //private final Pose Gate= new Pose (14, 70, Math.toRadians(-90));
 
@@ -100,12 +104,12 @@ public class DecodeRedAutoGoal extends OpMode {
                 .build();
         //Aller à la zone de Tir apres avoir avaler les balles de la rangée 1
         DrivedeuxiemeShoot = follower.pathBuilder()
-                .addPath(new BezierLine(avalerballeRangee1,firstshootPose))
+                .addPath(new BezierLine(avalerballeRangee1,shoot2))
                 .setLinearHeadingInterpolation(avalerballeRangee1.getHeading(), firstshootPose.getHeading())
                 .build();
         //Aller s'aligner à la deuxieme rangée de balle
         drivetorangee2 = follower.pathBuilder()
-                .addPath(new BezierLine(firstshootPose, drivetoligne2))
+                .addPath(new BezierLine(shoot2, drivetoligne2))
                 .setLinearHeadingInterpolation(firstshootPose.getHeading(), drivetoligne2.getHeading())
                 .build();
 
@@ -118,7 +122,7 @@ public class DecodeRedAutoGoal extends OpMode {
 
         //Aller à la zone de Tir apres avoir avaler les balles de la rangée 2
         driveAvaler2emeLignetotroisemeShoot = follower.pathBuilder()
-                .addPath(new BezierLine(avalerballeRangee2,firstshootPose))
+                .addPath(new BezierLine(avalerballeRangee2,shoot2))
                 .setLinearHeadingInterpolation(avalerballeRangee2.getHeading(), firstshootPose.getHeading())
                 .build();
 
@@ -148,8 +152,8 @@ public class DecodeRedAutoGoal extends OpMode {
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
                                 44,   // angle tourelle (exemple)
-                                0.33,  // angle shooter
-                                3905   // RPM
+                                0.35,  // angle shooter
+                                3900   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
@@ -180,7 +184,7 @@ public class DecodeRedAutoGoal extends OpMode {
                 indexeur.update();
 
                 if (!follower.isBusy()) {// attendre que le path soit fini
-                    follower.followPath(driveAvalerpremiereLigne,0.285,true); // on avance doucement pour avaler les balles
+                    follower.followPath(driveAvalerpremiereLigne,0.385,true); // on avance doucement pour avaler les balles
                     setPathState(PathState.DrivedeuxiemeShoot);
                     }
                 break;
@@ -198,9 +202,9 @@ public class DecodeRedAutoGoal extends OpMode {
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) { // deuxieme période de tir
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                47,   // angle tourelle (exemple)
-                                0.37,  // angle shooter
-                                4020   // RPM
+                                45,   // angle tourelle (exemple)
+                                0.35,  // angle shooter
+                                3900   // RPM
                         );
                         shotsTriggered = true;
                     } else if (shotsTriggered && !tireurManager.isBusy()) {
@@ -216,19 +220,20 @@ public class DecodeRedAutoGoal extends OpMode {
                 indexeur.update();
                 //if (!follower.isBusy()&& pathTimer.getElapsedTimeSeconds()>5) {
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetorangee2,0.9, true);
+                    follower.followPath(drivetorangee2,0.9, false);
                 // TO DO demarer intake , tourner indexeur des dectetion balles)
                 telemetry.addLine("alignement ramassage ligne 2");
                 // transition to next state
                 setPathState(PathState.intakerange2);
                 }
+
                 break;
 
             case intakerange2:
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetavalerdeuxiemeligne, 0.285 , true);
+                    follower.followPath(drivetavalerdeuxiemeligne, 0.33 , true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("ramassage 2 terminé");
                     // transition to next state
@@ -258,8 +263,8 @@ public class DecodeRedAutoGoal extends OpMode {
 
                         tireurManager.startTirAuto(// Lancer tir automatique
                                 47,   // angle tourelle (exemple)
-                                0.37,  // angle shooter
-                                4020   // RPM
+                                0.35,  // angle shooter
+                                3850   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){

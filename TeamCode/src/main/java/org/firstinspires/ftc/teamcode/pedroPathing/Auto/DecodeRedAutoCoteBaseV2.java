@@ -65,13 +65,13 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
     private final Pose startPose = new Pose(90,8.00, Math.toRadians(0));
     private final Pose firstshootPose = new Pose(92,17.00,Math.toRadians(0));
 
-    private final Pose drivetoligne3= new Pose (100.00, 32.00, Math.toRadians(0));
+    private final Pose drivetoligne3= new Pose (100.00, 31.00, Math.toRadians(0));
 
     private final Pose avalerballeRangee3 = new Pose (130.00, 35.00, Math.toRadians(0));
 
-    private final Pose drivetoligne2= new Pose (100.00, 50.00, Math.toRadians(0));
+    private final Pose drivetoligne2= new Pose (100.00, 51.00, Math.toRadians(0));
 
-    private final Pose avalerballeRangee2= new Pose (127.00, 60.00, Math.toRadians(0));
+    private final Pose avalerballeRangee2= new Pose (123.00, 58.10, Math.toRadians(0));
     private final Pose Shoot2 = new Pose (95.00, 78.00, Math.toRadians(0));
     private final Pose avalerballeRangee1 = new Pose (103.00, 104.00, Math.toRadians(0));
 
@@ -133,9 +133,10 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                72,   // angle tourelle (exemple)
-                                0.62,  // angle shooter
-                                4800   // RPM
+                                69,   // angle tourelle (exemple)
+                                0.60
+                                ,  // angle shooter
+                                4940   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
@@ -155,7 +156,7 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
                 if (!follower.isBusy()) {
                     telemetry.addLine("Done with Shooting 1, deplacement vers premiere rangée");
                     // transition to next state
-                    follower.followPath(driveShoot2pickup1Pos ,0.8, true); // chemin d'alignement de la premiere rangée
+                    follower.followPath(driveShoot2pickup1Pos ,0.8, false); // chemin d'alignement de la premiere rangée
                     setPathState(PathState.intakeballeRangee1); // on va a l'étape suivante
                 }
                 break;
@@ -166,7 +167,7 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
                 indexeur.update();
 
                 if (!follower.isBusy()) {// attendre que le path soit fini
-                    follower.followPath(driveAvalerpremiereLigne,0.45,true); // on avance doucement pour avaler les balles
+                    follower.followPath(driveAvalerpremiereLigne,0.48,true); // on avance doucement pour avaler les balles
                     setPathState(PathState.DrivedeuxiemeShoot);
                     }
 
@@ -175,7 +176,7 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
             case DrivedeuxiemeShoot:
                 ;
                 if (!follower.isBusy()) { // Attendre que l'on est fini d'avoir pris toutes les balles
-                    follower.followPath(DrivedeuxiemeShoot,0.65,true);
+                    follower.followPath(DrivedeuxiemeShoot,0.72,true);
                     // Le robot est arrivé en position de tir :
                     setPathState(PathState.deuxiemetir);
                 }
@@ -183,11 +184,12 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
 
             case deuxiemetir:
                 if (!follower.isBusy()) {
+
                     if (!shotsTriggered) { // deuxieme période de tir
                         tireurManager.startTirAuto(// Lancer tir automatique
                                 70,   // angle tourelle (exemple)
                                 0.62,  // angle shooter
-                                4750   // RPM
+                                4820   // RPM
                         );
                         shotsTriggered = true;
                     } else if (shotsTriggered && !tireurManager.isBusy()) {
@@ -195,6 +197,7 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
                         shotsTriggered = false;
                     }
                 }
+
                 break;
 
             case align_rangee2blue: // alignement avec la deuxieme zo
@@ -203,7 +206,7 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
                 indexeur.update();
                 //if (!follower.isBusy()&& pathTimer.getElapsedTimeSeconds()>5) {
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetorangee2,0.8, true);
+                    follower.followPath(drivetorangee2,0.9, false);
                 // TO DO demarer intake , tourner indexeur des dectetion balles)
                 telemetry.addLine("alignement ramassage ligne 2");
                 // transition to next state
@@ -215,7 +218,7 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetavalerdeuxiemeligne, 0.3 , true);
+                    follower.followPath(drivetavalerdeuxiemeligne, 0.36 , false);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("ramassage 2 terminé");
                     // transition to next state
@@ -241,9 +244,9 @@ public class DecodeRedAutoCoteBaseV2 extends OpMode {
 
                     if (!shotsTriggered){
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                50,   // angle tourelle (exemple)
-                                0.37,  // angle shooter
-                                3960   // RPM
+                                52,   // angle tourelle (exemple)
+                                0.45,  // angle shooter
+                                3980// RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){

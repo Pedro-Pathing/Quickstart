@@ -134,7 +134,7 @@ public class TireurManager {
             case SERVO_PUSH:
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
                 double toleranceVelocityMax = 1.017 * vitesseCibleShooter;
-                double toleranceVelocityMin = 0.98 * vitesseCibleShooter;
+                double toleranceVelocityMin = 0.995 * vitesseCibleShooter;
                 if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax) && !indexeur.isindexeurBusy()){;
                     servoTireur.push();
                     timer.reset();
@@ -142,7 +142,7 @@ public class TireurManager {
                     indexeur.decrementerBalle();
                 };
 
-                if (timer.milliseconds() > 1000) {
+                if (timer.milliseconds() > 1700) {
                     timer.reset();
                     state = TirState.SERVO_RETRACT;
                     indexeur.decrementerBalle();

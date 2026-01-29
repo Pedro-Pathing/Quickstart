@@ -59,7 +59,6 @@ public class DecodeBlueAutoGoal extends OpMode {
         DriveTroisiemeTir,
         troisiemetir,
         Drive2Gate,
-        retourzerotourelle,
         atgate
     }
     PathState pathState;
@@ -69,9 +68,10 @@ public class DecodeBlueAutoGoal extends OpMode {
 
     private final Pose drivetoligne1= new Pose (45.50, 88.00, Math.toRadians(180));
 
-    private final Pose avalerballeRangee1 = new Pose (21.00, 85.00, Math.toRadians(180));
+    private final Pose avalerballeRangee1 = new Pose (22.50, 85.00, Math.toRadians(180));
 
-    private final Pose Shoot2 = new Pose (55.3220536, 81.00, Math.toRadians(180));
+
+    private final Pose Shoot2 = new Pose (54.60, 80.00, Math.toRadians(180));
 
     private final Pose drivetoligne2= new Pose (46.00, 65.00, Math.toRadians(180));
 
@@ -151,7 +151,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                         tireurManager.startTirAuto(// Lancer tir automatique
                                 -44,   // angle tourelle (exemple)
                                 0.33,  // angle shooter
-                                3905   // RPM
+                                3900   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
@@ -171,7 +171,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                 if (!follower.isBusy()) {
                     telemetry.addLine("Done with Shooting 1, deplacement vers premiere rangée");
                     // transition to next state
-                    follower.followPath(driveShoot2pickup1Pos ,0.9, true); // chemin d'alignement de la premiere rangée
+                    follower.followPath(driveShoot2pickup1Pos ,0.9, false); // chemin d'alignement de la premiere rangée
                     setPathState(PathState.intakeballeRangee1); // on va a l'étape suivante
                 }
                 break;
@@ -182,7 +182,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                 indexeur.update();
 
                 if (!follower.isBusy()) {// attendre que le path soit fini
-                    follower.followPath(driveAvalerpremiereLigne,0.285,true); // on avance doucement pour avaler les balles
+                    follower.followPath(driveAvalerpremiereLigne,0.38,false); // on avance doucement pour avaler les balles
                     setPathState(PathState.DrivedeuxiemeShoot);
                     }
                 break;
@@ -200,9 +200,9 @@ public class DecodeBlueAutoGoal extends OpMode {
                 if (!follower.isBusy()) {
                     if (!shotsTriggered) { // deuxieme période de tir
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -47,   // angle tourelle (exemple)
-                                0.37,  // angle shooter
-                                4020   // RPM
+                                -49,   // angle tourelle (exemple)
+                                0.40,  // angle shooter
+                                4000   // RPM
                         );
                         shotsTriggered = true;
                     } else if (shotsTriggered && !tireurManager.isBusy()) {
@@ -218,7 +218,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                 indexeur.update();
                 //if (!follower.isBusy()&& pathTimer.getElapsedTimeSeconds()>5) {
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetorangee2,0.9, true);
+                    follower.followPath(drivetorangee2,0.9, false);
                 // TO DO demarer intake , tourner indexeur des dectetion balles)
                 telemetry.addLine("alignement ramassage ligne 2");
                 // transition to next state
@@ -230,7 +230,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(drivetavalerdeuxiemeligne, 0.285 , true);
+                    follower.followPath(drivetavalerdeuxiemeligne, 0.285 , false);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("ramassage 2 terminé");
                     // transition to next state
@@ -243,7 +243,7 @@ public class DecodeBlueAutoGoal extends OpMode {
                 intake.update(); // mise à jour de nos systemes (constate que toutes les balles sont parties)
                 indexeur.update();
                 if (!follower.isBusy()) {
-                    follower.followPath(driveAvaler2emeLignetotroisemeShoot,0.9, true);
+                    follower.followPath(driveAvaler2emeLignetotroisemeShoot,0.8, true);
                     // TO DO demarer intake , tourner indexeur des dectetion balles)
                     telemetry.addLine("Position 3 de tir");
                     // transition to next state
@@ -259,13 +259,15 @@ public class DecodeBlueAutoGoal extends OpMode {
                     if (!shotsTriggered){
 
                         tireurManager.startTirAuto(// Lancer tir automatique
-                                -47,   // angle tourelle (exemple)
+                                -49,   // angle tourelle (exemple)
                                 0.37,  // angle shooter
                                 4020   // RPM
                         );
                         shotsTriggered = true;}
                     else if (shotsTriggered && !tireurManager.isBusy()){
-                            setPathState(PathState.retourzerotourelle);
+
+                            tourelle.allerVersAngle(0);
+                            setPathState(PathState.atgate);
                             shotsTriggered = false;
                         }
 
@@ -273,14 +275,17 @@ public class DecodeBlueAutoGoal extends OpMode {
 
                 }
                 break;
+            case Drive2Gate: // pas utiliser sur la partie Goal
+                intake.update(); // mise à jour de nos systemes (constate les balles sont tirées )
+                indexeur.update();
+                // shoot logique 3eme Tir
+                if (!follower.isBusy()) {
+                    follower.followPath(DrivetoGate,1,true);
+                    // TO DO demarer intake , tourner indexeur des dectetion balles)
+                    telemetry.addLine("Auto Termine & A cote de la porte ");
+                    // transition to next state
+                    setPathState(PathState.atgate);
 
-            case retourzerotourelle:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds()>1) {
-                    tourelle.allerVersAngle(0);
-                    if (tourelle.isAtAngle(0)) {
-                        setPathState(PathState.atgate);
-                        shotsTriggered = false;
-                    }
                 }
                 break;
 
