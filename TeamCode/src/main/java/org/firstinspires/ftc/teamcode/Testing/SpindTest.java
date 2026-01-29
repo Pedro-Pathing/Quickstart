@@ -20,14 +20,18 @@ public class SpindTest extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.a) {
-            slot = 2;
+            Spind.setSpindToColor("P");
         }
-        if(gamepad1.b){
+//        if(gamepad1.b){
 //            try {
 //                Spind.Launch3Balls("PPG");
 //            } catch (InterruptedException e) {
 //                throw new RuntimeException(e);
 //            }
+//        }
+        if(gamepad1.b){
+            Spind.spinTheDexer(0.5);
+            Spind.updateBallList(0);
         }
         if (gamepad1.x && yes) {
             sigma.resetTimer();
