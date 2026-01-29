@@ -49,7 +49,7 @@ public class Constants {
             .strafeEncoderDirection(Encoder.FORWARD)
             .forwardTicksToInches(.002968434)
             .strafeTicksToInches(.00197895601)
-            .forwardPodY(6+7.0/16)
+            .forwardPodY(6 + 7.0 / 16)
             .strafePodX(3.2912680654);
 
 
