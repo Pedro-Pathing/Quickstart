@@ -37,6 +37,25 @@ public class Turret {
 
         return dtheta;
     }
+    public static double faceGoal(double x, double y, double theta, boolean red, double offset, boolean justAngle) {
+        //x and y are in inches bc pedropathing is dumb
+        double dx = (144) * (red ? 1 : 0) - x;
+        double dy = 144 - y;
+
+        double dtheta = Math.atan2(dy,dx) + offset;
+        dtheta -= theta;
+        dtheta = dtheta % (2 * Math.PI);
+
+        if (dtheta < -Math.toRadians(190)) {
+            dtheta += 2 * Math.PI;
+        }
+        else if (dtheta > Math.PI) {
+            dtheta -= 2 * Math.PI;
+        }
+
+
+        return dtheta;
+    }
     private static void goTo(double target) {
         awesome.updatePosition(turret.getCurrentPosition());
         awesome.setTargetPosition(target);

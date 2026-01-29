@@ -153,7 +153,7 @@ public class redT extends OpMode {
 
         Robot.intake.setPower(gamepad2.left_stick_y * Math.abs(gamepad2.left_stick_y));
 
-        Shooter.autoShotHood(144 - follower.getPose().getX(), 144 - follower.getPose().getY());
+        Shooter.autoShotHood(144 - follower.getPose().getX(), 144 - follower.getPose().getY(), follower.getHeading(), true);
 
         Spind.spinTheDexer(spindPos, true);
 

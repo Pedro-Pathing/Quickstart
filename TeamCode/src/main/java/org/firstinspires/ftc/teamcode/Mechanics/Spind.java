@@ -15,15 +15,11 @@ import static org.firstinspires.ftc.teamcode.Mechanics.Robot.transfer;
 public class Spind {
     public static double spindexerAngle = 0, targetAngle = 0;
     public static Color.DetectedColor[] ballList = {Color.DetectedColor.UNKNOWN, Color.DetectedColor.UNKNOWN, Color.DetectedColor.UNKNOWN};
-    public static boolean intaking = false;
     public static boolean[] launchedBalls = {false,false,false};
 
     private static boolean p1, p2, p3;
     public static boolean spinTheDexer(double slot) {
-        if(intaking)
-            targetAngle = Constants.CPR312 / 3 * (slot+0.5);
-        else
-            targetAngle = Constants.CPR312 / 3 * slot;
+        targetAngle = Constants.CPR312 / 3 * slot;
         spindexer.setTargetPosition((int)Math.round(targetAngle));
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setPower(1);
@@ -39,12 +35,23 @@ public class Spind {
         }
         return false;
     }
+    public static boolean spinTheDexer(double slot, int intaking) {
+        targetAngle = Constants.CPR312 / 3 * slot;
+        spindexer.setTargetPosition((int)Math.round(targetAngle));
+        spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        spindexer.setPower(1);
 
+        spindexerAngle = spindexer.getCurrentPosition();
+
+
+        if (Math.abs(spindexerAngle - targetAngle) <= 10) {
+            spindexer.setPower(0);
+            return true;
+        }
+        return false;
+    }
     public static boolean spinTheDexer(double slot, boolean Teleop) {
-        if(intaking)
-            targetAngle = Constants.CPR312 / 3 * (slot+0.5);
-        else
-            targetAngle = Constants.CPR312 / 3 * slot;
+        targetAngle = Constants.CPR312 / 3 * slot;
         spindexer.setTargetPosition((int)Math.round(targetAngle));
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setPower(1);
@@ -74,13 +81,12 @@ public class Spind {
 
     public static boolean intaking(Timer timer,double timeBetweenSpins){
         if(timer.getElapsedTimeSeconds()>5*timeBetweenSpins){
-            spinTheDexer(0);
+            spinTheDexer(0, 1);
             return true;
         }
         intake.setPower(-1);
-        intaking=true;
         int index = (int)(timer.getElapsedTimeSeconds()/timeBetweenSpins);
-        spinTheDexer(index);
+        spinTheDexer(index + .5, 1);
         return false;
     }
     public static boolean updateBallList(Timer timer,double timeBetweenSpins) {
@@ -89,7 +95,6 @@ public class Spind {
             return true;
         }
         intake.setPower(-0.5);
-        intaking=false;
         int index=(int)(timer.getElapsedTimeSeconds()/timeBetweenSpins);
         if(spinTheDexer(index)&&Color.getColor()!= Color.DetectedColor.UNKNOWN) {
             ballList[index] = Color.getColor();
@@ -107,7 +112,6 @@ public class Spind {
                 launchedBalls[i]=false;
             return true;
         }
-        intaking=false;
         intake.setPower(-.5);
         int index = (int)(timer.getElapsedTimeSeconds()/timeBetweenShots);
         String[] motifList = motif.split("");
@@ -147,7 +151,8 @@ public class Spind {
         intake.setPower(-.5);
         if(timer.getElapsedTimeSeconds()<shooterSpeedTime)
             return false;
-        intaking = false;
+
+
         System.out.println("Seriously? just here");
         if (!p1 && spinTheDexer(0)) {
             System.out.println("at least we're here");

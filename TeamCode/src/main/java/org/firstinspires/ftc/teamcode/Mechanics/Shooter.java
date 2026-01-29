@@ -29,9 +29,9 @@ public class Shooter {
 
 
     //Automation
-    public static double autoShotHood(double x, double y) {
+    public static double autoShotHood(double x, double y, double theta, boolean red) {
         velocity = -flywheel.getVelocity(AngleUnit.RADIANS);
-        double dist = Math.sqrt(x * x + y * y);
+        double dist = Math.sqrt(Math.pow(x + 2.95 * Math.cos(Turret.faceGoal(x, y, theta, red, 0, true)), 2) + Math.pow(y + 2.95 * Math.cos(Turret.faceGoal(x, y, theta, red, 0, true)), 2));
         double hoodP = hoodVal(dist, velocity);
         hood.setPosition(hoodP);
         return hoodP;

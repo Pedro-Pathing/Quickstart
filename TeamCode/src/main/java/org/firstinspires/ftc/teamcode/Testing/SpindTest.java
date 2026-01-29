@@ -56,7 +56,7 @@ public class SpindTest extends OpMode {
             Shooter.setPower(1);
         }
 
-        Shooter.autoShotHood(72, 72);
+        Shooter.autoShotHood(72, 72, 0, true);
 
         //Spind.spinTheDexer(slot);
         for(int i =0;i<3;i++) {

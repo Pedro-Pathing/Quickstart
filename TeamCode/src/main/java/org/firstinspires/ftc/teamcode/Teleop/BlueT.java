@@ -156,7 +156,7 @@ public class BlueT extends OpMode {
 
         Robot.intake.setPower(gamepad2.left_stick_y * Math.abs(gamepad2.left_stick_y));
 
-        Shooter.autoShotHood(follower.getPose().getX(), 144 - follower.getPose().getY());
+        Shooter.autoShotHood(follower.getPose().getX(), 144 - follower.getPose().getY(), follower.getHeading(), false);
 
         Spind.spinTheDexer(spindPos,true);
 
