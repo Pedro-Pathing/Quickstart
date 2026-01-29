@@ -60,6 +60,8 @@ public class Turret {
         awesome.updatePosition(turret.getCurrentPosition());
         awesome.setTargetPosition(target);
         turret.setPower(awesome.run());
+        if (Math.abs(turret.getCurrentPosition() - target) < 10)
+            turret.setPower(0);
     }
     public static void turretToPosition(double target){
         goTo(target);

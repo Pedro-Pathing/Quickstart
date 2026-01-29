@@ -39,6 +39,8 @@ public class BlueT extends OpMode {
     private double off = 0;
     private boolean offsetswitch = true;
     private boolean offsetswitch2 = true;
+    private boolean spindOffset1 = true;
+    private boolean spindOffset2 = true;
 
     @Override
     public void init() {
@@ -94,50 +96,49 @@ public class BlueT extends OpMode {
             slowModeMultiplier -= 0.25;
         }
 
+        //relocalize
+        if (gamepad1.bWasPressed())
+            Robot.reLocalize(false, follower);
+
 
 
         //driver 2
-        if (gamepad2.startWasPressed()) {
-            manual = !manual;
-        }
-        if (gamepad2.right_bumper)
-            Shooter.setHood(0.2);
-//        if (gamepad2.left_bumper)
-//            Shooter.setHood(.5);
+
+        //transfer
         if (gamepad2.right_trigger > .6) {
             Robot.transfer.setPosition(.9);
             try { Thread.sleep(100); } catch (Exception ignored) {}
             Robot.transfer.setPosition(.4);
         }
+
+        //spindexer
         if (gamepad2.y && coooooking) {
             spindPos += .5;
-//            int target = (int)Math.round((Constants.CPR / 6.0) * (x));
-//            Robot.spindexer.setTargetPosition(target);
-//            Robot.spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-//            Robot.spindexer.setPower(1);
-//            x += 1;
             coooooking = false;
         }
         else if (!gamepad2.y)
             coooooking = true;
         if (gamepad2.a && coooooking2){
-//            int target = (int)Math.round((Constants.CPR / 6.0) * (x+1));
-//            Robot.spindexer.setTargetPosition(target);
-//            Robot.spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-//            Robot.spindexer.setPower(1);
-//            x += 2;
             spindPos += 1;
             coooooking2 = false;
         }
+
+        //shooter
         else if (!gamepad2.a)
             coooooking2 = true;
-        if (gamepad2.x)
+        if (gamepad2.x) {
             Robot.flywheel.setPower(1);
+            Turret.faceGoal(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading(), false, off);
+        }
+        if (!gamepad2.x)
+            Robot.turret.setPower(0);
         if (gamepad2.b)
             Robot.flywheel.setPower(0);
         if (gamepad2.left_trigger > .6)
             Robot.flywheel.setPower(-.5);
 
+
+        // offsets
         if (gamepad2.right_bumper && offsetswitch) {
             off += Math.toRadians(1);
             offsetswitch = false;
@@ -152,22 +153,31 @@ public class BlueT extends OpMode {
         else if (!gamepad2.left_bumper) {
             offsetswitch2 = true;
         }
+        if (gamepad2.left_stick_button && spindOffset1) {
+            spindPos -= .05;
+            spindOffset1 = false;
+        }
+        else if (!gamepad2.left_stick_button)
+            spindOffset1 = true;
+        if (gamepad2.right_stick_button && spindOffset2) {
+            spindPos += .05;
+            spindOffset2 = false;
+        }
+        else if (!gamepad2.right_stick_button)
+            spindOffset2 = true;
+
 
 
         Robot.intake.setPower(gamepad2.left_stick_y * Math.abs(gamepad2.left_stick_y));
-
+        Spind.spinTheDexer(spindPos,true);
         Shooter.autoShotHood(follower.getPose().getX(), 144 - follower.getPose().getY(), follower.getHeading(), false);
 
-        Spind.spinTheDexer(spindPos,true);
-
-        Turret.faceGoal(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading(), false, off);
 
 
 
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
-        telemetry
-                .addData("x", follower.getPose().getX());
+        telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("theta", follower.getHeading());
         telemetry.update();

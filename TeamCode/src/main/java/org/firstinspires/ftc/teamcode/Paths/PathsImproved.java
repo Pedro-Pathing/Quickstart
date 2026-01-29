@@ -50,12 +50,12 @@ public class PathsImproved {
                 .pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(18.000, 72.000),
-                                new Pose(59.985, 69.388),
-                                new Pose(60.000, 84.000)
+                                new Pose(20.000, 84.000),
+                                new Pose(63, 84.000),
+                                new Pose(60, 84.000)
                         )
                 )
-                .setTangentHeadingInterpolation()
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
                 .build();
 
         intake2 = follower

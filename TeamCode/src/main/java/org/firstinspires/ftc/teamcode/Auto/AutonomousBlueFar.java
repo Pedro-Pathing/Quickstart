@@ -35,6 +35,8 @@ public class AutonomousBlueFar extends OpMode {
     private Follower follower;
     private double shotPower;
     private final double sPow = 1;
+    private final double intTime = .75;
+    private boolean faceGoal = false;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
     String motif = "";
@@ -51,17 +53,19 @@ public class AutonomousBlueFar extends OpMode {
             case 2:
                 if (!follower.isBusy()) {
                     shotPower = sPow;
+                    faceGoal = true;
                     if (pathTimer.getElapsedTimeSeconds() > 3 && Spind.Launch3Balls(pathTimer, 0.75,1)) {
                         setPathState(3);
                         shotPower = 0;
+                        faceGoal = false;
                     }
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
                     follower.followPath(intake1, true);
-                    if (Spind.intaking(pathTimer,1) || pathTimer.getElapsedTimeSeconds() > 6)
-                        setPathState(4);
+                    if (Spind.intaking(pathTimer,intTime) || pathTimer.getElapsedTimeSeconds() > 6)
+                        setPathState(5);
                 }
                 break;
             case 4:
@@ -72,10 +76,10 @@ public class AutonomousBlueFar extends OpMode {
                 break;
             case 5:
                 if (!follower.isBusy()) {
-                    Robot.intake.setPower(-1);
                     follower.followPath(score1, true);
                     setPathState(7);
                     shotPower = sPow;
+                    faceGoal = true;
                 }
                 break;
             case 7:
@@ -85,35 +89,34 @@ public class AutonomousBlueFar extends OpMode {
                 break;
             case 8:
                 if(Spind.Launch3Balls(pathTimer, 0.75,1) || pathTimer.getElapsedTimeSeconds() > 4){
-                    Robot.intake.setPower(0);
                     follower.followPath(intake2, true);
                     shotPower = 0;
+                    faceGoal = false;
                     setPathState(9);
                 }
                 break;
             case 9:
                 if (!follower.isBusy()) {
                     follower.followPath(intake2, true);
-                    if (Spind.intaking(pathTimer, 1) || pathTimer.getElapsedTimeSeconds() > 6) {
+                    if (Spind.intaking(pathTimer, intTime) || pathTimer.getElapsedTimeSeconds() > 6) {
                         setPathState(10);
                         shotPower = sPow;
+                        faceGoal = true;
                     }
                 }
                 break;
             case 10:
                 if (!follower.isBusy()) {
-                    Robot.intake.setPower(-1);
                     follower.followPath(score2, true);
                     setPathState(11);
                 }
                 break;
             case 11:
                 if (!follower.isBusy()) {
-                    setPathState(12);
+                    setPathState(16);
                 }
                 break;
             case 12:
-                Robot.intake.setPower(0);
                 if(Spind.Launch3Balls(pathTimer, 0.75,1) || pathTimer.getElapsedTimeSeconds() > 4){
                     follower.followPath(intake3, true);
                     setPathState(13);
@@ -122,17 +125,18 @@ public class AutonomousBlueFar extends OpMode {
             case 13:
                 if (!follower.isBusy()) {
                     shotPower = 0;
+                    faceGoal = false;
                     follower.followPath(intake3, true);
 
-                    if (Spind.intaking(pathTimer, 1) || pathTimer.getElapsedTimeSeconds() > 6) {
+                    if (Spind.intaking(pathTimer, intTime) || pathTimer.getElapsedTimeSeconds() > 6) {
                         setPathState(14);
                         shotPower = sPow;
+                        faceGoal = true;
                     }
                 }
                 break;
             case 14:
                 if(!follower.isBusy()) {
-                    Robot.intake.setPower(-1);
                     follower.followPath(score3,true);
                     setPathState(15);
                 }
@@ -143,10 +147,10 @@ public class AutonomousBlueFar extends OpMode {
                 }
                 break;
             case 16:
-                Robot.intake.setPower(0);
                 if(Spind.Launch3Balls(pathTimer, 0.75,1) || pathTimer.getElapsedTimeSeconds() > 4){
                     follower.followPath(end, true);
                     shotPower = 0;
+                    faceGoal = false;
                     setPathState(17);
                 }
                 break;
@@ -176,8 +180,10 @@ public class AutonomousBlueFar extends OpMode {
             motif = camera.findMotif();
         }
         Shooter.setPower(shotPower);
+        Robot.intake.setPower(-1);
         Shooter.autoShotHood(follower.getPose().getX(), 144 - follower.getPose().getY(), follower.getHeading(), false);
-        Turret.faceGoal(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading(), false, 0);
+        if (faceGoal)
+            Turret.faceGoal(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading(), false, 0);
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());

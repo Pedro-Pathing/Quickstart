@@ -61,7 +61,6 @@ public class Spind {
 
         if (Math.abs(spindexerAngle - targetAngle) <= 10) {
             spindexer.setPower(0);
-            intake.setPower(0);
             return true;
         }
         return false;
@@ -80,13 +79,13 @@ public class Spind {
     }
 
     public static boolean intaking(Timer timer,double timeBetweenSpins){
-        if(timer.getElapsedTimeSeconds()>5*timeBetweenSpins){
+        if(timer.getElapsedTimeSeconds()>4*timeBetweenSpins){
             spinTheDexer(0, 1);
             return true;
         }
         intake.setPower(-1);
         int index = (int)(timer.getElapsedTimeSeconds()/timeBetweenSpins);
-        spinTheDexer(index + .5, 1);
+        spinTheDexer(index + .25, 1);
         return false;
     }
     public static boolean updateBallList(Timer timer,double timeBetweenSpins) {
