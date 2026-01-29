@@ -33,7 +33,7 @@ public class SpindTest extends OpMode {
             sigma.resetTimer();
             yes = false;
         }else if(gamepad1.x){
-            Spind.updateBallList(sigma,0.75);
+            //Spind.updateBallList(sigma,0.75);
         }
         else if(!gamepad1.x)
             yes = true;
