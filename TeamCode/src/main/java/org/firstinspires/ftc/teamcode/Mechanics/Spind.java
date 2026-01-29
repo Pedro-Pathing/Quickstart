@@ -65,7 +65,7 @@ public class Spind {
         }
         return false;
     }
-    private static boolean setSpindToColor(Color.DetectedColor color) {
+    public static boolean setSpindToColor(Color.DetectedColor color) {
         int index=-1;
         for(int i=0;i<3;i++){
             if (ballList[i]==color) {

@@ -20,7 +20,7 @@ public class SpindTest extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.a) {
-            Spind.setSpindToColor("P");
+            Spind.setSpindToColor(Color.DetectedColor.PURPLE);
         }
 //        if(gamepad1.b){
 //            try {
@@ -31,7 +31,7 @@ public class SpindTest extends OpMode {
 //        }
         if(gamepad1.b){
             Spind.spinTheDexer(0.5);
-            Spind.updateBallList(0);
+            Spind.updateBallList(new Timer(),0);
         }
         if (gamepad1.x && yes) {
             sigma.resetTimer();
