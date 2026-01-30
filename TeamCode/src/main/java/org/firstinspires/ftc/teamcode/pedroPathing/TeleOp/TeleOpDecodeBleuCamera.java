@@ -285,6 +285,7 @@ public class TeleOpDecodeBleuCamera extends OpMode {
        if (gamepad2.xWasPressed()) {
                 //fireIfReady(0.1, 3700, shotsMode);
            tourelle.resetImuToutelle();
+           afficheurLeft.setViolet();
             }
         // Pad tir de loin
         if (gamepad2.dpadUpWasPressed()){
@@ -314,24 +315,24 @@ public class TeleOpDecodeBleuCamera extends OpMode {
             telemetry.addData("Distancemesurée", distanceCameramesuree);
             telemetry.addData("Distance_camera_apriltag", distanceCamerajustee);
             telemetry.update();
-            if (distanceCamerajustee > 0 && distanceCamerajustee < 70) {
-                afficheurRight.setVert();
-            }
-            if (distanceCamerajustee > 68 && distanceCamerajustee < 110) {
-                afficheurRight.setJaune();
+            //if (distanceCamerajustee > 0 && distanceCamerajustee < 70) {
+            //    afficheurRight.setVert();
+            //}
+            //if (distanceCamerajustee > 68 && distanceCamerajustee < 110) {
+            //    afficheurRight.setJaune();
 
-            }
+            //}
 
-            if (distanceCamerajustee > 110 && distanceCamerajustee < 150) {
-                    afficheurRight.setOrange();
+            //if (distanceCamerajustee > 110 && distanceCamerajustee < 150) {
+            //        afficheurRight.setOrange();
 
-            }
-            if (distanceCamerajustee > 150 && distanceCamerajustee < 187) {
-                    afficheurRight.setRouge();
-            }
-            if (distanceCamerajustee > 187 && distanceCamerajustee < 200) {
-                    afficheurRight.setViolet();
-            }
+            //}
+            //if (distanceCamerajustee > 150 && distanceCamerajustee < 187) {
+            //        afficheurRight.setRouge();
+            //}
+            //if (distanceCamerajustee > 187 && distanceCamerajustee < 200) {
+            //        afficheurRight.setViolet();
+            //}
             afficheurRight.update();
             distanceCamerajustee = 0;
             distanceCameramesuree =0;
@@ -371,7 +372,7 @@ public class TeleOpDecodeBleuCamera extends OpMode {
                 }
 
                 if (distanceCamerajustee > 1.10 && distanceCamerajustee < 1.50) {
-                    fireIfReady(0.30, rpm, shotsMode); //3900
+                    fireIfReady(0.35, rpm, shotsMode); //3900
                     distanceCamerajustee = 0;
                     distanceCameramesuree =0;
                     rpm = 0;

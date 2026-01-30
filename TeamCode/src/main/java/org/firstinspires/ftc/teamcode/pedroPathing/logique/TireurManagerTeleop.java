@@ -117,8 +117,8 @@ public class TireurManagerTeleop {
 
             case SHOOTER_SPINUP:
                 shooter.setShooterTargetRPM(vitesseCibleShooter);
-                double toleranceVelocityMax = 1.017 * vitesseCibleShooter;
-                double toleranceVelocityMin = 0.99 * vitesseCibleShooter;
+                double toleranceVelocityMax = 1.015 * vitesseCibleShooter;
+                double toleranceVelocityMin = 0.995 * vitesseCibleShooter;
                 if ((shooter.getShooterVelocityRPM() > toleranceVelocityMin) && (shooter.getShooterVelocityRPM() < toleranceVelocityMax) && !indexeur.isindexeurBusy()){;
                     timer.reset();
                     state = TirState.SERVO_PUSH;

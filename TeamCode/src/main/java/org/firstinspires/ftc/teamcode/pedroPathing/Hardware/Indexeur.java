@@ -269,106 +269,148 @@ public class Indexeur {
 
     public void avancerIndexeurRapide() {
 
+        if (!homingDone || rotationEnCours) return;
 
-        if (!homingDone) return;
-        if (rotationEnCours) return;
+        int current = indexeur.getCurrentPosition();
+        int currentSlot = (int) Math.round(current / TICKS_PAR_COMPARTIMENT);
+        int nextSlot = currentSlot + 1; // avance d’un compartiment
+        targetTicks = (int) Math.round(nextSlot * TICKS_PAR_COMPARTIMENT);
 
-        positionLogique++;
-        compartimentPhysique = positionLogique % COMPARTIMENTS;
-
-        targetTicks = (int) (positionLogique * TICKS_PAR_COMPARTIMENT);
+        // Mets à jour la logique d’après ce nextSlot
+        positionLogique = nextSlot;
+        compartimentPhysique = Math.floorMod(positionLogique, COMPARTIMENTS);
 
         indexeur.setTargetPosition(targetTicks);
         indexeur.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         indexeur.setPower(0.5);
-        indexeurtimer.reset();  // timer général
-        erreurTimer.reset();    // timer d'erreur (au-dessus de tolérance)
 
+        indexeurtimer.reset();
+        erreurTimer.reset();
         rotationEnCours = true;
+
     }
 
     public void updateRotation() {
 
         if (!rotationEnCours) return;
 
-        int erreur = Math.abs(indexeur.getCurrentPosition() - targetTicks);
+        int posActuelle = indexeur.getCurrentPosition();
+        int erreur = Math.abs(posActuelle - targetTicks);
 
-        // --- LECTURE CONTINUE DE LA COULEUR (NOUVEAU) ---
-        // On lit la couleur pendant la rotation, dès qu'une couleur valide apparaît
+        // --- LECTURE CONTINUE DE LA COULEUR ---
         String couleurInstant = detectBallColor();
-
         if (!"Inconnue".equals(couleurInstant)) {
-            couleurDetecteeTemp = couleurInstant;   // on garde la meilleure couleur vue
+            couleurDetecteeTemp = couleurInstant;   // meilleure couleur vue
         }
 
         // --- Gestion de la vitesse progressive ---
         if (erreur > 300) {
             indexeur.setPower(0.8);   // loin de la cible → rapide
         } else {
-            indexeur.setPower(0.5);   // proche de la cible → lent
+            indexeur.setPower(0.5);   // proche → lent et stable
         }
 
-        boolean finNormale = !indexeur.isBusy() || (erreur < erreurindexeur);
-        boolean finParTimerErreur = (erreur >= erreurindexeur) && (erreurTimer.seconds() > ERREUR_TIMEOUT_S);
+        // --- RESET DU TIMER D’ERREUR SI ON EST DANS LA TOLÉRANCE ---
+        if (erreur < erreurindexeur) {
+            erreurTimer.reset();
+        }
 
-        if (!(finNormale || finParTimerErreur)) {
-            return;
+        // --- CONDITIONS DE FIN ---
+        boolean finNormale = !indexeur.isBusy();                // RUN_TO_POSITION estime que c'est fini
+        boolean stabiliseDansTol = (erreur < erreurindexeur)    // erreur ok
+                && (erreurTimer.seconds() > 0.15); // stabilité 150ms
+        boolean finParTimerErreur = (erreur >= erreurindexeur)
+                && (erreurTimer.seconds() > ERREUR_TIMEOUT_S);
+
+        if (!(finNormale || stabiliseDansTol || finParTimerErreur)) {
+            return;   // pas fini → on continue
         }
 
         // --- ROTATION FINIE ---
         indexeur.setPower(0);
         indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        int slotCapteurs = compartimentPhysique;
-        int slotTir = (compartimentPhysique + 1) % COMPARTIMENTS;
-        int slotEntree = (compartimentPhysique + 2) % COMPARTIMENTS;
+        // === RECALAGE LOGIQUE SUR ENCODEUR (au bon moment !) ===
+        int pos = indexeur.getCurrentPosition();
+        int logicalSlot = (int) Math.round(pos / TICKS_PAR_COMPARTIMENT);
 
-        // --- UTILISATION DE LA MEILLEURE COULEUR DÉTECTÉE ---
+        positionLogique = logicalSlot;
+        compartimentPhysique = Math.floorMod(positionLogique, COMPARTIMENTS);
+
+        // --- CALCUL DES SLOTS ---
+        int slotCapteurs = compartimentPhysique;
+        int slotTir      = (compartimentPhysique + 1) % COMPARTIMENTS;
+        int slotEntree   = (compartimentPhysique + 2) % COMPARTIMENTS;
+
+        // --- UTILISATION DE LA MEILLEURE COULEUR ---
         String couleurSousCapteurs = couleurDetecteeTemp;
-        couleurDetecteeTemp = "Inconnue"; // reset pour la prochaine rotation
+        couleurDetecteeTemp = "Inconnue"; // reset pour prochaine rotation
 
         couleurBalleDansCompartiment[slotCapteurs] = couleurSousCapteurs;
 
-        // --- Mise à jour du comptage ---
+        // --- COMPTAGE ---
         if (rotationPourAmassage) {
+
             ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
-            //if (!"Inconnue".equals(couleurSousCapteurs)) {
-            //    ballComptage = Math.min(ballComptage + 1, MAX_BALLS);
-            //}
-            if (ballComptage<3){
+
+            if (ballComptage < 3) {
                 intake.setetatramasage();
-            }
-            if (ballComptage==3){
+            } else {
                 intake.setetatIDLE();
             }
+
         } else if (rotationPourTir) {
-            String couleurAuTir = couleurBalleDansCompartiment[slotTir];
-            //if (couleurAuTir != null && !"Inconnue".equals(couleurAuTir)) {
-            //    ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
-            //}
-            //ballComptage = Math.max(ballComptage - 1, MIN_BALLS);
+
             couleurBalleDansCompartiment[slotTir] = "Inconnue";
+            // (décrément optionnel selon ta logique)
         }
 
+        // --- RESET FLAGS ---
         rotationPourAmassage = false;
         rotationPourTir = false;
         rotationEnCours = false;
 
-        IndexeurState = finParTimerErreur ? Indexeuretat.BOURRAGE: Indexeuretat.IDLE; //Retrait Bourrage
+        // --- SORTIE D’ÉTAT ---
+        IndexeurState = finParTimerErreur ?
+                Indexeuretat.BOURRAGE :
+                Indexeuretat.IDLE;
+
+        if (IndexeurState == Indexeuretat.BOURRAGE) {
+            bourragetimer.reset();
+        }
+
     }
 
     public void reculerIndexeurbourrage() {
-            int positionbourrage = indexeur.getCurrentPosition();
-            int delta = (int) (TICKS_PER_REV_43 * 0.05); // environ 18°
-            int target = positionbourrage - delta;
-            indexeur.setPower(-0.4);
-            if (bourragetimer.milliseconds() > 600) {
-                bourragetimer.reset();
-                IndexeurState = Indexeuretat.HOMING;}
-                //if (ballcomptage == 3) {
-            //    intakeState = Intakeetat.IDLE;
-            //} else {
-             }
+
+        // Initialisation au moment d’entrer dans l’état BOURRAGE
+        if (bourragetimer.milliseconds() == 0) {
+            bourragetimer.reset();
+            indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            indexeur.setPower(-0.4);  // recul court pour libérer la balle
+        }
+
+        // Recul pendant 600 ms
+        if (bourragetimer.milliseconds() > 600) {
+
+            // Stop
+            indexeur.setPower(0);
+            indexeur.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            bourragetimer.reset();
+
+            // Si on a encore de la place → continuer l’amassage automatiquement
+            if (ballComptage < MAX_BALLS) {
+                rotationPourAmassage = true;
+                rotationEnCours = false;
+                IndexeurState = Indexeuretat.AVANCERAPIDEAMASSAGE;
+            }
+            // Sinon → rester tranquille
+            else {
+                IndexeurState = Indexeuretat.IDLE;
+            }
+        }
+    }
 
     public boolean avanceTerminee() {
         boolean blocage = indexeur.isBusy() && Math.abs(indexeur.getVelocity()) < 10;
