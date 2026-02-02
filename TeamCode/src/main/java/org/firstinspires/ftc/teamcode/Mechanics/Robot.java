@@ -55,7 +55,7 @@ public class Robot {
 
     public static void reLocalize(boolean red, Follower follower) {
         if (red) {
-            follower.setPose(new Pose(9, 8.5, 0));
+            follower.setPose(new Pose(9, 8.5, Math.toRadians(0)));
         }
         else {
             follower.setPose(new Pose(144 - 9, 8.5, Math.PI));

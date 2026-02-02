@@ -30,11 +30,11 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Autonomous(name = "blue far auto 🥶", group = "Blue auto")
-public class AutonomousBlueFar extends OpMode {
+@Autonomous(name = "blue partner auto 🥶", group = "Red auto")
+public class AutoBluePartner extends OpMode {
     private Follower follower;
     private double shotPower;
-    private final double sPow = .88;
+    private final double sPow = 1;
     private final double intTime = .75;
     private boolean faceGoal = false;
     private Timer pathTimer, actionTimer, opmodeTimer;
@@ -65,7 +65,7 @@ public class AutonomousBlueFar extends OpMode {
                 if (!follower.isBusy()) {
                     follower.followPath(intake1, true);
                     if (Spind.intaking(pathTimer,intTime) || pathTimer.getElapsedTimeSeconds() > 6)
-                        setPathState(5);
+                        setPathState(4);
                 }
                 break;
             case 4:
@@ -201,7 +201,7 @@ public class AutonomousBlueFar extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
-        blueFar(follower);
+        bluePartner(follower);
         follower.setStartingPose(startPose);
         camera.initAprilTag(hardwareMap);
         if (USE_WEBCAM) {

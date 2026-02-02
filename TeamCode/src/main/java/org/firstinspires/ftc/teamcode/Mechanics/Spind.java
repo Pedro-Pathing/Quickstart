@@ -85,7 +85,7 @@ public class Spind {
         }
         intake.setPower(-1);
         int index = (int)(timer.getElapsedTimeSeconds()/timeBetweenSpins);
-        spinTheDexer(index + .25, 1);
+        spinTheDexer(index + .05, 1);
         return false;
     }
     public static boolean updateBallList(Timer timer,double timeBetweenSpins) {

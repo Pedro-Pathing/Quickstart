@@ -127,7 +127,7 @@ public class BlueT extends OpMode {
         else if (!gamepad2.a)
             coooooking2 = true;
         if (gamepad2.x) {
-            Robot.flywheel.setPower(1);
+            Robot.flywheel.setPower(.9);
             Turret.faceGoal(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading(), false, off);
         }
         if (!gamepad2.x)
