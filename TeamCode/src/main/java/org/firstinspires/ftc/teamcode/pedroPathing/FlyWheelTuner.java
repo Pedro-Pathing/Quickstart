@@ -34,14 +34,14 @@ public class FlyWheelTuner extends OpMode {
         shut2 = hardwareMap.get(DcMotorEx.class, "shut2");
 
         shut1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shut1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shut1.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        shut2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shut2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shut2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shut2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         shut1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        shut2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        shut2.setPIDFCoefficients(DcMotor.RunMode.RUN_WITHOUT_ENCODER, pidfCoefficients);
 
         telemetry.addLine("брат код работате bilordahouston🇺🇸");
     }
@@ -88,7 +88,7 @@ public class FlyWheelTuner extends OpMode {
 
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         shut1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        shut2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        shut2.setPIDFCoefficients(DcMotor.RunMode.RUN_WITHOUT_ENCODER, pidfCoefficients);
 
         shut1.setVelocity(CurlTargetVelocity);
         shut2.setVelocity(CurlTargetVelocity);

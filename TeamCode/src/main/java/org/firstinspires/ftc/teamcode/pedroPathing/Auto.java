@@ -66,18 +66,18 @@ public class Auto extends OpMode {
             Path1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(108.793, 135.650),
-                                    new Pose(79.81532, 47.847),
-                                    new Pose(134.240766, 58.30916552)
+                                    new Pose(60.81532, 47.847),
+                                    new Pose(124.240766, 58.30916552)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(50), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(134.240766, 58.30916552),
+                                    new Pose(124.240766, 58.30916552),
 
-                                    new Pose(74.65937, 71.9015)
+                                    new Pose(67.65937, 70.9015)
                             )
                     ).setTangentHeadingInterpolation()
                     .setReversed()
