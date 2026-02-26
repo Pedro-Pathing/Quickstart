@@ -1,0 +1,45 @@
+name: Disable auto-reopen after second close
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  disable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disable automatic reopen
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // Ignore merged PRs
+            if (pr.merged) return;
+
+            const labels = pr.labels.map(l => l.name);
+
+            // Only act if it was previously reopened once
+            if (!labels.includes('reopen-used')) return;
+
+            // Mark auto-reopen as permanently disabled
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['reopen-locked']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body:
+                "This PR was reopened once and then closed again.\n\n" +
+                "Automatic reopening via `/not-a-mistake` is now disabled.\n" +
+                "Maintainers may still reopen this PR manually if needed."
+            });

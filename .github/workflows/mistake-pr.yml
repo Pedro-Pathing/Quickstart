@@ -1,0 +1,67 @@
+name: Auto-close mistake PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect mistake PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name);
+
+            // Skip if auto-reopen is disabled or already used
+            if (labels.includes('reopen-used') || labels.includes('reopen-locked')) {
+              return;
+            }
+
+            // Get changed files
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+              }
+            );
+
+            // Detect newly added OR copied files
+            const hasNewFiles = files.some(
+              f => f.status === 'added' || f.status === 'copied'
+            );
+
+            if (!hasNewFiles) return;
+
+            // Label as mistake PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['mistake-pr']
+            });
+
+            // Explain and close
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body:
+                "This PR was automatically closed because it adds new files.\n\n" +
+                "If this is intentional, comment `/not-a-mistake` **once** to reopen it."
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              state: 'closed'
+            });
