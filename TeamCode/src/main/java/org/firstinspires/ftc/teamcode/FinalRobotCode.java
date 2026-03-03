@@ -17,7 +17,7 @@ public class FinalRobotCode extends LinearOpMode {
     /* Hardware Members */
     private DcMotor leftFrontDrive, rightFrontDrive, leftBackDrive, rightBackDrive;
     private DcMotor rotate, intake, shooter;
-    private Servo kicker, pusher;
+    private Servo kicker, pusher, hood;
     private Limelight3A limelight;
 
     /* Limelight Tuning Constants */
@@ -49,6 +49,7 @@ public class FinalRobotCode extends LinearOpMode {
         rotate  = hardwareMap.get(DcMotor.class, "rotate");
         intake  = hardwareMap.get(DcMotor.class, "intake");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
+        hood = hardwareMap.get(Servo.class, "hood"); // TODO add the hood servo to the config
         kicker  = hardwareMap.get(Servo.class, "kicker");
         pusher  = hardwareMap.get(Servo.class, "pusher");
 
@@ -155,6 +156,16 @@ public class FinalRobotCode extends LinearOpMode {
             // Pusher (Servo) - Continuous rotation while Y is pressed
             if (gamepad1.y) pusher.setPosition(1);
             else pusher.setPosition(0.5); // reset by moving down:
+
+            // Hood (Servo) - Moves up and down
+           // if (gamepad1.left_stick_button) {
+               // if (gamepad1.right_bumper) {
+                 //   hood.setPosition(hood.getPosition() + 0.1);
+              // } else if (gamepad1.left_bumper) {
+                //    hood.setPosition(hood.getPosition() - 0.1);
+              //  }
+           // } Marwan added this in anticipation of the new variable-hood shooter
+
 
             /*
             * if (gamepad.b) {
