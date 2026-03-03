@@ -9,7 +9,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
-@TeleOp(name = "Robot: Predictive Turret Tracking", group = "Main")
+@TeleOp(name = "Robot: Smooth Tracking Fix", group = "Main")
 public class FinalRobotCodetest extends LinearOpMode {
 
     /* --- HARDWARE --- */
@@ -20,22 +20,26 @@ public class FinalRobotCodetest extends LinearOpMode {
 
     /* --- CONSTANTS --- */
     private static final double TICKS_PER_REV = 288.0;
-    private static final double GEAR_RATIO = 1.6; // (64/40)
+    private static final double GEAR_RATIO = 1.6;
     private static final double TICKS_PER_DEG = (TICKS_PER_REV * GEAR_RATIO) / 360.0;
-
     private static final double TICKS_PER_INCH = 1800.0;
     private static final double TRACK_WIDTH_TICKS = 15000.0;
 
-    // Tuning: kP handles how fast it snaps to target.
-    // If it overshoots, decrease this. If too slow, increase.
-    private double kP = 0.015;
+    // --- TUNING (Reduced to stop oscillation) ---
+    private double kP = 0.006;  // Very gentle correction speed
+    private double kF = 0.04;   // Very low friction boost (was 0.15)
+    private double deadband = 1.5; // Ignore errors smaller than 1.5 degrees
     private int targetTagID = 22;
 
-    /* --- COORDINATE MATH --- */
+    /* --- VARIABLES --- */
     private double robotX = 0, robotY = 0, robotHeading = 0;
     private double tagFieldX = 0, tagFieldY = 0;
-    private double lastTagDistCM = 0;
     private boolean tagInitialized = false;
+
+    // Toggle State Memory
+    private boolean lastLB = false, lastRB = false;
+    private boolean lastA = false, lastB = false, lastX = false;
+    private boolean intakeOn = false, shooterOn = false, kickerOn = false;
 
     @Override
     public void runOpMode() {
@@ -45,17 +49,19 @@ public class FinalRobotCodetest extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive  = hardwareMap.get(DcMotor.class, "right_back_drive");
 
+        // IMPORTANT: Ensure these are plugged into the ports matching your config
+        // If these return 0, your ghost tracking will not work.
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
         rotate = hardwareMap.get(DcMotor.class, "rotate");
+        rotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rotate.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rotate.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         intake = hardwareMap.get(DcMotor.class, "intake");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         kicker = hardwareMap.get(Servo.class, "kicker");
         pusher = hardwareMap.get(Servo.class, "pusher");
-
-        rotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rotate.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rotate.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
@@ -64,87 +70,114 @@ public class FinalRobotCodetest extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            // --- 1. ODOMETRY UPDATE ---
+            // --- 1. ODOMETRY ---
+            // These encoders MUST count up/down when you turn the robot chassis
             double lPos = leftFrontDrive.getCurrentPosition();
             double rPos = rightFrontDrive.getCurrentPosition();
 
             robotHeading = (rPos - lPos) / TRACK_WIDTH_TICKS * 360.0;
             double avgDist = ((lPos + rPos) / 2.0) / TICKS_PER_INCH;
-
-            // Robot position relative to start (Inches)
             robotX = avgDist * Math.cos(Math.toRadians(robotHeading));
             robotY = avgDist * Math.sin(Math.toRadians(robotHeading));
 
-            // --- 2. DRIVE CONTROLS ---
+            // --- 2. DRIVE ---
             double axial = -gamepad1.left_stick_y;
             double lateral = gamepad1.left_stick_x;
             double yaw = gamepad1.right_stick_x;
-
             leftFrontDrive.setPower(axial + lateral + yaw);
             rightFrontDrive.setPower(axial - lateral - yaw);
             leftBackDrive.setPower(axial - lateral + yaw);
             rightBackDrive.setPower(axial + lateral - yaw);
 
-            // --- 3. VISION & TURRET LOGIC ---
+            // --- 3. TRACKING LOGIC ---
             LLResult result = limelight.getLatestResult();
             double currentTurretDeg = rotate.getCurrentPosition() / TICKS_PER_DEG;
+
             double rotatePower = 0;
+            double trackingError = 0;
             boolean seeTagRightNow = false;
 
+            // A. LIVE VISION
             if (result != null && result.isValid()) {
                 for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
                     if (fr.getFiducialId() == targetTagID) {
                         seeTagRightNow = true;
 
-                        // Get 3D Distance (Meters -> CM)
                         double xCam = fr.getCameraPoseTargetSpace().getPosition().x;
                         double zCam = fr.getCameraPoseTargetSpace().getPosition().z;
-                        lastTagDistCM = Math.sqrt(Math.pow(xCam, 2) + Math.pow(zCam, 2)) * 100.0;
+                        double distCM = Math.sqrt(xCam*xCam + zCam*zCam) * 100.0;
 
-                        // Update the Global "Stored" position of the tag
                         double tx = result.getTx();
-                        double absoluteAngleRad = Math.toRadians(robotHeading + currentTurretDeg + tx);
-                        double distInches = lastTagDistCM / 2.54;
+                        double absAngle = Math.toRadians(robotHeading + currentTurretDeg + tx);
+                        double distInches = distCM / 2.54;
 
-                        tagFieldX = robotX + (distInches * Math.cos(absoluteAngleRad));
-                        tagFieldY = robotY + (distInches * Math.sin(absoluteAngleRad));
+                        tagFieldX = robotX + (distInches * Math.cos(absAngle));
+                        tagFieldY = robotY + (distInches * Math.sin(absAngle));
                         tagInitialized = true;
 
-                        // Immediate correction based on Vision
-                        rotatePower = tx * kP;
+                        trackingError = tx;
                         break;
                     }
                 }
             }
 
-            // PREDICTIVE TRACKING: If tag is lost, use Odometry to stay pointed at tagFieldX/Y
+            // B. GHOST TRACKING
             if (tagInitialized && !seeTagRightNow) {
-                // Calculate angle from robot to the stored tag location
                 double angleToTag = Math.toDegrees(Math.atan2(tagFieldY - robotY, tagFieldX - robotX));
-
-                // Target turret angle is the difference between global tag angle and robot heading
                 double targetTurretAngle = angleToTag - robotHeading;
 
-                // Normalize error to avoid 360-degree spins
-                double error = targetTurretAngle - currentTurretDeg;
-                while (error > 180)  error -= 360;
-                while (error < -180) error += 360;
+                trackingError = targetTurretAngle - currentTurretDeg;
 
-                // Only move if error is significant (prevents jitter)
-                if (Math.abs(error) > 1.0) {
-                    rotatePower = error * kP;
-                }
+                // Normalize error
+                while (trackingError > 180)  trackingError -= 360;
+                while (trackingError < -180) trackingError += 360;
             }
 
-            // Cap power for safety
-            rotate.setPower(Range.clip(rotatePower, -0.45, 0.45));
+            // --- 4. MOTOR POWER (Anti-Oscillation) ---
+            if (Math.abs(trackingError) > deadband) {
+                rotatePower = trackingError * kP;
 
-            // --- 4. TELEMETRY ---
-            telemetry.addLine(seeTagRightNow ? "--- LIVE TRACKING ---" : "--- PREDICTIVE TRACKING ---");
-            telemetry.addData("Status", tagInitialized ? "Locked on Target" : "Searching...");
-            telemetry.addData("Distance", "%.1f cm", lastTagDistCM);
-            telemetry.addData("Turret Angle", "%.1f°", currentTurretDeg);
-            telemetry.addData("Robot Pose", "X:%.1f, Y:%.1f, H:%.1f", robotX, robotY, robotHeading);
+                // Lower friction boost to prevent shaking
+                // Only apply if power is very low to prevent "kicking"
+                if (Math.abs(rotatePower) < 0.15) {
+                    if (rotatePower > 0) rotatePower += kF;
+                    else rotatePower -= kF;
+                }
+            } else {
+                rotatePower = 0;
+            }
+
+            rotate.setPower(Range.clip(rotatePower, -0.35, 0.35));
+
+            // --- 5. CONTROLS ---
+            if (gamepad1.left_bumper && !lastLB) targetTagID--;
+            if (gamepad1.right_bumper && !lastRB) targetTagID++;
+            lastLB = gamepad1.left_bumper; lastRB = gamepad1.right_bumper;
+
+            if (gamepad1.a && !lastA) intakeOn = !intakeOn;
+            lastA = gamepad1.a;
+            intake.setPower(intakeOn ? -0.8 : 0);
+
+            if (gamepad1.b && !lastB) shooterOn = !shooterOn;
+            lastB = gamepad1.b;
+            shooter.setPower(shooterOn ? 1.0 : 0);
+
+            if (gamepad1.x && !lastX) kickerOn = !kickerOn;
+            lastX = gamepad1.x;
+            kicker.setPosition(kickerOn ? 1.0 : 0.5);
+            pusher.setPosition(gamepad1.y ? 1.0 : 0.5);
+
+            // --- 6. CRITICAL DEBUGGING ---
+            telemetry.addLine(seeTagRightNow ? "VISION: LOCKED" : "VISION: SEARCHING");
+            telemetry.addData("Motor Power", rotatePower);
+            telemetry.addData("Error", "%.2f", trackingError);
+
+            telemetry.addLine("--- ODOMETRY CHECK ---");
+            // IF THESE ARE 0 WHEN YOU TURN, GHOST TRACKING WILL FAIL
+            telemetry.addData("Left Encoder", leftFrontDrive.getCurrentPosition());
+            telemetry.addData("Right Encoder", rightFrontDrive.getCurrentPosition());
+            telemetry.addData("Robot Heading", "%.1f°", robotHeading);
+
             telemetry.update();
         }
     }
