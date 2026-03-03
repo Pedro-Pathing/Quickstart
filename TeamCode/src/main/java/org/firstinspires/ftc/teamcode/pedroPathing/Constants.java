@@ -15,21 +15,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(5) // TODO insert
-            .forwardZeroPowerAcceleration(0) // TODO insert
-            .lateralZeroPowerAcceleration(0); // TODO insert
+            .forwardZeroPowerAcceleration(10) // TODO insert
+            .lateralZeroPowerAcceleration(10); // TODO insert
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(1)
-            .rightFrontMotorName("right_front_drive")
-            .rightRearMotorName("right_back_drive")
-            .leftRearMotorName("left_back_drive")
-            .leftFrontMotorName("left_front_drive")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .maxPower(.7)
+            .rightFrontMotorName("rf")
+            .rightRearMotorName("rb")
+            .leftRearMotorName("lb")
+            .leftFrontMotorName("lf")
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(45.9759) // tuned with a 10-inch test: repeat at higher distance for accuracy
-            .yVelocity(0); // TODO: lateral velocity tuning
+            .xVelocity(20) // tuned with a 10-inch test: repeat at higher distance for accuracy
+            .yVelocity(20); // TODO: lateral velocity tuning
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
