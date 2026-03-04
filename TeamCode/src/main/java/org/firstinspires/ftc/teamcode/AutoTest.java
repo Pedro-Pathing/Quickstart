@@ -29,7 +29,7 @@ public class AutoTest extends OpMode {
     private Path start_path;
     private PathChain load_path, pickup_path1, pickup_path2;
 
-    public void createPaths() {
+    private void createPaths() {
 
         load_path = follower.pathBuilder()
                 .addPath(new BezierCurve(scorePose, new Pose(72, 30), loadPose)) // moves to loading zone from scoring position
