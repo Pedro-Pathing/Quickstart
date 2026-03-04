@@ -1,5 +1,6 @@
 
 package org.firstinspires.ftc.teamcode.pedroPathing;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
@@ -11,6 +12,8 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
 @Configurable // Panels
@@ -20,12 +23,27 @@ public class RunCustomPath3 extends OpMode {
     private int pathState; // Current autonomous path state (state machine)
     private Paths paths; // Paths defined in the Paths class
 
+    private DcMotor rotate, intake, shooter;
+    private Servo kicker, pusher, hood;
+
+    private Limelight3A limelight;
+
+    public void defineMechanisms() {
+        rotate  = hardwareMap.get(DcMotor.class, "rotate");
+        intake  = hardwareMap.get(DcMotor.class, "intake");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        hood = hardwareMap.get(Servo.class, "hood"); // TODO add the hood servo to the config
+        kicker  = hardwareMap.get(Servo.class, "kicker");
+        pusher  = hardwareMap.get(Servo.class, "pusher");
+    }
+
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
+        defineMechanisms();
 
         paths = new Paths(follower); // Build paths
 
@@ -59,7 +77,6 @@ public class RunCustomPath3 extends OpMode {
                                     new Pose(40.000, 90.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(140), Math.toRadians(180))
-
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
@@ -72,10 +89,22 @@ public class RunCustomPath3 extends OpMode {
                     .setReversed()
                     .build();
         }
+
+
     }
 
+    public void changePath(int new_path) {
+        pathState = new_path;
+    }
 
     public void autonomousPathUpdate() {
-
+        switch (pathState) {
+            case 0:
+                follower.followPath(paths.loadpath);
+                changePath(1);
+            case 1:
+                follower.followPath(paths.Path2);
+                changePath(2);
+        }
     }
 }
