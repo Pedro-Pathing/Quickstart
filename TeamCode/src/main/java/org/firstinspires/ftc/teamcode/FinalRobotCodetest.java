@@ -79,7 +79,7 @@ public class FinalRobotCodetest extends LinearOpMode {
             double avgDist = ((lPos + rPos) / 2.0) / TICKS_PER_INCH;
             robotX = avgDist * Math.cos(Math.toRadians(robotHeading));
             robotY = avgDist * Math.sin(Math.toRadians(robotHeading));
-
+//test
             // --- 2. DRIVE ---
             double axial = -gamepad1.left_stick_y;
             double lateral = gamepad1.left_stick_x;
