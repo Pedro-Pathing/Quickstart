@@ -84,6 +84,8 @@ public class Tuning extends SelectableOpMode {
             });
             s.folder("Swerve", p-> {
                 p.add("Analog Min / Max Tuner", AnalogMinMaxTuner::new);
+                p.add("Swerve Offsets Test", SwerveOffsetsTest::new);
+                p.add("Swerve Turn Test", SwerveTurnTest::new);
             });
         });
     }
@@ -129,12 +131,13 @@ public class Tuning extends SelectableOpMode {
 }
 
 /**
- * This is the LocalizationTest OpMode. This is basically just a simple mecanum drive attached to a
+ * This is the LocalizationTest OpMode. This is basically just a simple drive attached to a
  * PoseUpdater. The OpMode will print out the robot's pose to telemetry as well as draw the robot.
  * You should use this to check the robot's localization.
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Baron Henderson - 20077 The Indubitables
+ * @author Kabir Goyal
  * @version 1.0, 5/6/2024
  */
 class LocalizationTest extends OpMode {
@@ -143,7 +146,7 @@ class LocalizationTest extends OpMode {
     @Override
     public void init() {}
 
-    /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
+    /** This initializes the PoseUpdater, the drive motors, and the Panels telemetry. */
     @Override
     public void init_loop() {
         if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
@@ -152,7 +155,7 @@ class LocalizationTest extends OpMode {
 
 
         telemetryM.debug("This will print your robot's position to telemetry while "
-                + "allowing robot control through a basic mecanum drive on gamepad 1.");
+                + "allowing robot control through a basic drive on gamepad 1.");
         telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
                 " (press gamepad a to toggle)");
         telemetryM.update(telemetry);
@@ -167,7 +170,7 @@ class LocalizationTest extends OpMode {
     }
 
     /**
-     * This updates the robot's pose estimate, the simple mecanum drive, and updates the
+     * This updates the robot's pose estimate, the simple drive, and updates the
      * Panels telemetry with the robot's position as well as draws the robot's position.
      */
     @Override
@@ -341,7 +344,7 @@ class TurnTuner extends OpMode {
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
  * is, when paired with StrafeVelocityTuner, allows FollowerConstants to create a Vector that
- * empirically represents the direction your mecanum wheels actually prefer to go in, allowing for
+ * empirically represents the direction your wheels actually prefer to go in, allowing for
  * more accurate following.
  *
  * @author Anyi Lin - 10158 Scott's Bots
@@ -446,7 +449,7 @@ class ForwardVelocityTuner extends OpMode {
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
  * is, when paired with ForwardVelocityTuner, allows FollowerConstants to create a Vector that
- * empirically represents the direction your mecanum wheels actually prefer to go in, allowing for
+ * empirically represents the direction your wheels actually prefer to go in, allowing for
  * more accurate following.
  *
  * @author Anyi Lin - 10158 Scott's Bots
@@ -1487,6 +1490,122 @@ class AnalogMinMaxTuner extends OpMode {
         }
 
         telemetryM.update();
+    }
+}
+
+/**
+ * This is the SwerveOffsetsTest
+ * You should use this to check how good your swerve angle offsets are and if your motor directions are correct
+ * @author Kabir Goyal
+ *
+ */
+class SwerveOffsetsTest extends OpMode {
+    boolean debugStringEnabled = false;
+
+    @Override
+    public void init() {}
+
+    /** This initializes the PoseUpdater, the drive motors, and the Panels telemetry. */
+    @Override
+    public void init_loop() {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            debugStringEnabled = !debugStringEnabled;
+        }
+
+
+        telemetryM.debug("This OpMode will run all four swerve pods in the direction they think is forward"
+                + "\nensure your bot is not on the ground while running");
+        telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
+                " (press gamepad a to toggle)");
+        telemetryM.update(telemetry);
+        follower.update();
+        drawCurrent();
+    }
+
+    @Override
+    public void start() {
+        follower.startTeleopDrive();
+        follower.update();
+    }
+
+    /**
+     * This updates the robot's pose estimate, the simple drive, and updates the
+     * Panels telemetry with the robot's position as well as draws the robot's position.
+     */
+    @Override
+    public void loop() {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            debugStringEnabled = !debugStringEnabled;
+        }
+
+        follower.setTeleOpDrive(0.25, 0, 0, true);
+        follower.update();
+
+        if (debugStringEnabled) {
+            telemetryM.debug("Drivetrain Debug String:\n" +
+                    follower.getDrivetrain().debugString());
+        }
+        telemetryM.update(telemetry);
+
+        drawCurrentAndHistory();
+    }
+}
+
+/**
+ * This is the SwerveTurnTest
+ * You should use this to check your encoder directions and x/y pod offsets
+ * @author Kabir Goyal
+ *
+ */
+class SwerveTurnTest extends OpMode {
+    boolean debugStringEnabled = false;
+
+    @Override
+    public void init() {}
+
+    /** This initializes the PoseUpdater, the drive motors, and the Panels telemetry. */
+    @Override
+    public void init_loop() {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            debugStringEnabled = !debugStringEnabled;
+        }
+
+
+        telemetryM.debug("This OpMode will run all four swerve pods in their turning direction (perpendicular to the center of the robot) "
+                + "\nrun this once off the ground to check servo directions and motor directions before testing on the ground");
+        telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
+                " (press gamepad a to toggle)");
+        telemetryM.update(telemetry);
+        follower.update();
+        drawCurrent();
+    }
+
+    @Override
+    public void start() {
+        follower.startTeleopDrive();
+        follower.update();
+    }
+
+    /**
+     * This updates the robot's pose estimate, the simple drive, and updates the
+     * Panels telemetry with the robot's position as well as draws the robot's position.
+     */
+    @Override
+    public void loop() {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            debugStringEnabled = !debugStringEnabled;
+        }
+
+        follower.setTeleOpDrive(0, 0, 0.25, true);
+        follower.update();
+
+        if (debugStringEnabled) {
+            telemetryM.debug("Drivetrain Debug String:\n" +
+                    follower.getDrivetrain().debugString());
+        }
+        telemetryM.update(telemetry);
+
+        drawCurrentAndHistory();
     }
 }
 
