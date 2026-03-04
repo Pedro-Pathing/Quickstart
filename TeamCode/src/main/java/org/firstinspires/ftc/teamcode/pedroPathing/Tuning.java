@@ -25,8 +25,11 @@ import static com.pedropathing.math.MathFunctions.quadraticFit;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
@@ -78,6 +81,9 @@ public class Tuning extends SelectableOpMode {
                 p.add("Triangle", Triangle::new);
                 p.add("Circle", Circle::new);
                 p.add("Line90DegreeTurn", Line90DegreeTurn::new);
+            });
+            s.folder("Swerve", p-> {
+                p.add("Analog Min / Max Tuner", AnalogMinMaxTuner::new);
             });
         });
     }
@@ -132,14 +138,23 @@ public class Tuning extends SelectableOpMode {
  * @version 1.0, 5/6/2024
  */
 class LocalizationTest extends OpMode {
+    boolean debugStringEnabled = false;
+
     @Override
     public void init() {}
 
     /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
     @Override
     public void init_loop() {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            debugStringEnabled = !debugStringEnabled;
+        }
+
+
         telemetryM.debug("This will print your robot's position to telemetry while "
                 + "allowing robot control through a basic mecanum drive on gamepad 1.");
+        telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
+                " (press gamepad a to toggle)");
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -157,6 +172,10 @@ class LocalizationTest extends OpMode {
      */
     @Override
     public void loop() {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            debugStringEnabled = !debugStringEnabled;
+        }
+
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
         follower.update();
 
@@ -164,9 +183,10 @@ class LocalizationTest extends OpMode {
         telemetryM.debug("y:" + follower.getPose().getY());
         telemetryM.debug("heading:" + follower.getPose().getHeading());
         telemetryM.debug("total heading:" + follower.getTotalHeading());
-        telemetryM.debug("Drivetrain Debug String:\n" +
-                follower.getDrivetrain().debugString());
-
+        if (debugStringEnabled) {
+            telemetryM.debug("Drivetrain Debug String:\n" +
+                    follower.getDrivetrain().debugString());
+        }
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -1407,6 +1427,69 @@ class Circle extends OpMode {
         }
     }
 }
+
+/**
+ * Tuning OpMode to get the min and max encoder values for swerve pods
+ * @author Kabir Goyal
+ */
+class AnalogMinMaxTuner extends OpMode {
+    //populate the below with your names for the servos and encoders
+    public String[] encoderNames = {"leftFrontEncoder", "rightFrontEncoder", "leftBackEncoder", "rightBackEncoder"};
+    public AnalogInput[] encoders = new AnalogInput[encoderNames.length];
+    public double[] minVoltages = new double[encoderNames.length];
+    public double[] maxVoltages = new double[encoderNames.length];
+
+    public List<LynxModule> lynxModules; //js to improve loop times a bit yk
+
+    public void start() {
+    }
+
+    @Override
+    public void init_loop() {
+        telemetryM.debug("Press START. Then, Spin each pod slowly for 4 to 5 full rotations.\n" +
+                "The OpMode will keep track of the min and max voltages seen so far and print them to telemetry.");
+        telemetryM.update(telemetry);
+    }
+
+    @Override
+    public void init() {
+        lynxModules = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : lynxModules) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
+        for (int i = 0; i < encoders.length; i++)  {
+            encoders[i] = hardwareMap.get(AnalogInput.class, encoderNames[i]);
+            minVoltages[i] = 5; //bigger value than should ever be read
+        }
+    }
+
+    /**
+     * This runs the OpMode, updating the Follower as well as printing out the debug statements to
+     * the Telemetry, as well as the FTC Dashboard.
+     */
+    @Override
+    public void loop() {
+        for (LynxModule hub : lynxModules) {
+            hub.clearBulkCache();
+        }
+
+        telemetryM.debug("Spin each pod slowly for 4 to 5 full rotations.\n" +
+                "The OpMode will keep track of the min and max voltages seen so far and print them to telemetry.\n\n");
+
+        for (int i = 0; i < encoders.length; i++) {
+            double currentVoltage = encoders[i].getVoltage();
+            minVoltages[i] = Math.min(minVoltages[i], currentVoltage);
+            maxVoltages[i] = Math.max(maxVoltages[i], currentVoltage);
+            telemetryM.addData(encoderNames[i] + "min value:", minVoltages[i]);
+            telemetryM.addData(encoderNames[i] + "max value:", maxVoltages[i]);
+            telemetryM.addLine("");
+        }
+
+        telemetryM.update();
+    }
+}
+
 
 /**
  * This is the Drawing class. It handles the drawing of stuff on Panels Dashboard, like the robot.
