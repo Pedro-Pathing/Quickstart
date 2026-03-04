@@ -1,5 +1,7 @@
 
 package org.firstinspires.ftc.teamcode.pedroPathing;
+import android.app.slice.SliceMetrics;
+
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -15,16 +17,20 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import java.util.function.Consumer;
+
 @Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
 @Configurable // Panels
 public class RunCustomPath3 extends OpMode {
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
-    private int pathState; // Current autonomous path state (state machine)
+    private int pathState, limelightAngle; // Current autonomous path state (state machine)
     private Paths paths; // Paths defined in the Paths class
 
-    private DcMotor rotate, intake, shooter;
-    private Servo kicker, pusher, hood;
+    private static DcMotor rotate, intake, shooter;
+    private static Servo kicker, pusher, hood;
+
+
 
     private Limelight3A limelight;
 
@@ -35,6 +41,8 @@ public class RunCustomPath3 extends OpMode {
         hood = hardwareMap.get(Servo.class, "hood"); // TODO add the hood servo to the config
         kicker  = hardwareMap.get(Servo.class, "kicker");
         pusher  = hardwareMap.get(Servo.class, "pusher");
+
+        limelightAngle = 23;
     }
 
     @Override
@@ -42,8 +50,9 @@ public class RunCustomPath3 extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(64, 80, Math.toRadians(140)));
         defineMechanisms();
+        changePath(0);
 
         paths = new Paths(follower); // Build paths
 
@@ -62,6 +71,10 @@ public class RunCustomPath3 extends OpMode {
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.update(telemetry);
+
+        if (!follower.isBusy()) {
+            return;
+        }
     }
 
 
@@ -77,6 +90,14 @@ public class RunCustomPath3 extends OpMode {
                                     new Pose(40.000, 90.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(140), Math.toRadians(180))
+                    .addParametricCallback(
+                            0.8,
+                            () -> intake.setPower(1.0)
+                    )
+                    .addParametricCallback(
+                            1.0,
+                            () -> intake.setPower(0.0)
+                    )
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
@@ -87,6 +108,7 @@ public class RunCustomPath3 extends OpMode {
                             )
                     ).setTangentHeadingInterpolation()
                     .setReversed()
+
                     .build();
         }
 
@@ -100,11 +122,12 @@ public class RunCustomPath3 extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(paths.loadpath);
+                follower.followPath(paths.loadpath, true);
                 changePath(1);
+                break;
             case 1:
                 follower.followPath(paths.Path2);
-                changePath(2);
+                break;
         }
     }
 }
