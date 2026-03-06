@@ -26,15 +26,19 @@ public class IntakeBall implements Command{
                 robot.pins.closeAllPin();
                 stage++;
             } else {
-                robot.pins.closeMostPins();
+                if (robot.follower.isTeleopDrive()){
+                    robot.pins.openAllPin();
+                }else {
+                    robot.pins.closeMostPins();
+                }
                 stage = 4;
             }
-        } else if (stage == 2 && robot.colorSensors.ballsInIntake()) {
+        } else if (stage == 2 && robot.ballsInIntake()) {
             Robot.threeBalls = true;
             if (robot.follower.isTeleopDrive()){
                 robot.follower.startTeleOpDrive(true);
             }
-            robot.pins.setPinOpen(0);
+            robot.pins.setPinOpen(2);
             elapsedTime.reset();
             stage++;
         } else if (stage == 3 && elapsedTime.milliseconds()>750) {

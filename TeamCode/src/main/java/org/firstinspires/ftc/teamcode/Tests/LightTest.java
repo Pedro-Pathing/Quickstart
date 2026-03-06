@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp
 @Configurable
 public class LightTest extends LinearOpMode {
-    public static double color = 0.5;
+    public static double color = 0.28;
     @Override
     public void runOpMode() throws InterruptedException {
         Servo leftLight = hardwareMap.get(Servo.class, "light_ll");

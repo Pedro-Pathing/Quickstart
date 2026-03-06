@@ -63,6 +63,9 @@ public class DriverControl extends LinearOpMode {
         listener.addListener(Button.L_BUMPER_DOWN, () -> {
             processor.override(new OuttakeBall());
         });
+        listener.addListener(Button.SQUARE_DOWN, () -> {
+            processor.override(new IntakeBall(false));
+        });
 
         listener.addListener(Button.L_STICK_DOWN, () -> {
             if (robot.turret.isUseAutoAim()) {

@@ -10,7 +10,8 @@ public class IntakeTransfer implements Command{
     @Override
     public void update(Robot robot) {
         if (stage == 0){
-            robot.pins.setPinOpen(0);
+            Robot.threeBalls = true;
+            robot.pins.setPinOpen(2);
             elapsedTime.reset();
             stage++;
         } else if (stage == 1 && elapsedTime.milliseconds()>750) {

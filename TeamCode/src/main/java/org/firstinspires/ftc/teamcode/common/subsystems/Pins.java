@@ -8,13 +8,13 @@ public class Pins {
     private final Servo centerPin;
     private final Servo rightPin;
 
-    private final static double leftPinClose = 0.6;
+    private final static double leftPinClose = 0.575;
     private final static double centerPinClose = 0.105;
-    private final static double rightPinClose = 0.2875;
+    private final static double rightPinClose = 0.275;
 
-    private final static double leftPinOpen= 0.68;
+    private final static double leftPinOpen= 0.7;
     private final static double centerPinOpen = 0.4;
-    private final static double rightPinOpen = 0.5375;
+    private final static double rightPinOpen = 0.15;
 
     Servo[] pins;
 
@@ -36,7 +36,7 @@ public class Pins {
     public void openAllPin(){
         leftPin.setPosition(leftPinOpen);
         rightPin.setPosition(rightPinOpen);
-        centerPin.setPosition(centerPinOpen);
+        centerPin.setPosition(0.3375);
     }
 
     public void closeMostPins(){
@@ -45,9 +45,9 @@ public class Pins {
         leftPin.setPosition(leftPinClose);
     }
     public void preload(){
-        rightPin.setPosition(rightPinClose);
+        rightPin.setPosition(rightPinOpen);
         centerPin.setPosition(centerPinOpen);
-        leftPin.setPosition(leftPinOpen);
+        leftPin.setPosition(leftPinClose);
     }
 
     public void setPinOpen(int index){

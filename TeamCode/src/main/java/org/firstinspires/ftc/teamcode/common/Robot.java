@@ -99,7 +99,7 @@ public class Robot {
     }
     private double getShooterTargetVelocity(double distance){
 
-        double velocity =  -(0.000294289 * Math.pow(distance, 3)) + (0.111951 * Math.pow(distance, 2)) - (9.3151 * distance) + 1213.2967;
+        double velocity =  -(0.000294289 * Math.pow(distance, 3)) + (0.111951 * Math.pow(distance, 2)) - (9.3151 * distance) + 1218.2967;
 
 
         if (velocity > 1500){
@@ -193,6 +193,10 @@ public class Robot {
                                double ax, double ay,
                                double bx, double by) {
         return (px - bx) * (ay - by) - (ax - bx) * (py - by);
+    }
+
+    public boolean ballsInIntake(){
+        return intake.threeBalls() && colorSensors.ballsInIntake();
     }
 
 }

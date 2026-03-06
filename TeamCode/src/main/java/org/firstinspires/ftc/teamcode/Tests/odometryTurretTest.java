@@ -32,7 +32,7 @@ public class odometryTurretTest extends LinearOpMode {
     public static double ki = 0.007;
     public static double kd = 0.0015;
     public static double kf = 0.001;
-    public static double ks = 0.0825;
+    public static double ks = 0.075;
     public static long ms_comp = 40;
 
     private final TimestampedAngleBacklog backlog = new TimestampedAngleBacklog();

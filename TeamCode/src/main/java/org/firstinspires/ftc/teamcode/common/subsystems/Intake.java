@@ -31,7 +31,7 @@ public class Intake {
     public void outtake(){intake.setPower(outTake);}
 
     public boolean threeBalls(){
-        return intake.getCurrent(CurrentUnit.MILLIAMPS) > 2000 ;
+        return intake.getCurrent(CurrentUnit.MILLIAMPS) > 2500 ;
     }
     public double getCurrent(){
         return intake.getCurrent(CurrentUnit.MILLIAMPS);

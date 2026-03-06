@@ -35,10 +35,10 @@ public class Turret {
 
         controller = new CustomPIDController();
         controller.setkD(0.0015);
-        controller.setkP(5);
+        controller.setkP(4);
         controller.setkI(0.007);
         controller.setkF(0.001);
-        controller.setkS(0.05);
+        controller.setkS(0.075);
 
     }
 

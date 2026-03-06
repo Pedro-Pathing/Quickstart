@@ -21,20 +21,20 @@ public class Shoot implements Command{
 
             elapsedTime.reset();
             stage++;
-        } else if (stage == 1 && elapsedTime.milliseconds() > 125) {
-            robot.pins.setPinOpen(0);
-            elapsedTime.reset();
-            stage++;
-        } else if (stage == 2 && elapsedTime.milliseconds() > 125) {
+        } else if (stage == 1 && elapsedTime.milliseconds() > 0) {
             robot.pins.setPinOpen(2);
             elapsedTime.reset();
             stage++;
-        } else if (stage == 3 && elapsedTime.milliseconds() > 750) {
+        } else if (stage == 2 && elapsedTime.milliseconds() > 250) {
+            robot.pins.setPinOpen(0);
+            elapsedTime.reset();
+            stage++;
+        } else if (stage == 3 && elapsedTime.milliseconds() > 725) {
             Robot.threeBalls = false;
             robot.lifter.liftUp();
             elapsedTime.reset();
             stage++;
-        } else if (stage == 4 && elapsedTime.milliseconds() > 50) {
+        } else if (stage == 4 && (elapsedTime.milliseconds() > 75 || robot.follower.isTeleopDrive())) {
             if (robot.follower.isTeleopDrive()){
                 robot.follower.startTeleOpDrive(false);
             }

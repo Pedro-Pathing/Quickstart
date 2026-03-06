@@ -54,7 +54,7 @@ public class Auto extends LinearOpMode {
     private final Pose closePickup2Pose = new Pose(12, 55, heading);
     private final Pose closePickup2Control = new Pose(40, 50, heading);
     private final Pose closePickup3Pose = new Pose(10, 35, heading);
-    private final Pose closePickup3Control = new Pose(40, 25, heading);
+    private final Pose closePickup3Control = new Pose(50, 25, heading);
 
 
     private final Pose closeGateOpen = new Pose(8, 70, Math.toRadians(70));
@@ -379,7 +379,7 @@ public class Auto extends LinearOpMode {
                     processor.override(new Shoot());
                     increment();
                 } else if (stage == 5 && !processor.isBusy()) {
-                    processor.override(new IntakeBall(true));
+                    processor.override(new IntakeBall(false));
                     robot.follower.followPath(grabPickup2);
                     increment();
                 } else if (stage == 6 && moveToNext()) {
@@ -389,7 +389,9 @@ public class Auto extends LinearOpMode {
                     increment();
                     stage = 100;
                 } else if (stage == 100 && robot.follower.atParametricEnd()) {
-                    processor.override(new IntakeTransfer());
+                    if (robot.ballsInIntake()) {
+                        processor.override(new IntakeTransfer());
+                    }
                     if (elapsedTime.milliseconds()>1500){
                         robot.follower.followPath(scorePickup2);
                         stage = 7;
@@ -405,7 +407,7 @@ public class Auto extends LinearOpMode {
                     increment();
 
                 } else if (stage == 9 && moveToNext()) {
-                    if (robot.colorSensors.ballsInIntake()) {
+                    if (robot.ballsInIntake()) {
                         processor.override(new IntakeTransfer());
                         increment();
                     } else if (elapsedTime.milliseconds() > 500) {
@@ -481,7 +483,7 @@ public class Auto extends LinearOpMode {
 
 
                 } else if (stage == 6) {
-                    if (robot.colorSensors.ballsInIntake()) {
+                    if (robot.ballsInIntake()) {
                         processor.override(new IntakeTransfer());
                         increment();
                     } else if (elapsedTime.milliseconds() > 500) {
@@ -504,7 +506,7 @@ public class Auto extends LinearOpMode {
                     robot.follower.followPath(scorePickup2);
                     increment();
                 } else if (stage == 10) {
-                    if (robot.colorSensors.ballsInIntake()) {
+                    if (robot.ballsInIntake()) {
                         processor.override(new IntakeTransfer());
                         increment();
                     } else if (elapsedTime.milliseconds() > 1000) {
@@ -522,7 +524,7 @@ public class Auto extends LinearOpMode {
                     robot.follower.followPath(scorePickup3);
                     increment();
                 } else if (stage == 14) {
-                    if (robot.colorSensors.ballsInIntake()) {
+                    if (robot.ballsInIntake()) {
                         processor.override(new IntakeTransfer());
                         increment();
                     } else if (elapsedTime.milliseconds() > 1000) {

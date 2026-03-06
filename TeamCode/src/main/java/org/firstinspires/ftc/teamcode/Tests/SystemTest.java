@@ -45,9 +45,9 @@ public class SystemTest extends LinearOpMode {
 
     public static double transferPower = 0;
 
-    public static double leftPinPositon = 0.625;
-    public static double centerPinPosition = 1;
-    public static double rightPinPosition = 0.525;
+    public static double leftPinPositon = 0.575;
+    public static double centerPinPosition = 0.105;
+    public static double rightPinPosition = 0.275;
 
     public static double liftPos = 0.275;
 
@@ -86,7 +86,7 @@ public class SystemTest extends LinearOpMode {
 
         ColorSensor leftColorSensor = hardwareMap.get(ColorSensor.class, "sensor_cl");
         ColorSensor rightColorSensor = hardwareMap.get(ColorSensor.class, "sensor_cr");
-        ColorSensor centerColorSensor = hardwareMap.get(ColorSensor.class, "sensor_cc");
+
 
         Servo leftLight = hardwareMap.get(Servo.class, "light_ll");
         Servo rightLight = hardwareMap.get(Servo.class, "light_rl");
@@ -130,6 +130,8 @@ public class SystemTest extends LinearOpMode {
             }
             if (intakePower != 0){
                 intakeMotor.setPower(intakePower);
+                telemetry.addData("intakeCurrent", intakeMotor.getCurrent(CurrentUnit.AMPS));
+                telemetry.update();
 
 
             }
@@ -208,21 +210,7 @@ public class SystemTest extends LinearOpMode {
 
                 rightLight.setPosition(0.722);
             }
-            if (centerColorSensor.blue()<100 &&centerColorSensor.red()<100 && centerColorSensor.green()<100){
 
-                centerLight.setPosition(0.28);
-
-            }
-            else if(centerColorSensor.green() > centerColorSensor.blue() && centerColorSensor.green() > centerColorSensor.red()){
-
-                centerLight.setPosition(0.444);
-
-
-            }
-            else {
-
-                centerLight.setPosition(0.722);
-            }
             limelight.updateRobotOrientation(Math.toDegrees(follower.getHeading()));
 
 
