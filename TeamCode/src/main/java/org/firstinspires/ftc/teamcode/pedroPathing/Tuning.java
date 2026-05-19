@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.drawCurrentAndH
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.stopRobot;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.telemetryM;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.format;
 
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
@@ -126,6 +127,10 @@ public class Tuning extends SelectableOpMode {
     public static void stopRobot() {
         follower.startTeleopDrive(true);
         follower.setTeleOpDrive(0,0,0,true);
+    }
+
+    public static String format(double value, int decimalPlaces) {
+        return String.format("%." + decimalPlaces + "f", value);
     }
 }
 
@@ -429,7 +434,7 @@ class ForwardVelocityTuner extends OpMode {
                 average += velocity;
             }
             average /= velocities.size();
-            telemetryM.debug("Forward Velocity: " + average);
+            telemetryM.debug("Forward Velocity: " + format(average, 3));
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Forward Velocity temporarily (while robot remains on).");
 
@@ -537,7 +542,7 @@ class LateralVelocityTuner extends OpMode {
             }
             average /= velocities.size();
 
-            telemetryM.debug("Strafe Velocity: " + average);
+            telemetryM.debug("Strafe Velocity: " + format(average, 3));
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Lateral Velocity temporarily (while robot remains on).");
             telemetryM.update(telemetry);
@@ -643,7 +648,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
             }
             average /= accelerations.size();
 
-            telemetryM.debug("Forward Zero Power Acceleration (Deceleration): " + average);
+            telemetryM.debug("Forward Zero Power Acceleration (Deceleration): " + format(average, 3));
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Forward Zero Power Acceleration temporarily (while robot remains on).");
             telemetryM.update(telemetry);
@@ -747,7 +752,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
             }
             average /= accelerations.size();
 
-            telemetryM.debug("Lateral Zero Power Acceleration (Deceleration): " + average);
+            telemetryM.debug("Lateral Zero Power Acceleration (Deceleration): " + format(average, 3));
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Lateral Zero Power Acceleration temporarily (while robot remains on).");
             telemetryM.update(telemetry);
@@ -919,13 +924,13 @@ class PredictiveBrakingTuner extends OpMode {
 
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("Braking Profile:");
-                telemetryM.debug("kQuadratic", String.format("%.8f", coefficients[1]));
-                telemetryM.debug("kLinear", String.format("%.8f", coefficients[0]));
+                telemetryM.debug("kQuadratic", format(coefficients[1], 8)));
+                telemetryM.debug("kLinear", format(coefficients[0], 7));
                 telemetryM.update(telemetry);
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("Braking Profile:");
-                telemetryM.debug("kQuadraticFriction", String.format("%.8f", coefficients[1]));
-                telemetryM.debug("kLinearBraking", String.format("%.8f", coefficients[0]));
+                telemetryM.debug("kQuadraticFriction", format(coefficients[1], 8));
+                telemetryM.debug("kLinearBraking", format(coefficients[0], 7));
                 for (BrakeRecord record : brakeData) {
                     Pose p = record.pose;
                     telemetryM.debug(String.format("t=%.0f ms, x=%.2f, y=%.2f, θ=%.2f, v=%.2f",
