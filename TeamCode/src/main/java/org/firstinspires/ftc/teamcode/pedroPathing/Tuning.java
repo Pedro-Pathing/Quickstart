@@ -919,13 +919,13 @@ class PredictiveBrakingTuner extends OpMode {
 
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("Braking Profile:");
-                telemetryM.debug("kQuadratic", coefficients[1]);
-                telemetryM.debug("kLinear", coefficients[0]);
+                telemetryM.debug("kQuadratic", String.format("%.8f", coefficients[1]));
+                telemetryM.debug("kLinear", String.format("%.8f", coefficients[0]));
                 telemetryM.update(telemetry);
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("Braking Profile:");
-                telemetryM.debug("kQuadraticFriction", coefficients[1]);
-                telemetryM.debug("kLinearBraking", coefficients[0]);
+                telemetryM.debug("kQuadraticFriction", String.format("%.8f", coefficients[1]));
+                telemetryM.debug("kLinearBraking", String.format("%.8f", coefficients[0]));
                 for (BrakeRecord record : brakeData) {
                     Pose p = record.pose;
                     telemetryM.debug(String.format("t=%.0f ms, x=%.2f, y=%.2f, θ=%.2f, v=%.2f",
