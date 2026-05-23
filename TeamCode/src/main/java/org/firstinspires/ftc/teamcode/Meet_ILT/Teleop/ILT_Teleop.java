@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Objects;
 
 @TeleOp(name = "ILT Teleop")
-@Configurable
+//@Configurable
 @Disabled
 public class ILT_Teleop extends LinearOpMode {
 

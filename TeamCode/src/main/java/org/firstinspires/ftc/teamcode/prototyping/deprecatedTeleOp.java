@@ -43,7 +43,7 @@ import java.util.Objects;
 @TeleOp(name = "Regionals Teleop")
 @Configurable
 @Disabled
-public class regionalTeleop extends LinearOpMode {
+public class deprecatedTeleOp extends LinearOpMode {
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
 
@@ -347,7 +347,7 @@ public class regionalTeleop extends LinearOpMode {
     }
 
     public void hoodTeleOp() {
-        hoodTargetAngle = LaunchAngleCalculator.calcBestAngle(launcher.getVelocity(),odoRange, telemetryM);
+        //hoodTargetAngle = LaunchAngleCalculator.calcBestAngle(launcher.getVelocity(),odoRange, telemetryM);
         switch (hoodState) {
             case "idle":
                 hoodServo.set(hoodToServoAngle(hoodTargetAngle));

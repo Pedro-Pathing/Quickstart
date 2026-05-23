@@ -33,7 +33,7 @@ import java.util.Objects;
 
 
 @Autonomous(name = "Meet 3 Auto", group = "Autonomous")
-@Configurable // Panels
+//@Configurable // Panels
 @Disabled
 @SuppressWarnings("FieldCanBeLocal") // Stop Android Studio from bugging about variables being predefined
 public class Meet3Auto extends LinearOpMode {

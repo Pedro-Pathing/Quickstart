@@ -72,7 +72,7 @@ public class RegionalsAuto extends LinearOpMode {
 
 
     //Team Dependents
-    public static String team = Meet3Auto.team;
+    public static String team = "blue";
     private double goalID = 20;
     public Pose goalPose;
     private Pose aprilTagPose;
@@ -106,8 +106,8 @@ public class RegionalsAuto extends LinearOpMode {
     public static double hoodOffset = -1.5;
 
     //Blocker Variables
-    public double closedAngle = 255;
-    public double openAngle = 315;
+    public double closedAngle = 155;
+    public double openAngle = 215;
 
     //Intake Variables
     public static double intakePickupSpeed = 1.0;
@@ -145,7 +145,7 @@ public class RegionalsAuto extends LinearOpMode {
     //Timer
 
     AnalogInput absEncoder;
-    public static double zeroPositionOffset = -186;
+    public static double zeroPositionOffset = -173;
     double outputVoltage = 0;
     double outputAngle = 0;
     double totalRawAngle = 0;
@@ -162,7 +162,7 @@ public class RegionalsAuto extends LinearOpMode {
     //Panels Editable Variables
     public static double intakeMaxPower = .7;
     public static double rampMaxPower = .7;
-    public static double gateWaitTime = 1.2;
+    public static double gateWaitTime = 0.8;
     public static double intakeMaxPower15 = 0.9;
     public static double rampMaxPower15 = 1.0;
     public static double farLaunchTime = 1.2;
@@ -203,6 +203,8 @@ public class RegionalsAuto extends LinearOpMode {
     public PathChain FarCompatible_LaunchToGate;
     public PathChain FarCompatible_IntakeGate;
     public PathChain FarCompatible_GateToLaunch;
+    public PathChain FarCompatible_StartToPreload;
+    public PathChain PPGToParkClose;
 
     //Changing variables
     public int autoState = 0;
@@ -210,7 +212,7 @@ public class RegionalsAuto extends LinearOpMode {
 
 
     //Launcher Auto Variables
-    public static double launchTime = .55;
+    public static double launchTime = .7;
     public double preparedLauncherVelocity = 0;
 
     //Turret Auto Variables
@@ -363,16 +365,17 @@ public class RegionalsAuto extends LinearOpMode {
 
         //Add values (obtained empirically)
         //Input is distance, output is shooter velocity
-        rangeLUT.add(47, 0.4);
-        rangeLUT.add(55, 0.41);
-        rangeLUT.add(65, 0.44);
-        rangeLUT.add(75, 0.47);
+        rangeLUT.add(47, 0.41);
+        rangeLUT.add(55, 0.42);
+        rangeLUT.add(65, 0.45);
+        rangeLUT.add(75, 0.48);
         rangeLUT.add(85, .485);
         rangeLUT.add(95, 0.5);
         rangeLUT.add(106, 0.52);
         rangeLUT.add(126, .56);
-        rangeLUT.add(147, .6);
-        rangeLUT.add(160, 0.64);
+        rangeLUT.add(147, .605);
+        rangeLUT.add(160, 0.645);
+        rangeLUT.add(170,0.68);
 
         rangeLUT.createLUT();
 
@@ -402,6 +405,7 @@ public class RegionalsAuto extends LinearOpMode {
         hoodLUT.add(126, 44);
         hoodLUT.add(147, 47);
         hoodLUT.add(160, 48.5);
+        hoodLUT.add(170, 48.5);
 
         hoodLUT.createLUT();
     }
@@ -463,9 +467,9 @@ public class RegionalsAuto extends LinearOpMode {
     }
 
     public double angleLUT(double range) {
-        if (range > 20 && range < 160) return hoodLUT.get(range);
+        if (range > 20 && range < 170) return hoodLUT.get(range);
         else if (range < 20) return hoodLUT.get(21);
-        else return hoodLUT.get(159);
+        else return hoodLUT.get(169);
     }
 
     public void sensorTeleOp() {
@@ -546,7 +550,7 @@ public class RegionalsAuto extends LinearOpMode {
                 blockerServo.set(openAngle);
                 break;
             case "shortReject":
-                intake.set(-1);
+                intake.set(-.8);
                 intakeTimer.reset();
                 intakeState = "shortRejecting";
                 break;
@@ -667,15 +671,12 @@ public class RegionalsAuto extends LinearOpMode {
         if (input < 47) {
             transferLoadSpeed = 0;
             return rangeLUT.get(48);
-        } else if (input > 160) {
+        } else if (input > 170) {
             transferLoadSpeed = 0;
-            return rangeLUT.get(159);
+            return rangeLUT.get(169);
         } else {
-            if (70 < input && input < 90) transferLoadSpeed = 0.85 * voltageMultiplier;
-            else if (90 < input && input < 110) transferLoadSpeed = 0.75 * voltageMultiplier;
-            else if (input > 110) transferLoadSpeed = 0.7 * voltageMultiplier;
-            else transferLoadSpeed = .93;
-            if (transferLoadSpeed < 0.75) transferLoadSpeed = 0.65;
+            if (currentPose.getY() > 50) transferLoadSpeed = 0.8;
+            else transferLoadSpeed = 0.55;
             return rangeLUT.get(input);
         }
     }
@@ -699,6 +700,7 @@ public class RegionalsAuto extends LinearOpMode {
         double turretAngle;
         turretAngle = calculateTurretAngle(currentPose.getX(), currentPose.getY(), Math.toDegrees((currentPose.getHeading())));
         turretAngle = turretAngleLimiter(turretAngle);
+
         //if (follower.getVelocity().getMagnitude() < 2 && Math.abs(follower.getAngularVelocity()) < 0.2)
         turretTargetPos = turretAngle;
     }
@@ -706,6 +708,11 @@ public class RegionalsAuto extends LinearOpMode {
     public double calculateTurretAngle(double botX, double botY, double botHeading) {
         double goalX = goalPose.getX();
         double goalY = goalPose.getY();
+        if (botY > 125) {
+            goalY = 139;
+        } else if (botY < 50) {
+            goalX = x(5);
+        }
         double targetAngle = Math.toDegrees(Math.atan2(goalY - botY, goalX - botX));
         targetAngle -= botHeading + 180 + turretDriftOffset;
         telemetryM.addData("Target Angle", targetAngle);
@@ -746,13 +753,25 @@ public class RegionalsAuto extends LinearOpMode {
     public void updateTeamDependents() {
         if (Objects.equals(team, "blue")) {
             goalID = 20;
-            startPose = new Pose(30, 136, Math.toRadians(270));
+            if (auto == selectedAuto.Far15Solo || auto == selectedAuto.Far15Compatible) {
+                startPose = new Pose(63, 8, Math.toRadians(90));
+
+            }
+            else {
+                startPose = new Pose(30, 135, Math.toRadians(270));
+            }
             goalPose = new Pose(0, 144, Math.toRadians(135));
             poseResetPose = new Pose(114, 7, Math.toRadians(90)); //need to find good one
             aprilTagPose = new Pose(15, 130, 0);
         } else if (Objects.equals(team, "red")) {
             goalID = 24;
-            startPose = new Pose(x(30), 136, a(270));
+            if (auto == selectedAuto.Far15Solo || auto == selectedAuto.Far15Compatible) {
+                startPose = new Pose(x(63), 8, a(90));
+            }
+            else {
+                startPose = new Pose(x(30), 135, a(270));
+
+            }
             goalPose = new Pose(144, 144, Math.toRadians(45));
             poseResetPose = new Pose(30, 7, Math.toRadians(90)); //need to find good one
             aprilTagPose = new Pose(129, 130, 0);
@@ -827,7 +846,7 @@ public class RegionalsAuto extends LinearOpMode {
                 }
                 break;
             case 3:
-                PPGClose();
+                PPGClose(false);
                 if (segmentState == -1) {
                     segmentState = 0;
                     autoState = 4;
@@ -884,14 +903,7 @@ public class RegionalsAuto extends LinearOpMode {
                 }
                 break;
             case 4:
-                PPGClose();
-                if (segmentState == -1) {
-                    segmentState = 0;
-                    autoState = 6;
-                }
-                break;
-            case 5:
-                parkClose(follower.getPose());
+                PPGClose(true);
                 if (segmentState == -1) {
                     segmentState = 0;
                     autoState = 6;
@@ -963,14 +975,14 @@ public class RegionalsAuto extends LinearOpMode {
                 }
                 break;
             case 1:
-                HumanPlayerFar();
+                GPPFar();
                 if (segmentState == -1) {
                     segmentState = 0;
                     autoState = 2;
                 }
                 break;
             case 2:
-                GPPFar();
+                HumanPlayerFar();
                 if (segmentState == -1) {
                     segmentState = 0;
                     autoState = 3;
@@ -1026,7 +1038,7 @@ public class RegionalsAuto extends LinearOpMode {
         }
     }
 
-    public void PPGClose() {
+    public void PPGClose(boolean parkBeforeShoot) {
         switch (segmentState) {
             case 0:
                 follower.followPath(PPGIntakeClose, intakeMaxPower, true);
@@ -1035,10 +1047,18 @@ public class RegionalsAuto extends LinearOpMode {
                 break;
             case 1:
                 if (follower.atParametricEnd()) {
-                    resetSubsystems();
-                    premoveTurret(PPGToScoreClose.endPose().getX(), PPGToScoreClose.endPose().getY(), Math.toDegrees(PPGToScoreClose.endPose().getHeading()));
-                    follower.followPath(PPGToScoreClose);
                     segmentState = 2;
+                    if (!parkBeforeShoot) {
+                        segmentState = 2;
+                        resetSubsystems();
+                        premoveTurret(PPGToScoreClose.endPose().getX(), PPGToScoreClose.endPose().getY(), Math.toDegrees(PPGToScoreClose.endPose().getHeading()));
+                        follower.followPath(PPGToScoreClose);
+                    } else {
+                        resetSubsystems();
+                        premoveTurret(PPGToScoreClose.endPose().getX(), PPGToScoreClose.endPose().getY(), Math.toDegrees(PPGToScoreClose.endPose().getHeading()));
+                        follower.followPath(PPGToParkClose);
+                        segmentState = 2;
+                    }
                 }
                 break;
             case 2:
@@ -1218,7 +1238,14 @@ public class RegionalsAuto extends LinearOpMode {
                 segmentState = 1;
                 break;
             case 1:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 2.0) {
+                    launchBalls();
+                    segmentState = 2;
+                }
+                break;
+            case 2:
+                if (launchTimer.seconds() > launchTime) {
+                    resetSubsystems();
                     segmentState = -1;
                 }
                 break;
@@ -1228,13 +1255,21 @@ public class RegionalsAuto extends LinearOpMode {
     public void PreLoadFar() {
         switch (segmentState) {
             case 0:
+                follower.followPath(FarCompatible_StartToPreload);
                 hoodState = "adjusting";
                 premoveTurret(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-                segmentState = 1;
+                segmentState = 10;
+                break;
+            case 10:
+                if (!follower.isBusy()) {
+                    follower.turnTo(a(150));
+                    segmentState = 1;
+                }
                 break;
             case 1:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 1) {
                     launchBalls();
+                    launchTimer.reset();
                     segmentState = 2;
                 }
                 break;
@@ -1302,7 +1337,7 @@ public class RegionalsAuto extends LinearOpMode {
                 if (!follower.isBusy()) {
                     follower.followPath(FarCompatible_LowerGPGToLaunch);
                     premoveTurret(FarCompatible_LowerGPGToLaunch.endPose().getX(), FarCompatible_LowerGPGToLaunch.endPose().getY(), Math.toDegrees(FarCompatible_LowerGPGToLaunch.endPose().getHeading()));
-                    segmentState = 3;
+                    segmentState = -1;
                 }
                 break;
             case 3:
@@ -1418,6 +1453,16 @@ public class RegionalsAuto extends LinearOpMode {
                 .addTemporalCallback(300, preSpinLauncher)
                 .build();
 
+        PPGToParkClose = follower
+                .pathBuilder()
+                .addPath(
+                        new BezierLine(new Pose(x(21),84),new Pose (x(60),104))
+                )
+                .setTangentHeadingInterpolation()
+                .setReversed()
+                .addTemporalCallback(300, preSpinLauncher)
+                .build();
+
 
         ScoreToPGPClose = follower
                 .pathBuilder()
@@ -1506,7 +1551,7 @@ public class RegionalsAuto extends LinearOpMode {
                 .addPath(
                         new BezierLine(
                                 new Pose(x(12.5), 62),
-                                new Pose(x(12.5), 54)
+                                new Pose(x(12.5), 58)
                         )
                 )
                 .setConstantHeadingInterpolation(a(135))
@@ -1548,68 +1593,75 @@ public class RegionalsAuto extends LinearOpMode {
                 .setReversed()
                 .addTemporalCallback(300, preSpinLauncher)
                 .build();
-        FarCompatible_StartToGPP = follower
+        FarCompatible_StartToPreload = follower
                 .pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(x(63), 8),
-                                new Pose(x(40), 35)
+                                new Pose(x(63), 11)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
-                .setReversed()
+                .setConstantHeadingInterpolation(a(90))
+                .build();
+        FarCompatible_StartToGPP = follower
+                .pathBuilder()
+                .addPath(
+                        new BezierLine(
+                                new Pose(x(63), 12),
+                                new Pose(x(40), 36)
+                        )
+                )
+                .setLinearHeadingInterpolation(a(150), a(180))
                 .build();
         FarCompatible_IntakeGPP = follower
                 .pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(x(40), 35),
-                                new Pose(x(10), 35)
+                                new Pose(x(40), 36),
+                                new Pose(x(10), 36)
                         )
                 )
-                .setTangentHeadingInterpolation()
+                .setConstantHeadingInterpolation(a(180))
                 .build();
         FarCompatible_GPPToLaunch = follower
                 .pathBuilder()
                 .addPath(
                     new BezierLine(
                             new Pose(x(10), 35),
-                            new Pose(x(65), 12)
+                            new Pose(x(63), 12)
                     )
                 )
-                .setTangentHeadingInterpolation()
-                .setReversed()
+                .setConstantHeadingInterpolation(a(180))
                 .build();
         FarCompatible_LaunchToLowerGPG = follower
                 .pathBuilder()
                 .addPath(
                         new BezierLine(
                                 new Pose(x(65), 12),
-                                new Pose(x(10), 30)
+                                new Pose(x(7), 30)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(157), Math.toRadians(225))
+                .setLinearHeadingInterpolation(a(180), a(270))
                 .build();
         FarCompatible_IntakeLowerGPG = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierCurve(
-                                new Pose(x(10),30),
-                                new Pose(x(10),18),
-                                new Pose(x(6),8)
+                        new BezierLine(
+                                new Pose(x(7),30),
+                                new Pose(x(7),10)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(225),Math.toRadians(270))
+                .setLinearHeadingInterpolation(a(270),a(270))
                 .build();
         FarCompatible_LowerGPGToLaunch = follower
                 .pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(x(6),8),
-                                new Pose(x(65), 12)
+                                new Pose(x(7),10),
+                                new Pose(x(63), 12)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(180))
+                .setLinearHeadingInterpolation(a(270), a(180))
                 .build();
         FarCompatible_LaunchToGate = follower
                 .pathBuilder()
@@ -1619,7 +1671,7 @@ public class RegionalsAuto extends LinearOpMode {
                                 new Pose(x(10),38)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(120))
+                .setLinearHeadingInterpolation(a(180), a(120))
                 .build();
         FarCompatible_IntakeGate = follower
                 .pathBuilder()
@@ -1629,7 +1681,7 @@ public class RegionalsAuto extends LinearOpMode {
                                 new Pose(x(7),60)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(120), Math.toRadians(100))
+                .setLinearHeadingInterpolation(a(120), a(100))
                 .build();
         FarCompatible_GateToLaunch = follower
                 .pathBuilder()

@@ -18,7 +18,6 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.seattlesolvers.solverslib.drivebase.MecanumDrive;
 import com.seattlesolvers.solverslib.hardware.ServoEx;
@@ -32,10 +31,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Meet_ILT.Drawing;
-import org.firstinspires.ftc.teamcode.Meet_ILT.ILT_Auto;
-import org.firstinspires.ftc.teamcode.meet3.Meet3Auto;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.regionals.RegionalsAuto;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.List;
@@ -105,8 +101,8 @@ public class RegionalsTeleop extends LinearOpMode {
     public static double hoodOffset = -1.5;
 
     //Blocker Variables
-    public double closedAngle = 250;
-    public double openAngle = 315;
+    public double closedAngle = 170;
+    public double openAngle = 230;
 
     //Intake Variables
     public static double intakePickupSpeed = 1.0;
@@ -116,11 +112,11 @@ public class RegionalsTeleop extends LinearOpMode {
     //Turret Variables
     private PIDFController turretPIDF;
     public static double turretTolerance = 2;
-    public static double tkP = 0.0045;
-    public static double tkI = 0;
+    public static double tkP = 0.01;
+    public static double tkI = 0.0001;
     public static double tkD = 0.0003;
     public static double tkSCustom = 0.08;
-    public static double errorTotal = 30;
+    //public static double errorTotal = 30;
     private double turretTargetPos;
     private double angleError;
     private boolean turretManualControl = false;
@@ -142,6 +138,9 @@ public class RegionalsTeleop extends LinearOpMode {
 
     private double voltage;
     private double voltageMultiplier;
+    private double editedVoltage = 0;
+    private double voltageOffset = 0;
+    VoltageSensor voltageSensor;
 
     //The variable to store our instance of the vision portal.
 
@@ -151,7 +150,7 @@ public class RegionalsTeleop extends LinearOpMode {
 
     //Analog Encoder Variables
     AnalogInput absEncoder;
-    public static double zeroPositionOffset = -186;
+    public static double zeroPositionOffset = -173;
     double outputVoltage=0;
     double outputAngle=0;
     double totalRawAngle = 0;
@@ -174,7 +173,6 @@ public class RegionalsTeleop extends LinearOpMode {
 
         drawing.initilize();
 
-        VoltageSensor voltageSensor;
         voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         voltage = voltageSensor.getVoltage();
 
@@ -244,12 +242,16 @@ public class RegionalsTeleop extends LinearOpMode {
 
     public void telemetryUpdate() {
 //        telemetryM.addLine("Robot Position");
+        telemetryM.addData("Voltage",voltageSensor.getVoltage());
+        telemetryM.addData("Load Speed",transferLoadSpeed);
+        telemetryM.addLine("Failsafes:");
+        telemetryM.addData("Turret Angle Offset",turretDriftOffset);
+        telemetryM.addData("Load-speed Offset",loadSpeedOffset);
+        telemetryM.addData("Sensors Enabled:",sensorsEnabled);
+        telemetryM.addLine("Robot Info:");
         telemetryM.addData("X",currentPose.getX());
         telemetryM.addData("Y",currentPose.getY());
         telemetryM.addData("Heading",Math.toDegrees(currentPose.getHeading()));
-        telemetryM.addData("Goal Distance",odoRange);
-        telemetryM.addData("Turret Angle",trueTurretAngle);
-        telemetryM.addData("Hood Angle",hoodTargetAngle);
         telemetryM.addData("Ball in 1?", ballIn1);
         telemetryM.addData("Ball in 2?", ballIn2);
         telemetryM.addData("Ball in 3?", ballIn3);
@@ -280,7 +282,7 @@ public class RegionalsTeleop extends LinearOpMode {
         drive = new MecanumDrive(fL, fR, bL, bR);
         drive.setRightSideInverted(false);
         turretPIDF = new PIDFController(tkP, tkI, tkD, 0);
-        turretPIDF.setIntegrationBounds(-errorTotal,errorTotal);
+        //turretPIDF.setIntegrationBounds(-errorTotal,errorTotal);
         //launcherPID = new PIDController(kp,ki,kd);
         launcher = new MotorGroup(launcher1, launcher2);
         distanceSensor1 = hardwareMap.get(DistanceSensor.class, "firstDistanceSensor");
@@ -323,6 +325,7 @@ public class RegionalsTeleop extends LinearOpMode {
             rangeLUT.add(126,.56);
             rangeLUT.add(147,.6);
             rangeLUT.add(160,0.64);
+            rangeLUT.add(170,0.685);
         } else {
             rangeLUT.add(20,speedOverride);
             rangeLUT.add(160,speedOverride);
@@ -355,6 +358,7 @@ public class RegionalsTeleop extends LinearOpMode {
             hoodLUT.add(126, 44);
             hoodLUT.add(147, 47);
             hoodLUT.add(160,48.5);
+            hoodLUT.add(170,48.5);
         } else {
             hoodLUT.add(0,angleOverride);
             hoodLUT.add(160,angleOverride);
@@ -418,7 +422,7 @@ public class RegionalsTeleop extends LinearOpMode {
     }
 
     public double angleLUT(double range) {
-        if (range > 20 && range < 160) return hoodLUT.get(range);
+        if (range > 20 && range < 170) return hoodLUT.get(range);
         else return 50;
     }
     public void DriverInput() {
@@ -501,18 +505,21 @@ public class RegionalsTeleop extends LinearOpMode {
         } else if ((gamepad2.dpad_right || gamepad1.dpad_right) && driftAdjustToggle) {
             driftAdjustToggle = false;
             turretDriftOffset += .5;
-        } else if (!gamepad2.dpad_left && !gamepad2.dpad_right && gamepad1.dpad_left && gamepad1.dpad_right) {
+        } else if (!gamepad2.dpad_left && !gamepad2.dpad_right && !gamepad1.dpad_left && !gamepad1.dpad_right) {
             driftAdjustToggle = true;
         }
 
         if (gamepad2.a && loadAdjustToggle) {
-            loadSpeedOffset -= 0.02;
+            loadSpeedOffset -= 0.01;
             loadAdjustToggle = false;
         } else if (gamepad2.b && loadAdjustToggle) {
-            loadSpeedOffset += 0.02;
+            loadSpeedOffset += 0.01;
             loadAdjustToggle = false;
         } else if (!gamepad2.a && !gamepad2.b) {
             loadAdjustToggle = true;
+        }
+        if (gamepad2.x) {
+            loadSpeedOffset = 0;
         }
 
         driveAngleDegrees = Math.toDegrees(currentPose.getHeading());
@@ -709,19 +716,30 @@ public class RegionalsTeleop extends LinearOpMode {
     }
 
     public double calculateRangeLUT(double input) {
+        voltageMultiplier = 1-((13.0-voltage)/13.0)*2;
+        if (voltageMultiplier > 1) {
+            voltageMultiplier = 1;
+        }
+        if (voltageMultiplier < .7) {
+            voltageMultiplier = .7;
+        }
         if (input < 47) {
             transferLoadSpeed = 0;
             return rangeLUT.get(48);
-        } else if (input > 160) {
+        } else if (input > 170) {
             transferLoadSpeed = 0;
-            return rangeLUT.get(159);
+            return rangeLUT.get(169);
         } else {
-            if (70 < input && input < 90) transferLoadSpeed = 0.85 * voltageMultiplier;
-            else if (90 < input && input < 110) transferLoadSpeed = 0.75 * voltageMultiplier;
-            else if (input > 110) transferLoadSpeed = 0.65 * voltageMultiplier;
-            else transferLoadSpeed = .93;
-            if (transferLoadSpeed < 0.52) transferLoadSpeed = 0.52;
-            transferLoadSpeed += loadSpeedOffset;
+//            if (70 < input && input < 90) transferLoadSpeed = 0.85 * voltageMultiplier;
+//            else if (90 < input && input < 110) transferLoadSpeed = 0.75 * voltageMultiplier;
+//            else if (input > 110) transferLoadSpeed = 0.65 * voltageMultiplier;
+//            else transferLoadSpeed = .93;
+            if (input > 50) {
+                transferLoadSpeed = (1.1 - 0.005 * input) * voltageMultiplier;
+            } else transferLoadSpeed = voltageMultiplier;
+            if (transferLoadSpeed < 0.55) transferLoadSpeed = 0.55;
+            if (transferLoadSpeed > 0.82
+            ) transferLoadSpeed = 0.82;
             return rangeLUT.get(input);
         }
     }
@@ -751,6 +769,11 @@ public class RegionalsTeleop extends LinearOpMode {
     public double calculateTurretAngle(double botX, double botY, double botHeading) {
         double goalX = goalPose.getX();
         double goalY = goalPose.getY();
+        if (botY > 125) {
+            goalY = 139;
+        } else if (botY < 50) {
+            goalX = x(5);
+        }
         double targetAngle = Math.toDegrees(Math.atan2(goalY-botY,goalX-botX));
         targetAngle -= botHeading + 180 + turretDriftOffset;
         return targetAngle;
@@ -760,9 +783,9 @@ public class RegionalsTeleop extends LinearOpMode {
         double output = turretPIDF.calculate(trueTurretAngle,turretTargetPos);
         double kSFriction;
         kSFriction = tkSCustom * (Math.abs(turretPIDF.getPositionError()) / turretPIDF.getPositionError());
-        if (Math.abs(turretPIDF.getPositionError()) > 1) output += kSFriction;
+        if (Math.abs(turretPIDF.getPositionError()) > 1 && Math.abs(turretPIDF.getPositionError()) < 10) output += kSFriction;
         else if (Math.abs(turretPIDF.getPositionError()) < 1) output = 0;
-        if (Math.abs(output) > 0.7) output = output/Math.abs(output) * 0.7;
+        //if (Math.abs(output) > 0.7) output = output/Math.abs(output) * 0.7;
         turret.set(output);
     }
 
@@ -773,14 +796,14 @@ public class RegionalsTeleop extends LinearOpMode {
         } else if (realAngle < -180) {
             realAngle += 360;
         }
-        if ((realAngle > 170 && trueTurretAngle < 0) || (realAngle < -170 && trueTurretAngle > 0)) {
+        if ((realAngle > 175 && trueTurretAngle < 0) || (realAngle < -170 && trueTurretAngle > 0)) {
             turretAngleLimited = true;
             return turretTargetPos;
         } else turretAngleLimited = false;
-        if (realAngle > 175) {
+        if (realAngle > 170) {
             turretAngleLimited = true;
             realAngle = 175;
-        } else if (realAngle < -145) {
+        } else if (realAngle < -140) {
             realAngle = -145;
             turretAngleLimited = true;
         }
@@ -789,12 +812,12 @@ public class RegionalsTeleop extends LinearOpMode {
 
     public void updateTeamDependents() {
         if (Objects.equals(team,"blue")){
-            startPose = new Pose(30,136,Math.toRadians(270));
+            startPose = new Pose(30,135,Math.toRadians(270));
             goalPose = new Pose(0,144,Math.toRadians(135));
             poseResetPose = new Pose(114,7,Math.toRadians(90)); //need to find good one
             aprilTagPose = new Pose(15,130,0);
         } else if (Objects.equals(team,"red")) {
-            startPose = new Pose(x(30),136,a(270));
+            startPose = new Pose(x(30),135,a(270));
             goalPose = new Pose(144,144,Math.toRadians(45));
             poseResetPose = new Pose(30,7,Math.toRadians(90)); //need to find good one
             aprilTagPose = new Pose(129,130,0);

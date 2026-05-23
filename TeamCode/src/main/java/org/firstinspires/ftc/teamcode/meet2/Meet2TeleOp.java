@@ -30,7 +30,7 @@ import java.util.Objects;
 
 @TeleOp(name = "Meet 2 Teleop")
 @Disabled
-@Configurable
+//@Configurable
 public class Meet2TeleOp extends LinearOpMode {
 
 

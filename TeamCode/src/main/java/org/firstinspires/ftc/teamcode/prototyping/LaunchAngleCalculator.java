@@ -10,8 +10,8 @@ public class LaunchAngleCalculator {
     InterpLUT angleLUT = new InterpLUT();
     //height is in meters
     static double height = 3 * 0.0254;
-    static double minHoodAngle = angleChange(33);
-    static double maxHoodAngle = angleChange(57);
+    static double minHoodAngle = angleChange(30);
+    static double maxHoodAngle = angleChange(60);
 
     static double closeDistance = 55;
 //    private void createAngleLUT() {
@@ -42,7 +42,7 @@ public class LaunchAngleCalculator {
         createSpeedLUT();
     }
 
-    public static double calcBestAngle(double velocity, double distance, TelemetryManager telemetryM) {
+    public double calcBestAngle(double velocity, double distance, TelemetryManager telemetryM) {
 
         boolean isClose = distance < closeDistance;
 
@@ -67,7 +67,7 @@ public class LaunchAngleCalculator {
         telemetryM.addData("Low",lowAngle);
         telemetryM.addData("High",highAngle);
         telemetryM.addData("Speed",v);
-        if (lowAngle > minHoodAngle && !isClose) {
+        /*if (lowAngle > minHoodAngle && !isClose) {
             //return hoodToServoAngle(lowAngle);
             return angleChange(lowAngle);
         }
@@ -75,16 +75,16 @@ public class LaunchAngleCalculator {
             //return hoodToServoAngle(highAngle);
             return angleChange(highAngle);
         }
-        else if (lowAngle < minHoodAngle) {
-            //return hoodToServoAngle(minHoodAngle);
-            return angleChange(minHoodAngle);
+        else */ if (lowAngle < minHoodAngle && highAngle > maxHoodAngle) {
+            if (distance > 70) return  angleChange(maxHoodAngle);
+            else return angleChange(minHoodAngle);
         } else if (highAngle > maxHoodAngle) {
             //return hoodToServoAngle(maxHoodAngle);
             return angleChange(maxHoodAngle);
         }
         else {
             //return hoodToServoAngle(40);
-            return angleChange(40);
+            return angleChange(lowAngle);
         }
 
     }

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Autonomous(name = "Meet 2 Auto", group = "Autonomous")
-@Configurable // Panels
+//@Configurable // Panels
 @Disabled
 @SuppressWarnings("FieldCanBeLocal") // Stop Android Studio from bugging about variables being predefined
 public class Meet2Auto extends LinearOpMode {
