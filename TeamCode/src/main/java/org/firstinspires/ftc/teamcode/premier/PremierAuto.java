@@ -35,10 +35,19 @@ public class PremierAuto extends LinearOpMode {
     @IgnoreConfigurable
     TelemetryManager telemetryM;
 
+    private double lastLaunchSpeed = 0;
+
+    public static double launchTime = 1.0;
+    public static double loadTime = 0.6;
+    public static double gateTime = 1.5;
+    int fullCount = 0;
+
     private double headingEstimate;
 
     private final ElapsedTime intakeTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
-    private final ElapsedTime blockerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+    private final ElapsedTime loadingTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+    private final ElapsedTime gateTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+    private final ElapsedTime launchTimeout = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public static double hoodRapidMultiplier = 0.015;
     public static double baseLoadSpeed = .6;
     public static double loadSpeedValue = 20; //Max range = 150, min = 40. as example, 10/40=base+.25
@@ -60,7 +69,7 @@ public class PremierAuto extends LinearOpMode {
     public enum AUTO {closeStart, closePGP, closePPG, closeGate,done}
     public AUTO currentStep;
     public int autoState = 0;
-    public AUTO[] close15 = {AUTO.closeStart,AUTO.closePGP,AUTO.closeGate,AUTO.closeGate,AUTO.closePPG};
+    public AUTO[] close15 = {AUTO.closeStart,AUTO.closePGP,AUTO.closeGate,AUTO.closeGate,AUTO.closePPG, AUTO.done};
     public AUTO[] selectedAuto = close15;
     private boolean stepIsComplete = false;
     public int index = 0;
@@ -141,7 +150,7 @@ public class PremierAuto extends LinearOpMode {
     private double alpha1, distance2, distance3;
     private double intakeSpeed = 1.0;
     private double rejectSpeed = -.4;
-    public enum iState {idle, intaking, loading, rejecting, stuckBall}
+    public enum iState {idle, intaking, loading, rejecting, stuckBall, gate}
     public iState intakeState = iState.idle;
 
 
@@ -207,29 +216,38 @@ public class PremierAuto extends LinearOpMode {
     }
 
     public void auto() {
-        sensorUpdate();
+        sensorUpdate(false);
         turretUpdate();
         launcherUpdate();
         intakeUpdate();
     }
 
-    public void sensorUpdate() {
+    public void sensorUpdate(boolean atGate) {
         loopCount += 1;
         loopCount = loopCount % 9;
-        switch (loopCount) {
-            case 0:
-                distance2 = dist2.getDistance(DistanceUnit.INCH);
-                ballIn2 = distance2 < 3;
-                break;
-            case 3:
-                distance3 = dist3.getDistance(DistanceUnit.INCH);
-                ballIn3 = distance3 < 4;
-                break;
-            case 6:
-
-                alpha1 = color1.alpha();
-                ballIn1 = alpha1 > 80;
-                break;
+        if (!atGate) {
+            switch (loopCount) {
+                case 0:
+                    distance2 = dist2.getDistance(DistanceUnit.INCH);
+                    ballIn2 = distance2 < 3;
+                    break;
+                case 3:
+                    distance3 = dist3.getDistance(DistanceUnit.INCH);
+                    ballIn3 = distance3 < 4;
+                    break;
+                case 6:
+                    alpha1 = color1.alpha();
+                    ballIn1 = alpha1 > 80;
+                    break;
+            }
+        }
+        else {
+            distance2 = dist2.getDistance(DistanceUnit.INCH);
+            ballIn2 = distance2 < 3;
+            distance3 = dist3.getDistance(DistanceUnit.INCH);
+            ballIn3 = distance3 < 4;
+            alpha1 = color1.alpha();
+            ballIn1 = alpha1 > 90;
         }
 
     }
@@ -269,7 +287,7 @@ public class PremierAuto extends LinearOpMode {
                 if (Math.abs(tController.getPositionError()) > turretTolerance) turretState = tState.aimed;
                 break;
             case premove:
-                turretTargetAngle = calculateTurretAngle(scorePose.getX(), scorePose.getY(), headingEstimate);
+                turretTargetAngle = calculateTurretAngle(scorePose.getX(), scorePose.getY(), Math.toDegrees(headingEstimate));
                 turretTargetAngle = limitAngle(turretTargetAngle);
                 break;
         }
@@ -306,15 +324,15 @@ public class PremierAuto extends LinearOpMode {
         } else if (angleGoal < -180) {
             angleGoal += 360;
         }
-        if ((angleGoal > 150 && turretAngle < 0) || (angleGoal < -150 && turretAngle > 0)) {
+        if ((angleGoal > 160 && turretAngle < 0) || (angleGoal < -160 && turretAngle > 0)) {
             turretAngleLimited = true;
             return turretAngle;
         }
-        if (angleGoal > 140) {
-            angleGoal = 140;
+        if (angleGoal > 150) {
+            angleGoal = 150;
             turretAngleLimited = true;
-        } else if (angleGoal < -140) {
-            angleGoal = -140;
+        } else if (angleGoal < -150) {
+            angleGoal = -150;
             turretAngleLimited = true;
         }
         return angleGoal;
@@ -326,30 +344,38 @@ public class PremierAuto extends LinearOpMode {
         //FSM - Idle state, waiting for turret state, active launch state with checks for extreme movement, sensor check to finish
         //Make a driver 2 toggle between close and far, assuming usually close play,
         //so prep speed reasonable if needing to go far for balls
-        if (isFiring) isFiring=false;
         switch (launcherState) {
             case off:
                 launcherTargetSpeed = 0;
                 break;
             case idle:
+                //may need to make it only spin up if too low to maintain, not decrease suddenly, preventing undue power use
+                //assuming launch position is roughly the same -- maybe even making it copy previous launch position?
+                //maybe have somehting to begin adjusting once it comes back into launch zone - checking 4 corners & edges w/ trig
                 launcherTargetSpeed = idleSpeed;
-                if ((launcher.getVelocity() - launcherTargetSpeed) < 200 && (launcher.getVelocity() - launcherTargetSpeed) > 0) {
-                    launcherTargetSpeed = 0;
-                }
+                isFiring = false;
+
+                //test idle mode: averages idle speed with last launch speed
                 break;
             case firing:
-                isFiring=true;
-                if (blockerTimer.seconds() > 0.2 && !gamepad1.right_bumper) intakeState = iState.loading;
-                else if (!gamepad1.right_bumper) intakeState = iState.idle;
+                if (!isFiring) {
+                    isFiring = true;
+                    loadingTimer.reset();
+                }
+                if (loadingTimer.seconds() > loadTime) {
+                    launchCompleted = true;
+                }
+                intakeState = iState.loading;
                 launcherTargetSpeedTemp = velLUTClipped(launchRange);
-                if (launcher.getVelocity() > launcherTargetSpeedTemp) launcherTargetSpeed=0;
-                else launcherTargetSpeed=3000; //sufficiently high to get max power response
+                if (launcher.getVelocity() > launcherTargetSpeedTemp + 20) launcherTargetSpeed=0;
+                else launcherTargetSpeed=5000; //sufficiently high to get max power response
                 if (turretState == tState.aiming) launcherState = lState.waiting;
                 break;
             case waiting:
+                isFiring = false;
                 launcherTargetSpeed = velLUTClipped(launchRange);
                 if (intakeState == iState.loading) intakeState = iState.idle;
-                if (turretState == tState.aimed && follower.getVelocity().getMagnitude() < 3 && (Math.abs(launcherTargetSpeed-launcher.getVelocity())) < 30) launcherState = lState.firing;
+                if (turretState == tState.aimed && follower.getVelocity().getMagnitude() < 3 && (Math.abs(launcherTargetSpeed-launcher.getVelocity())) < 40) launcherState = lState.firing;
                 break;
         }
         lController.setPIDF(lkP,lkI,lkD,lkV,lkS,voltage);
@@ -397,11 +423,13 @@ public class PremierAuto extends LinearOpMode {
                 mIntake.set(0);
                 break;
             case intaking:
-                if (!ballIn1 || !ballIn2 || !ballIn3) {
-                    mIntake.set(intakeSpeed);
-                } else {
-                    mIntake.set(0);
-                }
+//                if (!ballIn1 || !ballIn2 || !ballIn3) {
+//                    mIntake.set(intakeSpeed);
+//                }
+//                else {
+//                    mIntake.set(0);
+//                }
+                mIntake.set(intakeSpeed);
                 //move blocker into position - find a way to prevent jam if ball already in? Maybe only move blocker when full
                 //or trying to launch?
                 break;
@@ -417,6 +445,16 @@ public class PremierAuto extends LinearOpMode {
             case stuckBall:
                 if (intakeTimer.seconds() < 0.10) mIntake.set(-1);
                 else mIntake.set(1);
+                break;
+            case gate:
+                sensorUpdate(true);
+                if (ballIn1 && ballIn2 && ballIn3) fullCount += 1;
+                if (fullCount >= 4) {
+                    isIntakeFull = true;
+                } else {
+                    isIntakeFull = false;
+                }
+                mIntake.set(intakeSpeed);
                 break;
         }
     }
@@ -543,7 +581,7 @@ public class PremierAuto extends LinearOpMode {
                 break;
         }
         if (stepIsComplete) {
-            autoState = 0;
+            autoState = 1;
             index += 1;
             currentStep = selectedAuto[index];
             stepIsComplete = false;
@@ -558,17 +596,20 @@ public class PremierAuto extends LinearOpMode {
     public void disableIntake() {
         intakeState = iState.idle;
         blockerState = bState.open;
+        isIntakeFull = false;
         //might have to add a timer or make runnable to queue in middle of path
     }
 
     public void launchBalls() {
         launchCompleted = false;
+        launchTimeout.reset();
         launcherState = lState.waiting;
         blockerState = bState.open;
     }
 
     public void disableLauncher() {
         launcherState = lState.idle;
+        intakeState = iState.idle;
     }
 
     Runnable preSpinLauncher = new Runnable() {
@@ -580,13 +621,22 @@ public class PremierAuto extends LinearOpMode {
     };
     //at the very least, opens blocker. Maybe, also turret
 
+    Runnable gateIntakeActivate = new Runnable() {
+        @Override
+        public void run() {
+            intakeState = iState.gate;
+            blockerState = bState.open;
+        }
+    };
+
 
     public void closeStart() {
         switch (autoState) {
             case 1:
                 //anything needed to start up stuff like laucher spinup?
                 follower.followPath(startToScoreC);
-                headingEstimate = Math.toRadians(startToScoreC.endPose().getHeading());
+                headingEstimate = startToScoreC.endPose().getHeading();
+                disableIntake();
                 autoState += 1;
                 break;
             case 2:
@@ -596,10 +646,9 @@ public class PremierAuto extends LinearOpMode {
                 }
                 break;
             case 3:
-                if (launchCompleted) {
+                if (launchCompleted || launchTimeout.seconds() > launchTime) {
                     stepIsComplete = true;
                     disableLauncher();
-
                 }
                 break;
         }
@@ -614,17 +663,16 @@ public class PremierAuto extends LinearOpMode {
             case 2:
                 if (!follower.isBusy()) {
                     autoState += 1;
-                    activateIntake();
-                    //timer.reset();
+                    gateTimer.reset();
                     //wait for balls
                 }
                 break;
             case 3:
-                if (isIntakeFull/*|| timer.seconds() > 1.5??*/) {
+                if (isIntakeFull|| gateTimer.seconds() > gateTime) {
                     autoState += 1;
                     disableIntake();
                     follower.followPath(gateToScoreC);
-                    headingEstimate = Math.toRadians(gateToScoreC.endPose().getHeading());
+                    headingEstimate = gateToScoreC.endPose().getHeading();
                 }
                 break;
             case 4:
@@ -634,7 +682,7 @@ public class PremierAuto extends LinearOpMode {
                 }
                 break;
             case 5:
-                if (launchCompleted) {
+                if (launchCompleted || launchTimeout.seconds() > launchTime) {
                     stepIsComplete = true;
                     disableLauncher();
                 }
@@ -667,7 +715,7 @@ public class PremierAuto extends LinearOpMode {
                 if (!follower.isBusy()) { //may need to wait
                     autoState += 1;
                     follower.followPath(gatePGPToScoreC);
-                    headingEstimate = Math.toRadians(gatePGPToScoreC.endPose().getHeading());
+                    headingEstimate = gatePGPToScoreC.endPose().getHeading();
                 }
                 break;
             case 5:
@@ -677,7 +725,7 @@ public class PremierAuto extends LinearOpMode {
                 }
                 break;
             case 6:
-                if (launchCompleted) {
+                if (launchCompleted || launchTimeout.seconds() > launchTime) {
                     stepIsComplete = true;
                     disableLauncher();
                 }
@@ -703,7 +751,7 @@ public class PremierAuto extends LinearOpMode {
                 if (!follower.isBusy()) {
                     autoState += 1;
                     follower.followPath(PPGToScoreC);
-                    headingEstimate = Math.toRadians(PPGToScoreC.endPose().getHeading());
+                    headingEstimate = PPGToScoreC.endPose().getHeading();
                     disableIntake();
                 }
                 break;
@@ -714,7 +762,7 @@ public class PremierAuto extends LinearOpMode {
                 }
                 break;
             case 5:
-                if (launchCompleted) {
+                if (launchCompleted || launchTimeout.seconds() > launchTime) {
                     stepIsComplete = true;
                     disableLauncher();
                 }
@@ -725,7 +773,7 @@ public class PremierAuto extends LinearOpMode {
 
     public double x(double input) {
         if (currentTeam == PremierAuto.teamEnum.blue) return input;
-        else return 141-input;
+        else return 144-input;
     }
 
     public double a(double input) {
@@ -739,115 +787,108 @@ public class PremierAuto extends LinearOpMode {
                                 new Pose(x(19.5), 121.000),
                                 scorePose
                         )
-                ).setLinearHeadingInterpolation(a(144), a(135))
+                ).setLinearHeadingInterpolation(a(144), a(135),0.2)
                 .addTemporalCallback(300, preSpinLauncher)
-                .setReversed()
+                .setGlobalDeceleration()
                 .build();
 
         scoreToPGPC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 scorePose,
-
                                 new Pose(x(46.0), 61.000)
                         )
                 ).setLinearHeadingInterpolation(a(135), a(180))
-
+                .setGlobalDeceleration()
                 .build();
 
         scoreToPGPCIntake = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(x(46.0), 61.000),
-
                                 new Pose(x(22.0), 61.000)
                         )
                 ).setTangentHeadingInterpolation()
-
+                .setGlobalDeceleration()
                 .build();
 
         gateClosePGPC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(x(22.0), 61.000),
-
                                 new Pose(x(18.0), 64.000)
                         )
                 ).setConstantHeadingInterpolation(a(180))
-
+                .setGlobalDeceleration()
                 .build();
 
         gatePGPToScoreC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(x(18.0), 64.000),
-
                                 scorePose
                         )
                 ).setConstantHeadingInterpolation(a(180))
                 .addTemporalCallback(300, preSpinLauncher)
+                .setGlobalDeceleration()
                 .build();
 
         scoreToGateC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 scorePose,
-
-                                new Pose(x(31.941), 67.313)
+                                new Pose(x(30), 66.56)
                         )
                 ).setConstantHeadingInterpolation(a(180))
                 .setNoDeceleration()
                 .addPath(
                         new BezierLine(
-                                new Pose(x(31.941), 67.313),
-
-                                new Pose(x(13.0), 59.000)
+                                new Pose(x(30), 66.56),
+                                new Pose(x(12.25), 59.7)
                         )
-                ).setLinearHeadingInterpolation(a(180), a(140))
-
+                ).setLinearHeadingInterpolation(a(180), a(146))
+                .addParametricCallback(.8,gateIntakeActivate)
+                .setGlobalDeceleration()
                 .build();
 
         gateToScoreC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(x(13.0), 59.000),
-
                                 new Pose(x(18.0), 64.000)
                         )
-                ).setLinearHeadingInterpolation(a(140), a(180))
-                .setNoDeceleration()
+                ).setLinearHeadingInterpolation(a(146), a(180))
                 .addPath(
                         new BezierLine(
                                 new Pose(x(18.0), 64.000),
-
                                 scorePose
                         )
                 ).setConstantHeadingInterpolation(a(180))
                 .addTemporalCallback(300, preSpinLauncher)
+                .setGlobalDeceleration()
                 .build();
 
         scoreToPPGC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 scorePose,
-
                                 new Pose(x(44.0), 84.000)
                         )
                 ).setConstantHeadingInterpolation(a(180))
-
+                .setGlobalDeceleration()
                 .build();
 
         scoreToPPGCIntake = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(x(44.0), 84.000),
-
                                 new Pose(x(22.0), 84.000)
                         )
                 ).setTangentHeadingInterpolation()
+                .setGlobalDeceleration()
                 .build();
 
         PPGToScoreC = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(x(22.0), 84.000),
-
                                 scorePose
                         )
                 ).setConstantHeadingInterpolation(a(180))
                 .setReversed()
                 .addTemporalCallback(300, preSpinLauncher)
+                .setGlobalDeceleration()
                 .build();
     }
 

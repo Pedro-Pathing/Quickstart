@@ -34,13 +34,16 @@ import java.util.List;
 @TeleOp(name = "TeleOp")
 public class PremierTeleOp extends LinearOpMode {
 
+    private double lastLaunchSpeed = 0;
+
+
     //HOpefully temporary
     private final ElapsedTime intakeTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     private final ElapsedTime blockerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     boolean rejectToggle = false;
     boolean blockerToggle = false;
     public static double hoodRapidMultiplier = 0.02;
-    public static double baseLoadSpeed = .7;
+    public static double baseLoadSpeed = .75;
     public static double loadSpeedValue = 15; //Max range = 150, min = 40. as example, 10/40=base+.25
     public static double bestAngle = 42; //projectile best angle for hood compensation
     public int loopCount = 0;
@@ -62,7 +65,7 @@ public class PremierTeleOp extends LinearOpMode {
     private MotorGroup launcher;
     private ServoEx sBlocker, sHood;
     private DistanceSensor dist1, dist2, dist3;
-    private ColorSensor color1;
+   // private ColorSensor color1;
     private MecanumDrive drive;
     private AnalogInput absEncoder;
 
@@ -90,7 +93,7 @@ public class PremierTeleOp extends LinearOpMode {
     public static double lkV = 0.000033;
     public static double lkS = 0;
     public static double farIdleSpeed = 1500;
-    public static double closeIdleSpeed = 1060; //1050 when not testing
+    public static double closeIdleSpeed = 0; //1060 when not testing
     private double launchRange = 0;
     private double launcherTargetSpeed;
     private customPIDF lController, tController;
@@ -139,7 +142,7 @@ public class PremierTeleOp extends LinearOpMode {
     double previousRawAngle = 0;
 
     //Intake Variables:
-    private double alpha1, distance2, distance3;
+    private double distance1, distance2, distance3;
     private double intakeSpeed = 1.0;
     private double rejectSpeed = -.4;
     public enum iState {idle, intaking, loading, rejecting, stuckBall}
@@ -203,7 +206,8 @@ public class PremierTeleOp extends LinearOpMode {
         l1.setInverted(true);
         launcher = new MotorGroup(l1, l2);
 
-        color1 = hardwareMap.get(ColorSensor.class,"colorSensor");
+        //color1 = hardwareMap.get(ColorSensor.class,"colorSensor");
+        dist1 = hardwareMap.get(DistanceSensor.class, "distanceSensor1");
         dist2 = hardwareMap.get(DistanceSensor.class, "distanceSensor2");
         dist3 = hardwareMap.get(DistanceSensor.class, "distanceSensor3");
 
@@ -289,14 +293,15 @@ public class PremierTeleOp extends LinearOpMode {
         telemetryM.addData("input turret",turretInput);
         telemetryM.addData("Raw angle",totalRawAngle);
         telemetryM.addData("Abs Angle",outputAngle);
+        telemetryM.addData("Turncounter",turnCounter);
         telemetryM.addData("X",currentPose.getX());
         telemetryM.addData("Y",currentPose.getY());
         telemetryM.addData("Heading",Math.toDegrees(currentPose.getHeading()));
         telemetryM.addData("Range",launchRange);
         telemetryM.addData("Looptime (hz)", time.getHz());
-//        telemetryM.addData("Alpha (sensor 1)",alpha1);
-//        telemetryM.addData("Dist (2)",distance2);
-//        telemetryM.addData("Dist (3)",distance3);
+        telemetryM.addData("Dist (1)",distance1);
+        telemetryM.addData("Dist (2)",distance2);
+        telemetryM.addData("Dist (3)",distance3);
         telemetryM.addData("Ballin1",ballIn1);
         telemetryM.addData("Ballin2",ballIn2);
         telemetryM.addData("Ballin3",ballIn3);
@@ -396,17 +401,16 @@ public class PremierTeleOp extends LinearOpMode {
         loopCount = loopCount % 9;
         switch (loopCount) {
             case 0:
+                distance3 = dist3.getDistance(DistanceUnit.INCH);
+                ballIn3 = distance3 < 3;
+                break;
+            case 3:
                 distance2 = dist2.getDistance(DistanceUnit.INCH);
                 ballIn2 = distance2 < 3;
                 break;
-            case 3:
-                distance3 = dist3.getDistance(DistanceUnit.INCH);
-                ballIn3 = distance3 < 4;
-                break;
             case 6:
-
-                alpha1 = color1.alpha();
-                ballIn1 = alpha1 > 80;
+                distance1 = dist1.getDistance(DistanceUnit.INCH);
+                ballIn1 = distance1 < 3;
                 break;
         }
 
@@ -414,19 +418,22 @@ public class PremierTeleOp extends LinearOpMode {
 
     public void turretUpdate() {
         //Absolute Encoder
-        {
+        double turnCounterChange = 0;
         previousAngle = outputAngle;
         previousRawAngle = totalRawAngle;
         outputVoltage = absEncoder.getVoltage();
         outputAngle = outputVoltage / 5 * 360;
         if (Math.abs(outputAngle-previousAngle) > 180) {
-            if (outputAngle < previousAngle) turnCounter += 1;
-            else if (outputAngle > previousAngle) turnCounter -= 1;
+            if (outputAngle < previousAngle) turnCounterChange = 1;
+            else if (outputAngle > previousAngle) turnCounterChange = -1;
         }
+        double tempTotalRawAngle = outputAngle + (turnCounter + turnCounterChange)*360;
+        if (Math.abs(previousRawAngle - tempTotalRawAngle) > 180) turnCounterChange = 0;
+        turnCounter += turnCounterChange;
         totalRawAngle = outputAngle + turnCounter*360;
         turretAngle = ((totalRawAngle + absOffset)/2);
 
-        }
+
         //Turret Position Logic
         if (turretState != tState.off){
             turretTargetAngle = calculateTurretAngle(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
@@ -438,7 +445,7 @@ public class PremierTeleOp extends LinearOpMode {
         if (Math.abs(tController.getPositionError()) < turretTolerance && turretState == tState.aiming) turretState = tState.aimed;
         else if (turretState == tState.aimed && Math.abs(tController.getPositionError()) > turretTolerance) turretState = tState.aiming;
         //if (tController.atSetPoint() && !manualControl) turretInput=0;
-        mTurret.set(turretInput);
+        //mTurret.set(turretInput);
 
     }
 
@@ -462,23 +469,27 @@ public class PremierTeleOp extends LinearOpMode {
                 } else {
                     launcherTargetSpeed = closeIdleSpeed;
                 }
-                if ((launcher.getVelocity() - launcherTargetSpeed) < 200 && (launcher.getVelocity() - launcherTargetSpeed) > 0) {
-                    launcherTargetSpeed = 0;
-                }
+                //test idle mode: averages idle speed with last launch speed
+//                if ((launcher.getVelocity() - launcherTargetSpeed) < 200 && (launcher.getVelocity() - launcherTargetSpeed) > 20) {
+//                    launcherTargetSpeed = 0;
+//                }
+               // launcherTargetSpeed = .5 * (launcherTargetSpeed + lastLaunchSpeed); //assumes tempo, also getting rid of y
                 break;
             case firing:
                 isFiring=true;
                 if (blockerTimer.seconds() > 0.2 && !gamepad1.right_bumper) intakeState = iState.loading;
                 else if (!gamepad1.right_bumper) intakeState = iState.idle;
                 launcherTargetSpeedTemp = velLUTClipped(launchRange);
-                if (launcher.getVelocity() > launcherTargetSpeedTemp) launcherTargetSpeed=0;
-                else launcherTargetSpeed=3000; //sufficiently high to get max power response
+                lastLaunchSpeed = launcherTargetSpeed;
+                if (launcher.getVelocity() > launcherTargetSpeedTemp + 20) launcherTargetSpeed=0;
+                else launcherTargetSpeed=5000; //sufficiently high to get max power response
                 if (turretState == tState.aiming) launcherState = lState.waiting;
                 break;
             case waiting:
                 launcherTargetSpeed = velLUTClipped(launchRange);
                 if (intakeState == iState.loading) intakeState = iState.idle;
-                if (turretState == tState.aimed && follower.getVelocity().getMagnitude() < 3 && (Math.abs(launcherTargetSpeed-launcher.getVelocity())) < 30) launcherState = lState.firing;
+                if (turretState == tState.aimed && follower.getVelocity().getMagnitude() < 3 && (Math.abs(launcherTargetSpeed-launcher.getVelocity())) < 40) launcherState = lState.firing;
+                lastLaunchSpeed = launcherTargetSpeed;
                 break;
             case testing:
                 launcherTargetSpeed = testLaunchSpeed;
@@ -582,6 +593,7 @@ public class PremierTeleOp extends LinearOpMode {
         launchRange = Math.hypot(goalX-botX,goalY-botY);
         if (botY > 130) {
             goalY -= 5;
+            goalX = x(0);
         } else if (botY < 40) {
             goalX = x(5);
         }
@@ -614,7 +626,7 @@ public class PremierTeleOp extends LinearOpMode {
 
     public double x(double input) {
         if (currentTeam == PremierAuto.teamEnum.blue) return input;
-        else return 141-input;
+        else return 144-input;
     }
 
     public double a(double input) {
