@@ -1,8 +1,11 @@
 repositories {
     mavenCentral()
-    mavenLocal()
+    maven { url 'https://central.sonatype.com/repository/maven-snapshots' }
     google() // Needed for androidx
-    maven { url = 'https://maven.brott.dev/' }
+}
+
+configurations.configureEach {
+    resolutionStrategy.cacheChangingModulesFor 5, 'minutes'
 }
 
 dependencies {
@@ -16,14 +19,6 @@ dependencies {
     implementation 'org.firstinspires.ftc:Vision:11.2.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    implementation('com.pedropathing:revhub:3.0.0.local.alpha48') {
-        exclude group: 'org.aspectj', module: 'aspectjtools'
-    }
-
-    implementation 'com.pedropathing:telemetry:1.0.0'
-
-    implementation('com.acmerobotics.dashboard:dashboard:0.6.0') {
-        exclude group: 'org.firstinspires.ftc'
-    }
+    implementation 'com.pedropathing:revhub:3.0.0-SNAPSHOT'
 }
 

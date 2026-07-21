@@ -20,33 +20,28 @@ public class Constants {
                 c.backLeftName.set("lb");
                 c.frontRightName.set("rf");
                 c.backRightName.set("rb");
-
                 c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
                 c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
                 c.frontRightDirection.set(DcMotorSimple.Direction.FORWARD);
                 c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
-
                 c.manualBrakeMode.set(true);
             }
     );
 
     static PinpointConfig pinpointConfig = new PinpointConfig(
             c -> {
-                c.name.set("p");
-
+                c.name.set("pinpoint");
                 c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-                c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
-
-                c.xPodOffset.set(4.1871);
-                c.yPodOffset.set(-6.433);
-
+                c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+                c.xPodOffset.set(0.0);
+                c.yPodOffset.set(0.0);
                 c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
             }
     );
 
     static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
-                c.translationalController.set(Controller.pid(.2,0,0));
+                c.brakeController.set(Controller.pid(.2,0,0));
                 c.headingController.set(Controller.pid(2, 0, 0.01));
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0788, 0.0788));
                 c.quadraticBrakeCoefficients.set(Matrix.diag(.00191035, .00191035));
