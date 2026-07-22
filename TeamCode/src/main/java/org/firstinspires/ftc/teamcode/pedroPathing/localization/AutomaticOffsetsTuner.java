@@ -31,7 +31,7 @@ public class AutomaticOffsetsTuner extends OpMode {
         }
     }
 
-    Follower follower;
+    private Follower follower;
 
     @Override
     public void init() {

@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp(group = "1")
 public class LocalizationTest extends OpMode {
     private Follower follower;
-    Pose startPose = new Pose(70.75,70.75);
+    private final Pose startPose = new Pose(70.75,70.75);
     public double loops = 0, lastLoop = 0, loopTime = 0;
 
     @Override
