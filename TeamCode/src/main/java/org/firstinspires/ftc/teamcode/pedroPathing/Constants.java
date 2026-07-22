@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
-    static MecanumConfig mecanumConfig = new MecanumConfig(
+    public static MecanumConfig mecanumConfig = new MecanumConfig(
             c -> {
                 c.frontLeftName.set("lf");
                 c.backLeftName.set("lb");
@@ -28,7 +28,7 @@ public class Constants {
             }
     );
 
-    static PinpointConfig pinpointConfig = new PinpointConfig(
+    public static PinpointConfig pinpointConfig = new PinpointConfig(
             c -> {
                 c.name.set("pinpoint");
                 c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -39,7 +39,7 @@ public class Constants {
             }
     );
 
-    static ForesightConfig foresightConfig = new ForesightConfig(
+    public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
                 c.brakeController.set(Controller.pid(.2,0,0));
                 c.headingController.set(Controller.pid(2, 0, 0.01));
