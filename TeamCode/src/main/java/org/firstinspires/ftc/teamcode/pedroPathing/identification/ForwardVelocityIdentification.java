@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.coast;
+package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -9,11 +9,11 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.ArrayList;
 
 /**
- * This is the ForwardVelocityTuner autonomous follower OpMode. This runs the robot forwards at max
+ * This is the ForwardVelocityIdentification autonomous follower OpMode. This runs the robot forwards at max
  * power until it reaches some specified distance. It records the most recent velocities, and on
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
- * is, when paired with StrafeVelocityTuner, allows  to create a Vector that
+ * is, when paired with StrafeVelocityIdentification, allows  to create a Vector that
  * empirically represents the direction your mecanum wheels actually prefer to go in, allowing for
  * more accurate following.
  *
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * @version 1.0, 3/13/2024
  */
 @TeleOp(group = "2")
-public class ForwardVelocityTuner extends OpMode {
+public class ForwardVelocityIdentification extends OpMode {
     private final ArrayList<Double> velocities = new ArrayList<>();
     public static double DISTANCE = 48;
     public static double RECORD_NUMBER = 10;

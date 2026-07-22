@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.coast;
+package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -9,8 +9,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.ArrayList;
 
 /**
- * This OpMode tunes the robot's strafe deceleration.
- * It runs the robot to the left until a specified velocity is reached, then cuts power to measure
+ * This OpMode identifies the robot's forward deceleration.
+ * It runs the robot forward until a specified velocity is reached, then cuts power to measure
  * the natural deceleration. The average deceleration is then displayed.
  * This helps in accurately estimating the robot's braking behavior for path following.
  *
@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * @version 1.0, 3/13/2024
  */
 @TeleOp(group = "2")
-public class StrafeDecelerationTuner extends OpMode {
+public class ForwardDecelerationIdentification extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
     public static double VELOCITY = 30;
 
@@ -42,18 +42,18 @@ public class StrafeDecelerationTuner extends OpMode {
     /** This initializes the drive motors as well as the cache of velocities. */
     @Override
     public void init_loop() {
-        telemetry.addLine("The robot will run to the left until it reaches " + VELOCITY + " inches per second.");
+        telemetry.addLine("The robot will run forward until it reaches " + VELOCITY + " inches per second.");
         telemetry.addLine("Then, it will cut power from the drivetrain and roll to a stop.");
         telemetry.addLine("Make sure you have enough room.");
-        telemetry.addLine("After stopping, the max achievable strafe deceleration (natural deceleration) will be displayed.");
+        telemetry.addLine("After stopping, the forward zero power acceleration (natural deceleration) will be displayed.");
         telemetry.update();
         follower.update();
     }
 
-    /** This starts the OpMode by setting the drive motors to run left at full power. */
+    /** This starts the OpMode by setting the drive motors to run forward at full power. */
     @Override
     public void start() {
-        follower.manual(0,1,0);
+        follower.manual(1,0,0);
         follower.update();
         end = false;
         stopping = false;
@@ -61,7 +61,7 @@ public class StrafeDecelerationTuner extends OpMode {
 
     /**
      * This runs the OpMode. This continuously records the RECORD_NUMBER most recent
-     * velocities, and when the robot has run left enough, these last velocities recorded are
+     * velocities, and when the robot has run forward enough, these last velocities recorded are
      * averaged and printed.
      */
     @Override
@@ -70,14 +70,14 @@ public class StrafeDecelerationTuner extends OpMode {
 
         if (!end) {
             if (!stopping) {
-                if (Math.abs(follower.velocity().toVector2D().y()) > VELOCITY) {
-                    previousVelocity = Math.abs(follower.velocity().toVector2D().y());
+                if (follower.velocity().toVector2D().x() > VELOCITY) {
+                    previousVelocity = follower.velocity().toVector2D().x();
                     previousTimeNano = System.nanoTime();
                     stopping = true;
                     follower.manual(0,0,0);
                 }
             } else {
-                double currentVelocity = Math.abs(follower.velocity().toVector2D().y());
+                double currentVelocity = follower.velocity().toVector2D().x();
                 accelerations.add((currentVelocity - previousVelocity) / ((System.nanoTime() - previousTimeNano) / Math.pow(10.0, 9)));
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();
@@ -92,7 +92,7 @@ public class StrafeDecelerationTuner extends OpMode {
                 average += acceleration;
             }
             average /= accelerations.size();
-            telemetry.addData("Max Achievable Strafe Deceleration: ", Math.abs(average)); // abs valued to match constants input :)
+            telemetry.addData("Forward Max Achievable Deceleration: ", Math.abs(average)); // abs valued to match constants input :)
 
             telemetry.update();
         }
