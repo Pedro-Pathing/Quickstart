@@ -1,21 +1,23 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.control;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.foresightConfig;
+
 import android.annotation.SuppressLint;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.math.Vector2D;
 import com.pedropathing.utils.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.foresightConfig;
-
 @TeleOp(group = "3")
-public class ForwardTranslationalAutoTuner extends OpMode {
+public class StrafeTranslationalAutoTuner extends OpMode {
     public static double BETA_LARGE = 0.6;
     public static double BETA_SMALL = 0.9;
 
@@ -54,7 +56,7 @@ public class ForwardTranslationalAutoTuner extends OpMode {
     public void start() {
         timer.reset();
         lastTime = timer.seconds();
-        follower.manual(POWER, 0, 0);
+        follower.manual(0, POWER, 0);
     }
 
     @SuppressLint("DefaultLocale")
@@ -74,10 +76,10 @@ public class ForwardTranslationalAutoTuner extends OpMode {
 
         if (!done) {
             times.add(timer.seconds());
-            double forwardVelocity = Math.abs(follower.velocity().toVector2D().dot(Vector2D.polar(1, follower.pose().heading())));
-            vMax = Math.max(vMax, forwardVelocity / POWER);
+            double lateralVelocity = Math.abs(follower.velocity().toVector2D().dot(Vector2D.polar(1, follower.pose().heading() + Math.PI / 2)));
+            vMax = Math.max(vMax, lateralVelocity / POWER);
 
-            velocities.add(forwardVelocity);
+            velocities.add(lateralVelocity);
             telemetry.addData("velocity (in/s)", String.format("%.4f", velocities.get(velocities.size() - 1)));
 
             if (timer.seconds() >= RUNTIME) {
@@ -87,7 +89,7 @@ public class ForwardTranslationalAutoTuner extends OpMode {
                 follower.manual(0, 0, 0);
                 telemetry.addData("elapsed time (s)", String.format("%.4f", timer.seconds()));
             } else {
-                follower.manual(POWER, 0, 0);
+                follower.manual(0, POWER, 0);
                 return;
             }
         }
@@ -106,7 +108,7 @@ public class ForwardTranslationalAutoTuner extends OpMode {
     private double calculatekP(double beta) {
         kV = 1 / K;
         kA = tau / K * beta;
-        double denominator = foresightConfig.linearBrakeCoefficients.get().get(0,0) + 2.0 * foresightConfig.quadraticBrakeCoefficients.get().get(0,0) * vMax;
+        double denominator = foresightConfig.linearBrakeCoefficients.get().get(1,1) + 2.0 * foresightConfig.quadraticBrakeCoefficients.get().get(1,1) * vMax;
         double discriminant = kA - kV * denominator;
 
         if (discriminant < 0) return kV * kV / (4.0 * kA);

@@ -35,6 +35,8 @@ public class AutomaticOffsetsTuner extends OpMode {
 
     @Override
     public void init() {
+        Constants.pinpointConfig.xPodOffset.set(0.0);
+        Constants.pinpointConfig.yPodOffset.set(0.0);
         follower = Constants.create(hardwareMap);
         follower.setPose(Pose.zero());
         follower.update();
