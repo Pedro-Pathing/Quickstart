@@ -1,28 +1,35 @@
-//
-// build.gradle in TeamCode
-//
-// Most of the definitions for building your module reside in a common, shared
-// file 'build.common.gradle'. Being factored in this way makes it easier to
-// integrate updates to the FTC into your code. If you really need to customize
-// the build definitions, you can place those customizations in this file, but
-// please think carefully as to whether such customizations are really necessary
-// before doing so.
-
-
-// Custom definitions may go here
-
-// Include common definitions from above.
-apply from: '../build.common.gradle'
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android' // Enables Kotlin compilation and kotlinOptions block
+apply plugin: 'kotlin-kapt'
+// Pull in everything from your shared dependency configuration script
 apply from: '../build.dependencies.gradle'
+apply from: '../build.common.gradle'
 
 android {
-    namespace = 'org.firstinspires.ftc.teamcode'
+    namespace 'org.firstinspires.ftc.teamcode'
+    compileSdk 34
 
-    packagingOptions {
-        jniLibs.useLegacyPackaging true
+    defaultConfig {
+        multiDexEnabled true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
+}
+
+// FIX: This replaces the deprecated kotlinOptions block and clears the strikethrough warnings
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+        freeCompilerArgs.addAll([
+                "-Xbackend-threads=0",
+                "-Xno-param-assertions"
+        ])
+    }
 }

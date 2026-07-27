@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="61"
-          android:versionName="11.1">
+>
 
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -24,7 +23,8 @@
               android:screenOrientation="fullUser"
               android:configChanges="orientation|screenSize"
               android:label="@string/app_name"
-              android:launchMode="singleTask" >
+              android:launchMode="singleTask"
+              android:exported="true" >
 
       <intent-filter>
         <category android:name="android.intent.category.LAUNCHER" />
@@ -38,7 +38,8 @@
       android:screenOrientation="fullUser"
       android:configChanges="orientation|screenSize"
       android:label="@string/app_name"
-      android:launchMode="singleTask" >
+      android:launchMode="singleTask"
+      android:exported="true" >
 
       <intent-filter>
         <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />

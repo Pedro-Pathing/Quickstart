@@ -1,7 +1,20 @@
+// Shared Project Configurations
 repositories {
     mavenCentral()
-    google() // Needed for androidx
-    maven { url = "https://mymaven.bylazar.com/releases" }
+    google()
+    maven { url = "https://bylazar.com" }
+    maven { url = 'https://maven.brott.dev/' }
+}
+
+// Force compatible AndroidX versions across the entire project
+configurations.all {
+    resolutionStrategy {
+        cacheDynamicVersionsFor 0, 'seconds'
+        cacheChangingModulesFor 0, 'seconds'
+
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.core:core-ktx:1.13.1'
+    }
 }
 
 dependencies {
@@ -14,9 +27,14 @@ dependencies {
     implementation 'org.firstinspires.ftc:FtcCommon:11.1.0'
     implementation 'org.firstinspires.ftc:Vision:11.1.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.acmerobotics.dashboard:dashboard:0.4.16'
 
     implementation 'com.pedropathing:ftc:2.1.2'
     implementation 'com.pedropathing:telemetry:1.0.0'
     implementation 'com.bylazar:fullpanels:1.0.12'
-}
 
+    // Core Kotlin extensions library
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+}
