@@ -29,6 +29,7 @@ class KotlinTeleOp : LinearOpMode() {
     private var visionPortal: VisionPortal? = null
     private val ekf = ExtendedKalmanFilter()
     private var lastFollowerPose = Pose(0.0, 0.0, 0.0)
+    private val CAMERA_YAW_OFFSET = 10.0 // Degrees
 
     // Define preset positions (0.0 to 1.0)
     private val HOME_POSITION = 0.0
@@ -46,6 +47,8 @@ class KotlinTeleOp : LinearOpMode() {
     private var lastError = 0.0
     private val timer = ElapsedTime()
     private val servoWiggleTimer = ElapsedTime()
+    private val slideAnimationTimer = ElapsedTime()
+    private var isSlideAnimating = false
 
     // Edge detection for field-centric reset button
     private var lastOptionsState = false
@@ -111,9 +114,11 @@ class KotlinTeleOp : LinearOpMode() {
 
             // 2. Update Step (using AprilTag if visible)
             val detections = aprilTag?.detections
+            var ekfStatus = "Odometry Only"
             if (detections != null && detections.isNotEmpty()) {
                 val detection = detections[0]
                 if (detection.metadata != null) {
+                    ekfStatus = "Fused (Tag ${detection.id})"
                     // Calculate Robot Pose from Tag
                     // Let [TX, TY, TH] be the Tag's Global Field Position
                     val tagFieldX = 72.0 // Example: Center of backdrop
@@ -123,7 +128,7 @@ class KotlinTeleOp : LinearOpMode() {
                     // Relative position of robot to tag from camera
                     val relX = detection.ftcPose.x
                     val relY = detection.ftcPose.y
-                    val relBearing = Math.toRadians(detection.ftcPose.yaw)
+                    val relBearing = Math.toRadians(detection.ftcPose.yaw - CAMERA_YAW_OFFSET)
 
                     // Compute global robot pose based on this detection
                     val globalX = tagFieldX - (relX * cos(tagFieldHeading) - relY * sin(tagFieldHeading))
@@ -134,8 +139,8 @@ class KotlinTeleOp : LinearOpMode() {
                 }
             }
 
-            // 3. Apply Fused Pose back to Follower
-            follower!!.setPose(Pose(ekf.x, ekf.y, ekf.theta))
+            // 3. Apply Fused Pose back to Follower (REMOVED - CAUSING DRIFT)
+            // follower!!.setPose(Pose(ekf.x, ekf.y, ekf.theta))
 
             // ------------------------------------
             // FIELD-CENTRIC HEADING RESET (START/OPTIONS BUTTON)
@@ -222,8 +227,14 @@ class KotlinTeleOp : LinearOpMode() {
 
             if (gamepad1.dpad_up) {
                 slide!!.extendToHigh()
+                isSlideAnimating = true
+                slideAnimationTimer.reset()
             } else if (gamepad1.dpad_down) {
                 slide!!.extendToBottom()
+            }
+
+            if (gamepad1.back) {
+                slide!!.resetEncoder()
             }
 
             if (gamepad1.dpad_right) {
@@ -234,9 +245,23 @@ class KotlinTeleOp : LinearOpMode() {
                 }
             } else if (gamepad1.dpad_left) {
                 myServo!!.setPosition(HOME_POSITION)
+            } else if (isSlideAnimating) {
+                if (slideAnimationTimer.seconds() < 3.0) {
+                    if (((slideAnimationTimer.seconds() * 4).toInt()) % 2 == 0) {
+                        myServo!!.setPosition(MAX_POSITION)
+                    } else {
+                        myServo!!.setPosition(HOME_POSITION)
+                    }
+                } else {
+                    isSlideAnimating = false
+                    myServo!!.setPosition(HOME_POSITION)
+                }
             }
 
             // Telemetry Output
+            telemetry.addData("EKF Status", ekfStatus)
+            telemetry.addData("Filtered X", "%.2f", ekf.x)
+            telemetry.addData("Filtered Y", "%.2f", ekf.y)
             telemetry.addData("X Position", follower!!.getPose().getX())
             telemetry.addData("Y Position", follower!!.getPose().getY())
             telemetry.addData("Heading (Deg)", Math.toDegrees(currentHeading))
@@ -280,21 +305,15 @@ class KotlinTeleOp : LinearOpMode() {
 
         fun update(zX: Double, zY: Double, zTheta: Double) {
             // Update step: Correct state using measurement z
-            for (i in 0..2) {
-                val kGain = P[i][i] / (P[i][i] + R[i][i])
-                when (i) {
-                    0 -> x += kGain * (zX - x)
-                    1 -> y += kGain * (zY - y)
-                    2 -> {
-                        var angleDiff = zTheta - theta
-                        while (angleDiff > PI) angleDiff -= 2.0 * PI
-                        while (angleDiff < -PI) angleDiff += 2.0 * PI
-                        theta += kGain * angleDiff
-                    }
-                }
-                // Update covariance: P = (I - KH)P
-                P[i][i] *= (1.0 - kGain)
-            }
+            // Use a much smaller gain for smoother filtering
+            val ALPHA = 0.05
+            x = (1.0 - ALPHA) * x + ALPHA * zX
+            y = (1.0 - ALPHA) * y + ALPHA * zY
+            
+            var angleDiff = zTheta - theta
+            while (angleDiff > PI) angleDiff -= 2.0 * PI
+            while (angleDiff < -PI) angleDiff += 2.0 * PI
+            theta += ALPHA * angleDiff
         }
     }
 }

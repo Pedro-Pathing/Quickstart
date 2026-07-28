@@ -26,8 +26,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name = "TeleopOffseason")
-public class TeleopOffseason extends LinearOpMode {
+@TeleOp(name = "flurg")
+public class flurg extends LinearOpMode {
 
     private Follower follower;
     private slideConstants slide;
@@ -60,6 +60,7 @@ public class TeleopOffseason extends LinearOpMode {
 
     // --- ALIGNMENT CONSTANTS ---
     private static final int DESIRED_TAG_ID = 586;
+    private static final double DESIRED_DISTANCE = 19.5;
     private static final double ALIGN_UPDATE_SECONDS = 0.25;
 
     private static final double CAMERA_FORWARD_OFFSET = 0.0;
@@ -70,12 +71,11 @@ public class TeleopOffseason extends LinearOpMode {
     private static final double MAX_YAW_JUMP_DEG = 10.0;
     private static final double FILTER_ALPHA = 0.3;
 
-    // --- ABSOLUTE FIELD CONSTANTS ---
-    // In PedroPathing: +X is Forward, +Y is Left.
-    // X=0, Y=72 puts the tag dead-center on the left perimeter wall.
-    private static final double TAG_FIELD_X = 0.0;
-    private static final double TAG_FIELD_Y = 72.0;
-    private static final double TAG_FIELD_HEADING = Math.toRadians(-90); // Tag faces the center of the field (-Y)
+    // --- DASHBOARD DRAWING CONSTANTS ---
+    // FTC Dashboard coordinate max out at 72 and -72 from the center (0,0).
+    // Tweak these so the green box matches where your 3x5 layout lives on the map!
+    private static final double DASHBOARD_TAG_X = 0.0;
+    private static final double DASHBOARD_TAG_Y = 40.0;
 
     private boolean hasFilteredTag = false;
     private double filteredX = 0.0;
@@ -202,28 +202,25 @@ public class TeleopOffseason extends LinearOpMode {
                         lastRawYaw = rawYaw;
 
                         if (stableFrames >= REQUIRED_STABLE_FRAMES) {
-                            // 1. DYNAMIC LOCALIZATION: Calculate true robot pose from the tag
+                            Pose currentPose = follower.getPose();
+                            double robotHeading = currentPose.getHeading();
+
                             double tagLocalX = filteredX + CAMERA_FORWARD_OFFSET;
                             double tagLocalY = filteredY + CAMERA_LEFT_OFFSET;
+
+                            double tagFieldX = currentPose.getX() + (tagLocalX * Math.cos(robotHeading)) - (tagLocalY * Math.sin(robotHeading));
+                            double tagFieldY = currentPose.getY() + (tagLocalX * Math.sin(robotHeading)) + (tagLocalY * Math.cos(robotHeading));
+
                             double tagYawRad = Math.toRadians(filteredYaw);
+                            double finalHeading = robotHeading + tagYawRad;
 
-                            double trueRobotHeading = TAG_FIELD_HEADING - tagYawRad;
-                            double trueRobotX = TAG_FIELD_X - (tagLocalX * Math.cos(trueRobotHeading)) + (tagLocalY * Math.sin(trueRobotHeading));
-                            double trueRobotY = TAG_FIELD_Y - (tagLocalX * Math.sin(trueRobotHeading)) - (tagLocalY * Math.cos(trueRobotHeading));
+                            double standoffX = tagFieldX - (DESIRED_DISTANCE * Math.cos(finalHeading));
+                            double standoffY = tagFieldY - (DESIRED_DISTANCE * Math.sin(finalHeading));
 
-                            Pose truePose = new Pose(trueRobotX, trueRobotY, trueRobotHeading);
+                            double targetX = standoffX - (CAMERA_FORWARD_OFFSET * Math.cos(finalHeading)) + (CAMERA_LEFT_OFFSET * Math.sin(finalHeading));
+                            double targetY = standoffY - (CAMERA_FORWARD_OFFSET * Math.sin(finalHeading)) - (CAMERA_LEFT_OFFSET * Math.cos(finalHeading));
 
-                            // Snaps PedroPathing (and Dashboard Graph) to the exact field location
-                            follower.setPose(truePose);
-
-                            // 2. TARGET CALCULATION: Square up while holding current detected distance
-                            double currentDistance = tagLocalX;
-                            double targetAlignmentHeading = TAG_FIELD_HEADING + Math.PI; // Face the tag
-
-                            double targetX = TAG_FIELD_X + (currentDistance * Math.cos(TAG_FIELD_HEADING));
-                            double targetY = TAG_FIELD_Y + (currentDistance * Math.sin(TAG_FIELD_HEADING));
-
-                            Pose targetPose = new Pose(targetX, targetY, targetAlignmentHeading);
+                            Pose targetPose = new Pose(targetX, targetY, finalHeading);
 
                             boolean shouldUpdatePath = false;
                             if (lastTargetPose == null) {
@@ -241,24 +238,24 @@ public class TeleopOffseason extends LinearOpMode {
                             }
 
                             if (shouldUpdatePath) {
-                                BezierLine pathLine = new BezierLine(truePose, targetPose);
+                                BezierLine pathLine = new BezierLine(currentPose, targetPose);
                                 Path path = new Path(pathLine);
-                                path.setLinearHeadingInterpolation(truePose.getHeading(), targetPose.getHeading());
+                                path.setLinearHeadingInterpolation(currentPose.getHeading(), targetPose.getHeading());
 
                                 follower.setMaxPower(0.45);
                                 follower.followPath(path, true);
 
                                 lastTargetPose = targetPose;
-                                telemetry.addData("Align", "Graph Synced & Path Locked");
+                                telemetry.addData("Align", "Path Coordinates Locked");
                             } else {
-                                telemetry.addData("Align", "Holding Squared Position");
+                                telemetry.addData("Align", "Holding Stable Path");
                             }
 
                             isAligning = true;
                             pathUpdateTimer.reset();
                         }
                     } else if (isAligning) {
-                        telemetry.addData("Align", "Tag Lost - Holding Orientation");
+                        telemetry.addData("Align", "Tag Lost - Continuing Last Path");
                     }
                 }
 
@@ -353,27 +350,28 @@ public class TeleopOffseason extends LinearOpMode {
                         myServo.setPosition(HOME_POSITION);
                     }
                 }
-            }
+            } // END OF IF/ELSE CONTROLS BLOCK
 
             // --------------------------------------------------------
             // --- FTC DASHBOARD DRAWING & TELEMETRY ---
+            // Moved outside the if/else so it ALWAYS runs!
             // --------------------------------------------------------
 
             TelemetryPacket packet = new TelemetryPacket();
             Canvas fieldOverlay = packet.fieldOverlay();
             Pose currentPose = follower.getPose();
 
-            // 1. Draw the AprilTag Target at absolute field location (Green Square)
+            // 1. Draw the AprilTag Target (Green Square)
             fieldOverlay.setStrokeWidth(1);
             fieldOverlay.setStroke("#00FF00");
             fieldOverlay.setFill("#00FF00");
-            fieldOverlay.fillRect(TAG_FIELD_X - 2, TAG_FIELD_Y - 2, 4, 4);
+            fieldOverlay.fillRect(DASHBOARD_TAG_X - 2, DASHBOARD_TAG_Y - 2, 4, 4);
 
             // 2. Draw the Robot (Blue Circle)
             fieldOverlay.setStroke("#0000FF");
             fieldOverlay.strokeCircle(currentPose.getX(), currentPose.getY(), 9);
 
-            // Draw the Robot Heading (Blue Line)
+            // Draw the Robot Heading (Blue Line protruding from center)
             double headingLineX = currentPose.getX() + 9 * Math.cos(currentHeading);
             double headingLineY = currentPose.getY() + 9 * Math.sin(currentHeading);
             fieldOverlay.strokeLine(currentPose.getX(), currentPose.getY(), headingLineX, headingLineY);
@@ -385,8 +383,10 @@ public class TeleopOffseason extends LinearOpMode {
                 fieldOverlay.strokeCircle(lastTargetPose.getX(), lastTargetPose.getY(), 2);
             }
 
+            // Send the drawing to FTC Dashboard
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
+            // Send standard text telemetry
             telemetry.addData("X Position", currentPose.getX());
             telemetry.addData("Y Position", currentPose.getY());
             telemetry.addData("Heading (Deg)", Math.toDegrees(currentHeading));
@@ -394,7 +394,7 @@ public class TeleopOffseason extends LinearOpMode {
             telemetry.addData("Slide Position", slide.getCurrentPosition());
             telemetry.update();
 
-        }
+        } // END OF WHILE LOOP
         visionPortal.close();
     }
 }

@@ -46,4 +46,11 @@ public class slideConstants {
     public int getCurrentPosition() {
         return containerMotor.getCurrentPosition();
     }
+
+    public void resetEncoder() {
+        containerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        containerMotor.setTargetPosition(POSITION_RETRACTED);
+        containerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        containerMotor.setPower(SLIDE_POWER);
+    }
 }
