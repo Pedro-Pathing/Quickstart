@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 /**
  * Código de Teleoperado para a equipe MEGA.
  * Chassi Mecanum sem Sensores (Sem IMU).
- * Inclui Compensação de Strafe (Bias), Shooter, Spindexer, Feeder e Servos com Delay de 1s.
+ * Inclui Compensação de Strafe (Bias), Shooter, Spindexer, Feeder e Servos com Delay de 2.5s.
  */
 @TeleOp(name = "Teleoperado", group = "TeleOp")
 public class Teleop extends LinearOpMode {
@@ -28,7 +28,7 @@ public class Teleop extends LinearOpMode {
     // Posições (0.0 a 1.0). Ajuste conforme a montagem do seu robô.
     private double SERVO_RESET = 0.0;       // Posição de RESET (0 graus)
     private double SERVO_ATIVO = 0.5;       // Posição de 90 graus (aproximadamente 0.5 na maioria dos servos)
-    private double TEMPO_ESPERA = 1.0;      // Tempo em segundos para o motor atingir o RPM máximo
+    private double TEMPO_ESPERA = 2.5;      // Tempo em segundos para o motor atingir o RPM máximo
 
     @Override
     public void runOpMode() {
@@ -67,7 +67,7 @@ public class Teleop extends LinearOpMode {
         boolean ultimoGatilhoEsquerdo = false;
         double shooterActivePower = 0;
 
-        // Timer para o delay dos servos
+        // Timer para o delay sincronizado
         ElapsedTime shooterTimer = new ElapsedTime();
         boolean aguardandoAceleracao = false;
 
@@ -123,7 +123,7 @@ public class Teleop extends LinearOpMode {
                     aguardandoAceleracao = false;
                 } else {
                     shooterActivePower = -1.0;
-                    shooterTimer.reset(); // Inicia contagem de 1s
+                    shooterTimer.reset(); // Inicia contagem de 2.5s
                     aguardandoAceleracao = true;
                 }
             }
@@ -135,7 +135,7 @@ public class Teleop extends LinearOpMode {
                     aguardandoAceleracao = false;
                 } else {
                     shooterActivePower = 1.0;
-                    shooterTimer.reset(); // Inicia contagem de 1s
+                    shooterTimer.reset(); // Inicia contagem de 2.5s
                     aguardandoAceleracao = true;
                 }
             }
@@ -143,36 +143,38 @@ public class Teleop extends LinearOpMode {
             ultimoGatilhoDireito = gatilhoDireitoAtual;
             ultimoGatilhoEsquerdo = gatilhoEsquerdoAtual;
 
+            // Liga o Shooter imediatamente
             shooter.setPower(shooterActivePower);
-            spindexer.setPower(shooterActivePower * 0.8);
 
-            // Controle dos Servos com Delay de 1s e Reset para 0
-            if (shooterActivePower == 1.0) { // LT LIGADO -> Servo Esquerdo
-                servoDireito.setPosition(SERVO_RESET); // Garante que o outro está em 0
-
+            // --- Lógica Sincronizada (Spindexer + Servos) ---
+            if (shooterActivePower != 0) {
                 if (aguardandoAceleracao) {
                     if (shooterTimer.seconds() >= TEMPO_ESPERA) {
-                        servoEsquerdo.setPosition(SERVO_ATIVO); // Gira para 90 graus após 1s
+                        // Passou o tempo de espera: liga Spindexer e move o Servo correto
+                        spindexer.setPower(shooterActivePower * 0.8);
+                        
+                        if (shooterActivePower == 1.0) {
+                            servoEsquerdo.setPosition(SERVO_ATIVO);
+                            servoDireito.setPosition(SERVO_RESET);
+                        } else {
+                            servoDireito.setPosition(SERVO_ATIVO);
+                            servoEsquerdo.setPosition(SERVO_RESET);
+                        }
                     } else {
-                        servoEsquerdo.setPosition(SERVO_RESET); // Fica em 0 enquanto acelera
+                        // Ainda acelerando: mantém Spindexer e Servos parados
+                        spindexer.setPower(0);
+                        servoEsquerdo.setPosition(SERVO_RESET);
+                        servoDireito.setPosition(SERVO_RESET);
                     }
                 } else {
-                    servoEsquerdo.setPosition(SERVO_ATIVO);
-                }
-            } else if (shooterActivePower == -1.0) { // RT LIGADO -> Servo Direito
-                servoEsquerdo.setPosition(SERVO_RESET); // Garante que o outro está em 0
-
-                if (aguardandoAceleracao) {
-                    if (shooterTimer.seconds() >= TEMPO_ESPERA) {
-                        servoDireito.setPosition(SERVO_ATIVO); // Gira para 90 graus após 1s
-                    } else {
-                        servoDireito.setPosition(SERVO_RESET); // Fica em 0 enquanto acelera
-                    }
-                } else {
-                    servoDireito.setPosition(SERVO_ATIVO);
+                    // Estado de manutenção (se não for o toggle inicial)
+                    spindexer.setPower(shooterActivePower * 0.8);
+                    if (shooterActivePower == 1.0) servoEsquerdo.setPosition(SERVO_ATIVO);
+                    else servoDireito.setPosition(SERVO_ATIVO);
                 }
             } else {
-                // TUDO DESLIGADO -> AMBOS VOLTAM PARA O PONTO ZERO
+                // TUDO DESLIGADO -> RESET IMEDIATO
+                spindexer.setPower(0);
                 servoEsquerdo.setPosition(SERVO_RESET);
                 servoDireito.setPosition(SERVO_RESET);
                 aguardandoAceleracao = false;
@@ -185,7 +187,8 @@ public class Teleop extends LinearOpMode {
 
             // Telemetria
             telemetry.addData("Shooter", shooterActivePower);
-            telemetry.addData("Timer Servo", "%.2f", shooterTimer.seconds());
+            telemetry.addData("Spindexer", spindexer.getPower());
+            telemetry.addData("Timer", "%.2f", shooterTimer.seconds());
             telemetry.addData("Servo Esq", servoEsquerdo.getPosition());
             telemetry.addData("Servo Dir", servoDireito.getPosition());
             telemetry.update();
