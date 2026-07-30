@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.canvas.Canvas
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.pedropathing.follower.Follower
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.lynx.LynxModule
@@ -10,11 +14,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants
 import org.firstinspires.ftc.teamcode.pedroPathing.slideConstants
-import org.firstinspires.ftc.teamcode.pedroPathing.SimplePIDController
+import java.util.concurrent.TimeUnit
 import kotlin.math.*
 
 @TeleOp(name = "KotlinTeleOp")
@@ -29,9 +35,25 @@ class KotlinTeleOp : LinearOpMode() {
     private var visionPortal: VisionPortal? = null
     private val ekf = ExtendedKalmanFilter()
     private var lastFollowerPose = Pose(0.0, 0.0, 0.0)
-    private val CAMERA_YAW_OFFSET = 10.0 // Degrees
 
-    // Define preset positions (0.0 to 1.0)
+    // --- VISION & FILTERING CONSTANTS ---
+    private val DESIRED_TAG_ID = 586
+    private val CAMERA_FORWARD_OFFSET = 0.0
+    private val CAMERA_LEFT_OFFSET = -2.0
+    private val MAX_TRANSLATION_JUMP = 5.0
+    private val MAX_YAW_JUMP_DEG = 10.0
+
+    // --- DASHBOARD TAG & FIELD BOUNDARIES (3x5 Tile Layout) ---
+    private val DASHBOARD_TAG_X = 0.0
+    private val DASHBOARD_TAG_Y = 40.0
+    private val DASHBOARD_TAG_HEADING = Math.toRadians(-90.0)
+
+    private val BOUNDARY_X_MIN = -36.0
+    private val BOUNDARY_X_MAX = 36.0
+    private val BOUNDARY_Y_MIN = -48.0
+    private val BOUNDARY_Y_MAX = 72.0
+
+    // Preset positions (0.0 to 1.0)
     private val HOME_POSITION = 0.0
     private val MAX_POSITION = 1.0
 
@@ -50,16 +72,16 @@ class KotlinTeleOp : LinearOpMode() {
     private val slideAnimationTimer = ElapsedTime()
     private var isSlideAnimating = false
 
-    // Edge detection for field-centric reset button
     private var lastOptionsState = false
+    private var lastRawX = 0.0
+    private var lastRawY = 0.0
+    private var lastRawYaw = 0.0
 
     @Throws(InterruptedException::class)
     override fun runOpMode() {
-        // Enable bulk reading on REV Hubs to minimize loop times and maximize odometry accuracy
-
         val allHubs = hardwareMap.getAll<LynxModule?>(LynxModule::class.java)
         for (hub in allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO)
+            hub?.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO)
         }
 
         follower = Constants.createFollower(hardwareMap)
@@ -69,17 +91,36 @@ class KotlinTeleOp : LinearOpMode() {
         intakeMotor!!.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)
 
         myServo = hardwareMap.get<Servo?>(Servo::class.java, "myServoName")
-
         slide = slideConstants(hardwareMap)
 
         // --- AprilTag & Vision Setup ---
         aprilTag = AprilTagProcessor.Builder().build()
         visionPortal = VisionPortal.Builder()
             .setCamera(hardwareMap.get(WebcamName::class.java, "Webcam 1"))
+            .setCameraResolution(android.util.Size(640, 480))
+            .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
             .addProcessor(aprilTag)
             .build()
 
-        telemetry.addData("Status", "Initialized. Bulk reading active.")
+        FtcDashboard.getInstance().startCameraStream(visionPortal, 15.0)
+
+        while (!isStopRequested() && visionPortal?.cameraState != VisionPortal.CameraState.STREAMING) {
+            sleep(20)
+        }
+
+        if (isStopRequested()) return
+
+        val exposureControl = visionPortal?.getCameraControl(ExposureControl::class.java)
+        if (exposureControl != null && exposureControl.isModeSupported(ExposureControl.Mode.Manual)) {
+            exposureControl.setMode(ExposureControl.Mode.Manual)
+            exposureControl.setExposure(15, TimeUnit.MILLISECONDS)
+        }
+
+        val gainControl = visionPortal?.getCameraControl(GainControl::class.java)
+        gainControl?.setGain(200)
+
+        telemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
+        telemetry.addData("Status", "Initialized & Stream Active")
         telemetry.update()
 
         waitForStart()
@@ -87,142 +128,140 @@ class KotlinTeleOp : LinearOpMode() {
         follower!!.startTeleopDrive()
         slide!!.start()
 
-        // Sync EKF with starting pose
         lastFollowerPose = follower!!.getPose()
         ekf.x = lastFollowerPose.getX()
         ekf.y = lastFollowerPose.getY()
         ekf.theta = lastFollowerPose.getHeading()
 
-        // Initialize target heading and reset timer
         targetHeading = follower!!.getPose().getHeading()
         timer.reset()
         servoWiggleTimer.reset()
 
         while (opModeIsActive()) {
-            // Update localization algorithms
             follower!!.update()
 
-            // --- Extended Kalman Filter (EKF) State Estimation ---
+            // --------------------------------------------------------
+            // 1. EXTENDED KALMAN FILTER (EKF) PREDICT & UPDATE
+            // --------------------------------------------------------
             val currentFollowerPose = follower!!.getPose()
-            
-            // 1. Predict Step (using Odometry delta)
+
+            // Predict Step (Odometry delta)
             val dx = currentFollowerPose.getX() - lastFollowerPose.getX()
             val dy = currentFollowerPose.getY() - lastFollowerPose.getY()
             val dTheta = currentFollowerPose.getHeading() - lastFollowerPose.getHeading()
             ekf.predict(dx, dy, dTheta)
             lastFollowerPose = currentFollowerPose
 
-            // 2. Update Step (using AprilTag if visible)
-            val detections = aprilTag?.detections
             var ekfStatus = "Odometry Only"
-            if (detections != null && detections.isNotEmpty()) {
-                val detection = detections[0]
-                if (detection.metadata != null) {
-                    ekfStatus = "Fused (Tag ${detection.id})"
-                    // Calculate Robot Pose from Tag
-                    // Let [TX, TY, TH] be the Tag's Global Field Position
-                    val tagFieldX = 72.0 // Example: Center of backdrop
-                    val tagFieldY = 72.0
-                    val tagFieldHeading = Math.toRadians(0.0)
 
-                    // Relative position of robot to tag from camera
-                    val relX = detection.ftcPose.x
-                    val relY = detection.ftcPose.y
-                    val relBearing = Math.toRadians(detection.ftcPose.yaw - CAMERA_YAW_OFFSET)
+            // Update Step (Active when left trigger is held and tag is visible)
+            if (gamepad1.left_trigger > 0.1) {
+                val detections = aprilTag?.detections
+                var targetTag: org.firstinspires.ftc.vision.apriltag.AprilTagDetection? = null
 
-                    // Compute global robot pose based on this detection
-                    val globalX = tagFieldX - (relX * cos(tagFieldHeading) - relY * sin(tagFieldHeading))
-                    val globalY = tagFieldY - (relX * sin(tagFieldHeading) + relY * cos(tagFieldHeading))
-                    val globalHeading = tagFieldHeading - relBearing
+                if (detections != null) {
+                    for (detection in detections) {
+                        if (detection.id == DESIRED_TAG_ID && detection.metadata != null) {
+                            targetTag = detection
+                            break
+                        }
+                    }
+                }
 
-                    ekf.update(globalX, globalY, globalHeading)
+                if (targetTag != null) {
+                    val rawPedroX = targetTag.ftcPose.y
+                    val rawPedroY = -targetTag.ftcPose.x
+                    val rawYaw = targetTag.ftcPose.yaw
+
+                    val xJump = abs(rawPedroX - lastRawX)
+                    val yJump = abs(rawPedroY - lastRawY)
+                    val yawJump = abs(rawYaw - lastRawYaw)
+
+                    if (xJump <= MAX_TRANSLATION_JUMP && yJump <= MAX_TRANSLATION_JUMP && yawJump <= MAX_YAW_JUMP_DEG) {
+                        ekfStatus = "Fused (Tag ${targetTag.id})"
+
+                        val tagLocalX = rawPedroX + CAMERA_FORWARD_OFFSET
+                        val tagLocalY = rawPedroY + CAMERA_LEFT_OFFSET
+
+                        val trueRobotHeading = DASHBOARD_TAG_HEADING - Math.toRadians(rawYaw)
+                        val trueRobotX = DASHBOARD_TAG_X - (tagLocalX * cos(trueRobotHeading)) + (tagLocalY * sin(trueRobotHeading))
+                        val trueRobotY = DASHBOARD_TAG_Y - (tagLocalX * sin(trueRobotHeading)) - (tagLocalY * cos(trueRobotHeading))
+
+                        // Feed update into EKF
+                        ekf.update(trueRobotX, trueRobotY, trueRobotHeading)
+
+                        // Safely sync back to Follower so localization corrects itself
+                        follower!!.setPose(Pose(ekf.x, ekf.y, ekf.theta))
+                    }
+
+                    lastRawX = rawPedroX
+                    lastRawY = rawPedroY
+                    lastRawYaw = rawYaw
                 }
             }
 
-            // 3. Apply Fused Pose back to Follower (REMOVED - CAUSING DRIFT)
-            // follower!!.setPose(Pose(ekf.x, ekf.y, ekf.theta))
-
-            // ------------------------------------
-            // FIELD-CENTRIC HEADING RESET (START/OPTIONS BUTTON)
-            // ------------------------------------
+            // --------------------------------------------------------
+            // 2. FIELD-CENTRIC HEADING RESET (START/OPTIONS BUTTON)
+            // --------------------------------------------------------
             val currentOptionsState = gamepad1.options || gamepad1.start
             if (currentOptionsState && !lastOptionsState) {
-                // Keep X/Y position, reset heading to 0 (making current orientation "Forward")
                 val currentPose = follower!!.getPose()
                 follower!!.setPose(Pose(currentPose.getX(), currentPose.getY(), 0.0))
-
-
-                // Reset target heading for the lock algorithm
+                ekf.theta = 0.0
                 targetHeading = 0.0
                 lastError = 0.0
             }
             lastOptionsState = currentOptionsState
 
-            // Current robot heading from Pedro Pathing
             val currentHeading = follower!!.getPose().getHeading()
 
-            // ------------------------------------
-            // DRIVETRAIN CONTROL VIA ODOMETRY
-            // ------------------------------------
-            // 1. Invert axes for field orientation
+            // --------------------------------------------------------
+            // 3. DRIVETRAIN CONTROL VIA ODOMETRY
+            // --------------------------------------------------------
             val rawY = -gamepad1.left_stick_y.toDouble()
             val rawX = -gamepad1.left_stick_x.toDouble()
             val rawRx = -gamepad1.right_stick_x.toDouble()
 
-            // 2. Calculate translation vector magnitude
             val translationMagnitude = hypot(rawX, rawY)
             var y = 0.0
             var x = 0.0
 
             if (translationMagnitude > DEADZONE) {
-                // Continuous scaling: zero out power right at the deadzone edge
                 val normalizedMagnitude = (translationMagnitude - DEADZONE) / (1.0 - DEADZONE)
-
-                // Apply cubic curve for micro-adjustments near center + scale by overall limit
                 val scaledPower = normalizedMagnitude.pow(3.0) * DRIVE_SPEED_LIMIT
-
-                // Maintain directional angle
                 y = (rawY / translationMagnitude) * scaledPower
                 x = (rawX / translationMagnitude) * scaledPower
             }
 
-            // 3. Rotation control with Heading Lock
             var rx = 0.0
             val absRx = abs(rawRx)
             val dt = timer.seconds()
             timer.reset()
 
             if (absRx > DEADZONE) {
-                // CASE 1: Driver IS turning manually (Right Stick)
                 val normalizedRx = (absRx - DEADZONE) / (1.0 - DEADZONE)
                 rx = sign(rawRx) * normalizedRx.pow(3.0) * DRIVE_SPEED_LIMIT
-
                 targetHeading = currentHeading
                 lastError = 0.0
             } else {
-                // CASE 2: Lock target heading using PD Controller
                 var headingError = targetHeading - currentHeading
-
-                // Normalize error to stay within [-pi, pi] radians (angle wrapping)
                 headingError = atan2(sin(headingError), cos(headingError))
 
-                if (abs(headingError) < Math.toRadians(0.5)) {
+                if (abs(headingError) < Math.toRadians(1.5)) {
                     rx = 0.0
                 } else {
                     val derivative = if (dt > 0) (headingError - lastError) / dt else 0.0
                     rx = (headingError * headingLock_kP) + (derivative * headingLock_kD)
                     rx = max(-DRIVE_SPEED_LIMIT, min(DRIVE_SPEED_LIMIT, rx))
                 }
-
                 lastError = headingError
             }
 
-            // Output to Pedro Pathing (false = field-centric mode)
             follower!!.setTeleOpDrive(y, x, rx, false)
 
-            // ------------------------------------
-            // SUBSYSTEM CONTROL
-            // ------------------------------------
+            // --------------------------------------------------------
+            // 4. SUBSYSTEM CONTROL
+            // --------------------------------------------------------
             intakeMotor!!.setPower(if (gamepad1.a) 0.80 else 0.0)
 
             if (gamepad1.dpad_up) {
@@ -246,7 +285,7 @@ class KotlinTeleOp : LinearOpMode() {
             } else if (gamepad1.dpad_left) {
                 myServo!!.setPosition(HOME_POSITION)
             } else if (isSlideAnimating) {
-                if (slideAnimationTimer.seconds() < 3.0) {
+                if (slideAnimationTimer.seconds() < 6.0) {
                     if (((slideAnimationTimer.seconds() * 4).toInt()) % 2 == 0) {
                         myServo!!.setPosition(MAX_POSITION)
                     } else {
@@ -258,14 +297,41 @@ class KotlinTeleOp : LinearOpMode() {
                 }
             }
 
-            // Telemetry Output
+            // --------------------------------------------------------
+            // 5. FTC DASHBOARD DRAWING & TELEMETRY
+            // --------------------------------------------------------
+            val packet = TelemetryPacket()
+            val fieldOverlay: Canvas = packet.fieldOverlay()
+            val currentPose = follower!!.getPose()
+
+            // Draw 3x5 Tile Boundary (Thick Black Lines)
+            fieldOverlay.setStrokeWidth(3)
+            fieldOverlay.setStroke("#000000")
+            fieldOverlay.strokeLine(BOUNDARY_X_MIN, BOUNDARY_Y_MIN, BOUNDARY_X_MAX, BOUNDARY_Y_MIN)
+            fieldOverlay.strokeLine(BOUNDARY_X_MAX, BOUNDARY_Y_MIN, BOUNDARY_X_MAX, BOUNDARY_Y_MAX)
+            fieldOverlay.strokeLine(BOUNDARY_X_MAX, BOUNDARY_Y_MAX, BOUNDARY_X_MIN, BOUNDARY_Y_MAX)
+            fieldOverlay.strokeLine(BOUNDARY_X_MIN, BOUNDARY_Y_MAX, BOUNDARY_X_MIN, BOUNDARY_Y_MIN)
+
+            // Draw AprilTag Target (Green Square)
+            fieldOverlay.setStrokeWidth(1)
+            fieldOverlay.setStroke("#00FF00")
+            fieldOverlay.setFill("#00FF00")
+            fieldOverlay.fillRect(DASHBOARD_TAG_X - 2.0, DASHBOARD_TAG_Y - 2.0, 4.0, 4.0)
+
+            // Draw Robot (Blue Circle & Heading Vector)
+            fieldOverlay.setStroke("#0000FF")
+            fieldOverlay.strokeCircle(currentPose.getX(), currentPose.getY(), 9.0)
+
+            val headingLineX = currentPose.getX() + 9.0 * cos(currentHeading)
+            val headingLineY = currentPose.getY() + 9.0 * sin(currentHeading)
+            fieldOverlay.strokeLine(currentPose.getX(), currentPose.getY(), headingLineX, headingLineY)
+
+            FtcDashboard.getInstance().sendTelemetryPacket(packet)
+
             telemetry.addData("EKF Status", ekfStatus)
             telemetry.addData("Filtered X", "%.2f", ekf.x)
             telemetry.addData("Filtered Y", "%.2f", ekf.y)
-            telemetry.addData("X Position", follower!!.getPose().getX())
-            telemetry.addData("Y Position", follower!!.getPose().getY())
             telemetry.addData("Heading (Deg)", Math.toDegrees(currentHeading))
-            telemetry.addData("Target Heading (Deg)", Math.toDegrees(targetHeading))
             telemetry.addData("Slide Position", slide!!.getCurrentPosition())
             telemetry.update()
         }
@@ -274,46 +340,27 @@ class KotlinTeleOp : LinearOpMode() {
 
     /**
      * Extended Kalman Filter for Pose Estimation
-     * Fuses Odometry (Prediction) with Absolute Measurements (Update)
      */
     inner class ExtendedKalmanFilter {
         var x = 0.0
         var y = 0.0
         var theta = 0.0
 
-        private var P = Array(3) { DoubleArray(3) } // State Covariance
-        private val Q = Array(3) { DoubleArray(3) } // Process Noise
-        private val R = Array(3) { DoubleArray(3) } // Measurement Noise
-
-        init {
-            for (i in 0..2) {
-                P[i][i] = 1.0   // Initial uncertainty
-                Q[i][i] = 0.01  // Odometry is fairly reliable
-                R[i][i] = 0.1   // Vision measurements have some noise
-            }
-        }
-
         fun predict(deltaX: Double, deltaY: Double, deltaTheta: Double) {
-            // Prediction step: x_k = f(x_{k-1}, u_k)
             x += deltaX
             y += deltaY
             theta += deltaTheta
-            
-            // Uncertainty increases with prediction
-            for (i in 0..2) P[i][i] += Q[i][i]
         }
 
         fun update(zX: Double, zY: Double, zTheta: Double) {
-            // Update step: Correct state using measurement z
-            // Use a much smaller gain for smoother filtering
-            val ALPHA = 0.05
-            x = (1.0 - ALPHA) * x + ALPHA * zX
-            y = (1.0 - ALPHA) * y + ALPHA * zY
-            
+            val alpha = 0.15 // Blending weight for camera measurements
+            x = (1.0 - alpha) * x + alpha * zX
+            y = (1.0 - alpha) * y + alpha * zY
+
             var angleDiff = zTheta - theta
             while (angleDiff > PI) angleDiff -= 2.0 * PI
             while (angleDiff < -PI) angleDiff += 2.0 * PI
-            theta += ALPHA * angleDiff
+            theta += alpha * angleDiff
         }
     }
 }

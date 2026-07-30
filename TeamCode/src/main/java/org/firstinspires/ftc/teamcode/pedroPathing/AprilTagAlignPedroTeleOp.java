@@ -6,6 +6,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.geometry.BezierLine;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -26,6 +27,7 @@ import java.util.List;
  * Automatic alignment is triggered by holding the LEFT TRIGGER.
  */
 @TeleOp(name = "AprilTag Align Pedro TeleOp", group = "TeleOp")
+@Disabled
 public class AprilTagAlignPedroTeleOp extends LinearOpMode {
     private Follower follower;
     private AprilTagProcessor aprilTag;

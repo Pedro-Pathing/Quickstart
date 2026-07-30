@@ -26,8 +26,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name = "flurg")
-public class flurg extends LinearOpMode {
+@TeleOp(name = "Test")
+public class test extends LinearOpMode {
 
     private Follower follower;
     private slideConstants slide;
@@ -72,8 +72,8 @@ public class flurg extends LinearOpMode {
     private static final double FILTER_ALPHA = 0.3;
 
     // --- DASHBOARD DRAWING CONSTANTS ---
-    // FTC Dashboard coordinate max out at 72 and -72 from the center (0,0).
-    // Tweak these so the green box matches where your 3x5 layout lives on the map!
+// FTC Dashboard coordinate max out at 72 and -72 from the center (0,0).
+// Tweak these so the green box matches where your 3x5 layout lives on the map!
     private static final double DASHBOARD_TAG_X = 0.0;
     private static final double DASHBOARD_TAG_Y = 40.0;
 
@@ -242,7 +242,7 @@ public class flurg extends LinearOpMode {
                                 Path path = new Path(pathLine);
                                 path.setLinearHeadingInterpolation(currentPose.getHeading(), targetPose.getHeading());
 
-                                follower.setMaxPower(0.45);
+                                follower.setMaxPower(0.775);
                                 follower.followPath(path, true);
 
                                 lastTargetPose = targetPose;
@@ -352,41 +352,41 @@ public class flurg extends LinearOpMode {
                 }
             } // END OF IF/ELSE CONTROLS BLOCK
 
-            // --------------------------------------------------------
-            // --- FTC DASHBOARD DRAWING & TELEMETRY ---
-            // Moved outside the if/else so it ALWAYS runs!
-            // --------------------------------------------------------
+// --------------------------------------------------------
+// --- FTC DASHBOARD DRAWING & TELEMETRY ---
+// Moved outside the if/else so it ALWAYS runs!
+// --------------------------------------------------------
 
             TelemetryPacket packet = new TelemetryPacket();
             Canvas fieldOverlay = packet.fieldOverlay();
             Pose currentPose = follower.getPose();
 
-            // 1. Draw the AprilTag Target (Green Square)
+// 1. Draw the AprilTag Target (Green Square)
             fieldOverlay.setStrokeWidth(1);
             fieldOverlay.setStroke("#00FF00");
             fieldOverlay.setFill("#00FF00");
             fieldOverlay.fillRect(DASHBOARD_TAG_X - 2, DASHBOARD_TAG_Y - 2, 4, 4);
 
-            // 2. Draw the Robot (Blue Circle)
+// 2. Draw the Robot (Blue Circle)
             fieldOverlay.setStroke("#0000FF");
             fieldOverlay.strokeCircle(currentPose.getX(), currentPose.getY(), 9);
 
-            // Draw the Robot Heading (Blue Line protruding from center)
+// Draw the Robot Heading (Blue Line protruding from center)
             double headingLineX = currentPose.getX() + 9 * Math.cos(currentHeading);
             double headingLineY = currentPose.getY() + 9 * Math.sin(currentHeading);
             fieldOverlay.strokeLine(currentPose.getX(), currentPose.getY(), headingLineX, headingLineY);
 
-            // 3. Draw the Alignment Path (Red Line)
+// 3. Draw the Alignment Path (Red Line)
             if (isAligning && lastTargetPose != null) {
                 fieldOverlay.setStroke("#FF0000");
                 fieldOverlay.strokeLine(currentPose.getX(), currentPose.getY(), lastTargetPose.getX(), lastTargetPose.getY());
                 fieldOverlay.strokeCircle(lastTargetPose.getX(), lastTargetPose.getY(), 2);
             }
 
-            // Send the drawing to FTC Dashboard
+// Send the drawing to FTC Dashboard
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-            // Send standard text telemetry
+// Send standard text telemetry
             telemetry.addData("X Position", currentPose.getX());
             telemetry.addData("Y Position", currentPose.getY());
             telemetry.addData("Heading (Deg)", Math.toDegrees(currentHeading));
