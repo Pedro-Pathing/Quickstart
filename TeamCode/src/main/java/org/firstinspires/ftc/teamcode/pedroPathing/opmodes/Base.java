@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing.opmodes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -19,6 +19,8 @@ import com.pedropathing.paths.Path;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.teamcode.pedroPathing.constants.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.constants.slideConstants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -26,8 +28,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name = "Test")
-public class test extends LinearOpMode {
+@TeleOp(name = "Base")
+public class Base extends LinearOpMode {
 
     private Follower follower;
     private slideConstants slide;
@@ -53,6 +55,8 @@ public class test extends LinearOpMode {
     private boolean isSlideAnimating = false;
     private boolean lastOptionsState = false;
     private boolean isAligning = false;
+    private boolean isCoasting = false;
+    private double lastHeading = 0.0;
     private Pose lastTargetPose = null;
 
     private AprilTagProcessor aprilTag;
@@ -293,23 +297,45 @@ public class test extends LinearOpMode {
                 double dt = timer.seconds();
                 timer.reset();
 
+                // Calculate angular velocity (radians per second)
+                double angularVelocity = (dt > 0) ? (currentHeading - lastHeading) / dt : 0.0;
+                lastHeading = currentHeading;
+
                 if (absRx > DEADZONE) {
+                    // CASE 1: Manual Turn - Driver is actively rotating the robot
                     double normalizedRx = (absRx - DEADZONE) / (1.0 - DEADZONE);
                     rx = Math.signum(rawRx) * Math.pow(normalizedRx, 3) * DRIVE_SPEED_LIMIT;
+
+                    isCoasting = true; // Mark as coasting for when the stick is released
                     targetHeading = currentHeading;
                     lastError = 0.0;
                 } else {
-                    double headingError = targetHeading - currentHeading;
-                    headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
-
-                    if (Math.abs(headingError) < Math.toRadians(1.5)) {
-                        rx = 0.0;
-                    } else {
-                        double derivative = (dt > 0) ? (headingError - lastError) / dt : 0.0;
-                        rx = (headingError * headingLock_kP) + (derivative * headingLock_kD);
-                        rx = Math.max(-DRIVE_SPEED_LIMIT, Math.min(DRIVE_SPEED_LIMIT, rx));
+                    // CASE 2: No manual rotation commanded
+                    if (isCoasting && Math.abs(angularVelocity) < 0.1) {
+                        // Robot was spinning but has now physically settled.
+                        // ACTIVATE heading lock now.
+                        isCoasting = false;
                     }
-                    lastError = headingError;
+
+                    if (isCoasting) {
+                        // Still coasting from momentum - No lock power yet
+                        rx = 0.0;
+                        targetHeading = currentHeading; // Keep target updated until settled
+                        lastError = 0.0;
+                    } else {
+                        // Lock is ACTIVE - Hold the settled heading
+                        double headingError = targetHeading - currentHeading;
+                        headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
+
+                        if (Math.abs(headingError) < Math.toRadians(1.0)) {
+                            rx = 0.0;
+                        } else {
+                            double derivative = (dt > 0) ? (headingError - lastError) / dt : 0.0;
+                            rx = (headingError * headingLock_kP) + (derivative * headingLock_kD);
+                            rx = Math.max(-DRIVE_SPEED_LIMIT, Math.min(DRIVE_SPEED_LIMIT, rx));
+                        }
+                        lastError = headingError;
+                    }
                 }
 
                 follower.setTeleOpDrive(y, x, rx, false);
@@ -387,11 +413,22 @@ public class test extends LinearOpMode {
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
 // Send standard text telemetry
+            com.pedropathing.math.Vector velocity = follower.getVelocity();
+            double velMag = velocity.getMagnitude();
+
+            // Estimates based on measured deceleration constants in Constants.java
+            // Acceleration is ~32 in/s^2 forward, ~68 in/s^2 lateral. Using average for estimate.
+            double avgDecel = 50.0;
+            double stopTime = (velMag > 0) ? velMag / avgDecel : 0;
+            double stopDist = 0.5 * velMag * stopTime;
+
             telemetry.addData("X Position", currentPose.getX());
             telemetry.addData("Y Position", currentPose.getY());
             telemetry.addData("Heading (Deg)", Math.toDegrees(currentHeading));
             telemetry.addData("Target Heading (Deg)", Math.toDegrees(targetHeading));
             telemetry.addData("Slide Position", slide.getCurrentPosition());
+            telemetry.addData("Est. Stop Time", "%.2f s", stopTime);
+            telemetry.addData("Est. Stop Dist", "%.2f in", stopDist);
             telemetry.update();
 
         } // END OF WHILE LOOP

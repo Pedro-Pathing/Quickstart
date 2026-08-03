@@ -1,17 +1,18 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing.theLab;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-/*@TeleOp(name = "LinearSlideTest")
+@TeleOp(name = "LinearSlideTest")
+@Disabled
 public class LinearSlideTest extends LinearOpMode {
 
     private DcMotor containerMotor;
 
     static final double TICKS_PER_REV = 537.6;
-    static final double ARM_TICKS_PER_REV = 1425.1; // 117 RPM Yellow Jacket
 
     private int linearPos;
 
@@ -62,4 +63,4 @@ public class LinearSlideTest extends LinearOpMode {
             telemetry.update();
         }
     }
-}*/
+}
