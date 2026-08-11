@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing.control;
 import android.annotation.SuppressLint;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Vector2D;
 import com.pedropathing.utils.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,24 +12,28 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.foresightConfig;
+
 @TeleOp(group = "3")
-public class HeadingAutoTuner extends OpMode {
-    private static final double ALPHA_LARGE = 0.6;
-    private static final double ALPHA_SMALL = 0.9;
-    private static final double BETA = 1.0;
-    private static final double POWER = 0.6;
-    private static final double RUNTIME = 3;
+public class LateralTranslationalAutoTuner extends OpMode {
+    public static double BETA_LARGE = 0.6;
+    public static double BETA_SMALL = 0.9;
+
+    private static final double POWER = 0.4;
+    private static final double RUNTIME = 1.2;
     private static final int SAMPLES = 15;
 
     private double tau;
-    private double lambda_small;
-    private double lambda_large;
     private double K;
+    private double kV;
+    private double kA;
+    private double vMax = 0;
     private final List<Double> times = new ArrayList<>();
-    private final List<Double> angularVelocities = new ArrayList<>();
+    private final List<Double> velocities = new ArrayList<>();
     private final Timer timer = new Timer();
     private boolean done = false;
     private double lastTime = 0.0;
+
     private Follower follower;
 
     @Override
@@ -40,7 +45,7 @@ public class HeadingAutoTuner extends OpMode {
 
     @Override
     public void init_loop() {
-        telemetry.addLine("This will turn continuously in place for " + RUNTIME + " seconds.");
+        telemetry.addLine("This will run continuously in place for " + RUNTIME + " seconds.");
         telemetry.addLine("Make sure you have enough room.");
         telemetry.update();
         follower.update();
@@ -50,7 +55,7 @@ public class HeadingAutoTuner extends OpMode {
     public void start() {
         timer.reset();
         lastTime = timer.seconds();
-        follower.manual(0, 0, POWER);
+        follower.manual(0, POWER, 0);
     }
 
     @SuppressLint("DefaultLocale")
@@ -61,57 +66,54 @@ public class HeadingAutoTuner extends OpMode {
         if (dt <= 0) dt = 1e-6;
 
         lastTime = now;
+
         follower.update();
+        telemetry.update();
 
         telemetry.addData("done", done);
         telemetry.addData("dt", String.format("%.6f s", dt));
 
         if (!done) {
             times.add(timer.seconds());
-            angularVelocities.add(Math.abs(follower.velocity().omega));
-            telemetry.addData("angular velocity (rad/s)", String.format("%.4f", angularVelocities.get(angularVelocities.size() - 1)));
+
+            double strafeVelocity = Math.abs(follower.velocity().toVector2D().dot(Vector2D.polar(1, follower.pose().heading() + Math.PI / 2)));
+            vMax = Math.max(vMax, strafeVelocity / POWER);
+
+            velocities.add(strafeVelocity);
+            telemetry.addData("velocity (in/s)", String.format("%.4f", velocities.get(velocities.size() - 1)));
 
             if (timer.seconds() >= RUNTIME) {
                 done = true;
                 systemIdentification();
+
                 follower.manual(0, 0, 0);
                 telemetry.addData("elapsed time (s)", String.format("%.4f", timer.seconds()));
             } else {
-                follower.manual(0, 0, POWER);
-                telemetry.update();
+                follower.manual(0, POWER, 0);
                 return;
             }
-
-            telemetry.update();
         }
 
-        lambda_small = tau * ALPHA_SMALL;
-        lambda_large = tau * ALPHA_LARGE;
+        double kP_large = calculatekP(BETA_LARGE);
+        double kP_small = calculatekP(BETA_SMALL);
 
-        double kDLarge = getkD(lambda_large);
-        double kPLarge = getkP(lambda_large);
-        double kDSmall = getkD(lambda_small);
-        double kPSmall = getkP(lambda_small);
-
-        double feedforward = BETA / K;
-
-        telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kPLarge) + ", kD=" + String.format("%.4f", kDLarge));
-        telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kPSmall) + ", kD=" + String.format("%.4f", kDSmall));
-        telemetry.addData("Heading Feedforward", "k=" + String.format("%.4f", feedforward));
-        telemetry.addLine();
         telemetry.addData("Est tau (s)", String.format("%.4f", tau));
-        telemetry.addData("Est K (rad/s per power)", String.format("%.4f", K));
-        telemetry.addData("Lambda large (s)", String.format("%.4f", lambda_large));
-        telemetry.addData("Lambda small (s)", String.format("%.4f", lambda_small));
-        telemetry.update();
+        telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
+        telemetry.addData("Est kV", kV);
+        telemetry.addData("Est kA", kA);
+        telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kP_large));
+        telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kP_small));
     }
 
-    private double getkP(double lambda) {
-        return tau / (K * lambda * lambda);
-    }
+    private double calculatekP(double beta) {
+        kV = 1 / K;
+        kA = tau / K * beta;
+        double denominator = foresightConfig.linearBrakeCoefficients.get().get(1,1) + 2.0 * foresightConfig.quadraticBrakeCoefficients.get().get(1,1) * vMax;
+        double discriminant = kA - kV * denominator;
 
-    private double getkD(double lambda) {
-        return 1 / K * (2 * tau / lambda - 1);
+        if (discriminant < 0) return kV * kV / (4.0 * kA);
+        double sqrt = (Math.sqrt(kA) - Math.sqrt(discriminant)) / denominator;
+        return sqrt * sqrt;
     }
 
     private void systemIdentification() {
@@ -123,14 +125,14 @@ public class HeadingAutoTuner extends OpMode {
         int start = Math.max(0, N - SAMPLES);
         double samples = N - start;
         double sum = 0;
-        for (int i = start; i < N; i++) sum += angularVelocities.get(i);
+        for (int i = start; i < N; i++) sum += velocities.get(i);
         double A = sum / samples;
         this.K = A / POWER;
 
         List<Double> y = new ArrayList<>();
         List<Double> x = new ArrayList<>();
         for (int i = 0; i < N; i++) {
-            double vel = angularVelocities.get(i) / POWER;
+            double vel = velocities.get(i) / POWER;
             if (vel > 0.8 * K) continue;
             if (vel < 0.1 * K) continue;
             y.add(Math.log(K - vel));

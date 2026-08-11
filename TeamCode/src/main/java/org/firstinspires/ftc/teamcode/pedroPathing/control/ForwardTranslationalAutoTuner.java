@@ -34,8 +34,6 @@ public class ForwardTranslationalAutoTuner extends OpMode {
     private boolean done = false;
     private double lastTime = 0.0;
 
-    private Pose lastPose;
-    private double totalDrift;
     private Follower follower;
 
     @Override
@@ -58,7 +56,6 @@ public class ForwardTranslationalAutoTuner extends OpMode {
         timer.reset();
         lastTime = timer.seconds();
         follower.manual(POWER, 0, 0);
-        lastPose = follower.pose();
     }
 
     @SuppressLint("DefaultLocale")
@@ -79,10 +76,7 @@ public class ForwardTranslationalAutoTuner extends OpMode {
         if (!done) {
             times.add(timer.seconds());
 
-            double dy = follower.pose().y() - lastPose.y();
             double forwardVelocity = Math.abs(follower.velocity().toVector2D().dot(Vector2D.polar(1, follower.pose().heading())));
-            double drift = dy / (forwardVelocity + 1e-6);
-            totalDrift += drift;
             vMax = Math.max(vMax, forwardVelocity / POWER);
 
             velocities.add(forwardVelocity);
@@ -102,7 +96,6 @@ public class ForwardTranslationalAutoTuner extends OpMode {
 
         double kP_large = calculatekP(BETA_LARGE);
         double kP_small = calculatekP(BETA_SMALL);
-        double normalFeedforward = totalDrift / K;
 
         telemetry.addData("Est tau (s)", String.format("%.4f", tau));
         telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
@@ -110,7 +103,6 @@ public class ForwardTranslationalAutoTuner extends OpMode {
         telemetry.addData("Est kA", kA);
         telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kP_large));
         telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kP_small));
-        telemetry.addData("Normal Feedforward", "k=" + String.format("%.4f", normalFeedforward));
     }
 
     private double calculatekP(double beta) {
@@ -146,7 +138,10 @@ public class ForwardTranslationalAutoTuner extends OpMode {
             y.add(Math.log(K - vel));
             x.add(times.get(i));
         }
-        double[] linReg = linearFit(x.stream().toArray(Double[]::new), y.stream().toArray(Double[]::new));
+        double[] linReg = linearFit(
+                x.toArray(new Double[0]),
+                y.toArray(new Double[0])
+        );
         if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
         this.tau = -1.0/linReg[1];
     }

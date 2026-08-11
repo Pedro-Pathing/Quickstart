@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 /**
@@ -25,7 +26,7 @@ import java.util.ArrayList;
  */
 @TeleOp(group = "2")
 public class StrafeVelocityIdentification extends OpMode {
-    private final ArrayList<Double> velocities = new ArrayList<>();
+    private final ArrayDeque<Double> velocities = new ArrayDeque<>();
     public static double DISTANCE = 48;
     public static double RECORD_NUMBER = 10;
 
@@ -76,8 +77,8 @@ public class StrafeVelocityIdentification extends OpMode {
             } else {
                 follower.manual(0,1,0);
                 double currentVelocity = Math.abs(follower.velocity().toVector2D().y());
-                velocities.add(currentVelocity);
-                velocities.remove(0);
+                velocities.addLast(currentVelocity);
+                velocities.removeLast();
             }
         } else {
             follower.manual(0,0,0);
@@ -89,7 +90,7 @@ public class StrafeVelocityIdentification extends OpMode {
             telemetry.addData("Max Achievable Strafe Velocity: ", average);
 
             for (int i = 0; i < velocities.size(); i++) {
-                telemetry.addData(String.valueOf(i), velocities.get(i));
+                telemetry.addData(String.valueOf(i), velocities.removeFirst());
             }
 
             telemetry.update();
