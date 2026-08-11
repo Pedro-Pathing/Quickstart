@@ -15,17 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is the Forward Braking Identification. It runs the robot forward and backward at various
- * power levels, recording the robot’s velocity and position immediately before braking.
- * The motors are then set to a very small reverse power, which actives a harsh velocity-proportional force.
- * Once the robot comes to a complete stop, the tuner measures the stopping distance.
- * Using the collected data, it generates a velocity-vs-stopping-distance graph and fits a quadratic curve to model the braking behavior.
- *
  * @author Jacob Ophoven - 12649 Code Blooded
  * @version 8/11/2026
  */
 @TeleOp(group = "2")
-public class ForwardBrakingIdentification extends OpMode {
+public class StrafeBrakingIdentification extends OpMode {
     private static double[] POWERS;
 
     public static int trials = 12;
@@ -65,9 +59,9 @@ public class ForwardBrakingIdentification extends OpMode {
     @Override
     public void init_loop() {
         telemetry.addLine("The robot will need " + TILES_IN_FRONT_OF_ROBOT + " tiles in front of it to run.");
-        telemetry.addLine("It will drive at different powers forwards and backwards, measuring braking distance while correcting its heading.");
+        telemetry.addLine("It will strafe at different powers first to the left, then to the right, measuring braking distance while correcting its heading.");
         telemetry.addLine("Make sure you have enough room.");
-        telemetry.addLine("After stopping, the forward linear and quadratic braking coefficients will be displayed.");
+        telemetry.addLine("After stopping, the lateral linear and quadratic braking coefficients will be displayed.");
         telemetry.update();
         follower.update();
     }
@@ -77,7 +71,7 @@ public class ForwardBrakingIdentification extends OpMode {
     }
 
     private void drive() {
-        follower.manual(power * direction, 0.0, getHeadingPower());
+        follower.manual(0.0, power * direction, getHeadingPower());
     }
 
     private static double angleWrap(double angle) {
@@ -99,7 +93,7 @@ public class ForwardBrakingIdentification extends OpMode {
             brake = Math.max(brake, minBrake);
         }
 
-        follower.manual(brake, 0, headingPower);
+        follower.manual(0, brake, headingPower);
     }
 
     private void recordBrakeData() {
@@ -109,8 +103,8 @@ public class ForwardBrakingIdentification extends OpMode {
 
         telemetry.addData("timestamp seconds", time);
         telemetry.addData("applied voltage", appliedVoltage);
-        telemetry.addData("velocity inches per second", follower.velocity().vx);
-        telemetry.addData("position inches", follower.pose().x());
+        telemetry.addData("velocity inches per second", follower.velocity().vy);
+        telemetry.addData("position inches", follower.pose().y());
         telemetry.addData("battery voltage", voltage);
         telemetry.addData("duty cycle", duty);
         telemetry.addData("state", state);
@@ -137,8 +131,8 @@ public class ForwardBrakingIdentification extends OpMode {
 
         switch (state) {
             case DRIVE: {
-                if ((direction == 1 && follower.pose().x() > (TILES_IN_FRONT_OF_ROBOT - 2) * 24 + 12) ||
-                        (direction == -1 && follower.pose().x() < 12)) {
+                if ((direction == 1 && follower.pose().y() > (TILES_IN_FRONT_OF_ROBOT - 2) * 24 + 12) ||
+                        (direction == -1 && follower.pose().y() < 12)) {
                     startPosition = follower.pose().toVector2D();
                     measuredVelocity = follower.velocity().toVector2D().magnitude();
 
@@ -176,8 +170,8 @@ public class ForwardBrakingIdentification extends OpMode {
 
             double[] coefficients = quadraticFit(velocityToBrakingDistance);
 
-            telemetry.addData("Forward Braking Quadratic", coefficients[1]);
-            telemetry.addData("Forward Braking Linear", coefficients[0]);
+            telemetry.addData("Lateral Braking Quadratic", coefficients[1]);
+            telemetry.addData("Lateral Braking Linear", coefficients[0]);
 
             telemetry.addLine("Samples:");
             for (int i = 0; i < velocityToBrakingDistance.size(); i++) {
