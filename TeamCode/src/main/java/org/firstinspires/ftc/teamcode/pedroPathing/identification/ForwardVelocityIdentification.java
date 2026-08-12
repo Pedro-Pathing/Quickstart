@@ -76,7 +76,7 @@ public class ForwardVelocityIdentification extends OpMode {
                 follower.manual(0,0,0);
             } else {
                 follower.manual(1,0,0);
-                double currentVelocity = Math.abs(follower.velocity().toVector2D().x());
+                double currentVelocity = Math.abs(follower.twist().toVector2D().x());
                 velocities.addLast(currentVelocity);
                 velocities.removeFirst();
             }
@@ -89,8 +89,10 @@ public class ForwardVelocityIdentification extends OpMode {
             average /= velocities.size();
             telemetry.addData("Forward Velocity: ", average);
 
-            for (int i = 0; i < velocities.size(); i++) {
-                telemetry.addData(String.valueOf(i), velocities.removeFirst());
+            int k = 0;
+            for (double v : velocities) {
+                telemetry.addData(String.valueOf(k), v);
+                k++;
             }
 
             telemetry.update();

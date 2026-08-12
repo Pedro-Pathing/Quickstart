@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 
 import android.annotation.SuppressLint;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Vector2D;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -33,7 +31,7 @@ public class ForwardBrakingIdentification extends OpMode {
     public static double minPower = 0.2;
     public static double bias = 1.5; // how much it favors doing trials with higher powers
     public static double brakingPower = 0.001;
-    public static int TILES_IN_FRONT_OF_ROBOT = 5; // Must be at least 3
+    public static int TILES_IN_FRONT_OF_ROBOT = 3; // Must be at least 3
     public static double headingP = 1.5;
     public static double headingD = 0.1;
 
@@ -57,8 +55,6 @@ public class ForwardBrakingIdentification extends OpMode {
         voltageSensor = hardwareMap.getAll(VoltageSensor.class).iterator().next();
 
         follower.update();
-
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         recordBrakeData();
     }
 

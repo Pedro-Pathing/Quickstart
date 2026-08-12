@@ -76,7 +76,7 @@ public class StrafeVelocityIdentification extends OpMode {
                 follower.manual(0,0,0);
             } else {
                 follower.manual(0,1,0);
-                double currentVelocity = Math.abs(follower.velocity().toVector2D().y());
+                double currentVelocity = Math.abs(follower.twist().toVector2D().y());
                 velocities.addLast(currentVelocity);
                 velocities.removeLast();
             }
@@ -89,8 +89,10 @@ public class StrafeVelocityIdentification extends OpMode {
             average /= velocities.size();
             telemetry.addData("Max Achievable Strafe Velocity: ", average);
 
-            for (int i = 0; i < velocities.size(); i++) {
-                telemetry.addData(String.valueOf(i), velocities.removeFirst());
+            int k = 0;
+            for (double v : velocities) {
+                telemetry.addData(String.valueOf(k), v);
+                k++;
             }
 
             telemetry.update();

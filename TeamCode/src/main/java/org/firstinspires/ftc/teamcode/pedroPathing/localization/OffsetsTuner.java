@@ -15,14 +15,14 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  * @author Havish Sripada - 12808 RevAmped Robotics
  */
 @TeleOp(group = "1")
-class OffsetsTuner extends OpMode {
+public class OffsetsTuner extends OpMode {
     private Follower follower;
     private final Pose startPose = new Pose(70.75,70.75);
 
     @Override
     public void init() {
-        Constants.pinpointConfig.xPodOffset.set(0.0);
-        Constants.pinpointConfig.yPodOffset.set(0.0);
+        Constants.localizerConfig.xPodOffset.set(0.0);
+        Constants.localizerConfig.yPodOffset.set(0.0);
         follower = Constants.create(hardwareMap);
         follower.setPose(Pose.zero());
         follower.update();

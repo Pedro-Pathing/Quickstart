@@ -6,6 +6,8 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.utils.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ public class HeadingAutoTuner extends OpMode {
     private static final double BETA = 1.0;
     private static final double POWER = 0.6;
     private static final double RUNTIME = 3;
-    private static final int SAMPLES = 15;
+    private static final int K_SAMPLES = 15;
 
     private double tau;
     private double lambda_small;
@@ -26,10 +28,11 @@ public class HeadingAutoTuner extends OpMode {
     private double K;
     private final List<Double> times = new ArrayList<>();
     private final List<Double> angularVelocities = new ArrayList<>();
-    private final Timer timer = new Timer();
+    private final ElapsedTime timer = new ElapsedTime();
     private boolean done = false;
     private double lastTime = 0.0;
     private Follower follower;
+    private int samplesUsed;
 
     @Override
     public void init() {
@@ -95,6 +98,7 @@ public class HeadingAutoTuner extends OpMode {
 
         double feedforward = BETA / K;
 
+        telemetry.addData("samples used", samplesUsed);
         telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kPLarge) + ", kD=" + String.format("%.4f", kDLarge));
         telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kPSmall) + ", kD=" + String.format("%.4f", kDSmall));
         telemetry.addData("Heading Feedforward", "k=" + String.format("%.4f", feedforward));
@@ -120,7 +124,7 @@ public class HeadingAutoTuner extends OpMode {
             throw new IllegalArgumentException("Failed calibration.");
         }
 
-        int start = Math.max(0, N - SAMPLES);
+        int start = Math.max(0, N - K_SAMPLES);
         double samples = N - start;
         double sum = 0;
         for (int i = start; i < N; i++) sum += angularVelocities.get(i);
@@ -136,6 +140,7 @@ public class HeadingAutoTuner extends OpMode {
             y.add(Math.log(K - vel));
             x.add(times.get(i));
         }
+        samplesUsed = x.size();
         double[] linReg = linearFit(
                 x.toArray(new Double[0]),
                 y.toArray(new Double[0])

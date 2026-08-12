@@ -53,6 +53,7 @@ public class StrafeDecelerationIdentification extends OpMode {
     /** This starts the OpMode by setting the drive motors to run left at full power. */
     @Override
     public void start() {
+        Constants.driveConfig.manualBrakeMode.set(false);
         follower.manual(0,1,0);
         follower.update();
         end = false;
@@ -70,14 +71,14 @@ public class StrafeDecelerationIdentification extends OpMode {
 
         if (!end) {
             if (!stopping) {
-                if (Math.abs(follower.velocity().toVector2D().y()) > VELOCITY) {
-                    previousVelocity = Math.abs(follower.velocity().toVector2D().y());
+                if (Math.abs(follower.twist().toVector2D().y()) > VELOCITY) {
+                    previousVelocity = Math.abs(follower.twist().toVector2D().y());
                     previousTimeNano = System.nanoTime();
                     stopping = true;
                     follower.manual(0,0,0);
                 }
             } else {
-                double currentVelocity = Math.abs(follower.velocity().toVector2D().y());
+                double currentVelocity = Math.abs(follower.twist().toVector2D().y());
                 accelerations.add((currentVelocity - previousVelocity) / ((System.nanoTime() - previousTimeNano) / Math.pow(10.0, 9)));
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();

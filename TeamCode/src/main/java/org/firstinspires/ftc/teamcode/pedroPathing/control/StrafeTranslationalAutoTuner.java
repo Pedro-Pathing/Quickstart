@@ -10,6 +10,7 @@ import com.pedropathing.math.Vector2D;
 import com.pedropathing.utils.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -32,7 +33,7 @@ public class StrafeTranslationalAutoTuner extends OpMode {
     private double vMax = 0;
     private final List<Double> times = new ArrayList<>();
     private final List<Double> velocities = new ArrayList<>();
-    private final Timer timer = new Timer();
+    private final ElapsedTime timer = new ElapsedTime();
     private boolean done = false;
     private double lastTime = 0.0;
     private Follower follower;
@@ -76,7 +77,7 @@ public class StrafeTranslationalAutoTuner extends OpMode {
 
         if (!done) {
             times.add(timer.seconds());
-            double lateralVelocity = Math.abs(follower.velocity().toVector2D().dot(Vector2D.polar(1, follower.pose().heading() + Math.PI / 2)));
+            double lateralVelocity = Math.abs(follower.twist().toVector2D().y());
             vMax = Math.max(vMax, lateralVelocity / POWER);
 
             velocities.add(lateralVelocity);
@@ -138,7 +139,7 @@ public class StrafeTranslationalAutoTuner extends OpMode {
             y.add(Math.log(K - vel));
             x.add(times.get(i));
         }
-        double[] linReg = linearFit(x.stream().toArray(Double[]::new), y.stream().toArray(Double[]::new));
+        double[] linReg = linearFit(x.toArray(new Double[0]), y.toArray(new Double[0]));
         if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
         this.tau = -1.0/linReg[1];
     }

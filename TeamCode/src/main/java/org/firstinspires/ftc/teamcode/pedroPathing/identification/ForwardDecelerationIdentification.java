@@ -53,6 +53,7 @@ public class ForwardDecelerationIdentification extends OpMode {
     /** This starts the OpMode by setting the drive motors to run forward at full power. */
     @Override
     public void start() {
+        Constants.driveConfig.manualBrakeMode.set(false);
         follower.manual(1,0,0);
         follower.update();
         end = false;
@@ -70,14 +71,14 @@ public class ForwardDecelerationIdentification extends OpMode {
 
         if (!end) {
             if (!stopping) {
-                if (follower.velocity().toVector2D().x() > VELOCITY) {
-                    previousVelocity = follower.velocity().toVector2D().x();
+                if (follower.twist().toVector2D().x() > VELOCITY) {
+                    previousVelocity = follower.twist().toVector2D().x();
                     previousTimeNano = System.nanoTime();
                     stopping = true;
                     follower.manual(0,0,0);
                 }
             } else {
-                double currentVelocity = follower.velocity().toVector2D().x();
+                double currentVelocity = follower.twist().toVector2D().x();
                 accelerations.add((currentVelocity - previousVelocity) / ((System.nanoTime() - previousTimeNano) / Math.pow(10.0, 9)));
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();
