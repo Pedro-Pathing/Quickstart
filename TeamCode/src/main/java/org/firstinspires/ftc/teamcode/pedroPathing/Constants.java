@@ -55,18 +55,23 @@ public class Constants {
                 Controller smallTranslationalForward = Controller.pid(0.07,0,0);
                 Controller smallTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.0005));
                 Controller largeTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.01));
+
                 c.forwardTranslationalController.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalForward).put(2.5, largeTranslationalForward));
                 c.lateralTranslationalController.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalLateral).put(2.5, largeTranslationalLateral));
+
                 c.brakeController.set(Controller.pid(kP, 0, 0).plus(Controller.dynamicFeedforward(velocityFF)));
                 c.brakeAccelFeedforward.set(Controller.dynamicFeedforward(accelFF));
+
                 c.maxBrakingPower.set(0.3);
+
                 Controller largeHeading = Controller.pid(2.28, 0, 0.29).plus(Controller.staticFeedforward(0.01));
                 c.headingController.set(largeHeading);
+                c.headingFeedforward.set(Controller.dynamicFeedforward(headingFF));
+
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0633, 0.0633));
                 c.quadraticBrakeCoefficients.set(Matrix.diag(0.00146, 0.00146));
-                c.headingFeedforward.set(Controller.dynamicFeedforward(headingFF));
+
                 c.centripetalScaling.set(0.0005);
-                c.fullPowerCoast.set(true);
                 c.cosineScale.set(false);
             }
     );

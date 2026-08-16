@@ -51,9 +51,11 @@ public class HeadingAutoTuner extends OpMode {
 
     @Override
     public void start() {
+        follower.setPose(Pose.zero());
         timer.reset();
         lastTime = timer.seconds();
         follower.manual(0, 0, POWER);
+        follower.update();
     }
 
     @SuppressLint("DefaultLocale")

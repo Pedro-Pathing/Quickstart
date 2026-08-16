@@ -55,9 +55,11 @@ public class StrafeTranslationalAutoTuner extends OpMode {
 
     @Override
     public void start() {
+        follower.setPose(Pose.zero());
         timer.reset();
         lastTime = timer.seconds();
         follower.manual(0, POWER, 0);
+        follower.update();
     }
 
     @SuppressLint("DefaultLocale")

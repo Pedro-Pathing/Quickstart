@@ -44,6 +44,8 @@ public class AutomaticOffsetsTuner extends OpMode {
 
     @Override
     public void start() {
+        follower.setPose(Pose.zero());
+        follower.update();
         timer.reset();
         follower.manual(0, 0, POWER);
     }
@@ -87,8 +89,8 @@ public class AutomaticOffsetsTuner extends OpMode {
         }
 
         telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
-        telemetry.addLine("strafeX: " + offsets.x());
-        telemetry.addLine("forwardY: " + offsets.y());
+        telemetry.addLine("xPodOffset: " + offsets.y());
+        telemetry.addLine("yPodOffset: " + offsets.x());
         telemetry.update();
     }
 

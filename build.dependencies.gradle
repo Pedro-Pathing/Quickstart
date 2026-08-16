@@ -5,12 +5,13 @@ repositories {
 }
 
 configurations.configureEach {
-    resolutionStrategy.cacheChangingModulesFor 10000, 'minutes'
+    resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
 }
 
 dependencies {
     implementation 'org.firstinspires.ftc:Inspection:11.2.1'
     implementation 'org.firstinspires.ftc:Blocks:11.2.1'
+    //noinspection Aligned16KB
     implementation 'org.firstinspires.ftc:RobotCore:11.2.1'
     implementation 'org.firstinspires.ftc:RobotServer:11.2.1'
     implementation 'org.firstinspires.ftc:OnBotJava:11.2.1'

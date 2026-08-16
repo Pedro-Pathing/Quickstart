@@ -16,6 +16,13 @@ public class LocalizationTest extends OpMode {
     public void init() {
         follower = Constants.create(hardwareMap);
         follower.setPose(startPose);
+        follower.update();
+    }
+
+    @Override
+    public void start() {
+        follower.setPose(startPose);
+        follower.update();
     }
 
     @Override

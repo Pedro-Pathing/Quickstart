@@ -17,13 +17,18 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp(group = "1")
 public class OffsetsTuner extends OpMode {
     private Follower follower;
-    private final Pose startPose = new Pose(70.75,70.75);
 
     @Override
     public void init() {
         Constants.localizerConfig.xPodOffset.set(0.0);
         Constants.localizerConfig.yPodOffset.set(0.0);
         follower = Constants.create(hardwareMap);
+        follower.setPose(Pose.zero());
+        follower.update();
+    }
+
+    @Override
+    public void start() {
         follower.setPose(Pose.zero());
         follower.update();
     }
@@ -42,9 +47,9 @@ public class OffsetsTuner extends OpMode {
     public void loop() {
         follower.update();
         telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
-        telemetry.addLine("heading: " + (startPose.heading() - follower.pose().heading()));
-        telemetry.addLine("strafeX: " + ((startPose.x()-follower.pose().x()) / 2.0));
-        telemetry.addLine("forwardY: " + ((startPose.y()-follower.pose().y()) / 2.0));
+        telemetry.addLine("heading: " + (-follower.pose().heading()));
+        telemetry.addLine("xPodOffset: " + ((-follower.pose().y()) / 2.0));
+        telemetry.addLine("yPodOffset: " + ((-follower.pose().x()) / 2.0));
         telemetry.update();
     }
 }
