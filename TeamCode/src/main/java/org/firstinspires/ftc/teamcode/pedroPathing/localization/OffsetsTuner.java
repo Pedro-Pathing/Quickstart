@@ -43,8 +43,8 @@ public class OffsetsTuner extends OpMode {
         follower.update();
         telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
         telemetry.addLine("heading: " + (startPose.heading() - follower.pose().heading()));
-        telemetry.addLine("strafeX: " + ((startPose.x()-follower.pose().x()) / 2.0));
-        telemetry.addLine("forwardY: " + ((startPose.y()-follower.pose().y()) / 2.0));
+        telemetry.addLine("xPodOffset: " + ((startPose.y()-follower.pose().y()) / 2.0));
+        telemetry.addLine("yPodOffset: " + ((startPose.x()-follower.pose().x()) / 2.0));
         telemetry.update();
     }
 }
