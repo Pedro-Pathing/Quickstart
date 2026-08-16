@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.control;
 
 import android.annotation.SuppressLint;
+
+import com.pedropathing.algorithm.Foresight;
+import com.pedropathing.controllers.Controller;
+import com.pedropathing.controllers.PIDController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.utils.Timer;
@@ -33,6 +37,15 @@ public class HeadingAutoTuner extends OpMode {
     private double lastTime = 0.0;
     private Follower follower;
     private int samplesUsed;
+    private Mode mode = Mode.CALIBRATION;
+    private String largeCoefficients;
+    private String smallCoefficients;
+    private String headingFeedforward;
+
+    private enum Mode {
+        CALIBRATION,
+        HEADING_LOCK
+    }
 
     @Override
     public void init() {
@@ -71,44 +84,68 @@ public class HeadingAutoTuner extends OpMode {
         telemetry.addData("done", done);
         telemetry.addData("dt", String.format("%.6f s", dt));
 
-        if (!done) {
-            times.add(timer.seconds());
-            angularVelocities.add(Math.abs(follower.velocity().omega));
-            telemetry.addData("angular velocity (rad/s)", String.format("%.4f", angularVelocities.get(angularVelocities.size() - 1)));
+        if (mode.equals(Mode.CALIBRATION)) {
+            if (!done) {
+                times.add(timer.seconds());
+                angularVelocities.add(Math.abs(follower.velocity().omega));
+                telemetry.addData("angular velocity (rad/s)", String.format("%.4f", angularVelocities.get(angularVelocities.size() - 1)));
 
-            if (timer.seconds() >= RUNTIME) {
-                done = true;
-                systemIdentification();
-                follower.manual(0, 0, 0);
-                telemetry.addData("elapsed time (s)", String.format("%.4f", timer.seconds()));
-            } else {
-                follower.manual(0, 0, POWER);
+                if (timer.seconds() >= RUNTIME) {
+                    done = true;
+                    systemIdentification();
+                    follower.manual(0, 0, 0);
+                    telemetry.addData("elapsed time (s)", String.format("%.4f", timer.seconds()));
+                } else {
+                    follower.manual(0, 0, POWER);
+                    telemetry.update();
+                    return;
+                }
+
                 telemetry.update();
-                return;
             }
 
-            telemetry.update();
+            lambda_small = tau * ALPHA_SMALL;
+            lambda_large = tau * ALPHA_LARGE;
+
+            double kDLarge = getkD(lambda_large);
+            double kPLarge = getkP(lambda_large);
+            double kDSmall = getkD(lambda_small);
+            double kPSmall = getkP(lambda_small);
+
+            double feedforward = BETA / K;
+
+            if (gamepad1.aWasPressed() && done) {
+                mode = Mode.HEADING_LOCK;
+                follower.hold(new Pose(72, 72, 0));
+                Constants.foresightConfig.headingController.set(Controller.piecewise(
+                        Controller.pid(kPSmall, 0, kDSmall)
+                ).put(
+                        Math.PI / 20,
+                        Controller.pid(kPLarge, 0, kDLarge)
+                ));
+                largeCoefficients = "kP=" + String.format("%.4f", kPLarge) + ", kD=" + String.format("%.4f", kDLarge);
+                smallCoefficients = "kP=" + String.format("%.4f", kPSmall) + ", kD=" + String.format("%.4f", kDSmall);
+                headingFeedforward = "k=" + String.format("%.4f", feedforward);
+            }
+
+            telemetry.addData("samples used", samplesUsed);
+            telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kPLarge) + ", kD=" + String.format("%.4f", kDLarge));
+            telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kPSmall) + ", kD=" + String.format("%.4f", kDSmall));
+            telemetry.addData("Heading Feedforward", "k=" + String.format("%.4f", feedforward));
+            telemetry.addLine();
+            telemetry.addData("Est tau (s)", String.format("%.4f", tau));
+            telemetry.addData("Est K (rad/s per power)", String.format("%.4f", K));
+            telemetry.addData("Lambda large (s)", String.format("%.4f", lambda_large));
+            telemetry.addData("Lambda small (s)", String.format("%.4f", lambda_small));
+        } else {
+            telemetry.addLine("Holding heading with updated values");
+            telemetry.addData("Large Coefficients", largeCoefficients);
+            telemetry.addData("Small Coefficients", smallCoefficients);
+            telemetry.addData("Heading Feedforward", headingFeedforward);
+            telemetry.addData("Heading Error", -follower.pose().heading());
+            telemetry.addData("Heading Velocity", follower.velocity().omega);
         }
 
-        lambda_small = tau * ALPHA_SMALL;
-        lambda_large = tau * ALPHA_LARGE;
-
-        double kDLarge = getkD(lambda_large);
-        double kPLarge = getkP(lambda_large);
-        double kDSmall = getkD(lambda_small);
-        double kPSmall = getkP(lambda_small);
-
-        double feedforward = BETA / K;
-
-        telemetry.addData("samples used", samplesUsed);
-        telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kPLarge) + ", kD=" + String.format("%.4f", kDLarge));
-        telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kPSmall) + ", kD=" + String.format("%.4f", kDSmall));
-        telemetry.addData("Heading Feedforward", "k=" + String.format("%.4f", feedforward));
-        telemetry.addLine();
-        telemetry.addData("Est tau (s)", String.format("%.4f", tau));
-        telemetry.addData("Est K (rad/s per power)", String.format("%.4f", K));
-        telemetry.addData("Lambda large (s)", String.format("%.4f", lambda_large));
-        telemetry.addData("Lambda small (s)", String.format("%.4f", lambda_small));
         telemetry.update();
     }
 
