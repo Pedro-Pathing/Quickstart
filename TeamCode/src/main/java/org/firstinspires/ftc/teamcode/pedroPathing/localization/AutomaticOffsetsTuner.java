@@ -45,9 +45,9 @@ public class AutomaticOffsetsTuner extends OpMode {
     @Override
     public void start() {
         follower.setPose(Pose.zero());
-        follower.update();
         timer.reset();
         follower.manual(0, 0, POWER);
+        follower.update();
     }
 
     /**
