@@ -19,8 +19,8 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class StrafeTranslationalAutoTuner extends OpMode {
-    public static double BETA_LARGE = 0.6;
-    public static double BETA_SMALL = 0.9;
+    public static double BETA_LARGE = 0.05;
+    public static double BETA_SMALL = 0.0515;
 
     private static final double POWER = 0.4;
     private static final double RUNTIME = 1.2;
