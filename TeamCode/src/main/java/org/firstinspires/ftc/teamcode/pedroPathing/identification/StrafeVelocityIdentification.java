@@ -82,7 +82,7 @@ public class StrafeVelocityIdentification extends OpMode {
                 follower.manual(0,1,0);
                 double currentVelocity = Math.abs(follower.twist().toVector2D().y());
                 velocities.addLast(currentVelocity);
-                velocities.removeLast();
+                velocities.removeFirst();
             }
         } else {
             follower.manual(0,0,0);
