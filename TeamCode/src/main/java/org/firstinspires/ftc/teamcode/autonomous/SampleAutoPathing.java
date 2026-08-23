@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 // Pedro Pathing imports
 import com.pedropathing.follower.Follower;
@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 
-@Autonomous(name = "Sample Auto Pathing")
+@Autonomous(name = "BigPrattsAuto")
 public class SampleAutoPathing extends OpMode {
 
     // ============================================================
