@@ -17,7 +17,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp(group = "1")
 public class OffsetsTuner extends OpMode {
     private Follower follower;
-    private final Pose startPose = new Pose(70.75,70.75);
 
     @Override
     public void init() {
