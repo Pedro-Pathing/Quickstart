@@ -32,12 +32,13 @@ public class ForwardVelocityIdentification extends OpMode {
 
     private boolean end;
     private Follower follower;
-    private final Pose startPose = new Pose(70.75,70.75);
+    private final Pose startPose = Pose.zero();
 
     @Override
     public void init() {
         follower = Constants.create(hardwareMap);
         follower.setPose(startPose);
+        follower.update();
     }
 
     /** This initializes the drive motors as well as the cache of velocities. */
@@ -54,6 +55,8 @@ public class ForwardVelocityIdentification extends OpMode {
     /** This starts the OpMode by setting the drive motors to run forward at full power. */
     @Override
     public void start() {
+        follower.setPose(startPose);
+        follower.update();
         for (int i = 0; i < RECORD_NUMBER; i++) {
             velocities.add(0.0);
         }

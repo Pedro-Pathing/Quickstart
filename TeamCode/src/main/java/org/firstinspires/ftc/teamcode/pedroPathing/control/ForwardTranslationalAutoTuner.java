@@ -57,9 +57,11 @@ public class ForwardTranslationalAutoTuner extends OpMode {
 
     @Override
     public void start() {
+        follower.setPose(Pose.zero());
         timer.reset();
         lastTime = timer.seconds();
         follower.manual(POWER, 0, 0);
+        follower.update();
     }
 
     @SuppressLint("DefaultLocale")

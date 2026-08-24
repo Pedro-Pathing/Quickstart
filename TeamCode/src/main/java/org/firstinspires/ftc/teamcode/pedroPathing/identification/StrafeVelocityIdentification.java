@@ -32,12 +32,13 @@ public class StrafeVelocityIdentification extends OpMode {
 
     private boolean end;
     private Follower follower;
-    private final Pose startPose = new Pose(70.75,70.75);
+    private final Pose startPose = Pose.zero();
 
     @Override
     public void init() {
         follower = Constants.create(hardwareMap);
         follower.setPose(startPose);
+        follower.update();
     }
 
     /** This initializes the drive motors as well as the cache of velocities. */
@@ -54,6 +55,9 @@ public class StrafeVelocityIdentification extends OpMode {
     /** This starts the OpMode by setting the drive motors to run left at full power. */
     @Override
     public void start() {
+        follower.setPose(startPose);
+        follower.update();
+
         for (int i = 0; i < RECORD_NUMBER; i++) {
             velocities.add(0.0);
         }
@@ -78,7 +82,7 @@ public class StrafeVelocityIdentification extends OpMode {
                 follower.manual(0,1,0);
                 double currentVelocity = Math.abs(follower.twist().toVector2D().y());
                 velocities.addLast(currentVelocity);
-                velocities.removeLast();
+                velocities.removeFirst();
             }
         } else {
             follower.manual(0,0,0);

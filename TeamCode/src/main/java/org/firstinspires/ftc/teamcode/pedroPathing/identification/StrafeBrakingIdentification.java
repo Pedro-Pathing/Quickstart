@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 import android.annotation.SuppressLint;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.pedropathing.math.Vector2D;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -46,10 +47,17 @@ public class StrafeBrakingIdentification extends OpMode {
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
 
         follower = Constants.create(hardwareMap);
+        follower.setPose(Pose.zero());
+        follower.update();
         voltageSensor = hardwareMap.getAll(VoltageSensor.class).iterator().next();
 
-        follower.update();
         recordBrakeData();
+    }
+
+    @Override
+    public void start() {
+        follower.setPose(Pose.zero());
+        follower.update();
     }
 
     @Override

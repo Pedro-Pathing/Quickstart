@@ -31,7 +31,7 @@ public class StrafeDecelerationIdentification extends OpMode {
     private boolean stopping;
     private boolean end;
     private Follower follower;
-    private final Pose startPose = new Pose(70.75,70.75);
+    private final Pose startPose = Pose.zero();
 
     @Override
     public void init() {
@@ -53,8 +53,10 @@ public class StrafeDecelerationIdentification extends OpMode {
     /** This starts the OpMode by setting the drive motors to run left at full power. */
     @Override
     public void start() {
+        follower.setPose(startPose);
+        follower.update();
         Constants.driveConfig.manualBrakeMode.set(false);
-        follower.manual(0,1,0);
+        follower.manual(0, 1, 0);
         follower.update();
         end = false;
         stopping = false;
