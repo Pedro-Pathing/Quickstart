@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 
+import static com.pedropathing.utils.Angle.normalizeSigned;
+
 import android.annotation.SuppressLint;
 
 import com.pedropathing.follower.Follower;
@@ -8,6 +10,8 @@ import com.pedropathing.math.Vector2D;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.ArrayList;
@@ -27,8 +31,9 @@ public class StrafeBrakingIdentification extends OpMode {
     public static double bias = 1.5; // how much it favors doing trials with higher powers
     public static double brakingPower = 0.001;
     public static int TILES_IN_FRONT_OF_ROBOT = 3; // Must be at least 3
-    public static double headingP = 1.5;
-    public static double headingD = 0.1;
+    public static double IDLE_SECONDS = 1; //if your robot tips, increase this to add more delay between trials
+
+    private final ElapsedTime timer = new ElapsedTime();
 
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
     private State state = State.DRIVE;
@@ -71,17 +76,12 @@ public class StrafeBrakingIdentification extends OpMode {
     }
 
     private double getHeadingPower() {
-        return headingP * angleWrap(0 - follower.pose().heading()) - headingD * follower.velocity().omega;
+        return Constants.foresightConfig.headingController.get()
+                .calculate(0, normalizeSigned(-follower.pose().heading()), follower.velocity().omega); //TODO: update for ForesightV3
     }
 
     private void drive() {
         follower.manual(0.0, power * direction, getHeadingPower());
-    }
-
-    private static double angleWrap(double angle) {
-        while (angle <= -Math.PI) angle += 2 * Math.PI;
-        while (angle > Math.PI) angle -= 2 * Math.PI;
-        return angle;
     }
 
     private void brake() {
@@ -156,6 +156,10 @@ public class StrafeBrakingIdentification extends OpMode {
                 collectTrialData();
                 break;
             }
+            case WAIT: {
+                if (timer.seconds() > IDLE_SECONDS) state = State.DRIVE;
+                break;
+            }
             case DONE: {}
         }
     }
@@ -186,7 +190,8 @@ public class StrafeBrakingIdentification extends OpMode {
 
             state = State.DONE;
         } else {
-            state = State.DRIVE;
+            state = State.WAIT;
+            timer.reset();
         }
     }
 
@@ -199,11 +204,10 @@ public class StrafeBrakingIdentification extends OpMode {
         double t2 = 0.0;
 
         for (double[] sample : samples) {
-            double v = sample[0];
+            double x1 = sample[0];
             double d = sample[1];
 
-            double x1 = v;
-            double x2 = v * v;
+            double x2 = x1 * x1;
 
             s11 += x1 * x1;
             s12 += x1 * x2;
@@ -227,6 +231,7 @@ public class StrafeBrakingIdentification extends OpMode {
     private enum State {
         DRIVE,
         BRAKE,
+        WAIT,
         DONE
     }
 
