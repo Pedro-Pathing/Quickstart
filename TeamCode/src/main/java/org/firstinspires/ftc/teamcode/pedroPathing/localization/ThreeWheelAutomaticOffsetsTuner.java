@@ -152,7 +152,7 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
         if (!done) {
             poses.push(follower.pose().toVector2D());
 
-            if (timer.seconds() >= RUNTIME) {
+            if (timer.seconds() >= RUNTIME / 2.0) {
                 done = true;
 
                 if (state.equals(State.LEFT_POD)) {
