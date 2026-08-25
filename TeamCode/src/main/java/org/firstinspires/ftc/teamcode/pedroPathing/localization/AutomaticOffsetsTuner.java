@@ -16,7 +16,7 @@ import java.util.Stack;
 public class AutomaticOffsetsTuner extends OpMode {
     public static double POWER = 0.3;
     public static double TRIAL_RUNTIME = 3;
-    public static int TRIALS = 4;
+    public static int TRIALS = 5;
     private final Timer timer = new Timer();
     private boolean done = false;
     private final Stack<Vector2D> poses = new Stack<>();
@@ -98,6 +98,8 @@ public class AutomaticOffsetsTuner extends OpMode {
                 }
             } else {
                 follower.manual(0, 0, POWER);
+                telemetry.addData("Trials Completed (out of " + TRIALS + ")", trialsCompleted);
+                telemetry.update();
             }
         } else {
             follower.manual(0, 0, 0);

@@ -20,7 +20,7 @@ import java.util.function.BiFunction;
 public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
     public static double POWER = 0.5;
     public static double TRIAL_RUNTIME = 6;
-    public static int TRIALS = 4;
+    public static int TRIALS = 5;
     private final Timer timer = new Timer();
     private final Stack<Vector2D> poses = new Stack<>();
     private Vector2D offsetsLeft;
