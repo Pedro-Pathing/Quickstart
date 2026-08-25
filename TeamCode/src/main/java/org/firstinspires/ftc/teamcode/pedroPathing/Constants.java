@@ -1,25 +1,26 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
+import com.pedropathing.algorithm.Algorithm;
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.controllers.Controller;
+import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.OctoQuadConfig;
 import com.pedropathing.revhub.localizers.OctoQuadLocalizer;
+import com.pedropathing.revhub.localizers.ThreeWheelConfig;
+import com.pedropathing.revhub.localizers.ThreeWheelLocalizer;
 import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Function;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
-    public static double kP = 0.03;
-    public static double headingFF = 0.065;
-    public static double velocityFF = 0.009;
-    public static double accelFF = 0.001;
-
     public static MecanumConfig driveConfig = new MecanumConfig(
             c -> {
                 c.frontLeftName.set("lf");
@@ -56,22 +57,19 @@ public class Constants {
                 Controller smallTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.0005));
                 Controller largeTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.01));
 
-                c.forwardTranslationalController.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalForward).put(2.5, largeTranslationalForward));
-                c.lateralTranslationalController.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalLateral).put(2.5, largeTranslationalLateral));
+                c.forwardTranslational.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalForward).put(2.5, largeTranslationalForward));
+                c.strafeTranslational.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalLateral).put(2.5, largeTranslationalLateral));
 
-                c.brakeController.set(Controller.pid(kP, 0, 0).plus(Controller.dynamicFeedforward(velocityFF)));
-                c.brakeAccelFeedforward.set(Controller.dynamicFeedforward(accelFF));
+                c.brake.set(Controller.proportionalFeedforward(0.009));
 
                 c.maxBrakingPower.set(0.3);
 
-                Controller largeHeading = Controller.pid(2.28, 0, 0.29).plus(Controller.staticFeedforward(0.01));
-                c.headingController.set(largeHeading);
-                c.headingFeedforward.set(Controller.dynamicFeedforward(headingFF));
+                Controller largeHeading = Controller.pid(2.28, 0, 0.29);
+                c.headingFeedback.set(largeHeading);
 
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0633, 0.0633));
                 c.quadraticBrakeCoefficients.set(Matrix.diag(0.00146, 0.00146));
 
-                c.centripetalScaling.set(0.0005);
                 c.cosineScale.set(false);
             }
     );

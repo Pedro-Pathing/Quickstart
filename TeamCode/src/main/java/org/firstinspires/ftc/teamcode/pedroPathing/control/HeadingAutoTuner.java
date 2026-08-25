@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.control;
 
+import static com.pedropathing.utils.Utils.linearFit;
+
 import android.annotation.SuppressLint;
 
 import com.pedropathing.algorithm.Foresight;
@@ -117,7 +119,7 @@ public class HeadingAutoTuner extends OpMode {
             if (gamepad1.aWasPressed() && done) {
                 mode = Mode.HEADING_LOCK;
                 follower.hold(new Pose(72, 72, 0));
-                Constants.foresightConfig.headingController.set(Controller.piecewise(
+                Constants.foresightConfig.headingFeedback.set(Controller.piecewise(
                         Controller.pid(kPSmall, 0, kDSmall)
                 ).put(
                         Math.PI / 20,
@@ -186,21 +188,5 @@ public class HeadingAutoTuner extends OpMode {
         );
         if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
         this.tau = -1.0/linReg[1];
-    }
-
-    public double[] linearFit(Double[] x, Double[] y) {
-        int n = x.length;
-        double sumX = 0, sumXY = 0, sumY = 0, sumX2 = 0;
-
-        for (int i = 0; i < n; i++) {
-            sumX += x[i];
-            sumY += y[i];
-            sumXY += x[i] * y[i];
-            sumX2 += x[i] * x[i];
-        }
-
-        double m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        double b = (sumY - m * sumX) / n;
-        return new double[] {b, m};
     }
 }

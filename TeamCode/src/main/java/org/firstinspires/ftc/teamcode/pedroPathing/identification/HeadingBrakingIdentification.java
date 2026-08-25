@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 
+import static com.pedropathing.utils.Utils.quadraticFit;
+
 import android.annotation.SuppressLint;
 
 import com.pedropathing.follower.Follower;
@@ -170,40 +172,6 @@ public class HeadingBrakingIdentification extends OpMode {
             timer.reset();
             state = State.DRIVE;
         }
-    }
-
-    public static double[] quadraticFit(List<double[]> samples) {
-        double s11 = 0.0;
-        double s12 = 0.0;
-        double s22 = 0.0;
-
-        double t1 = 0.0;
-        double t2 = 0.0;
-
-        for (double[] sample : samples) {
-            double v = sample[0];
-            double d = sample[1];
-
-            double x1 = v;
-            double x2 = v * v;
-
-            s11 += x1 * x1;
-            s12 += x1 * x2;
-            s22 += x2 * x2;
-
-            t1 += x1 * d;
-            t2 += x2 * d;
-        }
-
-        double det = s11 * s22 - s12 * s12;
-        if (Math.abs(det) < 1e-12) {
-            throw new IllegalArgumentException("Regression matrix is singular.");
-        }
-
-        double b = (t1 * s22 - t2 * s12) / det;
-        double a = (s11 * t2 - s12 * t1) / det;
-
-        return new double[]{b, a};
     }
 
     private enum State {

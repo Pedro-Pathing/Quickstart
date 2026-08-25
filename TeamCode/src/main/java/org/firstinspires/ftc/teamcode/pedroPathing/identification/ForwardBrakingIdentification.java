@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.identification;
 
 import static com.pedropathing.utils.Angle.normalizeSigned;
+import static com.pedropathing.utils.Utils.quadraticFit;
 
 import android.annotation.SuppressLint;
 
@@ -82,7 +83,7 @@ public class ForwardBrakingIdentification extends OpMode {
     }
 
     private double getHeadingPower() {
-        return Constants.foresightConfig.headingController.get()
+        return Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
                 .calculate(0, normalizeSigned(-follower.pose().heading()), follower.velocity().omega); //TODO: update for ForesightV3
     }
 
@@ -199,39 +200,6 @@ public class ForwardBrakingIdentification extends OpMode {
             state = State.WAIT;
             timer.reset();
         }
-    }
-
-    public static double[] quadraticFit(List<double[]> samples) {
-        double s11 = 0.0;
-        double s12 = 0.0;
-        double s22 = 0.0;
-
-        double t1 = 0.0;
-        double t2 = 0.0;
-
-        for (double[] sample : samples) {
-            double x1 = sample[0];
-            double d = sample[1];
-
-            double x2 = x1 * x1;
-
-            s11 += x1 * x1;
-            s12 += x1 * x2;
-            s22 += x2 * x2;
-
-            t1 += x1 * d;
-            t2 += x2 * d;
-        }
-
-        double det = s11 * s22 - s12 * s12;
-        if (Math.abs(det) < 1e-12) {
-            throw new IllegalArgumentException("Regression matrix is singular.");
-        }
-
-        double b = (t1 * s22 - t2 * s12) / det;
-        double a = (s11 * t2 - s12 * t1) / det;
-
-        return new double[]{b, a};
     }
 
     private enum State {
