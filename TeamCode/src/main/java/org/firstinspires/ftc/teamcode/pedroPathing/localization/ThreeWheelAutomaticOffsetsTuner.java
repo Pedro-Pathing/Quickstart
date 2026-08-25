@@ -145,13 +145,6 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
         trialsCompleted = 0;
     }
 
-    private void resetTrial() {
-        offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
-        follower.setPose(Pose.zero());
-        poses.clear();
-        timer.reset();
-    }
-
     private void executeProcedure() {
         follower.update();
 
@@ -163,13 +156,11 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
         poses.push(follower.pose().toVector2D());
 
         if (timer.seconds() >= TRIAL_RUNTIME / 2.0) {
-            if (trialsCompleted < TRIALS) {
-                trialsCompleted++;
-                resetTrial();
-            } else {
-                if (state.equals(State.LEFT_POD)) {
-                    offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+            offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+            trialsCompleted++;
 
+            if (trialsCompleted >= TRIALS) {
+                if (state.equals(State.LEFT_POD)) {
                     offsetsLeft = offsetResults
                             .stream()
                             .reduce(Vector2D::plus)
@@ -179,11 +170,10 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
                     initRightPod();
                     beginProcedure();
                     state = State.RIGHT_POD;
-                } else if (state.equals(State.RIGHT_POD)) {
+                } else {
                     state = State.IDLE;
+
                     follower.manual(0, 0, 0);
-                    offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
-                    follower.update();
 
                     offsetsRight = offsetResults
                             .stream()
@@ -191,11 +181,11 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
                             .orElse(Vector2D.zero())
                             .div(TRIALS);
                 }
+            } else {
+                follower.setPose(Pose.zero());
+                poses.clear();
+                timer.reset();
             }
-
-            telemetry.addLine("elapsed time (s): " + String.format("%.4f", timer.seconds()));
-        } else {
-            follower.manual(0, 0, POWER);
         }
     }
 

@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 import com.pedropathing.algorithm.Algorithm;
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
+import com.pedropathing.algorithm.ForesightV3;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Matrix;
+import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.OctoQuadConfig;
@@ -67,6 +69,8 @@ public class Constants {
                 Controller largeHeading = Controller.pid(2.28, 0, 0.29);
                 c.headingFeedback.set(largeHeading);
 
+                c.headingBrakeCoefficients.set(Vector2D.cartesian(0.0532, 0.0069));
+
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0633, 0.0633));
                 c.quadraticBrakeCoefficients.set(Matrix.diag(0.00146, 0.00146));
 
@@ -75,6 +79,6 @@ public class Constants {
     );
 
     public static Follower create(HardwareMap h) {
-        return new Follower(new OctoQuadLocalizer(h, localizerConfig), new Mecanum(h, driveConfig), new Foresight(foresightConfig));
+        return new Follower(new OctoQuadLocalizer(h, localizerConfig), new Mecanum(h, driveConfig), new ForesightV3(foresightConfig));
     }
 }

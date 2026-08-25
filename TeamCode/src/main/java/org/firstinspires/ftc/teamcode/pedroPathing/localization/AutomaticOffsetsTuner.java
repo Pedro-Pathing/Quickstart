@@ -81,6 +81,7 @@ public class AutomaticOffsetsTuner extends OpMode {
             poses.push(follower.pose().toVector2D());
 
             if (timer.seconds() >= TRIAL_RUNTIME) {
+                offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
                 trialsCompleted++;
 
                 if (trialsCompleted >= TRIALS) {
@@ -91,17 +92,15 @@ public class AutomaticOffsetsTuner extends OpMode {
                             .orElse(Vector2D.zero())
                             .div(TRIALS);
                 } else {
-                    offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
                     follower.setPose(Pose.zero());
                     poses.clear();
                     timer.reset();
                 }
             } else {
                 follower.manual(0, 0, POWER);
-                telemetry.addLine("elapsed time (s): " + String.format("%.4f", timer.seconds()));
-                telemetry.update();
             }
         } else {
+            follower.manual(0, 0, 0);
             telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
             telemetry.addLine("xPodOffset: " + offsets.y());
             telemetry.addLine("yPodOffset: " + offsets.x());
@@ -110,7 +109,10 @@ public class AutomaticOffsetsTuner extends OpMode {
     }
 
     private Vector2D fitCircle(Vector2D[] points) {
-        points = Arrays.copyOfRange(points, 20, points.length);
+        if (points.length >= 30) {
+            points = Arrays.copyOfRange(points, 20, points.length);
+        }
+
         Circle circle = taubin(points);
         circle = gaussNewton(points, circle);
         return circle.center.times(-1);
