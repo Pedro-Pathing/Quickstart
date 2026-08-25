@@ -19,12 +19,14 @@ import java.util.function.BiFunction;
 
 public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
     public static double POWER = 0.5;
-    public static double RUNTIME = 10;
+    public static double TRIAL_RUNTIME = 6;
+    public static int TRIALS = 4;
     private final Timer timer = new Timer();
-    private boolean done = false;
     private final Stack<Vector2D> poses = new Stack<>();
     private Vector2D offsetsLeft;
     private Vector2D offsetsRight;
+    private int trialsCompleted;
+    private final Stack<Vector2D> offsetResults = new Stack<>();
 
     private static class Circle {
         Vector2D center;
@@ -115,7 +117,7 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
 
     @Override
     public void init_loop() {
-        telemetry.addLine("This will turn continuously in place for " + RUNTIME + " seconds.");
+        telemetry.addLine("This will turn continuously in place for " + TRIAL_RUNTIME + " seconds.");
         telemetry.addLine("Make sure you have enough room.");
         telemetry.update();
         follower.update();
@@ -139,6 +141,15 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
         follower.manual(0, 0, POWER);
         poses.clear();
         follower.update();
+        offsetResults.clear();
+        trialsCompleted = 0;
+    }
+
+    private void resetTrial() {
+        offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+        follower.setPose(Pose.zero());
+        poses.clear();
+        timer.reset();
     }
 
     private void executeProcedure() {
@@ -149,27 +160,42 @@ public class ThreeWheelAutomaticOffsetsTuner extends OpMode {
             requestOpModeStop();
         }
 
-        if (!done) {
-            poses.push(follower.pose().toVector2D());
+        poses.push(follower.pose().toVector2D());
 
-            if (timer.seconds() >= RUNTIME / 2.0) {
-                done = true;
-
+        if (timer.seconds() >= TRIAL_RUNTIME / 2.0) {
+            if (trialsCompleted < TRIALS) {
+                trialsCompleted++;
+                resetTrial();
+            } else {
                 if (state.equals(State.LEFT_POD)) {
-                    offsetsLeft = fitCircle(poses.toArray(new Vector2D[0]));
+                    offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+
+                    offsetsLeft = offsetResults
+                            .stream()
+                            .reduce(Vector2D::plus)
+                            .orElse(Vector2D.zero())
+                            .div(TRIALS);
+
                     initRightPod();
                     beginProcedure();
                     state = State.RIGHT_POD;
                 } else if (state.equals(State.RIGHT_POD)) {
                     state = State.IDLE;
-                }
+                    follower.manual(0, 0, 0);
+                    offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+                    follower.update();
 
-                else offsetsRight = fitCircle(poses.toArray(new Vector2D[0]));
-                follower.manual(0, 0, 0);
-                telemetry.addLine("elapsed time (s): " + String.format("%.4f", timer.seconds()));
-            } else {
-                follower.manual(0, 0, POWER);
+                    offsetsRight = offsetResults
+                            .stream()
+                            .reduce(Vector2D::plus)
+                            .orElse(Vector2D.zero())
+                            .div(TRIALS);
+                }
             }
+
+            telemetry.addLine("elapsed time (s): " + String.format("%.4f", timer.seconds()));
+        } else {
+            follower.manual(0, 0, POWER);
         }
     }
 

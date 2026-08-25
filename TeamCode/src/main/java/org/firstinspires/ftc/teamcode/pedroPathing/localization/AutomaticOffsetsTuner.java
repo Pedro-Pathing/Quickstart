@@ -14,12 +14,15 @@ import java.util.Stack;
 
 @TeleOp(group = "1")
 public class AutomaticOffsetsTuner extends OpMode {
-    public static double POWER = 0.5;
-    public static double RUNTIME = 5;
+    public static double POWER = 0.3;
+    public static double TRIAL_RUNTIME = 3;
+    public static int TRIALS = 4;
     private final Timer timer = new Timer();
     private boolean done = false;
     private final Stack<Vector2D> poses = new Stack<>();
+    private final Stack<Vector2D> offsetResults = new Stack<>();
     private Vector2D offsets;
+    private int trialsCompleted;
 
     private static class Circle {
         Vector2D center;
@@ -55,7 +58,7 @@ public class AutomaticOffsetsTuner extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addLine("This will turn continuously in place for " + RUNTIME + " seconds.");
+        telemetry.addLine("This will turn continuously in place for " + TRIAL_RUNTIME * TRIALS + " seconds.");
         telemetry.addLine("Make sure you have enough room.");
         telemetry.update();
         follower.update();
@@ -77,21 +80,33 @@ public class AutomaticOffsetsTuner extends OpMode {
         if (!done) {
             poses.push(follower.pose().toVector2D());
 
-            if (timer.seconds() >= RUNTIME) {
-                done = true;
-                offsets = fitCircle(poses.toArray(new Vector2D[0]));
-                follower.manual(0, 0, 0);
-                telemetry.addLine("elapsed time (s): " + String.format("%.4f", timer.seconds()));
+            if (timer.seconds() >= TRIAL_RUNTIME) {
+                trialsCompleted++;
+
+                if (trialsCompleted >= TRIALS) {
+                    done = true;
+                    offsets = offsetResults
+                            .stream()
+                            .reduce(Vector2D::plus)
+                            .orElse(Vector2D.zero())
+                            .div(TRIALS);
+                } else {
+                    offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+                    follower.setPose(Pose.zero());
+                    poses.clear();
+                    timer.reset();
+                }
             } else {
                 follower.manual(0, 0, POWER);
-                return;
+                telemetry.addLine("elapsed time (s): " + String.format("%.4f", timer.seconds()));
+                telemetry.update();
             }
+        } else {
+            telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
+            telemetry.addLine("xPodOffset: " + offsets.y());
+            telemetry.addLine("yPodOffset: " + offsets.x());
+            telemetry.update();
         }
-
-        telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
-        telemetry.addLine("xPodOffset: " + offsets.y());
-        telemetry.addLine("yPodOffset: " + offsets.x());
-        telemetry.update();
     }
 
     private Vector2D fitCircle(Vector2D[] points) {
