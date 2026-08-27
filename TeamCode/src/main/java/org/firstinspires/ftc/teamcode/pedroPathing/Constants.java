@@ -59,14 +59,14 @@ public class Constants {
                 Controller smallTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.0005));
                 Controller largeTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.01));
 
-                c.forwardTranslational.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalForward).put(2.5, largeTranslationalForward));
-                c.strafeTranslational.set(Controller.piecewise(Controller.staticFeedforward(0)).put(0.5, smallTranslationalLateral).put(2.5, largeTranslationalLateral));
+                c.forwardTranslational.set(Controller.piecewise(smallTranslationalForward).put(2.5, largeTranslationalForward));
+                c.strafeTranslational.set(Controller.piecewise(smallTranslationalLateral).put(2.5, largeTranslationalLateral));
 
                 c.brake.set(Controller.proportionalFeedforward(0.009));
 
                 c.maxBrakingPower.set(0.3);
 
-                Controller largeHeading = Controller.pid(2.28, 0, 0.29);
+                Controller largeHeading = Controller.pid(2, 0, 0);
                 c.headingFeedback.set(largeHeading);
 
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.0532, 0.0069));
@@ -74,7 +74,17 @@ public class Constants {
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0633, 0.0633));
                 c.quadraticBrakeCoefficients.set(Matrix.diag(0.00146, 0.00146));
 
+                c.maxAchievableStrafeVelocity.set(150.0);
+                c.maxAchievableForwardVelocity.set(150.0);
+
+                c.naturalForwardDeceleration.set(64.33);
+                c.naturalStrafeDeceleration.set(48.43);
+
+                c.coast.set(Controller.proportionalFeedforward(0.0105).plus(Controller.staticFeedforward(0.015)));
+
                 c.cosineScale.set(false);
+
+                c.headingDriveRatio.set(0.0);
             }
     );
 
