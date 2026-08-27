@@ -33,7 +33,7 @@ public class ForwardBrakingIdentification extends OpMode {
     private static double[] POWERS;
 
     public static int trials = 12;
-    public static double maxPower = 1;
+    public static double maxPower = 0.7;
     public static double minPower = 0.2;
     public static double bias = 1.5; // how much it favors doing trials with higher powers
     public static double brakingPower = 0.001;
