@@ -54,10 +54,10 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
-                Controller largeTranslationalForward = Controller.pid(0.0206,0,0).plus(Controller.staticFeedforward(0.01));
+                Controller largeTranslationalForward = Controller.pid(0.0206,0,0).plus(Controller.staticFeedforward(0.0));
                 Controller smallTranslationalForward = Controller.pid(0.0138,0,0);
-                Controller smallTranslationalLateral = Controller.pid(.0340,0,0).plus(Controller.staticFeedforward(0.0005));
-                Controller largeTranslationalLateral = Controller.pid(.0227,0,0).plus(Controller.staticFeedforward(0.01));
+                Controller smallTranslationalLateral = Controller.pid(.0340,0,0).plus(Controller.staticFeedforward(0.000));
+                Controller largeTranslationalLateral = Controller.pid(.0227,0,0).plus(Controller.staticFeedforward(0.0));
 
                 c.forwardTranslational.set(Controller.piecewise(smallTranslationalForward).put(2.5, largeTranslationalForward));
                 c.strafeTranslational.set(Controller.piecewise(smallTranslationalLateral).put(2.5, largeTranslationalLateral));
