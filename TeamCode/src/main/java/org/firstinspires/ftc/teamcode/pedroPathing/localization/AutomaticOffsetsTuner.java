@@ -104,8 +104,8 @@ public class AutomaticOffsetsTuner extends OpMode {
         } else {
             follower.manual(0, 0, 0);
             telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
-            telemetry.addLine("xPodOffset: " + offsets.y());
-            telemetry.addLine("yPodOffset: " + offsets.x());
+            telemetry.addLine("xPodOffset: " + -offsets.x());
+            telemetry.addLine("yPodOffset: " + offsets.y());
             telemetry.update();
         }
     }
