@@ -57,23 +57,16 @@ public class CompoundCurve extends OpMode {
         telemetry.addData("Calculation Nano Time", System.nanoTime() - nanoBefore);
         telemetry.addData("Calculation Ms", 1e-6 * (System.nanoTime() - nanoBefore));
 
-        Foresight foresight = (Foresight) follower.getAlgorithm();
-
-        if (follower.distanceToEndpoint() < 5 && foresight.testVelocity()) {
+        if (follower.distanceToEndpoint() < 5) {
             follower.follow(path);
         }
 
         telemetry.addData("velocity", follower.velocity().toVector2D().x());
-        telemetry.addData("targetVelocity", foresight.getTargetVelocity());
-        telemetry.addData("error", Math.max(follower.velocity().toVector2D().x() - foresight.getTargetVelocity(), 0));
-
         telemetry.addData("Loop Time Hz", 1000/loopTime);
         telemetry.addData("Mode", follower.mode());
         telemetry.addData("Following?", follower.following());
         telemetry.addData("Busy", follower.isBusy());
         telemetry.addData("Parametric End", follower.atParametricEnd());
-        telemetry.addData("TranslationalError", foresight.getTranslationalError());
-        telemetry.addData("Velocity", foresight.testVelocity());
         telemetry.addData("Distance", follower.distanceToEndpoint());
         telemetry.addData("Pose", follower.pose());
         telemetry.addData("forward", forward);
