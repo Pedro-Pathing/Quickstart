@@ -31,6 +31,7 @@ import java.util.List;
 @TeleOp(group = "2")
 public class ForwardBrakingIdentification extends OpMode {
     private static double[] POWERS;
+    public static double MAX_BRAKE_TIME = 4; //seconds, the robot shouldn't take longer than this to brake
 
     public static int trials = 12;
     public static double maxPower = 1;
@@ -149,13 +150,14 @@ public class ForwardBrakingIdentification extends OpMode {
 
                     brake();
                     state = State.BRAKE;
+                    timer.reset();
                     break;
                 }
                 drive();
                 break;
             }
             case BRAKE: {
-                if (follower.velocity().toVector2D().magnitude() > 0.001) {
+                if (follower.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_BRAKE_TIME) {
                     brake();
                     break;
                 }
