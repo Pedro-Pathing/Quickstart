@@ -31,7 +31,7 @@ import java.util.List;
 @TeleOp(group = "2")
 public class ForwardBrakingIdentification extends OpMode {
     private static double[] POWERS;
-    public static double MAX_BRAKE_TIME = 4; //seconds, the robot shouldn't take longer than this to brake
+    public static double MAX_BRAKE_TIME = 5; //seconds, the robot shouldn't take longer than this to brake
 
     public static int trials = 12;
     public static double maxPower = 0.7;
