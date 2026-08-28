@@ -1,29 +1,18 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
-import com.pedropathing.algorithm.Algorithm;
-import com.pedropathing.algorithm.Foresight;
+
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.algorithm.ForesightV3;
 import com.pedropathing.controllers.Controller;
-import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
-import com.pedropathing.revhub.localizers.OctoQuadConfig;
-import com.pedropathing.revhub.localizers.OctoQuadLocalizer;
 import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
-import com.pedropathing.revhub.localizers.ThreeWheelConfig;
-import com.pedropathing.revhub.localizers.ThreeWheelLocalizer;
-import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.firstinspires.ftc.robotcore.external.Function;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static MecanumConfig driveConfig = new MecanumConfig(
@@ -54,21 +43,22 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
-                Controller largeTranslationalForward = Controller.pid(0.0206,0,0).plus(Controller.staticFeedforward(0.0));
-                Controller smallTranslationalForward = Controller.pid(0.0138,0,0);
-                Controller smallTranslationalLateral = Controller.pid(.0340,0,0).plus(Controller.staticFeedforward(0.000));
-                Controller largeTranslationalLateral = Controller.pid(.0227,0,0).plus(Controller.staticFeedforward(0.0));
+                Controller largeTranslationalForward = Controller.proportional(.3);
+                Controller smallTranslationalForward = Controller.proportional(.1);
+                Controller smallTranslationalLateral = Controller.proportional(.1);
+                Controller largeTranslationalLateral = Controller.proportional(.3);
 
                 c.forwardTranslational.set(Controller.piecewise(smallTranslationalForward).put(2.5, largeTranslationalForward));
                 c.strafeTranslational.set(Controller.piecewise(smallTranslationalLateral).put(2.5, largeTranslationalLateral));
 
-                c.brake.set(Controller.proportionalFeedforward(0.009));
+                c.brake.set(Controller.proportionalFeedforward(0.005)); // 0.009
 
                 c.maxBrakingPower.set(0.3);
 
-                Controller largeHeading = Controller.pid(2.4, 0, 0);
-                c.headingFeedback.set(largeHeading);
+                Controller largeHeading = Controller.proportional(2.4*3); // 2.4
+                Controller smallHeading = Controller.proportional(1.3*3); // 1.3
 
+                c.headingFeedback.set(Controller.piecewise(smallHeading).put(Math.PI/10, largeHeading));
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.0532, 0.0069));
 
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0978, 0.0978));
@@ -78,12 +68,6 @@ public class Constants {
                 c.maxAchievableStrafeVelocity.set(56.2425);
                 c.naturalForwardDeceleration.set(73.5);
                 c.naturalStrafeDeceleration.set(65.03);
-
-                c.maxAchievableStrafeVelocity.set(150.0);
-                c.maxAchievableForwardVelocity.set(150.0);
-
-                c.naturalForwardDeceleration.set(64.33);
-                c.naturalStrafeDeceleration.set(48.43);
 
                 c.coast.set(Controller.proportionalFeedforward(0.0105).plus(Controller.staticFeedforward(0.015)));
 
