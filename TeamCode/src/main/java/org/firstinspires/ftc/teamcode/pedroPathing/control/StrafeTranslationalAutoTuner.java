@@ -105,8 +105,8 @@ public class StrafeTranslationalAutoTuner extends OpMode {
         telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
         telemetry.addData("Est kV", kV);
         telemetry.addData("Est kA", kA);
-        telemetry.addData("Large Coefficients", "kP=" + String.format("%.4f", kP_large));
-        telemetry.addData("Small Coefficients", "kP=" + String.format("%.4f", kP_small));
+        telemetry.addData("Primary Strafe Translational", "kP=" + String.format("%.4f", kP_large));
+        telemetry.addData("Secondary Strafe Translational", "kP=" + String.format("%.4f", kP_small));
     }
 
     private double calculatekP(double beta) {
