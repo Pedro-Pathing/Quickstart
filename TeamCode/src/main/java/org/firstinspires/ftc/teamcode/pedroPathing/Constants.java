@@ -56,21 +56,21 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
-                Controller largeTranslationalForward = Controller.pid(0.07,0,0).plus(Controller.staticFeedforward(0.01));
-                Controller smallTranslationalForward = Controller.pid(0.07,0,0);
-                Controller smallTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.0005));
-                Controller largeTranslationalLateral = Controller.pid(.12,0,0).plus(Controller.staticFeedforward(0.01));
+                Controller largeTranslationalForward = Controller.proportional(.3);
+                Controller smallTranslationalForward = Controller.proportional(.1);
+                Controller smallTranslationalLateral = Controller.proportional(.1);
+                Controller largeTranslationalLateral = Controller.proportional(.3);
 
                 c.forwardTranslational.set(Controller.piecewise(smallTranslationalForward).put(2.5, largeTranslationalForward));
                 c.strafeTranslational.set(Controller.piecewise(smallTranslationalLateral).put(2.5, largeTranslationalLateral));
 
-                c.brake.set(Controller.proportionalFeedforward(0.009));
+                c.brake.set(Controller.proportionalFeedforward(0.005)); // 0.009
 
                 c.maxBrakingPower.set(0.3);
 
-                Controller largeHeading = Controller.pid(2, 0, 0);
-                c.headingFeedback.set(largeHeading);
+                Controller largeHeading = Controller.proportional(7.2);
 
+                c.headingFeedback.set(largeHeading);
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.0532, 0.0069));
 
                 c.linearBrakeCoefficients.set(Matrix.diag(0.0633, 0.0633));
