@@ -1,326 +1,149 @@
 package org.firstinspires.ftc.teamcode.autonomous;
-
-// Pedro Pathing imports
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
-
-// FTC imports
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-// Math
-
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.TelemetryManager;
+import com.bylazar.telemetry.PanelsTelemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.geometry.Pose;
 
 
-@Autonomous(name = "BigPrattsAuto")
+
+@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Configurable // Panels
 public class SampleAutoPathing extends OpMode {
-
-    // ============================================================
-    // PEDRO PATHING
-    // ============================================================
-
-    private Follower follower;
-
-    // Timers
-    private Timer pathTimer;
-    private Timer opModeTimer;
+    private TelemetryManager panelsTelemetry; // Panels Telemetry instance
+    public Follower follower; // Pedro Pathing follower instance
+    private int pathState; // Current autonomous path state (state machine)
+    private Paths paths; // Paths defined in the Paths class
 
 
-    // ============================================================
-    // STATE MACHINE
-    // ============================================================
 
-    public enum PathState {
-        DRIVE_START_POSITION_TO_SHOOT_POSITION,
-        SHOOT_PRELOAD,
-        SHOOT_POSITION_TO_END_POSITION
-    }
-
-    private PathState pathState;
+    @Override
+    public void init() {
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
 
-    // ============================================================
-    // POSES
-    // ============================================================
 
-    /*
-     * Replace these X/Y values with the coordinates from the
-     * Pedro Pathing visualizer used in the video.
-     *
-     * The video uses a 138 degree heading for the start/shoot
-     * poses and 90 degrees for the final pose.
-     */
-
-    private final Pose startPose = new Pose(
-            21.618,
-            118.43,
-            Math.toRadians(90)
-    );
-
-    private final Pose shootPose = new Pose(
-            51.24,
-            89.73,
-            Math.toRadians(180)
-    );
-
-    private final Pose endPose = new Pose(
-            62.68,
-            103.52,
-            Math.toRadians(0)
-    );
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
 
 
-    // ============================================================
-    // PATH CHAINS
-    // ============================================================
 
-    private PathChain driveStartPositionToShootPosition;
-    private PathChain driveShootPositionToEndPosition;
+        paths = new Paths(follower); // Build paths
 
 
-    // ============================================================
-    // BUILD PATHS
-    // ============================================================
 
-    public void buildPaths() {
-
-        // --------------------------------------------------------
-        // PATH 1:
-        // Start position -> Shoot position
-        // --------------------------------------------------------
-
-        driveStartPositionToShootPosition = follower
-                .pathBuilder()
-                .addPath(
-                        new BezierLine(
-                                startPose,
-                                shootPose
-                        )
-                )
-                .setLinearHeadingInterpolation(
-                        startPose.getHeading(),
-                        shootPose.getHeading()
-                )
-                .build();
-
-
-        // --------------------------------------------------------
-        // PATH 2:
-        // Shoot position -> End position
-        // --------------------------------------------------------
-
-        driveShootPositionToEndPosition = follower
-                .pathBuilder()
-                .addPath(
-                        new BezierLine(
-                                shootPose,
-                                endPose
-                        )
-                )
-                .setLinearHeadingInterpolation(
-                        shootPose.getHeading(),
-                        endPose.getHeading()
-                )
-                .build();
+        panelsTelemetry.debug("Status", "Initialized");
+        panelsTelemetry.update(telemetry);
     }
 
 
-    // ============================================================
-    // STATE MACHINE UPDATE
-    // ============================================================
 
-    public void statePathUpdate() {
-
-        switch (pathState) {
-
-            // ----------------------------------------------------
-            // STATE 1
-            // Drive from start -> shoot
-            // ----------------------------------------------------
-
-            case DRIVE_START_POSITION_TO_SHOOT_POSITION:
-
-                follower.followPath(
-                        driveStartPositionToShootPosition,
-                        true
-                );
-
-                setPathState(
-                        PathState.SHOOT_PRELOAD
-                );
-
-                break;
+    @Override
+    public void loop() {
+        follower.update(); // Update Pedro Pathing
+        pathState = autonomousPathUpdate(); // Update autonomous state machine
 
 
-            // ----------------------------------------------------
-            // STATE 2
-            // Shoot preload
-            // ----------------------------------------------------
 
-            case SHOOT_PRELOAD:
-
-                /*
-                 * Wait until the first path is finished AND
-                 * at least 5 seconds have elapsed.
-                 */
-
-                if (!follower.isBusy()
-                        && pathTimer.getElapsedTimeSeconds() > 5) {
-
-                    telemetry.addLine("Done Path 1");
-
-                    /*
-                     * In a real robot this is where your
-                     * shooting/flywheel logic would go.
-                     */
-
-                    follower.followPath(
-                            driveShootPositionToEndPosition,
-                            true
-                    );
-
-                    setPathState(
-                            PathState.SHOOT_POSITION_TO_END_POSITION
-                    );
-                }
-
-                break;
+// Log values to Panels and Driver Station
+        panelsTelemetry.debug("Path State", pathState);
+        panelsTelemetry.debug("X", follower.getPose().getX());
+        panelsTelemetry.debug("Y", follower.getPose().getY());
+        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
+        panelsTelemetry.update(telemetry);
+    }
 
 
-            // ----------------------------------------------------
-            // STATE 3
-            // Drive from shoot -> end
-            // ----------------------------------------------------
 
-            case SHOOT_POSITION_TO_END_POSITION:
-
-                if (!follower.isBusy()) {
-
-                    telemetry.addLine("Done All Paths");
-                }
-
-                break;
+    public static class Paths {
+        public PathChain MainChain;
 
 
-            // ----------------------------------------------------
-            // DEFAULT
-            // ----------------------------------------------------
 
-            default:
-
-                telemetry.addLine("No State Commanded");
-
-                break;
+        public Paths(Follower follower) {
+            MainChain = follower.pathBuilder()
+                    .addPath(
+                            new BezierLine(
+                                    new Pose(20.509, 120.639),
+                                    new Pose(56.832, 83.276)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(12.062, 81.884),
+                                    new Pose(33.628, 83.185),
+                                    new Pose(63.194, 82.485)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(63.194, 82.485),
+                                    new Pose(58.818, 52.194),
+                                    new Pose(10.863, 58.585)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .addPath(
+                            new BezierLine(
+                                    new Pose(10.863, 58.585),
+                                    new Pose(60.478, 84.228)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(60.478, 84.228),
+                                    new Pose(77.501, 27.500),
+                                    new Pose(10.902, 34.795)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .addPath(
+                            new BezierLine(
+                                    new Pose(10.902, 34.795),
+                                    new Pose(59.650, 84.040)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .addPath(
+                            new BezierLine(
+                                    new Pose(59.650, 84.040),
+                                    new Pose(59.830, 115.365)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .build();
         }
     }
 
 
-    // ============================================================
-    // SET PATH STATE
-    // ============================================================
 
-    public void setPathState(PathState newState) {
+    public int autonomousPathUpdate() {
 
-        pathState = newState;
+        switch (pathState) {
 
-        // Reset timer whenever we enter a new state
-        pathTimer.resetTimer();
-    }
+            case 0:
+                follower.followPath(paths.MainChain);
+                return 1;
 
+            case 1:
+                if (!follower.isBusy()) {
+                    return 2;
+                }
+                break;
+        }
 
-    // ============================================================
-    // INIT
-    // ============================================================
-
-    @Override
-    public void init() {
-
-        // Initial state
-        pathState =
-                PathState.DRIVE_START_POSITION_TO_SHOOT_POSITION;
-
-        // Create timers
-        pathTimer = new Timer();
-        opModeTimer = new Timer();
-
-        // Reset op mode timer
-        opModeTimer.resetTimer();
-
-        // Create Pedro Pathing follower
-        follower = Constants.createFollower(hardwareMap);
-
-        // Build all paths before autonomous starts
-        buildPaths();
-
-        // Tell Pedro where the robot physically starts
-        follower.setStartingPose(startPose);
-    }
-
-
-    // ============================================================
-    // START
-    // ============================================================
-
-    @Override
-    public void start() {
-
-        // Reset op mode timer
-        opModeTimer.resetTimer();
-
-        // Start the state machine
-        setPathState(
-                PathState.DRIVE_START_POSITION_TO_SHOOT_POSITION
-        );
-    }
-
-
-    // ============================================================
-    // LOOP
-    // ============================================================
-
-    @Override
-    public void loop() {
-
-        // Pedro Pathing MUST be updated every loop
-        follower.update();
-
-        // Update our state machine
-        statePathUpdate();
-
-
-        // --------------------------------------------------------
-        // TELEMETRY
-        // --------------------------------------------------------
-
-        telemetry.addData(
-                "Path State",
-                pathState.toString()
-        );
-
-        telemetry.addData(
-                "X",
-                follower.getPose().getX()
-        );
-
-        telemetry.addData(
-                "Y",
-                follower.getPose().getY()
-        );
-
-        telemetry.addData(
-                "Heading",
-                follower.getPose().getHeading()
-        );
-
-        telemetry.addData(
-                "Path Time",
-                pathTimer.getElapsedTimeSeconds()
-        );
-
-        telemetry.update();
+        return pathState;
     }
 }

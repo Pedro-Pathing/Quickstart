@@ -17,7 +17,7 @@ public class Constants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(10)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.0661548, 0.00142733))
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.04570170496436661, 0.001962488318085352))
             .forwardZeroPowerAcceleration(-37.6795)
             .lateralZeroPowerAcceleration(-68.28657)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.025, 0, 0.0001, 0.04))
