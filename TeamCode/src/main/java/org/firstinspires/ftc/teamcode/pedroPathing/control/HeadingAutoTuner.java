@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 @TeleOp(group = "3")
 public class HeadingAutoTuner extends OpMode {
     private static final double ALPHA_LARGE = 0.6;
