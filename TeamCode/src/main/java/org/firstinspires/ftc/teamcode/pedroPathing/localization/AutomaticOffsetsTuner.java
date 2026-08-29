@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.localization;
 
+import android.util.Log;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Pose;
@@ -15,14 +17,15 @@ import java.util.Stack;
 @TeleOp(group = "1")
 public class AutomaticOffsetsTuner extends OpMode {
     public static double POWER = 0.3;
-    public static double TRIAL_RUNTIME = 3;
-    public static int TRIALS = 5;
+    public static double TRIAL_RUNTIME = 8;
+    public static int TRIALS = 1;
     private final Timer timer = new Timer();
     private boolean done = false;
     private final Stack<Vector2D> poses = new Stack<>();
     private final Stack<Vector2D> offsetResults = new Stack<>();
     private Vector2D offsets;
     private int trialsCompleted;
+    public static int IRLS_PASSES = 5;
 
     private static class Circle {
         Vector2D center;
@@ -79,9 +82,10 @@ public class AutomaticOffsetsTuner extends OpMode {
 
         if (!done) {
             poses.push(follower.pose().toVector2D());
+            Log.e("p", follower.pose().toString());
 
             if (timer.seconds() >= TRIAL_RUNTIME) {
-                offsetResults.push(fitCircle(poses.toArray(new Vector2D[0])));
+                offsetResults.push(fitCircleRobust(poses.toArray(new Vector2D[0])));
                 trialsCompleted++;
 
                 if (trialsCompleted >= TRIALS) {
@@ -104,8 +108,8 @@ public class AutomaticOffsetsTuner extends OpMode {
         } else {
             follower.manual(0, 0, 0);
             telemetry.addLine("The following values are the offsets in inches that should be applied to your localizer.");
-            telemetry.addLine("xPodOffset: " + -offsets.x());
-            telemetry.addLine("yPodOffset: " + offsets.y());
+            telemetry.addLine("xPodOffset: " + -offsets.y());
+            telemetry.addLine("yPodOffset: " + -offsets.x());
             telemetry.update();
         }
     }
@@ -118,6 +122,41 @@ public class AutomaticOffsetsTuner extends OpMode {
         Circle circle = taubin(points);
         circle = gaussNewton(points, circle);
         return circle.center.times(-1);
+    }
+
+    private Vector2D fitCircleRobust(Vector2D[] points) {
+        if (points.length >= 30) {
+            points = Arrays.copyOfRange(points, 20, points.length);
+        }
+
+        Circle circle = taubin(points);
+        double[] w = new double[points.length];
+        Arrays.fill(w, 1.0);
+        circle = weightedGaussNewton(points, circle, w);
+
+        for (int pass = 1; pass < IRLS_PASSES; pass++) {
+            double[] res = new double[points.length];
+            for (int i = 0; i < points.length; i++) {
+                double dx = points[i].x() - circle.center.x();
+                double dy = points[i].y() - circle.center.y();
+                res[i] = Math.abs(Math.sqrt(dx * dx + dy * dy) - circle.radius);
+            }
+            double mad = medianAbs(res);
+            double thresh = Math.max(mad * 1.4826, 1e-6) * 2.5; // ~2.5 robust-sigma cutoff
+            for (int i = 0; i < points.length; i++) {
+                w[i] = res[i] <= thresh ? 1.0 : thresh / res[i];
+            }
+            circle = weightedGaussNewton(points, circle, w);
+        }
+
+        return circle.center.times(-1);
+    }
+
+    private static double medianAbs(double[] a) {
+        double[] copy = Arrays.copyOf(a, a.length);
+        Arrays.sort(copy);
+        int n = copy.length;
+        return n % 2 == 0 ? (copy[n / 2 - 1] + copy[n / 2]) / 2.0 : copy[n / 2];
     }
 
     private static Circle taubin(Vector2D[] pts) {
@@ -237,5 +276,62 @@ public class AutomaticOffsetsTuner extends OpMode {
 
         Vector2D center = Vector2D.cartesian(a, b);
         return new Circle(center, r);
+    }
+
+    private static Circle weightedGaussNewton(Vector2D[] pts, Circle init, double[] w) {
+        double a = init.center.x();
+        double b = init.center.y();
+        double r = init.radius;
+        int n = pts.length;
+
+        for (int iter = 0; iter < 200; iter++) {
+            double[] res = new double[n];
+            double[] da = new double[n];
+            double[] db = new double[n];
+            double[] dr = new double[n];
+
+            for (int i = 0; i < n; i++) {
+                double dx = pts[i].x() - a;
+                double dy = pts[i].y() - b;
+                double dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 1e-4) continue;
+                res[i] = dist - r;
+                da[i] = -dx / dist;
+                db[i] = -dy / dist;
+                dr[i] = -1.0;
+            }
+
+            double[][] jCols = {da, db, dr};
+            double[][] JtJ_data = new double[3][3];
+            double[][] Jtf_data = new double[3][1];
+
+            for (int row = 0; row < 3; row++) {
+                double jtf = 0;
+                for (int i = 0; i < n; i++) jtf += w[i] * jCols[row][i] * res[i];
+                Jtf_data[row][0] = jtf;
+
+                for (int col = 0; col < 3; col++) {
+                    double jtj = 0;
+                    for (int i = 0; i < n; i++) jtj += w[i] * jCols[row][i] * jCols[col][i];
+                    JtJ_data[row][col] = jtj;
+                }
+            }
+
+            Matrix JtJ = new Matrix(JtJ_data);
+            Matrix Jtf = new Matrix(Jtf_data);
+
+            double gradNorm = 0;
+            for (int i = 0; i < 3; i++) gradNorm += Jtf.get(i, 0) * Jtf.get(i, 0);
+            if (Math.sqrt(gradNorm) * 2 < 1e-12) break;
+
+            Matrix invJtJ = Matrix.inverse3x3(JtJ);
+            Matrix delta = invJtJ.times(Jtf);
+
+            a -= delta.get(0, 0);
+            b -= delta.get(1, 0);
+            r -= delta.get(2, 0);
+        }
+
+        return new Circle(Vector2D.cartesian(a, b), r);
     }
 }
