@@ -16,10 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp(group = "3")
-public class ForwardTranslationalAutoTuner extends OpMode {
-    public static double BETA_LARGE = 0.042577;
-    public static double BETA_SMALL = 0.12773;
-    public static double VEL_AGGRESSIVENESS = 0.85;
+public class HeadingPredictiveAutoTuner extends OpMode {
+    public static double BETA = 0.03861;
 
     private static final double POWER = 0.4;
     private static final double RUNTIME = 1.2;
@@ -58,7 +56,7 @@ public class ForwardTranslationalAutoTuner extends OpMode {
         follower.setPose(Pose.zero());
         timer.reset();
         lastTime = timer.seconds();
-        follower.manual(POWER, 0, 0);
+        follower.manual(0, 0, POWER);
         follower.update();
     }
 
@@ -80,10 +78,10 @@ public class ForwardTranslationalAutoTuner extends OpMode {
         if (!done) {
             times.add(timer.seconds());
 
-            double forwardVelocity = Math.abs(follower.twist().toVector2D().x());
-            vMax = Math.max(vMax, forwardVelocity / POWER);
+            double turnVel = Math.abs(follower.twist().omega());
+            vMax = Math.max(vMax, turnVel / POWER);
 
-            velocities.add(forwardVelocity);
+            velocities.add(turnVel);
             telemetry.addData("velocity (in/s)", String.format("%.4f", velocities.get(velocities.size() - 1)));
 
             if (timer.seconds() >= RUNTIME) {
@@ -93,27 +91,24 @@ public class ForwardTranslationalAutoTuner extends OpMode {
                 follower.manual(0, 0, 0);
                 telemetry.addData("elapsed time (s)", String.format("%.4f", timer.seconds()));
             } else {
-                follower.manual(POWER, 0, 0);
+                follower.manual(0, 0, POWER);
                 return;
             }
         }
 
-        double kP_large = calculatekP(BETA_LARGE);
-        double kP_small = calculatekP(BETA_SMALL);
+        double kP_large = calculatekP(BETA);
 
         telemetry.addData("Est tau (s)", String.format("%.4f", tau));
         telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
         telemetry.addData("Est kV", kV);
         telemetry.addData("Est kA", kA);
-        telemetry.addData("Primary Forward Translational", "kP=" + String.format("%.4f", kP_large));
-        telemetry.addData("Secondary Forward Translational", "kP=" + String.format("%.4f", kP_small));
-        telemetry.addData("Drive Feedforward", "kV=" + String.format("%.4f", kV * VEL_AGGRESSIVENESS));
+        telemetry.addData("Primary Heading Coefficients", "kP=" + String.format("%.4f", kP_large));
     }
 
     private double calculatekP(double beta) {
         kV = 1 / K;
         kA = tau / K * beta;
-        double denominator = foresightConfig.linearBrakeCoefficients.get().get(0,0) + 2.0 * foresightConfig.quadraticBrakeCoefficients.get().get(0,0) * vMax;
+        double denominator = foresightConfig.headingBrakeCoefficients.get().x() + 2.0 * foresightConfig.headingBrakeCoefficients.get().y() * vMax;
         double discriminant = kA - kV * denominator;
 
         if (discriminant < 0) return kV * kV / (4.0 * kA);
