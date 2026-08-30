@@ -7,6 +7,7 @@ import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.*;
 
@@ -40,7 +41,6 @@ public class PinpointTuner extends Procedure {
         boolean strafePodReversed = runOpMode(new StrafeDirection(pinpointName.get(), podType.get(), customPodScalar));
 
         ArrayList<Double> offsets = runOpMode(new Offsets(pinpointName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed));
-
 
         result("name", pinpointName.get());
 
@@ -186,7 +186,7 @@ class StrafeDirection extends TuningOpMode<Boolean> {
 class Offsets extends TuningOpMode<ArrayList<Double>> {
     String name;
     PinpointTuner.PodType podType;
-    OptionalDouble customPodScalar;
+    OptionalDouble customPodScalar =  OptionalDouble.empty();
     boolean forwardPodReversed, strafePodReversed;
 
     public Offsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
@@ -196,7 +196,9 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
                 true);
         this.name = name;
         this.podType = podType;
-        this.customPodScalar = customPodScalar;
+        if (customPodScalar.isPresent()) {
+            this.customPodScalar = customPodScalar;
+        }
         this.forwardPodReversed = forwardPodReversed;
         this.strafePodReversed = strafePodReversed;
     }
@@ -207,8 +209,8 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
             c.name.set(name);
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.yPodDirection.set(strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
-            if (customPodScalar.isPresent()) {
-                c.ticksPerUnit.set(customPodScalar);
+            if (!customPodScalar.isPresent()) {
+                c.encoderResolutionUnit.set(DistanceUnit.INCH); c.ticksPerUnit.set(customPodScalar);
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
             }
@@ -217,6 +219,7 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
+        localizer.update();
         waitForStart();
         while (!isStopRequested()) {
             localizer.update();
