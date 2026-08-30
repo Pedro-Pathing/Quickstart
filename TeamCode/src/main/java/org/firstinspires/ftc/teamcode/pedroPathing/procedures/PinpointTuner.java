@@ -36,8 +36,8 @@ public class PinpointTuner extends Procedure {
             customPodScalar = OptionalDouble.of(runOpMode(new CustomPodScalar(distance.get(), pinpointName.get())));
         }
 
-        boolean forwardPodReversed = runOpMode(new ForwardDirection(pinpointName.get()));
-        boolean strafePodReversed = runOpMode(new StrafeDirection(pinpointName.get()));
+        boolean forwardPodReversed = runOpMode(new ForwardDirection(pinpointName.get(), podType.get(), customPodScalar));
+        boolean strafePodReversed = runOpMode(new StrafeDirection(pinpointName.get(), podType.get(), customPodScalar));
 
         ArrayList<Double> offsets = runOpMode(new Offsets(pinpointName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed));
 
@@ -105,13 +105,17 @@ class CustomPodScalar extends TuningOpMode<Double> {
 
 class ForwardDirection extends TuningOpMode<Boolean> {
     String name;
+    PinpointTuner.PodType podType;
+    OptionalDouble customPodScalar;
 
-    public ForwardDirection(String name) {
+    public ForwardDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
         super("Forward Direction Identification",
                 "Determines if your forward pod needs to be reversed. \n"
                         + "Push your robot forward and then stop the Opmode",
                 true);
         this.name = name;
+        this.podType = podType;
+        this.customPodScalar = customPodScalar;
     }
 
     @Override
@@ -122,7 +126,11 @@ class ForwardDirection extends TuningOpMode<Boolean> {
             c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.xPodOffset.set(0.0);
             c.yPodOffset.set(0.0);
-            c.ticksPerUnit.set(OptionalDouble.of(1.0));
+            if (customPodScalar.isPresent()) {
+                c.ticksPerUnit.set(customPodScalar);
+            } else {
+                c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+            }
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
@@ -137,13 +145,17 @@ class ForwardDirection extends TuningOpMode<Boolean> {
 
 class StrafeDirection extends TuningOpMode<Boolean> {
     String name;
+    PinpointTuner.PodType podType;
+    OptionalDouble customPodScalar;
 
-    public StrafeDirection(String name) {
+    public StrafeDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
         super("Strafe Direction Identification",
                 "Determines if your strafe pod needs to be reversed. \n"
                         + "Push your robot to the side and then stop the Opmode",
                 true);
         this.name = name;
+        this.podType = podType;
+        this.customPodScalar = customPodScalar;
     }
 
     @Override
@@ -154,7 +166,11 @@ class StrafeDirection extends TuningOpMode<Boolean> {
             c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.xPodOffset.set(0.0);
             c.yPodOffset.set(0.0);
-            c.ticksPerUnit.set(OptionalDouble.of(1.0));
+            if (customPodScalar.isPresent()) {
+                c.ticksPerUnit.set(customPodScalar);
+            } else {
+                c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+            }
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
