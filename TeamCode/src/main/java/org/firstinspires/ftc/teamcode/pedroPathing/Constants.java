@@ -1,34 +1,26 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
-import com.pedropathing.algorithm.Algorithm;
+
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
-import com.pedropathing.algorithm.ForesightV3;
 import com.pedropathing.controllers.Controller;
-import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
-import com.pedropathing.revhub.localizers.OctoQuadConfig;
-import com.pedropathing.revhub.localizers.OctoQuadLocalizer;
-import com.pedropathing.revhub.localizers.ThreeWheelConfig;
-import com.pedropathing.revhub.localizers.ThreeWheelLocalizer;
-import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
+import com.pedropathing.revhub.localizers.PinpointConfig;
+import com.pedropathing.revhub.localizers.PinpointLocalizer;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.firstinspires.ftc.robotcore.external.Function;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static MecanumConfig driveConfig = new MecanumConfig(
             c -> {
                 c.frontLeftName.set("lf");
-                c.backLeftName.set("lb");
+                c.backLeftName.set("lr");
                 c.frontRightName.set("rf");
-                c.backRightName.set("rb");
+                c.backRightName.set("rr");
 
                 c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
                 c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
@@ -39,20 +31,15 @@ public class Constants {
             }
     );
 
-    public static OctoQuadConfig localizerConfig = new OctoQuadConfig(c -> {
-        c.name.set("octoquad");
-        c.ticksPerUnit.set(19.89436789);
-        c.encoderResolutionUnit.set(DistanceUnit.MM);
-        c.headingScalar.set(1.0168);
-        c.xPodDirection.set(OctoQuad.EncoderDirection.REVERSE);
-        c.yPodDirection.set(OctoQuad.EncoderDirection.FORWARD);
-        c.i2cRecoveryMode.set(OctoQuad.I2cRecoveryMode.MODE_1_PERIPH_RST_ON_FRAME_ERR);
-        c.offsetUnits.set(DistanceUnit.INCH);
-        //c.xPodOffset.set(-3.95);
-        //c.yPodOffset.set(-5.67);
-        c.xPodOffset.set(0.0);
-        c.yPodOffset.set(0.0);
-    });
+    public static PinpointConfig localizerConfig = new PinpointConfig(
+            c -> {
+                c.name.set("pinpoint");
+                c.xPodOffset.set(1.8448);
+                c.yPodOffset.set(-4.99393);
+                c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+                c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            }
+    );
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
@@ -68,29 +55,27 @@ public class Constants {
 
                 c.maxBrakingPower.set(0.3);
 
-                Controller largeHeading = Controller.proportional(7.2);
+                Controller largeHeading = Controller.proportional(2.4*3); // 2.4
+                Controller smallHeading = Controller.proportional(1.3*3); // 1.3
 
-                c.headingFeedback.set(largeHeading);
+                c.headingFeedback.set(Controller.piecewise(smallHeading).put(Math.PI/10, largeHeading));
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.0532, 0.0069));
 
-                c.linearBrakeCoefficients.set(Matrix.diag(0.0633, 0.0633));
-                c.quadraticBrakeCoefficients.set(Matrix.diag(0.00146, 0.00146));
+                c.linearBrakeCoefficients.set(Matrix.diag(0.0978, 0.0978));
+                c.quadraticBrakeCoefficients.set(Matrix.diag(0.0016, 0.0016));
 
-                c.maxAchievableStrafeVelocity.set(150.0);
-                c.maxAchievableForwardVelocity.set(150.0);
-
-                c.naturalForwardDeceleration.set(64.33);
-                c.naturalStrafeDeceleration.set(48.43);
+                c.maxAchievableForwardVelocity.set(73.7312);
+                c.maxAchievableStrafeVelocity.set(56.2425);
+                c.naturalForwardDeceleration.set(73.5);
+                c.naturalStrafeDeceleration.set(65.03);
 
                 c.coast.set(Controller.proportionalFeedforward(0.0105).plus(Controller.staticFeedforward(0.015)));
 
                 c.cosineScale.set(false);
-
-                c.headingDriveRatio.set(0.0);
             }
     );
 
     public static Follower create(HardwareMap h) {
-        return new Follower(new OctoQuadLocalizer(h, localizerConfig), new Mecanum(h, driveConfig), new ForesightV3(foresightConfig));
+        return new Follower(new PinpointLocalizer(h, localizerConfig), new Mecanum(h, driveConfig), new Foresight(foresightConfig));
     }
 }
