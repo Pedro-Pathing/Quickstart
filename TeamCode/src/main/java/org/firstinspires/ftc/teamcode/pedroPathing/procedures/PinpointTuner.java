@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.procedures;
 
 import com.pedropathing.math.Pose;
-import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
-import com.pedropathing.utils.Timer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.*;
 
@@ -88,18 +85,17 @@ class CustomPodScalar extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() throws InterruptedException {
-//        PinpointConfig config = new PinpointConfig(c -> {
-//            c.name.set(name);
-//            c.ticksPerUnit.set(OptionalDouble.of(1.0));
-//        });
-//        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
-//        localizer.setPose(new Pose(0, 0));
+        PinpointConfig config = new PinpointConfig(c -> {
+            c.name.set(name);
+            c.ticksPerUnit.set(OptionalDouble.of(1.0));
+        });
+        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
+        localizer.setPose(new Pose(0, 0));
         waitForStart();
         while (!isStopRequested()) {
-//            localizer.update();
+            localizer.update();
         }
-//        return Math.abs((distance / (localizer.pose().x())));
-        return 10.0;
+        return Math.abs((distance / (localizer.pose().x())));
     }
 }
 
@@ -116,20 +112,19 @@ class ForwardDirection extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
-//        PinpointConfig config = new PinpointConfig(c -> {
-//            c.name.set(name);
-//            c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-//            c.ticksPerUnit.set(OptionalDouble.of(1.0));
-//        });
-//        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
-//        localizer.setPose(new Pose(0, 0));
+        PinpointConfig config = new PinpointConfig(c -> {
+            c.name.set(name);
+            c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            c.ticksPerUnit.set(OptionalDouble.of(1.0));
+        });
+        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
+        localizer.setPose(new Pose(0, 0));
         waitForStart();
         while (!isStopRequested()) {
-//            localizer.update();
+            localizer.update();
         }
 
-//        return localizer.pose().x() < 0;
-        return true;
+        return localizer.pose().x() < 0;
     }
 }
 
@@ -146,20 +141,19 @@ class StrafeDirection extends TuningOpMode<Boolean> {
 
     @Override
     protected Boolean runTuningOpMode() throws InterruptedException {
-//        PinpointConfig config = new PinpointConfig(c -> {
-//            c.name.set(name);
-//            c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-//            c.ticksPerUnit.set(OptionalDouble.of(1.0));
-//        });
-//        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
-//        localizer.setPose(new Pose(0, 0));
+        PinpointConfig config = new PinpointConfig(c -> {
+            c.name.set(name);
+            c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            c.ticksPerUnit.set(OptionalDouble.of(1.0));
+        });
+        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
+        localizer.setPose(new Pose(0, 0));
         waitForStart();
         while (!isStopRequested()) {
-//            localizer.update();
+            localizer.update();
         }
 
-//        return localizer.pose().y() < 0;
-        return true;
+        return localizer.pose().y() < 0;
     }
 }
 
@@ -183,28 +177,27 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
 
     @Override
     protected ArrayList<Double> runTuningOpMode() throws InterruptedException {
-//        PinpointConfig config = new PinpointConfig(c -> {
-//            c.name.set(name);
-//            c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
-//            c.yPodDirection.set(strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
-//            if (customPodScalar.isPresent()) {
-//                c.ticksPerUnit.set(customPodScalar);
-//            } else {
-//                c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-//            }
-//            c.xPodOffset.set(0.0);
-//            c.yPodOffset.set(0.0);
-//        });
-//        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
-//        localizer.setPose(new Pose(0, 0));
+        PinpointConfig config = new PinpointConfig(c -> {
+            c.name.set(name);
+            c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            c.yPodDirection.set(strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            if (customPodScalar.isPresent()) {
+                c.ticksPerUnit.set(customPodScalar);
+            } else {
+                c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+            }
+            c.xPodOffset.set(0.0);
+            c.yPodOffset.set(0.0);
+        });
+        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
+        localizer.setPose(new Pose(0, 0));
         waitForStart();
         while (!isStopRequested()) {
-//            localizer.update();
+            localizer.update();
         }
-        return new ArrayList<>(Arrays.asList(1.0, -1.0));
-//        return new ArrayList<>(Arrays.asList(
-//            ((-localizer.pose().y()) / 2.0),
-//            ((-localizer.pose().x()) / 2.0)
-//        ));
+        return new ArrayList<>(Arrays.asList(
+            ((-localizer.pose().y()) / 2.0),
+            ((-localizer.pose().x()) / 2.0)
+        ));
     }
 }
