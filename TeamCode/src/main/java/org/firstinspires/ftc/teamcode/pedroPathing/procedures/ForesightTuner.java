@@ -33,7 +33,7 @@ public class ForesightTuner extends Procedure {
         double strafeVelocity = runOpMode(new StrafeVelocity(localizerFunction, drivetrainFunction, distance.get()));
 
         Inputs velocityInput = inputs("Velocity", "The velocity to drive to in inches for the Max Achievable Forward and Strafe Deceleration Identifiers");
-        Inputs.Field<Double> velocity = velocityInput.d("Distance").withDefault(48.0);
+        Inputs.Field<Double> velocity = velocityInput.d("Velocity").withDefault(30.0);
         awaitInputs(velocityInput);
 
         double forwardDeceleration = runOpMode(new ForwardDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
@@ -160,15 +160,16 @@ class ForwardDeceleration extends TuningOpMode<Double> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
     double velocity;
+
     private final ArrayList<Double> accelerations = new ArrayList<>();
 
     private double previousVelocity;
     private long previousTimeNano;
-
     private boolean stopping;
 
     public ForwardDeceleration(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction, double velocity) {
         super("Forward Deceleration", "A tuner for finding the deceleration of the robot when moving forward.", false);
+
         this.localizerFunction = localizerFunction;
         this.drivetrainFunction = drivetrainFunction;
         this.velocity = velocity;
@@ -179,41 +180,66 @@ class ForwardDeceleration extends TuningOpMode<Double> {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
-        boolean end = false;
+        accelerations.clear();
+        previousVelocity = 0;
+        previousTimeNano = 0;
+        stopping = false;
 
         localizer.setPose(Pose.zero());
         localizer.update();
 
         DrivePowers power = new DrivePowers(1, 0, 0);
-        drivetrain.drive(power, false);
-
         waitForStart();
 
-        while (!end) {
-            if (!stopping) {
-                if (localizer.twist().toVector2D().x() > velocity) {
-                    previousVelocity = localizer.twist().toVector2D().x();
-                    previousTimeNano = System.nanoTime();
-                    stopping = true;
-                    drivetrain.drive(DrivePowers.zero(), true);
-                }
-            } else {
-                double currentVelocity = localizer.twist().toVector2D().x();
-                accelerations.add((currentVelocity - previousVelocity) / ((System.nanoTime() - previousTimeNano) / Math.pow(10.0, 9)));
+        drivetrain.drive(power, false);
+
+        while (!stopping) {
+            localizer.update();
+            double currentVelocity = localizer.twist().toVector2D().x();
+            if (currentVelocity > velocity) {
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();
-                if (currentVelocity < 0.1) {
-                    end = true;
-                }
+
+                stopping = true;
+                drivetrain.drive(DrivePowers.zero(), true);
+            }
+        }
+
+        boolean end = false;
+
+        while (!end) {
+            localizer.update();
+            double currentVelocity = localizer.twist().toVector2D().x();
+            long currentTimeNano = System.nanoTime();
+            double dt = (currentTimeNano - previousTimeNano) / 1e9;
+
+            if (dt > 0) {
+                double acceleration = (currentVelocity - previousVelocity) / dt;
+                accelerations.add(acceleration);
+            }
+
+            previousVelocity = currentVelocity;
+            previousTimeNano = currentTimeNano;
+
+            if (Math.abs(currentVelocity) < 0.1) {
+                end = true;
             }
         }
 
         drivetrain.drive(DrivePowers.zero(), true);
+
         double average = 0;
+
         for (double acceleration : accelerations) {
             average += acceleration;
         }
+
+        if (accelerations.isEmpty()) {
+            return 0.0;
+        }
+
         average /= accelerations.size();
+
         return Math.abs(average);
     }
 }
@@ -222,15 +248,16 @@ class StrafeDeceleration extends TuningOpMode<Double> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
     double velocity;
+
     private final ArrayList<Double> accelerations = new ArrayList<>();
 
     private double previousVelocity;
     private long previousTimeNano;
-
     private boolean stopping;
 
     public StrafeDeceleration(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction, double velocity) {
-        super("Strafe Deceleration", "A tuner for finding the deceleration of the robot when moving sideways.", false);
+        super("Strafe Deceleration", "A tuner for finding the deceleration of the robot when moving laterally. Will drive left until it reaches " + velocity + " inches per second", false);
+
         this.localizerFunction = localizerFunction;
         this.drivetrainFunction = drivetrainFunction;
         this.velocity = velocity;
@@ -241,41 +268,66 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
-        boolean end = false;
+        accelerations.clear();
+        previousVelocity = 0;
+        previousTimeNano = 0;
+        stopping = false;
 
         localizer.setPose(Pose.zero());
         localizer.update();
 
         DrivePowers power = new DrivePowers(0, 1, 0);
-        drivetrain.drive(power, false);
-
         waitForStart();
 
-        while (!end) {
-            if (!stopping) {
-                if (localizer.twist().toVector2D().y() > velocity) {
-                    previousVelocity = localizer.twist().toVector2D().y();
-                    previousTimeNano = System.nanoTime();
-                    stopping = true;
-                    drivetrain.drive(DrivePowers.zero(), true);
-                }
-            } else {
-                double currentVelocity = localizer.twist().toVector2D().y();
-                accelerations.add((currentVelocity - previousVelocity) / ((System.nanoTime() - previousTimeNano) / Math.pow(10.0, 9)));
+        drivetrain.drive(power, false);
+
+        while (!stopping) {
+            localizer.update();
+            double currentVelocity = localizer.twist().toVector2D().y();
+            if (currentVelocity > velocity) {
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();
-                if (currentVelocity < 0.1) {
-                    end = true;
-                }
+
+                stopping = true;
+                drivetrain.drive(DrivePowers.zero(), true);
+            }
+        }
+
+        boolean end = false;
+
+        while (!end) {
+            localizer.update();
+            double currentVelocity = localizer.twist().toVector2D().y();
+            long currentTimeNano = System.nanoTime();
+            double dt = (currentTimeNano - previousTimeNano) / 1e9;
+
+            if (dt > 0) {
+                double acceleration = (currentVelocity - previousVelocity) / dt;
+                accelerations.add(acceleration);
+            }
+
+            previousVelocity = currentVelocity;
+            previousTimeNano = currentTimeNano;
+
+            if (Math.abs(currentVelocity) < 0.1) {
+                end = true;
             }
         }
 
         drivetrain.drive(DrivePowers.zero(), true);
+
         double average = 0;
+
         for (double acceleration : accelerations) {
             average += acceleration;
         }
+
+        if (accelerations.isEmpty()) {
+            return 0.0;
+        }
+
         average /= accelerations.size();
+
         return Math.abs(average);
     }
 }
