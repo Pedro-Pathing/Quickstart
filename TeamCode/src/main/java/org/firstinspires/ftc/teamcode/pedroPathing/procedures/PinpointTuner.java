@@ -84,7 +84,7 @@ class CustomPodScalar extends TuningOpMode<Double> {
     }
 
     @Override
-    protected Double runTuningOpMode() throws InterruptedException {
+    protected Double runTuningOpMode() {
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.ticksPerUnit.set(OptionalDouble.of(1.0));
@@ -119,7 +119,7 @@ class ForwardDirection extends TuningOpMode<Boolean> {
     }
 
     @Override
-    protected Boolean runTuningOpMode() throws InterruptedException {
+    protected Boolean runTuningOpMode() {
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -159,7 +159,7 @@ class StrafeDirection extends TuningOpMode<Boolean> {
     }
 
     @Override
-    protected Boolean runTuningOpMode() throws InterruptedException {
+    protected Boolean runTuningOpMode() {
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -204,7 +204,7 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
     }
 
     @Override
-    protected ArrayList<Double> runTuningOpMode() throws InterruptedException {
+    protected ArrayList<Double> runTuningOpMode() {
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -220,6 +220,7 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
         localizer.update();
+
         waitForStart();
         while (!isStopRequested()) {
             localizer.update();
