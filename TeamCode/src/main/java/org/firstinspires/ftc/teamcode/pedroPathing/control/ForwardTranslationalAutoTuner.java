@@ -17,8 +17,8 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class ForwardTranslationalAutoTuner extends OpMode {
-    public static double BETA_LARGE = 0.042577;
-    public static double BETA_SMALL = 0.12773;
+    public static double BETA_LARGE = 0.124;
+    public static double BETA_SMALL = 0.0715;
     public static double VEL_AGGRESSIVENESS = 0.85;
 
     private static final double POWER = 0.4;

@@ -17,7 +17,7 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class HeadingPredictiveAutoTuner extends OpMode {
-    public static double BETA = 0.03861;
+    public static double BETA = 2.83;
 
     private static final double POWER = 0.4;
     private static final double RUNTIME = 1.2;
@@ -105,15 +105,11 @@ public class HeadingPredictiveAutoTuner extends OpMode {
         telemetry.addData("Primary Heading Coefficients", "kP=" + String.format("%.4f", kP_large));
     }
 
-    private double calculatekP(double beta) {
+    private double calculatekP(double alpha) {
         kV = 1 / K;
-        kA = tau / K * beta;
-        double denominator = foresightConfig.headingBrakeCoefficients.get().x() + 2.0 * foresightConfig.headingBrakeCoefficients.get().y() * vMax;
-        double discriminant = kA - kV * denominator;
-
-        if (discriminant < 0) return kV * kV / (4.0 * kA);
-        double sqrt = (Math.sqrt(kA) - Math.sqrt(discriminant)) / denominator;
-        return sqrt * sqrt;
+        kA = tau / K;
+        double lambda = tau * alpha;
+        return tau / (K * lambda * lambda);
     }
 
     private void systemIdentification() {
