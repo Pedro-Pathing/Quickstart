@@ -28,12 +28,7 @@ public class Curves extends OpMode {
     @Override
     public void start() {
         forwards = curve(new Pose(72,72), new Pose(Math.abs(DISTANCE) + 72,72), new Pose(Math.abs(DISTANCE) + 72,DISTANCE + 72)).
-                heading(new Interpolator() {
-                    @Override
-                    public double interpolate(Curve curve, double t) {
-                        return Math.PI;
-                    }
-                });
+                heading((curve, t) -> Math.PI);
         backwards = curve(new Pose(Math.abs(DISTANCE) + 72,DISTANCE + 72), new Pose(Math.abs(DISTANCE) + 72,72), new Pose(72,72))
                 .heading(Interpolator.piecewise().until(0.5, Interpolator.tangent).until(1.0, Interpolator.constant(0)));
         follower.follow(forwards);

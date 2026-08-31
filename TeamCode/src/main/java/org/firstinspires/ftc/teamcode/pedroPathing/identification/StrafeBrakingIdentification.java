@@ -78,8 +78,11 @@ public class StrafeBrakingIdentification extends OpMode {
     }
 
     private double getHeadingPower() {
+        double angularVel = follower.twist().omega();
+        double brakeDist = Constants.foresightConfig.headingBrakeCoefficients.get().x() * angularVel +
+                Constants.foresightConfig.headingBrakeCoefficients.get().y() * angularVel * angularVel * Math.signum(angularVel);
         return Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
-                .calculate(0, normalizeSigned(-follower.pose().heading()), follower.velocity().omega); //TODO: update for ForesightV3
+                .calculate(0, normalizeSigned(- follower.pose().heading() - brakeDist), 0);
     }
 
     private void drive() {
