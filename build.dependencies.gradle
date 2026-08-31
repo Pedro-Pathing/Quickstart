@@ -1,6 +1,7 @@
 repositories {
     mavenCentral()
     maven { url 'https://central.sonatype.com/repository/maven-snapshots' }
+    maven { url 'https://repo.dairy.foundation/releases/'}
     google() // Needed for androidx
 }
 
@@ -20,8 +21,6 @@ dependencies {
     implementation 'org.firstinspires.ftc:Vision:11.2.1'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    implementation("com.pedropathing:revhub:3.0.0-SNAPSHOT")  {
-        exclude group: 'org.aspectj', module: 'aspectjtools'
-    }
+    implementation("com.pedropathing:revhub:3.0.0-SNAPSHOT")
+    implementation("com.pedropathing:tuning:1.0.0-SNAPSHOT")
 }
-

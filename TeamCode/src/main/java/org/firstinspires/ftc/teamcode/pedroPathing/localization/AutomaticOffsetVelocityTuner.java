@@ -79,7 +79,7 @@ public class AutomaticOffsetVelocityTuner extends OpMode {
         }
 
         if (!done) {
-            if (Math.abs(follower.twist().omega()) > OMEGA_THRESHOLD) twists.add(follower.twist());
+            if (Math.abs(follower.twist().omega) > OMEGA_THRESHOLD) twists.add(follower.twist());
             Log.e("p", follower.pose().toString());
 
             if (timer.seconds() >= TRIAL_RUNTIME) {
@@ -112,7 +112,7 @@ public class AutomaticOffsetVelocityTuner extends OpMode {
         for (int pass = 0; pass < IRLS_PASSES; pass++) {
             Vector sum = new Vector(0, 0, 0);
             for (int i = 0; i < n; i++) {
-                sum = sum.plus(samples.get(i).toVector().times(samples.get(i).omega() * w[i]));
+                sum = sum.plus(samples.get(i).toVector().times(samples.get(i).omega * w[i]));
             }
 
             if (sum.get(2) < 1e-9) break;
@@ -122,7 +122,7 @@ public class AutomaticOffsetVelocityTuner extends OpMode {
             for (int i = 0; i < n; i++) {
                 Vector2D pred = Vector2D.cartesian(dx, dy)
                         .rotate(Math.PI / 2)
-                        .times(samples.get(i).omega());
+                        .times(samples.get(i).omega);
                 Vector2D residual = samples.get(i).toVector2D().minus(pred);
                 res[i] = residual.magnitude();
             }

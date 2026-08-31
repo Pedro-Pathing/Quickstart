@@ -78,7 +78,7 @@ public class HeadingPredictiveAutoTuner extends OpMode {
         if (!done) {
             times.add(timer.seconds());
 
-            double turnVel = Math.abs(follower.twist().omega());
+            double turnVel = Math.abs(follower.twist().omega);
             vMax = Math.max(vMax, turnVel / POWER);
 
             velocities.add(turnVel);
