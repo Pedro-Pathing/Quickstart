@@ -2,16 +2,24 @@ package org.firstinspires.ftc.teamcode.pedroPathing.procedures;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Vector2D;
 import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
+import com.pedropathing.utils.Angle;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.pedroPathing.identification.HeadingBrakingIdentification;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.function.Function;
+
+import static com.pedropathing.utils.Utils.linearFit;
+import static com.pedropathing.utils.Utils.quadraticFit;
 
 public class ForesightTuner extends Procedure {
     Function<HardwareMap, Localizer> localizerFunction;
@@ -39,10 +47,75 @@ public class ForesightTuner extends Procedure {
         double forwardDeceleration = runOpMode(new ForwardDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
         double strafeDeceleration = runOpMode(new StrafeDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
 
+        List<Double> headingBraking = runOpMode(new HeadingBraking(localizerFunction, drivetrainFunction));
+        double heading = runOpMode(new HeadingTuner(localizerFunction, drivetrainFunction));
+
+        double headingLinear = headingBraking.get(0);
+        double headingQuadratic = headingBraking.get(1);
+
+        List<Double> forwardBraking = runOpMode(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading));
+        List<Double> strafeBraking = runOpMode(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading));
+
+        double forwardLinear = forwardBraking.get(0);
+        double forwardQuadratic = forwardBraking.get(1);
+        double strafeLinear = strafeBraking.get(0);
+        double strafeQuadratic = strafeBraking.get(1);
+
+        List<Double> forwardTranslational = runOpMode(new ForwardTranslational(localizerFunction, drivetrainFunction, forwardLinear, forwardQuadratic));
+        List<Double> strafeTranslational = runOpMode(new StrafeTranslational(localizerFunction, drivetrainFunction, strafeLinear, strafeQuadratic));
+
+        double forwardTranslationalPrimary = forwardTranslational.get(0);
+        double forwardTranslationalSecondary = forwardTranslational.get(1);
+        double coast = forwardTranslational.get(2);
+        double brake = forwardTranslational.get(3);
+
+        double strafeTranslationalPrimary = strafeTranslational.get(0);
+        double strafeTranslationalSecondary = strafeTranslational.get(1);
+
         result("maxAchievableForwardVelocity", forwardVelocity);
         result("maxAchievableStrafeVelocity", strafeVelocity);
         result("naturalForwardDeceleration", forwardDeceleration);
         result("naturalStrafeDeceleration", strafeDeceleration);
+        result("headingBrakingLinearCoefficient", headingLinear);
+        result("headingBrakingQuadraticCoefficient", headingQuadratic);
+        result("heading kP", heading);
+        result("forwardBrakingLinearCoefficient", forwardLinear);
+        result("forwardBrakingQuadraticCoefficient", forwardQuadratic);
+        result("strafeBrakingLinearCoefficient", strafeLinear);
+        result("strafeBrakingQuadraticCoefficient", strafeQuadratic);
+        result("forwardTranslational Primary kP", forwardTranslationalPrimary);
+        result("forwardTranslational Secondary kP", forwardTranslationalSecondary);
+        result("strafeTranslational Primary kP", strafeTranslationalPrimary);
+        result("strafeTranslational Secondary kP", strafeTranslationalSecondary);
+        result("coast kV", coast);
+        result("brake kV", brake);
+
+        code(Language.JAVA,
+        "public static ForesightConfig foresightConfig = new ForesightConfig(\n" +
+                "            c -> {\n" +
+                "                Controller primaryTranslationalForward = Controller.proportional("+forwardTranslationalPrimary+");\n" +
+                "                Controller secondaryTranslationalForward = Controller.proportional("+forwardTranslationalSecondary+");\n" +
+                "                Controller primaryTranslationalLateral = Controller.proportional("+strafeTranslationalPrimary+");\n" +
+                "                Controller secondaryTranslationalLateral = Controller.proportional("+strafeTranslationalSecondary+");\n" +
+                "\n" +
+                "                c.forwardTranslational.set(Controller.piecewise(secondaryTranslationalForward).put(2.5, primaryTranslationalForward));\n" +
+                "                c.strafeTranslational.set(Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral));\n" +
+                "\n" +
+                "                c.coast.set(Controller.proportionalFeedforward("+coast+"));\n" +
+                "                c.brake.set(Controller.proportionalFeedforward("+brake+"));\n" +
+                "\n" +
+                "                c.headingFeedback.set(Controller.proportional("+heading+"));\n" +
+                "                c.headingBrakeCoefficients.set(Vector2D.cartesian("+headingLinear+", "+headingQuadratic+"));\n" +
+                "\n" +
+                "                c.linearBrakeCoefficients.set(Matrix.diag("+forwardLinear+", "+strafeLinear+"));\n" +
+                "                c.quadraticBrakeCoefficients.set(Matrix.diag("+forwardQuadratic+", "+strafeQuadratic+"));\n" +
+                "\n" +
+                "                c.maxAchievableForwardVelocity.set("+forwardVelocity+");\n" +
+                "                c.maxAchievableStrafeVelocity.set("+strafeVelocity+");\n" +
+                "                c.naturalForwardDeceleration.set("+forwardDeceleration+");\n" +
+                "                c.naturalStrafeDeceleration.set("+strafeDeceleration+");\n" +
+                "            }\n" +
+                "    );");
     }
 }
 
@@ -331,3 +404,834 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         return Math.abs(average);
     }
 }
+
+class HeadingBraking extends TuningOpMode<List<Double>> {
+    Function<HardwareMap, Localizer> localizerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+
+    private static double[] POWERS;
+    public static double MAX_BRAKE_TIME = 4; //seconds, the robot shouldn't take longer than this to brake
+
+    public static int trials = 12;
+    public static double maxPower = 1;
+    public static double minPower = 0.2;
+    public static double bias = 1.5; // how much it favors doing trials with higher powers
+    public static double brakingPower = 0.001;
+
+    private final ElapsedTime timer = new ElapsedTime();
+
+    private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
+    private State state = State.DRIVE;
+    private int iteration = 0;
+    private int direction;
+    private double power;
+
+    private double startHeading;
+    private double measuredVelocity;
+    private double totalHeading;
+    private double previousHeading;
+    private VoltageSensor voltageSensor;
+
+    public HeadingBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction) {
+        super("Heading Braking", "A tuner for finding the Heading Braking Coefficients. The robot will turn back at forth at various speed levels.", false);
+
+        this.localizerFunction = localizerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+    }
+
+    @Override
+    protected List<Double> runTuningOpMode() {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+        localizer.update();
+
+        List<Double> coefficients = Collections.emptyList();
+
+        POWERS = biasedGradient(trials, maxPower, minPower, bias);
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
+
+        waitForStart();
+        timer.reset();
+
+        while (state != State.DONE && opModeIsActive()) {
+            localizer.update();
+            double currentHeading = localizer.pose().heading();
+            totalHeading += Angle.normalizeSigned(currentHeading - previousHeading);
+            previousHeading = currentHeading;
+
+            direction = (iteration % 2 == 0) ? 1 : -1;
+            if (iteration < POWERS.length) {
+                power = POWERS[iteration];
+            }
+
+            if (state != State.DONE) {
+                double voltage = voltageSensor.getVoltage();
+                double duty = state == State.BRAKE ? -brakingPower * direction: power * direction;
+                double appliedVoltage = voltage * duty;
+            }
+
+            switch (state) {
+                case DRIVE: {
+                    if (timer.seconds() > 2) {
+                        startHeading = totalHeading;
+                        measuredVelocity = Math.abs(localizer.velocity().omega);
+
+                        drivetrain.drive(new DrivePowers(0.0, 0.0, -brakingPower * direction), false);
+                        state = State.BRAKE;
+                        timer.reset();
+                        break;
+                    }
+                    drivetrain.drive(new DrivePowers(0.0, 0.0, power * direction), false);
+                    break;
+                }
+                case BRAKE: {
+                    if (Math.abs(localizer.velocity().omega) > 0.001 && timer.seconds() < MAX_BRAKE_TIME) {
+                        drivetrain.drive(new DrivePowers(0.0, 0.0, -brakingPower * direction), false);
+                        break;
+                    }
+
+                    double endHeading = totalHeading;
+                    double brakingDistance = Math.abs(endHeading - startHeading);
+
+                    velocityToBrakingDistance.add(new double[]{measuredVelocity, brakingDistance});
+
+                    iteration++;
+
+                    if (iteration >= POWERS.length) {
+                        drivetrain.stop();
+
+                        double[] c = quadraticFit(velocityToBrakingDistance);
+                        coefficients = List.of(c[0], c[1]);
+
+                        state = State.DONE;
+                    } else {
+                        timer.reset();
+                        state = State.DRIVE;
+                    }
+                    break;
+                }
+                case DONE: {}
+            }
+        }
+
+
+        return coefficients;
+    }
+
+    private enum State {
+        DRIVE,
+        BRAKE,
+        DONE
+    }
+
+    private static double[] biasedGradient(
+            int count,
+            double max,
+            double min,
+            double bias
+    ) {
+        if (count < 2) return new double[]{max};
+
+        double[] values = new double[count];
+
+        for (int i = 0; i < count; i++) {
+            double t = (double) i / (count - 1);
+
+            double curved = 1 - Math.pow(t, bias);
+
+            values[i] = min + curved * (max - min);
+        }
+
+        return values;
+    }
+}
+
+class HeadingTuner extends TuningOpMode<Double> {
+    Function<HardwareMap, Localizer> localizerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+
+    private static final double POWER = 0.4;
+    private static final double RUNTIME = 1.2;
+    private static final int SAMPLES = 15;
+    private static final double BETA = 2.83;
+
+    private double tau;
+    private double K;
+    private double kV;
+    private double kA;
+    private double vMax = 0;
+    private final List<Double> times = new ArrayList<>();
+    private final List<Double> velocities = new ArrayList<>();
+    private final ElapsedTime timer = new ElapsedTime();
+    private boolean done = false;
+    private double lastTime = 0.0;
+
+    public HeadingTuner(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction) {
+        super("Heading Tuner", "A tuner for finding the Heading Tuning Coefficients using system identification.", false);
+        this.localizerFunction = localizerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+    }
+
+    @Override
+    protected Double runTuningOpMode() {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+        localizer.update();
+
+        times.clear();
+        velocities.clear();
+        done = false;
+        vMax = 0;
+        lastTime = 0.0;
+
+        waitForStart();
+        timer.reset();
+        lastTime = timer.seconds();
+        drivetrain.drive(new DrivePowers(0.0, 0.0, POWER), false);
+
+        while (!done && opModeIsActive()) {
+            double now = timer.seconds();
+            double dt = now - lastTime;
+            if (dt <= 0) dt = 1e-6;
+            lastTime = now;
+
+            localizer.update();
+
+            if (!done) {
+                times.add(timer.seconds());
+
+                double turnVel = Math.abs(localizer.velocity().omega);
+                vMax = Math.max(vMax, turnVel / POWER);
+
+                velocities.add(turnVel);
+
+                if (timer.seconds() >= RUNTIME) {
+                    done = true;
+                    systemIdentification();
+                    drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
+                }
+            }
+        }
+
+        drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), true);
+        return calculatekP(BETA);
+    }
+
+    private double calculatekP(double alpha) {
+        kV = 1 / K;
+        kA = tau / K;
+        double lambda = tau * alpha;
+        return tau / (K * lambda * lambda);
+    }
+
+    private void systemIdentification() {
+        int N = times.size();
+        if (N < 4) {
+            throw new IllegalArgumentException("Failed calibration.");
+        }
+
+        int start = Math.max(0, N - SAMPLES);
+        double samples = N - start;
+        double sum = 0;
+        for (int i = start; i < N; i++) sum += velocities.get(i);
+        double A = sum / samples;
+        this.K = A / POWER;
+
+        List<Double> y = new ArrayList<>();
+        List<Double> x = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            double vel = velocities.get(i) / POWER;
+            if (vel > 0.8 * K) continue;
+            if (vel < 0.1 * K) continue;
+            y.add(Math.log(K - vel));
+            x.add(times.get(i));
+        }
+        double[] linReg = linearFit(
+                x.toArray(new Double[0]),
+                y.toArray(new Double[0])
+        );
+        if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
+        this.tau = -1.0/linReg[1];
+    }
+}
+
+class ForwardBraking extends TuningOpMode<List<Double>> {
+    Function<HardwareMap, Localizer> localizerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    private final double headingLinear;
+    private final double headingQuadratic;
+    private final double headingKP;
+
+    private static double[] POWERS;
+    public static double MAX_BRAKE_TIME = 5;
+    public static int trials = 12;
+    public static double maxPower = 0.7;
+    public static double minPower = 0.2;
+    public static double bias = 1.5;
+    public static double brakingPower = 0.001;
+    public static int TILES_IN_FRONT_OF_ROBOT = 3;
+    public static double IDLE_SECONDS = 1;
+
+    private final ElapsedTime timer = new ElapsedTime();
+    private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
+    private State state = State.DRIVE;
+    private int iteration = 0;
+    private int direction;
+    private double power;
+    private Vector2D startPosition;
+    private double measuredVelocity;
+    private VoltageSensor voltageSensor;
+
+    public ForwardBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
+                          double headingLinear, double headingQuadratic, double headingKP) {
+        super("Forward Braking", "A tuner for finding the Forward Braking Coefficients by driving forward and backward at various speeds.", false);
+        this.localizerFunction = localizerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+        this.headingLinear = headingLinear;
+        this.headingQuadratic = headingQuadratic;
+        this.headingKP = headingKP;
+    }
+
+    @Override
+    protected List<Double> runTuningOpMode() {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+        localizer.update();
+
+        POWERS = biasedGradient(trials, maxPower, minPower, bias);
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
+
+        List<Double> coefficients = Collections.emptyList();
+
+        waitForStart();
+        timer.reset();
+
+        while (state != State.DONE && opModeIsActive()) {
+            localizer.update();
+            direction = (iteration % 2 == 0) ? 1 : -1;
+            if (iteration < POWERS.length) {
+                power = POWERS[iteration];
+            }
+
+            switch (state) {
+                case DRIVE: {
+                    if ((direction == 1 && localizer.pose().x() > (TILES_IN_FRONT_OF_ROBOT - 2) * 24 + 12) ||
+                            (direction == -1 && localizer.pose().x() < 12)) {
+                        startPosition = localizer.pose().toVector2D();
+                        measuredVelocity = localizer.velocity().toVector2D().magnitude();
+
+                        brake(drivetrain, localizer);
+                        state = State.BRAKE;
+                        timer.reset();
+                        break;
+                    }
+                    drive(drivetrain, localizer);
+                    break;
+                }
+                case BRAKE: {
+                    if (localizer.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_BRAKE_TIME) {
+                        brake(drivetrain, localizer);
+                        break;
+                    }
+
+                    collectTrialData(localizer, drivetrain);
+                    break;
+                }
+                case WAIT: {
+                    if (timer.seconds() > IDLE_SECONDS) state = State.DRIVE;
+                    break;
+                }
+                case DONE: {}
+            }
+        }
+
+        if (state == State.DONE) {
+            double[] c = quadraticFit(velocityToBrakingDistance);
+            coefficients = List.of(c[0], c[1]);
+        }
+
+        return coefficients;
+    }
+
+    private double getHeadingPower(Localizer localizer) {
+        double angularVel = localizer.velocity().omega;
+        double brakeDist = headingLinear * angularVel +
+                headingQuadratic * angularVel * angularVel * Math.signum(angularVel);
+        double error = Angle.normalizeSigned(-localizer.pose().heading() - brakeDist);
+        return headingKP * error;
+    }
+
+    private void drive(Drivetrain drivetrain, Localizer localizer) {
+        drivetrain.drive(new DrivePowers(power * direction, 0.0, getHeadingPower(localizer)), false);
+    }
+
+    private void brake(Drivetrain drivetrain, Localizer localizer) {
+        double headingPower = getHeadingPower(localizer);
+        double brake = -brakingPower * direction;
+        double minBrake = Math.abs(headingPower) + 0.001;
+
+        if (direction > 0) {
+            brake = Math.min(brake, -minBrake);
+        } else {
+            brake = Math.max(brake, minBrake);
+        }
+
+        drivetrain.drive(new DrivePowers(brake, 0, headingPower), false);
+    }
+
+    private void collectTrialData(Localizer localizer, Drivetrain drivetrain) {
+        Vector2D endPosition = localizer.pose().toVector2D();
+        double brakingDistance = endPosition.minus(startPosition).magnitude();
+
+        velocityToBrakingDistance.add(new double[]{measuredVelocity, brakingDistance});
+
+        iteration++;
+
+        if (iteration >= POWERS.length) {
+            drivetrain.stop();
+            state = State.DONE;
+        } else {
+            state = State.WAIT;
+            timer.reset();
+        }
+    }
+
+    private enum State {
+        DRIVE,
+        BRAKE,
+        WAIT,
+        DONE
+    }
+
+    private static double[] biasedGradient(int count, double max, double min, double bias) {
+        if (count < 2) return new double[]{max};
+        double[] values = new double[count];
+        for (int i = 0; i < count; i++) {
+            double t = (double) i / (count - 1);
+            double curved = 1 - Math.pow(t, bias);
+            values[i] = min + curved * (max - min);
+        }
+        return values;
+    }
+}
+
+class StrafeBraking extends TuningOpMode<List<Double>> {
+    Function<HardwareMap, Localizer> localizerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    private final double headingLinear;
+    private final double headingQuadratic;
+    private final double headingKP;
+
+    private static double[] POWERS;
+    public static double MAX_TURN_TIME = 5;
+    public static int trials = 12;
+    public static double maxPower = 1;
+    public static double minPower = 0.2;
+    public static double bias = 1.5;
+    public static double brakingPower = 0.001;
+    public static int TILES_IN_FRONT_OF_ROBOT = 3;
+    public static double IDLE_SECONDS = 1;
+
+    private final ElapsedTime timer = new ElapsedTime();
+    private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
+    private State state = State.DRIVE;
+    private int iteration = 0;
+    private int direction;
+    private double power;
+    private Vector2D startPosition;
+    private double measuredVelocity;
+    private VoltageSensor voltageSensor;
+
+    public StrafeBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
+                         double headingLinear, double headingQuadratic, double headingKP) {
+        super("Strafe Braking", "A tuner for finding the Strafe Braking Coefficients by strafing left and right at various speeds.", false);
+        this.localizerFunction = localizerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+        this.headingLinear = headingLinear;
+        this.headingQuadratic = headingQuadratic;
+        this.headingKP = headingKP;
+    }
+
+    @Override
+    protected List<Double> runTuningOpMode() {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+        localizer.update();
+
+        POWERS = biasedGradient(trials, maxPower, minPower, bias);
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
+
+        List<Double> coefficients = Collections.emptyList();
+
+        waitForStart();
+        timer.reset();
+
+        while (state != State.DONE && opModeIsActive()) {
+            localizer.update();
+            direction = (iteration % 2 == 0) ? 1 : -1;
+            if (iteration < POWERS.length) {
+                power = POWERS[iteration];
+            }
+
+            switch (state) {
+                case DRIVE: {
+                    if ((direction == 1 && localizer.pose().y() > (TILES_IN_FRONT_OF_ROBOT - 2) * 24 + 12) ||
+                            (direction == -1 && localizer.pose().y() < 12)) {
+                        startPosition = localizer.pose().toVector2D();
+                        measuredVelocity = localizer.velocity().toVector2D().magnitude();
+
+                        brake(drivetrain, localizer);
+                        state = State.BRAKE;
+                        timer.reset();
+                        break;
+                    }
+                    drive(drivetrain, localizer);
+                    break;
+                }
+                case BRAKE: {
+                    if (localizer.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_TURN_TIME) {
+                        brake(drivetrain, localizer);
+                        break;
+                    }
+
+                    collectTrialData(localizer, drivetrain);
+                    break;
+                }
+                case WAIT: {
+                    if (timer.seconds() > IDLE_SECONDS) state = State.DRIVE;
+                    break;
+                }
+                case DONE: {}
+            }
+        }
+
+        if (state == State.DONE) {
+            double[] c = quadraticFit(velocityToBrakingDistance);
+            coefficients = List.of(c[0], c[1]);
+        }
+
+        return coefficients;
+    }
+
+    private double getHeadingPower(Localizer localizer) {
+        double angularVel = localizer.velocity().omega;
+        double brakeDist = headingLinear * angularVel +
+                headingQuadratic * angularVel * angularVel * Math.signum(angularVel);
+        double error = Angle.normalizeSigned(-localizer.pose().heading() - brakeDist);
+        return headingKP * error;
+    }
+
+    private void drive(Drivetrain drivetrain, Localizer localizer) {
+        drivetrain.drive(new DrivePowers(0.0, power * direction, getHeadingPower(localizer)), false);
+    }
+
+    private void brake(Drivetrain drivetrain, Localizer localizer) {
+        double headingPower = getHeadingPower(localizer);
+        double brake = -brakingPower * direction;
+        double minBrake = Math.abs(headingPower) + 0.001;
+
+        if (direction > 0) {
+            brake = Math.min(brake, -minBrake);
+        } else {
+            brake = Math.max(brake, minBrake);
+        }
+
+        drivetrain.drive(new DrivePowers(0, brake, headingPower), false);
+    }
+
+    private void collectTrialData(Localizer localizer, Drivetrain drivetrain) {
+        Vector2D endPosition = localizer.pose().toVector2D();
+        double brakingDistance = endPosition.minus(startPosition).magnitude();
+
+        velocityToBrakingDistance.add(new double[]{measuredVelocity, brakingDistance});
+
+        iteration++;
+
+        if (iteration >= POWERS.length) {
+            drivetrain.stop();
+            state = State.DONE;
+        } else {
+            state = State.WAIT;
+            timer.reset();
+        }
+    }
+
+    private enum State {
+        DRIVE,
+        BRAKE,
+        WAIT,
+        DONE
+    }
+
+    private static double[] biasedGradient(int count, double max, double min, double bias) {
+        if (count < 2) return new double[]{max};
+        double[] values = new double[count];
+        for (int i = 0; i < count; i++) {
+            double t = (double) i / (count - 1);
+            double curved = 1 - Math.pow(t, bias);
+            values[i] = min + curved * (max - min);
+        }
+        return values;
+    }
+}
+
+class ForwardTranslational extends TuningOpMode<List<Double>> {
+    Function<HardwareMap, Localizer> localizerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    private final double linearBrakeCoeff;
+    private final double quadraticBrakeCoeff;
+
+    private static final double BETA_LARGE = 0.124;
+    private static final double BETA_SMALL = 0.0715;
+    private static final double VEL_AGGRESSIVENESS = 0.85;
+    private static final double POWER = 0.4;
+    private static final double RUNTIME = 1.2;
+    private static final int SAMPLES = 15;
+
+    private double tau;
+    private double K;
+    private double kV;
+    private double kA;
+    private double vMax = 0;
+    private final List<Double> times = new ArrayList<>();
+    private final List<Double> velocities = new ArrayList<>();
+    private final ElapsedTime timer = new ElapsedTime();
+    private boolean done = false;
+    private double lastTime = 0.0;
+
+    public ForwardTranslational(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
+                                double linearBrakeCoeff, double quadraticBrakeCoeff) {
+        super("Forward Translational", "A tuner for finding the Forward Translational kP coefficients using system identification.", false);
+        this.localizerFunction = localizerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+        this.linearBrakeCoeff = linearBrakeCoeff;
+        this.quadraticBrakeCoeff = quadraticBrakeCoeff;
+    }
+
+    @Override
+    protected List<Double> runTuningOpMode() {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+        localizer.update();
+
+        times.clear();
+        velocities.clear();
+        done = false;
+        vMax = 0;
+        lastTime = 0.0;
+
+        waitForStart();
+        timer.reset();
+        lastTime = timer.seconds();
+        drivetrain.drive(new DrivePowers(POWER, 0.0, 0.0), false);
+
+        while (!done && opModeIsActive()) {
+            double now = timer.seconds();
+            double dt = now - lastTime;
+            if (dt <= 0) dt = 1e-6;
+            lastTime = now;
+
+            localizer.update();
+
+            if (!done) {
+                times.add(timer.seconds());
+
+                double forwardVelocity = Math.abs(localizer.twist().toVector2D().x());
+                vMax = Math.max(vMax, forwardVelocity / POWER);
+
+                velocities.add(forwardVelocity);
+
+                if (timer.seconds() >= RUNTIME) {
+                    done = true;
+                    systemIdentification();
+                    drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
+                }
+            }
+        }
+
+        drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), true);
+
+        double kP_large = calculatekP(BETA_LARGE);
+        double kP_small = calculatekP(BETA_SMALL);
+
+        //  kP_large, kP_small, coast kV, and brake kV (scaled by aggressiveness factor)
+        return List.of(kP_large, kP_small, kV, kV * VEL_AGGRESSIVENESS);
+    }
+
+    private double calculatekP(double beta) {
+        kV = 1 / K;
+        kA = tau / K * beta;
+        double denominator = linearBrakeCoeff + 2.0 * quadraticBrakeCoeff * vMax;
+        double discriminant = kA - kV * denominator;
+
+        if (discriminant < 0) return kV * kV / (4.0 * kA);
+        double sqrt = (Math.sqrt(kA) - Math.sqrt(discriminant)) / denominator;
+        return sqrt * sqrt;
+    }
+
+    private void systemIdentification() {
+        int N = times.size();
+        if (N < 4) {
+            throw new IllegalArgumentException("Failed calibration.");
+        }
+
+        int start = Math.max(0, N - SAMPLES);
+        double samples = N - start;
+        double sum = 0;
+        for (int i = start; i < N; i++) sum += velocities.get(i);
+        double A = sum / samples;
+        this.K = A / POWER;
+
+        List<Double> y = new ArrayList<>();
+        List<Double> x = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            double vel = velocities.get(i) / POWER;
+            if (vel > 0.8 * K) continue;
+            if (vel < 0.1 * K) continue;
+            y.add(Math.log(K - vel));
+            x.add(times.get(i));
+        }
+        double[] linReg = linearFit(
+                x.toArray(new Double[0]),
+                y.toArray(new Double[0])
+        );
+        if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
+        this.tau = -1.0/linReg[1];
+    }
+}
+
+class StrafeTranslational extends TuningOpMode<List<Double>> {
+    Function<HardwareMap, Localizer> localizerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    private final double linearBrakeCoeff;
+    private final double quadraticBrakeCoeff;
+
+    private static final double BETA_LARGE = 0.124;
+    private static final double BETA_SMALL = 0.0715;
+    private static final double POWER = 0.4;
+    private static final double RUNTIME = 1.2;
+    private static final int SAMPLES = 15;
+
+    private double tau;
+    private double K;
+    private double kV;
+    private double kA;
+    private double vMax = 0;
+    private final List<Double> times = new ArrayList<>();
+    private final List<Double> velocities = new ArrayList<>();
+    private final ElapsedTime timer = new ElapsedTime();
+    private boolean done = false;
+    private double lastTime = 0.0;
+
+    public StrafeTranslational(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
+                               double linearBrakeCoeff, double quadraticBrakeCoeff) {
+        super("Strafe Translational", "A tuner for finding the Strafe Translational kP coefficients using system identification.", false);
+        this.localizerFunction = localizerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+        this.linearBrakeCoeff = linearBrakeCoeff;
+        this.quadraticBrakeCoeff = quadraticBrakeCoeff;
+    }
+
+    @Override
+    protected List<Double> runTuningOpMode() {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+        localizer.update();
+
+        times.clear();
+        velocities.clear();
+        done = false;
+        vMax = 0;
+        lastTime = 0.0;
+
+        waitForStart();
+        timer.reset();
+        lastTime = timer.seconds();
+        drivetrain.drive(new DrivePowers(0.0, POWER, 0.0), false);
+
+        while (!done && opModeIsActive()) {
+            double now = timer.seconds();
+            double dt = now - lastTime;
+            if (dt <= 0) dt = 1e-6;
+            lastTime = now;
+
+            localizer.update();
+
+            if (!done) {
+                times.add(timer.seconds());
+
+                double lateralVelocity = Math.abs(localizer.twist().toVector2D().y());
+                vMax = Math.max(vMax, lateralVelocity / POWER);
+
+                velocities.add(lateralVelocity);
+
+                if (timer.seconds() >= RUNTIME) {
+                    done = true;
+                    systemIdentification();
+                    drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
+                }
+            }
+        }
+
+        drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), true);
+
+        double kP_large = calculatekP(BETA_LARGE);
+        double kP_small = calculatekP(BETA_SMALL);
+
+        return List.of(kP_large, kP_small);
+    }
+
+    private double calculatekP(double beta) {
+        kV = 1 / K;
+        kA = tau / K * beta;
+        double denominator = linearBrakeCoeff + 2.0 * quadraticBrakeCoeff * vMax;
+        double discriminant = kA - kV * denominator;
+
+        if (discriminant < 0) return kV * kV / (4.0 * kA);
+        double sqrt = (Math.sqrt(kA) - Math.sqrt(discriminant)) / denominator;
+        return sqrt * sqrt;
+    }
+
+    private void systemIdentification() {
+        int N = times.size();
+        if (N < 4) {
+            throw new IllegalArgumentException("Failed calibration.");
+        }
+
+        int start = Math.max(0, N - SAMPLES);
+        double samples = N - start;
+        double sum = 0;
+        for (int i = start; i < N; i++) sum += velocities.get(i);
+        double A = sum / samples;
+        this.K = A / POWER;
+
+        List<Double> y = new ArrayList<>();
+        List<Double> x = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            double vel = velocities.get(i) / POWER;
+            if (vel > 0.8 * K) continue;
+            if (vel < 0.1 * K) continue;
+            y.add(Math.log(K - vel));
+            x.add(times.get(i));
+        }
+        double[] linReg = linearFit(
+                x.toArray(new Double[0]),
+                y.toArray(new Double[0])
+        );
+        if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
+        this.tau = -1.0/linReg[1];
+    }
+}
+

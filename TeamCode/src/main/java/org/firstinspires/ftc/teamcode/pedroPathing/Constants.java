@@ -51,7 +51,7 @@ public class Constants {
                 c.forwardTranslational.set(Controller.piecewise(smallTranslationalForward).put(2.5, largeTranslationalForward));
                 c.strafeTranslational.set(Controller.piecewise(smallTranslationalLateral).put(2.5, largeTranslationalLateral));
 
-                c.coast.set(Controller.proportionalFeedforward(0.0105).plus(Controller.staticFeedforward(0.015)));
+                c.coast.set(Controller.proportionalFeedforward(0.0105));
                 c.brake.set(Controller.proportionalFeedforward(0.005));
 
                 c.headingFeedback.set(Controller.proportional(7.2));
