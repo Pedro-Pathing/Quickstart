@@ -430,7 +430,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
     private double measuredVelocity;
     private double totalHeading;
     private double previousHeading;
-    private VoltageSensor voltageSensor;
+//    private VoltageSensor voltageSensor;
 
     public HeadingBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction) {
         super("Heading Braking", "A tuner for finding the Heading Braking Coefficients. The robot will turn back at forth at various speed levels.", false);
@@ -450,7 +450,6 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
         List<Double> coefficients = Collections.emptyList();
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         waitForStart();
         timer.reset();
@@ -466,11 +465,11 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
                 power = POWERS[iteration];
             }
 
-            if (state != State.DONE) {
-                double voltage = voltageSensor.getVoltage();
-                double duty = state == State.BRAKE ? -brakingPower * direction: power * direction;
-                double appliedVoltage = voltage * duty;
-            }
+//            if (state != State.DONE) {
+//                double voltage = voltageSensor.getVoltage();
+//                double duty = state == State.BRAKE ? -brakingPower * direction: power * direction;
+//                double appliedVoltage = voltage * duty;
+//            }
 
             switch (state) {
                 case DRIVE: {
@@ -667,8 +666,8 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     private final double headingKP;
 
     private static double[] POWERS;
-    public static double MAX_BRAKE_TIME = 5;
-    public static int trials = 12;
+    public static double MAX_BRAKE_TIME = 2.0;
+    public static int trials = 5;
     public static double maxPower = 0.7;
     public static double minPower = 0.2;
     public static double bias = 1.5;
@@ -684,7 +683,6 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     private double power;
     private Vector2D startPosition;
     private double measuredVelocity;
-    private VoltageSensor voltageSensor;
 
     public ForwardBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
                           double headingLinear, double headingQuadratic, double headingKP) {
@@ -705,7 +703,6 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         localizer.update();
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         List<Double> coefficients = Collections.emptyList();
 
@@ -829,8 +826,8 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     private final double headingKP;
 
     private static double[] POWERS;
-    public static double MAX_TURN_TIME = 5;
-    public static int trials = 12;
+    public static double MAX_TURN_TIME = 2.0;
+    public static int trials = 5;
     public static double maxPower = 1;
     public static double minPower = 0.2;
     public static double bias = 1.5;
@@ -846,7 +843,6 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     private double power;
     private Vector2D startPosition;
     private double measuredVelocity;
-    private VoltageSensor voltageSensor;
 
     public StrafeBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
                          double headingLinear, double headingQuadratic, double headingKP) {
@@ -867,7 +863,6 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
         localizer.update();
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         List<Double> coefficients = Collections.emptyList();
 
