@@ -40,18 +40,18 @@ import java.util.List;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 6/26/2025
  */
-@Configurable
+//@Configurable
 @TeleOp(name = "Tuning", group = "Pedro Pathing")
 public class Tuning extends SelectableOpMode {
     public static Follower follower;
 
-    @IgnoreConfigurable
+    //@IgnoreConfigurable
     static PoseHistory poseHistory;
 
-    @IgnoreConfigurable
+    //@IgnoreConfigurable
     static TelemetryManager telemetryM;
 
-    @IgnoreConfigurable
+    //@IgnoreConfigurable
     static ArrayList<String> changes = new ArrayList<>();
 
     public Tuning() {
