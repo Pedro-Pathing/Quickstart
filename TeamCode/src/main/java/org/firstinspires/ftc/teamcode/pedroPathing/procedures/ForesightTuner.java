@@ -450,7 +450,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
         List<Double> coefficients = Collections.emptyList();
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         waitForStart();
         timer.reset();
@@ -705,7 +705,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         localizer.update();
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         List<Double> coefficients = Collections.emptyList();
 
@@ -867,7 +867,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
         localizer.update();
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         List<Double> coefficients = Collections.emptyList();
 
