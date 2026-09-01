@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.pedroPathing.procedures;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Pose;
 import com.pedropathing.math.Vector2D;
@@ -11,9 +10,7 @@ import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.pedropathing.utils.Angle;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.teamcode.pedroPathing.identification.HeadingBrakingIdentification;
 
 import java.util.*;
 import java.util.function.Function;
@@ -53,8 +50,12 @@ public class ForesightTuner extends Procedure {
         double headingLinear = headingBraking.get(0);
         double headingQuadratic = headingBraking.get(1);
 
-        List<Double> forwardBraking = runOpMode(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading));
-        List<Double> strafeBraking = runOpMode(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading));
+        Inputs distanceBrakingInput = inputs("Distance", "The distance to drive in inches for the Forward and Strafe Braking Identifiers");
+        Inputs.Field<Double> distanceBraking = distanceBrakingInput.d("Distance").withDefault(48.0);
+        awaitInputs(distanceBrakingInput);
+
+        List<Double> forwardBraking = runOpMode(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, distanceBraking.get()));
+        List<Double> strafeBraking = runOpMode(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, distanceBraking.get()));
 
         double forwardLinear = forwardBraking.get(0);
         double forwardQuadratic = forwardBraking.get(1);
@@ -665,15 +666,15 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     private final double headingQuadratic;
     private final double headingKP;
 
-    private static double[] POWERS;
-    public static double MAX_BRAKE_TIME = 2.0;
-    public static int trials = 5;
-    public static double maxPower = 0.7;
-    public static double minPower = 0.2;
-    public static double bias = 1.5;
-    public static double brakingPower = 0.001;
-    public static int TILES_IN_FRONT_OF_ROBOT = 3;
-    public static double IDLE_SECONDS = 1;
+    private double[] POWERS;
+    public double MAX_BRAKE_TIME = 2.0;
+    public int trials = 5;
+    public double maxPower = 0.7;
+    public double minPower = 0.2;
+    public double bias = 1.5;
+    public double brakingPower = 0.001;
+    public double distance;
+    public double IDLE_SECONDS = 1;
 
     private final ElapsedTime timer = new ElapsedTime();
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
@@ -685,13 +686,14 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     private double measuredVelocity;
 
     public ForwardBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
-                          double headingLinear, double headingQuadratic, double headingKP) {
+                          double headingLinear, double headingQuadratic, double headingKP, double distance) {
         super("Forward Braking", "A tuner for finding the Forward Braking Coefficients by driving forward and backward at various speeds.", false);
         this.localizerFunction = localizerFunction;
         this.drivetrainFunction = drivetrainFunction;
         this.headingLinear = headingLinear;
         this.headingQuadratic = headingQuadratic;
         this.headingKP = headingKP;
+        this.distance = distance;
     }
 
     @Override
@@ -718,8 +720,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
             switch (state) {
                 case DRIVE: {
-                    if ((direction == 1 && localizer.pose().x() > (TILES_IN_FRONT_OF_ROBOT - 2) * 24 + 12) ||
-                            (direction == -1 && localizer.pose().x() < 12)) {
+                    if ((direction == 1 && localizer.pose().x() >= distance) || (direction == -1 && localizer.pose().x() <= 12)) {
                         startPosition = localizer.pose().toVector2D();
                         measuredVelocity = localizer.velocity().toVector2D().magnitude();
 
@@ -825,15 +826,15 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     private final double headingQuadratic;
     private final double headingKP;
 
-    private static double[] POWERS;
-    public static double MAX_TURN_TIME = 2.0;
-    public static int trials = 5;
-    public static double maxPower = 1;
-    public static double minPower = 0.2;
-    public static double bias = 1.5;
-    public static double brakingPower = 0.001;
-    public static int TILES_IN_FRONT_OF_ROBOT = 3;
-    public static double IDLE_SECONDS = 1;
+    private double[] POWERS;
+    public double MAX_TURN_TIME = 2.0;
+    public  int trials = 5;
+    public double maxPower = 1;
+    public double minPower = 0.2;
+    public double bias = 1.5;
+    public double brakingPower = 0.001;
+    public double distance;
+    public double IDLE_SECONDS = 1;
 
     private final ElapsedTime timer = new ElapsedTime();
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
@@ -845,13 +846,14 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     private double measuredVelocity;
 
     public StrafeBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
-                         double headingLinear, double headingQuadratic, double headingKP) {
+                         double headingLinear, double headingQuadratic, double headingKP, double distance) {
         super("Strafe Braking", "A tuner for finding the Strafe Braking Coefficients by strafing left and right at various speeds.", false);
         this.localizerFunction = localizerFunction;
         this.drivetrainFunction = drivetrainFunction;
         this.headingLinear = headingLinear;
         this.headingQuadratic = headingQuadratic;
         this.headingKP = headingKP;
+        this.distance = distance;
     }
 
     @Override
@@ -878,7 +880,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
             switch (state) {
                 case DRIVE: {
-                    if ((direction == 1 && localizer.pose().y() > (TILES_IN_FRONT_OF_ROBOT - 2) * 24 + 12) ||
+                    if ((direction == 1 && localizer.pose().y() > distance) ||
                             (direction == -1 && localizer.pose().y() < 12)) {
                         startPosition = localizer.pose().toVector2D();
                         measuredVelocity = localizer.velocity().toVector2D().magnitude();
@@ -984,12 +986,12 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
     private final double linearBrakeCoeff;
     private final double quadraticBrakeCoeff;
 
-    private static final double BETA_LARGE = 0.124;
-    private static final double BETA_SMALL = 0.0715;
-    private static final double VEL_AGGRESSIVENESS = 0.85;
-    private static final double POWER = 0.4;
-    private static final double RUNTIME = 1.2;
-    private static final int SAMPLES = 15;
+    private final double BETA_LARGE = 0.0715;
+    private final double BETA_SMALL = 0.124;
+    private final double VEL_AGGRESSIVENESS = 0.85;
+    private final double POWER = 0.4;
+    private final double RUNTIME = 1.2;
+    private final int SAMPLES = 15;
 
     private double tau;
     private double K;
@@ -1111,11 +1113,11 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
     private final double linearBrakeCoeff;
     private final double quadraticBrakeCoeff;
 
-    private static final double BETA_LARGE = 0.124;
-    private static final double BETA_SMALL = 0.0715;
-    private static final double POWER = 0.4;
-    private static final double RUNTIME = 1.2;
-    private static final int SAMPLES = 15;
+    private final double BETA_LARGE = 0.0715;
+    private final double BETA_SMALL = 0.124;
+    private final double POWER = 0.4;
+    private final double RUNTIME = 1.2;
+    private final int SAMPLES = 15;
 
     private double tau;
     private double K;
