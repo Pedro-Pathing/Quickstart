@@ -84,7 +84,7 @@ public class ForwardBrakingIdentification extends OpMode {
     }
 
     private double getHeadingPower() {
-        double angularVel = follower.twist().omega();
+        double angularVel = follower.twist().omega;
         double brakeDist = Constants.foresightConfig.headingBrakeCoefficients.get().x() * angularVel +
                 Constants.foresightConfig.headingBrakeCoefficients.get().y() * angularVel * angularVel * Math.signum(angularVel);
         return Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())

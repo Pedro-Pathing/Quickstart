@@ -40,7 +40,7 @@ public class PinpointTuner extends Procedure {
         boolean forwardPodReversed = runOpMode(new ForwardDirection(pinpointName.get(), podType.get(), customPodScalar));
         boolean strafePodReversed = runOpMode(new StrafeDirection(pinpointName.get(), podType.get(), customPodScalar));
 
-        ArrayList<Double> offsets = runOpMode(new Offsets(pinpointName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed));
+        List<Double> offsets = runOpMode(new Offsets(pinpointName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed));
 
         result("name", pinpointName.get());
 
@@ -183,7 +183,7 @@ class StrafeDirection extends TuningOpMode<Boolean> {
     }
 }
 
-class Offsets extends TuningOpMode<ArrayList<Double>> {
+class Offsets extends TuningOpMode<List<Double>> {
     String name;
     PinpointTuner.PodType podType;
     OptionalDouble customPodScalar =  OptionalDouble.empty();
@@ -204,7 +204,7 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
     }
 
     @Override
-    protected ArrayList<Double> runTuningOpMode() {
+    protected List<Double> runTuningOpMode() {
         PinpointConfig config = new PinpointConfig(c -> {
             c.name.set(name);
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -221,13 +221,14 @@ class Offsets extends TuningOpMode<ArrayList<Double>> {
         localizer.setPose(new Pose(0, 0));
         localizer.update();
 
+        List<Double> offsets = Collections.emptyList();
+
         waitForStart();
-        while (!isStopRequested()) {
+        while (opModeIsActive()) {
             localizer.update();
+            offsets = Arrays.asList(((-localizer.pose().y()) / 2.0), ((-localizer.pose().x()) / 2.0));
         }
-        return new ArrayList<>(Arrays.asList(
-            ((-localizer.pose().y()) / 2.0),
-            ((-localizer.pose().x()) / 2.0)
-        ));
+
+        return offsets;
     }
 }
