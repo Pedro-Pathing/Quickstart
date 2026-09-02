@@ -225,8 +225,14 @@ class Offsets extends TuningOpMode<List<Double>> {
 
         waitForStart();
         while (opModeIsActive()) {
+
             localizer.update();
             offsets = Arrays.asList(((-localizer.pose().y()) / 2.0), ((-localizer.pose().x()) / 2.0));
+
+            telemetry.addData("xPodOffset", offsets.get(0));
+            telemetry.addData("yPodOffset", offsets.get(1));
+            telemetry.addData("Pose", localizer.pose());
+            telemetry.update();
         }
 
         return offsets;
