@@ -109,15 +109,10 @@ public class StrafeTranslationalAutoTuner extends OpMode {
         telemetry.addData("Secondary Strafe Translational", "kP=" + String.format("%.4f", kP_small));
     }
 
-    private double calculatekP(double beta) {
+    private double calculatekP(double alpha) {
         kV = 1 / K;
-        kA = tau / K * beta;
-        double denominator = foresightConfig.linearBrakeCoefficients.get().get(1,1) + 2.0 * foresightConfig.quadraticBrakeCoefficients.get().get(1,1) * vMax;
-        double discriminant = kA - kV * denominator;
-
-        if (discriminant < 0) return kV * kV / (4.0 * kA);
-        double sqrt = (Math.sqrt(kA) - Math.sqrt(discriminant)) / denominator;
-        return sqrt * sqrt;
+        kA = tau / K;
+        return K * tau * alpha * alpha;
     }
 
     private void systemIdentification() {

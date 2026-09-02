@@ -108,8 +108,7 @@ public class HeadingPredictiveAutoTuner extends OpMode {
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        double lambda = tau * alpha;
-        return tau / (K * lambda * lambda);
+        return K * tau * alpha * alpha;
     }
 
     private void systemIdentification() {
