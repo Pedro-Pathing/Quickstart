@@ -151,7 +151,7 @@ class StrafeDirection extends TuningOpMode<Boolean> {
     public StrafeDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
         super("Strafe Direction Identification",
                 "Determines if your strafe pod needs to be reversed. \n"
-                        + "Push your robot to the side and then stop the Opmode",
+                        + "Push your robot to the left and then stop the Opmode",
                 true);
         this.name = name;
         this.podType = podType;
