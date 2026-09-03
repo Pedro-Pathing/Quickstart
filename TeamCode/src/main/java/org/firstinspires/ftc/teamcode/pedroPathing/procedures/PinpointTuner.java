@@ -135,6 +135,7 @@ class ForwardDirection extends TuningOpMode<Boolean> {
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
         waitForStart();
+
         while (!isStopRequested()) {
             localizer.update();
         }
@@ -188,6 +189,7 @@ class Offsets extends TuningOpMode<List<Double>> {
     PinpointTuner.PodType podType;
     OptionalDouble customPodScalar =  OptionalDouble.empty();
     boolean forwardPodReversed, strafePodReversed;
+    private Pose previous = Pose.zero();
 
     public Offsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
         super("Offsets Identification",
@@ -221,20 +223,17 @@ class Offsets extends TuningOpMode<List<Double>> {
         localizer.setPose(new Pose(0, 0));
         localizer.update();
 
-        List<Double> offsets = Collections.emptyList();
-
         waitForStart();
+
         while (!isStopRequested()) {
-
+            previous = localizer.pose();
             localizer.update();
-            offsets = Arrays.asList(((-localizer.pose().y()) / 2.0), ((-localizer.pose().x()) / 2.0));
-
-            telemetry.addData("xPodOffset", offsets.get(0));
-            telemetry.addData("yPodOffset", offsets.get(1));
-            telemetry.addData("Pose", localizer.pose());
-            telemetry.update();
         }
 
-        return offsets;
+        if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y()) {
+            previous =  localizer.pose();
+        }
+
+        return List.of(((-previous.y()) / 2.0), ((-previous.x()) / 2.0));
     }
 }
