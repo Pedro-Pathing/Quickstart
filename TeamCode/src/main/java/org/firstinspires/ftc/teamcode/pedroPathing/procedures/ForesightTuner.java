@@ -455,7 +455,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         timer.reset();
 
-        while (state != State.DONE && opModeIsActive()) {
+        while (state != State.DONE && !isStopRequested()) {
             localizer.update();
             double currentHeading = localizer.pose().heading();
             totalHeading += Angle.normalizeSigned(currentHeading - previousHeading);
@@ -532,7 +532,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
             double min,
             double bias
     ) {
-        if (count < 2) return new double[]{max};
+        if (count < 2) return new double[]{  max};
 
         double[] values = new double[count];
 
@@ -593,7 +593,7 @@ class HeadingTuner extends TuningOpMode<Double> {
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(0.0, 0.0, POWER), false);
 
-        while (!done && opModeIsActive()) {
+        while (!done && !isStopRequested()) {
             double now = timer.seconds();
             double dt = now - lastTime;
             if (dt <= 0) dt = 1e-6;
@@ -710,7 +710,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         timer.reset();
 
-        while (state != State.DONE && opModeIsActive()) {
+        while (state != State.DONE && !isStopRequested()) {
             localizer.update();
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
@@ -870,7 +870,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         timer.reset();
 
-        while (state != State.DONE && opModeIsActive()) {
+        while (state != State.DONE && !isStopRequested()) {
             localizer.update();
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
@@ -1031,7 +1031,7 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(POWER, 0.0, 0.0), false);
 
-        while (!done && opModeIsActive()) {
+        while (!done && !isStopRequested()) {
             double now = timer.seconds();
             double dt = now - lastTime;
             if (dt <= 0) dt = 1e-6;
@@ -1152,7 +1152,7 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(0.0, POWER, 0.0), false);
 
-        while (!done && opModeIsActive()) {
+        while (!done && !isStopRequested()) {
             double now = timer.seconds();
             double dt = now - lastTime;
             if (dt <= 0) dt = 1e-6;

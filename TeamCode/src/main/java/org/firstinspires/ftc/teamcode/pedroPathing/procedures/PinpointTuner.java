@@ -224,7 +224,7 @@ class Offsets extends TuningOpMode<List<Double>> {
         List<Double> offsets = Collections.emptyList();
 
         waitForStart();
-        while (opModeIsActive()) {
+        while (!isStopRequested()) {
 
             localizer.update();
             offsets = Arrays.asList(((-localizer.pose().y()) / 2.0), ((-localizer.pose().x()) / 2.0));
