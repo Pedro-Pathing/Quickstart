@@ -84,29 +84,21 @@ public class ForwardBrakingIdentification extends OpMode {
     }
 
     private double getHeadingPower() {
-        double angularVel = follower.twist().omega;
-        double brakeDist = Constants.foresightConfig.headingBrakeCoefficients.get().x() * angularVel +
-                Constants.foresightConfig.headingBrakeCoefficients.get().y() * angularVel * angularVel * Math.signum(angularVel);
-        return Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
-                .calculate(0, normalizeSigned(- follower.pose().heading() - brakeDist), 0);
+//        double angularVel = follower.twist().omega;
+//        double brakeDist = Constants.foresightConfig.headingBrakeCoefficients.get().x() * angularVel +
+//                Constants.foresightConfig.headingBrakeCoefficients.get().y() * angularVel * angularVel * Math.signum(angularVel);
+//        return Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
+//                .calculate(0, normalizeSigned(- follower.pose().heading() - brakeDist), 0);
+        return 0;
     }
 
     private void drive() {
-        follower.manual(power * direction, 0.0, getHeadingPower());
+        follower.manual(power * direction, 0.0, 0.0);
     }
 
     private void brake() {
         double headingPower = getHeadingPower();
-
         double brake = -brakingPower * direction;
-
-        double minBrake = Math.abs(headingPower) + 0.001;
-
-        if (direction > 0) {
-            brake = Math.min(brake, -minBrake);
-        } else {
-            brake = Math.max(brake, minBrake);
-        }
 
         follower.manual(brake, 0, headingPower);
     }

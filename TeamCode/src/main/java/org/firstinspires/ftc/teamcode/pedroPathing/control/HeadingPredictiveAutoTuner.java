@@ -16,7 +16,7 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class HeadingPredictiveAutoTuner extends OpMode {
-    public static double ALPHA = 18.25;
+    public static double ALPHA = 19.5;
 
     private static final double POWER = 0.4;
     private static final double RUNTIME = 3;
