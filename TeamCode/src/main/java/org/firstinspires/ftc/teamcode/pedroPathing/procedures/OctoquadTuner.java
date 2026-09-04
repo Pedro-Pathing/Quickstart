@@ -112,11 +112,16 @@ class OctoquadHeadingScalar extends TuningOpMode<Double> {
 
         OctoQuadLocalizer localizer = new OctoQuadLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
+        localizer.update();
         waitForStart();
         while (!isStopRequested()) {
-            double currentHeading = localizer.pose().heading();
-            totalHeading += Angle.normalizeSigned(currentHeading - prevHeading);
-            prevHeading = currentHeading;
+            localizer.update();
+
+            if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y() || localizer.pose().heading() != Pose.zero().heading()) {
+                double currentHeading = localizer.pose().heading();
+                totalHeading += Angle.normalizeSigned(currentHeading - prevHeading);
+                prevHeading = currentHeading;
+            }
         }
         return Math.abs((turns * Math.PI * 2 / totalHeading));
     }
