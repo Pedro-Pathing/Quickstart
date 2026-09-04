@@ -135,6 +135,7 @@ class ForwardDirection extends TuningOpMode<Boolean> {
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
         waitForStart();
+
         while (!isStopRequested()) {
             localizer.update();
         }
@@ -151,7 +152,7 @@ class StrafeDirection extends TuningOpMode<Boolean> {
     public StrafeDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
         super("Strafe Direction Identification",
                 "Determines if your strafe pod needs to be reversed. \n"
-                        + "Push your robot to the side and then stop the Opmode",
+                        + "Push your robot to the left and then stop the Opmode",
                 true);
         this.name = name;
         this.podType = podType;
@@ -188,6 +189,7 @@ class Offsets extends TuningOpMode<List<Double>> {
     PinpointTuner.PodType podType;
     OptionalDouble customPodScalar =  OptionalDouble.empty();
     boolean forwardPodReversed, strafePodReversed;
+    private Pose previous = Pose.zero();
 
     public Offsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
         super("Offsets Identification",
@@ -221,14 +223,17 @@ class Offsets extends TuningOpMode<List<Double>> {
         localizer.setPose(new Pose(0, 0));
         localizer.update();
 
-        List<Double> offsets = Collections.emptyList();
-
         waitForStart();
-        while (opModeIsActive()) {
+
+        while (!isStopRequested()) {
+            previous = localizer.pose();
             localizer.update();
-            offsets = Arrays.asList(((-localizer.pose().y()) / 2.0), ((-localizer.pose().x()) / 2.0));
         }
 
-        return offsets;
+        if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y()) {
+            previous =  localizer.pose();
+        }
+
+        return List.of(((-previous.y()) / 2.0), ((-previous.x()) / 2.0));
     }
 }
