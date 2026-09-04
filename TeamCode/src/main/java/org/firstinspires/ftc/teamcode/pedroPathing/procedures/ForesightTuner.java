@@ -669,7 +669,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     public double MAX_BRAKE_TIME = 2.0;
     public int trials = 5;
     public double maxPower = 0.7;
-    public double minPower = 0.2;
+    public double minPower = 0.3;
     public double bias = 1.5;
     public double brakingPower = 0.001;
     public double distance;
@@ -709,6 +709,8 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
         waitForStart();
         timer.reset();
+
+        drivetrain.drive(new DrivePowers(1,0,0), false);
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
@@ -829,7 +831,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     public double MAX_TURN_TIME = 2.0;
     public  int trials = 5;
     public double maxPower = 1;
-    public double minPower = 0.2;
+    public double minPower = 0.3;
     public double bias = 1.5;
     public double brakingPower = 0.001;
     public double distance;
@@ -869,6 +871,8 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
         waitForStart();
         timer.reset();
+
+        drivetrain.drive(new DrivePowers(0,1,0), false);
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
