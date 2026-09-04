@@ -1,14 +1,11 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.control;
 
 import static com.pedropathing.utils.Utils.linearFit;
-import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.foresightConfig;
 
 import android.annotation.SuppressLint;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
-import com.pedropathing.math.Vector2D;
-import com.pedropathing.utils.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -20,8 +17,8 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class StrafeTranslationalAutoTuner extends OpMode {
-    public static double BETA_LARGE = 0.124;
-    public static double BETA_SMALL = 0.0715;
+    public static double ALPHA_LARGE = 7.6;
+    public static double ALPHA_SMALL = 4.4;
 
     private static final double POWER = 0.4;
     private static final double RUNTIME = 1.2;
@@ -98,8 +95,8 @@ public class StrafeTranslationalAutoTuner extends OpMode {
             }
         }
 
-        double kP_large = calculatekP(BETA_LARGE);
-        double kP_small = calculatekP(BETA_SMALL);
+        double kP_large = calculatekP(ALPHA_LARGE);
+        double kP_small = calculatekP(ALPHA_SMALL);
 
         telemetry.addData("Est tau (s)", String.format("%.4f", tau));
         telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
@@ -112,7 +109,7 @@ public class StrafeTranslationalAutoTuner extends OpMode {
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        return K * tau * alpha * alpha;
+        return tau * alpha * alpha / K;
     }
 
     private void systemIdentification() {

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing.control;
 
 import static com.pedropathing.utils.Utils.linearFit;
-import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.foresightConfig;
 
 import android.annotation.SuppressLint;
 import com.pedropathing.follower.Follower;
@@ -17,10 +16,10 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class HeadingPredictiveAutoTuner extends OpMode {
-    public static double BETA = 2.83;
+    public static double ALPHA = 18.25;
 
     private static final double POWER = 0.4;
-    private static final double RUNTIME = 1.2;
+    private static final double RUNTIME = 3;
     private static final int SAMPLES = 15;
 
     private double tau;
@@ -96,7 +95,7 @@ public class HeadingPredictiveAutoTuner extends OpMode {
             }
         }
 
-        double kP_large = calculatekP(BETA);
+        double kP_large = calculatekP(ALPHA);
 
         telemetry.addData("Est tau (s)", String.format("%.4f", tau));
         telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
@@ -108,7 +107,7 @@ public class HeadingPredictiveAutoTuner extends OpMode {
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        return K * tau * alpha * alpha;
+        return tau * alpha * alpha / K;
     }
 
     private void systemIdentification() {

@@ -17,8 +17,8 @@ import java.util.List;
 
 @TeleOp(group = "3")
 public class ForwardTranslationalAutoTuner extends OpMode {
-    public static double BETA_LARGE = 0.124;
-    public static double BETA_SMALL = 0.0715;
+    public static double ALPHA_LARGE = 7.6;
+    public static double ALPHA_SMALL = 4.4;
     public static double VEL_AGGRESSIVENESS = 0.85;
 
     private static final double POWER = 0.4;
@@ -98,8 +98,8 @@ public class ForwardTranslationalAutoTuner extends OpMode {
             }
         }
 
-        double kP_large = calculatekP(BETA_LARGE);
-        double kP_small = calculatekP(BETA_SMALL);
+        double kP_large = calculatekP(ALPHA_LARGE);
+        double kP_small = calculatekP(ALPHA_SMALL);
 
         telemetry.addData("Est tau (s)", String.format("%.4f", tau));
         telemetry.addData("Est K (in/s per power)", String.format("%.4f", K));
@@ -113,7 +113,7 @@ public class ForwardTranslationalAutoTuner extends OpMode {
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        return K * tau * alpha * alpha;
+        return tau * alpha * alpha / K;
     }
 
     private void systemIdentification() {
