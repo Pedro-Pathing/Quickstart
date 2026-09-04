@@ -248,9 +248,10 @@ class OctoquadOffsets extends TuningOpMode<List<Double>> {
     double customPodScalar;
     boolean forwardPodReversed, strafePodReversed;
     double headingScalar;
+    Pose previous;
 
     public OctoquadOffsets(String name, OctoquadTuner.PodType podType, double customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed, double headingScalar) {
-        super("Offsets Identification",
+        super("PinpointOffsets Identification",
                 "Automatically identifies the offsets for your Octoquad localizer. \n"
                         + "Spin your robot in place 180 degrees and then stop the Opmode",
                 true);
@@ -283,14 +284,17 @@ class OctoquadOffsets extends TuningOpMode<List<Double>> {
         localizer.setPose(new Pose(0, 0));
         localizer.update();
 
-        List<Double> offsets = Collections.emptyList();
-
         waitForStart();
-        while (opModeIsActive()) {
+
+        while (!isStopRequested()) {
+            previous = localizer.pose();
             localizer.update();
-            offsets = Arrays.asList(((-localizer.pose().y()) / 2.0), ((-localizer.pose().x()) / 2.0));
         }
 
-        return offsets;
+        if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y()) {
+            previous =  localizer.pose();
+        }
+
+        return List.of(((-previous.y()) / 2.0), ((-previous.x()) / 2.0));
     }
 }

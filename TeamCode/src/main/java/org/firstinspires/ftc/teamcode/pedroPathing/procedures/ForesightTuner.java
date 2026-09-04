@@ -62,8 +62,8 @@ public class ForesightTuner extends Procedure {
         double strafeLinear = strafeBraking.get(0);
         double strafeQuadratic = strafeBraking.get(1);
 
-        List<Double> forwardTranslational = runOpMode(new ForwardTranslational(localizerFunction, drivetrainFunction, forwardLinear, forwardQuadratic));
-        List<Double> strafeTranslational = runOpMode(new StrafeTranslational(localizerFunction, drivetrainFunction, strafeLinear, strafeQuadratic));
+        List<Double> forwardTranslational = runOpMode(new ForwardTranslational(localizerFunction, drivetrainFunction));
+        List<Double> strafeTranslational = runOpMode(new StrafeTranslational(localizerFunction, drivetrainFunction));
 
         double forwardTranslationalPrimary = forwardTranslational.get(0);
         double forwardTranslationalSecondary = forwardTranslational.get(1);
@@ -555,7 +555,7 @@ class HeadingTuner extends TuningOpMode<Double> {
     private static final double POWER = 0.4;
     private static final double RUNTIME = 1.2;
     private static final int SAMPLES = 15;
-    private static final double BETA = 2.83;
+    public static double ALPHA = 18.25;
 
     private double tau;
     private double K;
@@ -618,13 +618,13 @@ class HeadingTuner extends TuningOpMode<Double> {
         }
 
         drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), true);
-        return calculatekP(BETA);
+        return calculatekP(ALPHA);
     }
 
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        return K * tau * alpha * alpha;
+        return tau * alpha * alpha / K;
     }
 
     private void systemIdentification() {
@@ -982,11 +982,9 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 class ForwardTranslational extends TuningOpMode<List<Double>> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
-    private final double linearBrakeCoeff;
-    private final double quadraticBrakeCoeff;
 
-    private final double BETA_LARGE = 0.124;
-    private final double BETA_SMALL = 0.0715;
+    public static double ALPHA_LARGE = 7.6;
+    public static double ALPHA_SMALL = 4.4;
     private final double VEL_AGGRESSIVENESS = 0.85;
     private final double POWER = 0.4;
     private final double RUNTIME = 1.2;
@@ -1003,13 +1001,10 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
     private boolean done = false;
     private double lastTime = 0.0;
 
-    public ForwardTranslational(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
-                                double linearBrakeCoeff, double quadraticBrakeCoeff) {
+    public ForwardTranslational(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction) {
         super("Forward Translational", "A tuner for finding the Forward Translational kP coefficients using system identification. This will move around 12-24 inches in front of the robot and then stop.", false);
         this.localizerFunction = localizerFunction;
         this.drivetrainFunction = drivetrainFunction;
-        this.linearBrakeCoeff = linearBrakeCoeff;
-        this.quadraticBrakeCoeff = quadraticBrakeCoeff;
     }
 
     @Override
@@ -1057,8 +1052,8 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
 
         drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), true);
 
-        double kP_large = calculatekP(BETA_LARGE);
-        double kP_small = calculatekP(BETA_SMALL);
+        double kP_large = calculatekP(ALPHA_LARGE);
+        double kP_small = calculatekP(ALPHA_SMALL);
 
         //  kP_large, kP_small, coast kV, and brake kV (scaled by aggressiveness factor)
         return List.of(kP_large, kP_small, kV, kV * VEL_AGGRESSIVENESS);
@@ -1067,7 +1062,7 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        return K * tau * alpha * alpha;
+        return tau * alpha * alpha / K;
     }
 
     private void systemIdentification() {
@@ -1104,11 +1099,8 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
 class StrafeTranslational extends TuningOpMode<List<Double>> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
-    private final double linearBrakeCoeff;
-    private final double quadraticBrakeCoeff;
-
-    private final double BETA_LARGE = 0.124;
-    private final double BETA_SMALL = 0.0715;
+    public static double ALPHA_LARGE = 7.6;
+    public static double ALPHA_SMALL = 4.4;
     private final double POWER = 0.4;
     private final double RUNTIME = 1.2;
     private final int SAMPLES = 15;
@@ -1124,13 +1116,10 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
     private boolean done = false;
     private double lastTime = 0.0;
 
-    public StrafeTranslational(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction,
-                               double linearBrakeCoeff, double quadraticBrakeCoeff) {
+    public StrafeTranslational(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction) {
         super("Strafe Translational", "A tuner for finding the Strafe Translational kP coefficients using system identification. This will move around 12-24 inches to the left and right of the robot and then stop.", false);
         this.localizerFunction = localizerFunction;
         this.drivetrainFunction = drivetrainFunction;
-        this.linearBrakeCoeff = linearBrakeCoeff;
-        this.quadraticBrakeCoeff = quadraticBrakeCoeff;
     }
 
     @Override
@@ -1178,8 +1167,8 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
 
         drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), true);
 
-        double kP_large = calculatekP(BETA_LARGE);
-        double kP_small = calculatekP(BETA_SMALL);
+        double kP_large = calculatekP(ALPHA_LARGE);
+        double kP_small = calculatekP(ALPHA_SMALL);
 
         return List.of(kP_large, kP_small);
     }
@@ -1187,7 +1176,7 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
     private double calculatekP(double alpha) {
         kV = 1 / K;
         kA = tau / K;
-        return K * tau * alpha * alpha;
+        return tau * alpha * alpha / K;
     }
 
     private void systemIdentification() {

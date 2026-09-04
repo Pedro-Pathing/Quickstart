@@ -34,13 +34,13 @@ public class PinpointTuner extends Procedure {
             Inputs inputsCustom = inputs("Custom Scalar Identification Push Distance", "Set the distance you will push your robot forward in inches");
             Inputs.Field<Double> distance = inputsCustom.d("Distance").withDefault(48.0);
             awaitInputs(inputsCustom);
-            customPodScalar = OptionalDouble.of(runOpMode(new CustomPodScalar(distance.get(), pinpointName.get())));
+            customPodScalar = OptionalDouble.of(runOpMode(new PinpointCustomPodScalar(distance.get(), pinpointName.get())));
         }
 
-        boolean forwardPodReversed = runOpMode(new ForwardDirection(pinpointName.get(), podType.get(), customPodScalar));
-        boolean strafePodReversed = runOpMode(new StrafeDirection(pinpointName.get(), podType.get(), customPodScalar));
+        boolean forwardPodReversed = runOpMode(new PinpointForwardDirection(pinpointName.get(), podType.get(), customPodScalar));
+        boolean strafePodReversed = runOpMode(new PinpointStrafeDirection(pinpointName.get(), podType.get(), customPodScalar));
 
-        List<Double> offsets = runOpMode(new Offsets(pinpointName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed));
+        List<Double> offsets = runOpMode(new PinpointOffsets(pinpointName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed));
 
         result("name", pinpointName.get());
 
@@ -69,12 +69,12 @@ public class PinpointTuner extends Procedure {
     }
 }
 
-class CustomPodScalar extends TuningOpMode<Double> {
+class PinpointCustomPodScalar extends TuningOpMode<Double> {
 
     String name;
     double distance;
 
-    public CustomPodScalar(Double distance, String name) {
+    public PinpointCustomPodScalar(Double distance, String name) {
         super("Custom Scalar Identification",
                 "Determines the scalar for the custom pods of the Pinpoint localizer. \n"
                         + "Push your robot forward " + distance + " inches exactly and then stop the Opmode",
@@ -103,12 +103,12 @@ class CustomPodScalar extends TuningOpMode<Double> {
     }
 }
 
-class ForwardDirection extends TuningOpMode<Boolean> {
+class PinpointForwardDirection extends TuningOpMode<Boolean> {
     String name;
     PinpointTuner.PodType podType;
     OptionalDouble customPodScalar;
 
-    public ForwardDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
+    public PinpointForwardDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
         super("Forward Direction Identification",
                 "Determines if your forward pod needs to be reversed. \n"
                         + "Push your robot forward and then stop the Opmode",
@@ -144,12 +144,12 @@ class ForwardDirection extends TuningOpMode<Boolean> {
     }
 }
 
-class StrafeDirection extends TuningOpMode<Boolean> {
+class PinpointStrafeDirection extends TuningOpMode<Boolean> {
     String name;
     PinpointTuner.PodType podType;
     OptionalDouble customPodScalar;
 
-    public StrafeDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
+    public PinpointStrafeDirection(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar) {
         super("Strafe Direction Identification",
                 "Determines if your strafe pod needs to be reversed. \n"
                         + "Push your robot to the left and then stop the Opmode",
@@ -184,15 +184,15 @@ class StrafeDirection extends TuningOpMode<Boolean> {
     }
 }
 
-class Offsets extends TuningOpMode<List<Double>> {
+class PinpointOffsets extends TuningOpMode<List<Double>> {
     String name;
     PinpointTuner.PodType podType;
     OptionalDouble customPodScalar =  OptionalDouble.empty();
     boolean forwardPodReversed, strafePodReversed;
     private Pose previous = Pose.zero();
 
-    public Offsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
-        super("Offsets Identification",
+    public PinpointOffsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
+        super("PinpointOffsets Identification",
                 "Automatically identifies the offsets for your Pinpoint localizer. \n"
                         + "Spin your robot in place 180 degrees and then stop the Opmode",
                 true);
