@@ -6,11 +6,11 @@ import com.pedropathing.revhub.localizers.OTOSLocalizer;
 import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.pedropathing.utils.Angle;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.List;
-import java.util.OptionalDouble;
 
 public class OTOSTuner extends Procedure {
     public OTOSTuner() {
@@ -25,11 +25,11 @@ public class OTOSTuner extends Procedure {
 
         Inputs scalar = inputs("Scalar Identification", "Set the distance you will push your robot forward in inches and degrees you will turn your robot");
         Inputs.Field<Double> distance = scalar.d("Distance to push robot").withDefault(48.0);
-        Inputs.Field<Double> degrees = scalar.d("Degrees to turn robot").withDefault(180.0);
+        Inputs.Field<Integer> turns = scalar.i("Degrees to turn robot").withDefault(10);
         awaitInputs(scalar);
 
         Double linearScalar = runOpMode(new OTOSLinearScalar(name.get(), distance.get()));
-        Double angularScalar = runOpMode(new OTOSAngularScalar(name.get(), degrees.get()));
+        Double angularScalar = runOpMode(new OTOSAngularScalar(name.get(), turns.get() * 2 * Math.PI));
 
         List<Double> offsets = runOpMode(new OTOSOffsets(name.get(), linearScalar, angularScalar));
 
@@ -51,7 +51,6 @@ public class OTOSTuner extends Procedure {
 }
 
 class OTOSLinearScalar extends TuningOpMode<Double> {
-
     String name;
     double distance;
 
@@ -83,17 +82,18 @@ class OTOSLinearScalar extends TuningOpMode<Double> {
 }
 
 class OTOSAngularScalar extends TuningOpMode<Double> {
-
     String name;
-    double degrees;
+    double rad;
+    double totalHeading = 0;
+    double prevHeading = 0;
 
-    public OTOSAngularScalar(String name, double degrees) {
+    public OTOSAngularScalar(String name, double rad) {
         super("Custom Scalar Identification",
                 "Determines the angular scalar for the OTOS localizer. \n"
-                        + "Spin your robot " + degrees + " degrees and then stop the Opmode",
+                        + "Spin your robot " + rad + " degrees and then stop the Opmode",
                 true);
         this.name = name;
-        this.degrees = degrees;
+        this.rad = rad;
     }
 
     @Override
@@ -105,11 +105,18 @@ class OTOSAngularScalar extends TuningOpMode<Double> {
         });
         OTOSLocalizer localizer = new OTOSLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
+        localizer.update();
         waitForStart();
         while (!isStopRequested()) {
             localizer.update();
+
+            if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y() || localizer.pose().heading() != Pose.zero().heading()) {
+                double currentHeading = localizer.pose().heading();
+                totalHeading += Angle.normalizeSigned(currentHeading - prevHeading);
+                prevHeading = currentHeading;
+            }
         }
-        return (Math.toRadians(degrees) / (localizer.pose().heading()));
+        return Math.abs((rad / totalHeading));
     }
 }
 
