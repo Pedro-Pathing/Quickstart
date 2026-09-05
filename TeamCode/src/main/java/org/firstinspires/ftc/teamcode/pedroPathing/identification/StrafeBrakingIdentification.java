@@ -8,6 +8,8 @@ import android.annotation.SuppressLint;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.math.Vector2D;
+import com.pedropathing.utils.Angle;
+import com.pedropathing.utils.Utils;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -78,11 +80,13 @@ public class StrafeBrakingIdentification extends OpMode {
     }
 
     private double getHeadingPower() {
-        double angularVel = follower.twist().omega;
+        double angularVel = follower.velocity().omega;
         double brakeDist = Constants.foresightConfig.headingBrakeCoefficients.get().x() * angularVel +
                 Constants.foresightConfig.headingBrakeCoefficients.get().y() * angularVel * angularVel * Math.signum(angularVel);
-        return Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
-                .calculate(0, normalizeSigned(- follower.pose().heading() - brakeDist), 0);
+        double headingError = Angle.normalizeSigned(-follower.pose().heading());
+        double error = headingError - brakeDist;
+        return Utils.clamp(Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
+                .calculate(0, error, 0), -0.3, 1.0);
     }
 
     private void drive() {

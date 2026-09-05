@@ -9,6 +9,7 @@ import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.pedropathing.utils.Angle;
+import com.pedropathing.utils.Utils;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -710,7 +711,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         timer.reset();
 
-        drivetrain.drive(new DrivePowers(1,0,0), false);
+        drivetrain.drive(new DrivePowers(maxPower,0,0), false);
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
@@ -762,9 +763,11 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         double angularVel = localizer.velocity().omega;
         double brakeDist = headingLinear * angularVel +
                 headingQuadratic * angularVel * angularVel * Math.signum(angularVel);
-        double error = Angle.normalizeSigned(-localizer.pose().heading() - brakeDist);
-        return headingKP * error;
+        double headingError = Angle.normalizeSigned(-localizer.pose().heading());
+        double error = headingError - brakeDist;
+        return Utils.clamp(headingKP * error, -0.3, 1.0);
     }
+
 
     private void drive(Drivetrain drivetrain, Localizer localizer) {
         drivetrain.drive(new DrivePowers(power * direction, 0.0, getHeadingPower(localizer)), false);
@@ -872,7 +875,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
         waitForStart();
         timer.reset();
 
-        drivetrain.drive(new DrivePowers(0,1,0), false);
+        drivetrain.drive(new DrivePowers(0,maxPower,0), false);
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
@@ -925,8 +928,9 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
         double angularVel = localizer.velocity().omega;
         double brakeDist = headingLinear * angularVel +
                 headingQuadratic * angularVel * angularVel * Math.signum(angularVel);
-        double error = Angle.normalizeSigned(-localizer.pose().heading() - brakeDist);
-        return headingKP * error;
+        double headingError = Angle.normalizeSigned(-localizer.pose().heading());
+        double error = headingError - brakeDist;
+        return Utils.clamp(headingKP * error, -0.3, 1.0);
     }
 
     private void drive(Drivetrain drivetrain, Localizer localizer) {
