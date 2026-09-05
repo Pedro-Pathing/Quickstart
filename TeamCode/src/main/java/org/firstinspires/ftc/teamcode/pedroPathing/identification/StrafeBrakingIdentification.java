@@ -86,7 +86,7 @@ public class StrafeBrakingIdentification extends OpMode {
         double headingError = Angle.normalizeSigned(-follower.pose().heading());
         double error = headingError - brakeDist;
         return Utils.clamp(Constants.foresightConfig.headingFeedback.get().plus(Constants.foresightConfig.headingStaticFF.get())
-                .calculate(0, error, 0), -0.3, 1.0);
+                .calculate(0, error, 0), -0.3, 1.0) / 2.0;
     }
 
     private void drive() {
@@ -158,7 +158,7 @@ public class StrafeBrakingIdentification extends OpMode {
                 break;
             }
             case BRAKE: {
-                if (follower.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_TURN_TIME) {
+                if (follower.velocity().toVector2D().magnitude() > Constants.foresightConfig.velocityConstraint.get() && timer.seconds() < MAX_TURN_TIME) {
                     brake();
                     break;
                 }

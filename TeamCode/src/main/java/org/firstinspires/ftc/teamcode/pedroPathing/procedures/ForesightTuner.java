@@ -735,7 +735,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
                     break;
                 }
                 case BRAKE: {
-                    if (localizer.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_BRAKE_TIME) {
+                    if (localizer.velocity().toVector2D().magnitude() > 0.1 && timer.seconds() < MAX_BRAKE_TIME) {
                         brake(drivetrain, localizer);
                         break;
                     }
@@ -765,7 +765,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
                 headingQuadratic * angularVel * angularVel * Math.signum(angularVel);
         double headingError = Angle.normalizeSigned(-localizer.pose().heading());
         double error = headingError - brakeDist;
-        return Utils.clamp(headingKP * error, -0.3, 1.0);
+        return Utils.clamp(headingKP * error, -0.3, 1.0) / 2;
     }
 
 
@@ -900,7 +900,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
                     break;
                 }
                 case BRAKE: {
-                    if (localizer.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_BRAKE_TIME) {
+                    if (localizer.velocity().toVector2D().magnitude() > 0.1 && timer.seconds() < MAX_BRAKE_TIME) {
                         brake(drivetrain, localizer);
                         break;
                     }
@@ -930,7 +930,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
                 headingQuadratic * angularVel * angularVel * Math.signum(angularVel);
         double headingError = Angle.normalizeSigned(-localizer.pose().heading());
         double error = headingError - brakeDist;
-        return Utils.clamp(headingKP * error, -0.3, 1.0);
+        return Utils.clamp(headingKP * error, -0.3, 1.0) / 2;
     }
 
     private void drive(Drivetrain drivetrain, Localizer localizer) {
