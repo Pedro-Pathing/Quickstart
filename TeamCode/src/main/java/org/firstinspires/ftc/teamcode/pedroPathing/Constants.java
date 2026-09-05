@@ -34,8 +34,8 @@ public class Constants {
     public static PinpointConfig localizerConfig = new PinpointConfig(
             c -> {
                 c.name.set("pinpoint");
-                c.xPodOffset.set(1.8448);
-                c.yPodOffset.set(-4.99393);
+                c.xPodOffset.set(2.187);
+                c.yPodOffset.set(-4.572);
                 c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
                 c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
             }
@@ -43,16 +43,16 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
-                Controller primaryTranslationalForward = Controller.proportional(0.271313824388811);
-                Controller secondaryTranslationalForward = Controller.proportional(0.09020708238369529);
+                Controller primaryTranslationalForward = Controller.proportional(0);
+                Controller secondaryTranslationalForward = Controller.proportional(0);
                 Controller primaryTranslationalLateral = Controller.proportional(0.1629657422312071);
                 Controller secondaryTranslationalLateral = Controller.proportional(0.054183247640575465);
 
                 c.forwardTranslational.set(Controller.piecewise(secondaryTranslationalForward).put(2.5, primaryTranslationalForward));
                 c.strafeTranslational.set(Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral));
 
-                c.coast.set(Controller.proportionalFeedforward(0.014978350889324107));
-                c.brake.set(Controller.proportionalFeedforward(0.012731598255925491));
+                c.coast.set(Controller.proportionalFeedforward(0.010978350889324107));
+                c.brake.set(Controller.proportionalFeedforward(0.008731598255925491));
 
                 c.headingFeedback.set(Controller.proportional(5.258721785960744));
                 c.headingBrakeCoefficients.set(Vector2D.cartesian(0.05642143125655298, 0.0063829525363003695));

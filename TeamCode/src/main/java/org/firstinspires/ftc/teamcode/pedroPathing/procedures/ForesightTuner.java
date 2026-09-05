@@ -412,7 +412,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
     Function<HardwareMap, Drivetrain> drivetrainFunction;
 
     private static double[] POWERS;
-    public static double MAX_BRAKE_TIME = 4; //seconds, the robot shouldn't take longer than this to brake
+    public static double MAX_BRAKE_TIME = 3; //seconds, the robot shouldn't take longer than this to brake
 
     public static int trials = 12;
     public static double maxPower = 1;
@@ -831,7 +831,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     private final double headingKP;
 
     private double[] POWERS;
-    public double MAX_TURN_TIME = 2.0;
+    public double MAX_BRAKE_TIME = 6.0;
     public  int trials = 5;
     public double maxPower = 1;
     public double minPower = 0.3;
@@ -887,7 +887,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
             switch (state) {
                 case DRIVE: {
                     if ((direction == 1 && localizer.pose().y() > distance) ||
-                            (direction == -1 && localizer.pose().y() < 12)) {
+                            (direction == -1 && localizer.pose().y() <= 6)) {
                         startPosition = localizer.pose().toVector2D();
                         measuredVelocity = localizer.velocity().toVector2D().magnitude();
 
@@ -900,7 +900,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
                     break;
                 }
                 case BRAKE: {
-                    if (localizer.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_TURN_TIME) {
+                    if (localizer.velocity().toVector2D().magnitude() > 0.001 && timer.seconds() < MAX_BRAKE_TIME) {
                         brake(drivetrain, localizer);
                         break;
                     }
@@ -991,8 +991,8 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
 
-    public static double ALPHA_LARGE = 7.6;
-    public static double ALPHA_SMALL = 4.4;
+    public static double ALPHA_LARGE = 10.2;
+    public static double ALPHA_SMALL = 6.2;
     private final double VEL_AGGRESSIVENESS = 0.85;
     private final double POWER = 0.4;
     private final double RUNTIME = 1.2;
@@ -1107,8 +1107,8 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
 class StrafeTranslational extends TuningOpMode<List<Double>> {
     Function<HardwareMap, Localizer> localizerFunction;
     Function<HardwareMap, Drivetrain> drivetrainFunction;
-    public static double ALPHA_LARGE = 7.6;
-    public static double ALPHA_SMALL = 4.4;
+    public static double ALPHA_LARGE = 10.2;
+    public static double ALPHA_SMALL = 6.2;
     private final double POWER = 0.4;
     private final double RUNTIME = 1.2;
     private final int SAMPLES = 15;
