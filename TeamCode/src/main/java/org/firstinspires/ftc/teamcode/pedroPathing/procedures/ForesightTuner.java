@@ -887,8 +887,8 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
             switch (state) {
                 case DRIVE: {
-                    if ((direction == 1 && localizer.pose().y() > distance) ||
-                            (direction == -1 && localizer.pose().y() <= 6)) {
+                    if ((direction > 0 && localizer.pose().y() > distance) ||
+                            (direction < 0 && localizer.pose().y() <= 6)) {
                         startPosition = localizer.pose().toVector2D();
                         measuredVelocity = localizer.velocity().toVector2D().magnitude();
 
