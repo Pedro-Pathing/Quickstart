@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.procedures;
+package org.firstinspires.ftc.teamcode.pedro.procedures;
 
 import com.pedropathing.math.Pose;
 import com.pedropathing.revhub.localizers.Encoder;
@@ -9,8 +9,6 @@ import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class TwoWheelTuner extends Procedure {

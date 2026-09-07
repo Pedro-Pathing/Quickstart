@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.procedures;
+package org.firstinspires.ftc.teamcode.pedro.procedures;
 
 import com.pedropathing.math.Pose;
 import com.pedropathing.revhub.localizers.OctoQuadConfig;
@@ -11,10 +11,7 @@ import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.OptionalDouble;
 
 public class OctoquadTuner extends Procedure {
     enum PodType {
@@ -73,7 +70,7 @@ public class OctoquadTuner extends Procedure {
         result("xPodOffset", offsets.get(0));
         result("yPodOffset", offsets.get(1));
 
-        code(Language.JAVA,"public static OctoquadConfig config = new OctoquadConfig(c -> {\n" +
+        code(Language.JAVA,"public static OctoquadConfig localizerConfig = new OctoquadConfig(c -> {\n" +
                 "    c.name.set(\"" + octoquadName.get() + "\");\n" +
                 "    c.xPodPort.set(" + xPort.get() + ");\n" +
                 "    c.yPodPort.set(" + yPort.get() + ");\n" +

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedro;
 
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
-    public static MecanumConfig driveConfig = new MecanumConfig(
+    public static MecanumConfig drivetrainConfig = new MecanumConfig(
             c -> {
                 c.frontLeftName.set("lf");
                 c.backLeftName.set("lr");
@@ -68,6 +68,6 @@ public class Constants {
     );
 
     public static Follower create(HardwareMap h) {
-        return new Follower(new PinpointLocalizer(h, localizerConfig), new Mecanum(h, driveConfig), new Foresight(foresightConfig));
+        return new Follower(new PinpointLocalizer(h, localizerConfig), new Mecanum(h, drivetrainConfig), new Foresight(foresightConfig));
     }
 }
