@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pedro.procedures;
 
 import com.pedropathing.math.Pose;
 import com.pedropathing.revhub.localizers.Encoder;
+import com.pedropathing.revhub.localizers.RevHubIMU;
 import com.pedropathing.revhub.localizers.ThreeWheelIMUConfig;
 import com.pedropathing.revhub.localizers.ThreeWheelIMULocalizer;
 import com.pedropathing.tuning.autotune.Inputs;
@@ -131,10 +132,10 @@ public class ThreeWheelIMUTuner extends Procedure {
                         "    c.rightEncoderName.set(\"" + rightEncoderName + "\");\n" +
                         "    c.strafeEncoderName.set(\"" + strafeEncoderName + "\");\n" +
                         "    c.imuName.set(\"" + imuName + "\");\n" +
-                        "    c.imuOrientation.set(new RevHubOrientationOnRobot(\n" +
+                        "    c.imu.set(new RevHubIMU(new RevHubOrientationOnRobot(\n" +
                         "            RevHubOrientationOnRobot.LogoFacingDirection." + logoDirection.name() + ",\n" +
                         "            RevHubOrientationOnRobot.UsbFacingDirection." + usbDirection.name() + "\n" +
-                        "    ));\n" +
+                        "    )));\n" +
                         "    c.leftPodY.set(" + leftOffsets.get(0) + ");\n" +
                         "    c.rightPodY.set(" + rightOffsets.get(0) + ");\n" +
                         "    c.strafePodX.set(" + strafeX + ");\n" +
@@ -167,7 +168,7 @@ public class ThreeWheelIMUTuner extends Procedure {
             c.rightEncoderName.set(rightEncoderName);
             c.strafeEncoderName.set(strafeEncoderName);
             c.imuName.set(imuName);
-            c.imuOrientation.set(new RevHubOrientationOnRobot(logoDirection, usbDirection));
+            c.imu.set(new RevHubIMU(new RevHubOrientationOnRobot(logoDirection, usbDirection)));
             c.leftPodY.set(left ? 0.0 : 1.0);
             c.rightPodY.set(left ? -1.0 : 0.0);
             c.strafePodX.set(0.0);
