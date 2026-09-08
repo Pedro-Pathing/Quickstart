@@ -57,6 +57,7 @@ public class OctoquadTuner extends Procedure {
         List<Double> offsets = runOpMode(new OctoquadOffsets(octoquadName.get(), podType.get(), customPodScalar, forwardPodReversed, strafePodReversed, headingScalar, xPort.get(), yPort.get()));
 
         result("name", octoquadName.get());
+        result("headingScalar", headingScalar);
 
         if (podType.get() == PodType.CUSTOM) {
             result("podType", "Custom");
@@ -284,7 +285,7 @@ class OctoquadOffsets extends TuningOpMode<List<Double>> {
 
     public OctoquadOffsets(String name, OctoquadTuner.PodType podType, double customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed, double headingScalar,
                            int xPodPort, int yPodPort) {
-        super("PinpointOffsets Identification",
+        super("OctoquadOffsets Identification",
                 "Automatically identifies the offsets for your Octoquad localizer. \n"
                         + "Spin your robot in place 180 degrees and then stop the Opmode",
                 true);
