@@ -78,8 +78,8 @@ public class OctoQuadTuner extends Procedure {
                 (podType.get() == PodType.CUSTOM ? "    c.ticksPerUnit.set(" + customPodScalar + ");\n" : "    c.ticksPerUnit.set(" + (podType.get() == OctoQuadTuner.PodType.SWING_ARM ? SWING_ARM : FOUR_BAR) + ");\n") +
                 "    c.xPodOffset.set(" + offsets.get(0) + ");\n" +
                 "    c.yPodOffset.set(" + offsets.get(1) + ");\n" +
-                "    c.xPodDirection.set(" + (forwardPodReversed ? "OctoQuad.EncoderDirection.REVERSE" : "OctoQuad.FORWARD") + ");\n" +
-                "    c.yPodDirection.set(" + (strafePodReversed ? "OctoQuad.EncoderDirection.REVERSE" : "OctoQuad.FORWARD") + ");\n" +
+                "    c.xPodDirection.set(" + (forwardPodReversed ? "OctoQuad.EncoderDirection.REVERSE" : "OctoQuad.EncoderDirection.FORWARD") + ");\n" +
+                "    c.yPodDirection.set(" + (strafePodReversed ? "OctoQuad.EncoderDirection.REVERSE" : "OctoQuad.EncoderDirection.FORWARD") + ");\n" +
                 "    c.globalDistanceUnit.set(DistanceUnit.INCH);\n" +
                 "    c.offsetUnits.set(DistanceUnit.INCH);\n" +
                 "    c.i2cRecoveryMode.set(OctoQuad.I2cRecoveryMode." + recoveryMode.get() + ");\n" +
