@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 enum Direction {
     @DisplayName("Forward") FORWARD,
-    @DisplayName("Reversed") REVERSED
+    @DisplayName("Reversed") REVERSE
 }
 
 public class MecanumTuner extends Procedure {
