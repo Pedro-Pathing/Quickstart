@@ -307,7 +307,7 @@ class OctoQuadOffsets extends TuningOpMode<List<Double>> {
             c.yPodPort.set(yPodPort);
             c.xPodDirection.set(forwardPodReversed ? OctoQuad.EncoderDirection.REVERSE : OctoQuad.EncoderDirection.FORWARD);
             c.yPodDirection.set(strafePodReversed ? OctoQuad.EncoderDirection.REVERSE : OctoQuad.EncoderDirection.FORWARD);
-            if (!podType.equals(OctoQuadTuner.PodType.CUSTOM)) {
+            if (podType.equals(OctoQuadTuner.PodType.CUSTOM)) {
                 c.encoderResolutionUnit.set(DistanceUnit.INCH);
                 c.ticksPerUnit.set(customPodScalar);
             } else {
