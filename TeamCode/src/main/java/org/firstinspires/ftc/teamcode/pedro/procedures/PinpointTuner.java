@@ -127,8 +127,8 @@ class PinpointForwardDirection extends TuningOpMode<Boolean> {
             c.xPodOffset.set(0.0);
             c.yPodOffset.set(0.0);
             if (customPodScalar.isPresent()) {
-                c.ticksPerUnit.set(customPodScalar);
                 c.encoderResolutionUnit.set(DistanceUnit.INCH);
+                c.ticksPerUnit.set(OptionalDouble.of(customPodScalar.getAsDouble()));
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
             }
@@ -169,7 +169,8 @@ class PinpointStrafeDirection extends TuningOpMode<Boolean> {
             c.xPodOffset.set(0.0);
             c.yPodOffset.set(0.0);
             if (customPodScalar.isPresent()) {
-                c.ticksPerUnit.set(customPodScalar);
+                c.encoderResolutionUnit.set(DistanceUnit.INCH);
+                c.ticksPerUnit.set(OptionalDouble.of(customPodScalar.getAsDouble()));
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
             }
@@ -213,8 +214,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.yPodDirection.set(strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
             if (customPodScalar.isPresent()) {
-                c.encoderResolutionUnit.set(DistanceUnit.INCH);
-                c.ticksPerUnit.set(customPodScalar);
+                c.ticksPerUnit.set(OptionalDouble.of(customPodScalar.getAsDouble()));
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
             }
