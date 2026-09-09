@@ -225,7 +225,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.offsetUnits.set(DistanceUnit.INCH);
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
-        localizer.setPose(new Pose(0, 0));
+        localizer.setPose(Pose.zero());
         localizer.update();
 
         waitForStart();
@@ -236,6 +236,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             previous = localizer.pose();
             localizer.update();
 
+            telemetry.addData("heading", localizer.pose().heading());
             telemetry.addData("pose", localizer.pose());
             telemetry.addData("previous", previous);
             telemetry.update();

@@ -337,6 +337,8 @@ class OctoQuadOffsets extends TuningOpMode<List<Double>> {
         while (!isStopRequested()) {
             previous = localizer.pose();
             localizer.update();
+            telemetry.addData("heading", localizer.pose().heading());
+            telemetry.update();
         }
 
         if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y()) {

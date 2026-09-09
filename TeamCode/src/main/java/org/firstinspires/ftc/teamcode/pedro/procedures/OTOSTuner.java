@@ -197,7 +197,8 @@ class OTOSOffsets extends TuningOpMode<List<Double>> {
         while (!isStopRequested()) {
             localizer.update();
             position = localizer.pose();
-
+            telemetry.addData("heading", localizer.pose().heading());
+            telemetry.update();
         }
 
         if (position == null) {
