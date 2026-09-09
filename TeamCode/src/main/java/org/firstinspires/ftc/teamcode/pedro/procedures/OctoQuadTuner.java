@@ -297,7 +297,7 @@ class OctoQuadOffsets extends TuningOpMode<List<Double>> {
                            int xPodPort, int yPodPort) {
         super("OctoQuadOffsets Identification",
                 "Automatically identifies the offsets for your OctoQuad localizer. \n"
-                        + "Spin your robot in place 180 degrees and then stop the Opmode",
+                        + "Spin your robot in place 180 degrees counterclockwise and then stop the Opmode",
                 true);
         this.name = name;
         this.podType = podType;

@@ -247,7 +247,7 @@ class ThreeWheelIMUOffsets extends TuningOpMode<List<Double>> {
                          double leftDirection, double rightDirection, double strafeDirection) {
         super((left ? "Left" : "Right") + " Pod Offset Identification",
                 "After Start, rotate exactly 180 degrees counterclockwise about the robot center. " +
-                        "Keep that center fixed. Stop moving, press Stop to save this measurement.", true);
+                        "Press Stop to save this measurement.", true);
         this.left = left;
         this.forward = forward;
         this.strafe = strafe;

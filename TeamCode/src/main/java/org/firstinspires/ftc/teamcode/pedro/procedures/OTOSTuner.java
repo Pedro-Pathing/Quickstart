@@ -170,7 +170,7 @@ class OTOSOffsets extends TuningOpMode<List<Double>> {
     public OTOSOffsets(String name, double linearScalar, double angularScalar) {
         super("OTOS Offset Identification",
                 "Automatically identifies the X/Y offset for your OTOS localizer. \n"
-                        + "Rotate the robot 180 degrees about the robot center without translating it, stop moving, then press Stop",
+                        + "Rotate the robot 180 degrees counterclockwise about the robot center without translating it, stop moving, then press Stop",
                 true);
         this.name = name;
         this.linearScalar = linearScalar;

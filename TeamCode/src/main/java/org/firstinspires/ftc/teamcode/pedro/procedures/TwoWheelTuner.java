@@ -328,7 +328,7 @@ class TwoWheelOffsets extends TuningOpMode<List<Double>> {
         super(
                 "PinpointOffsets Identification",
                 "Automatically identifies the offsets for your Two Wheel localizer.\n"
-                        + "Spin your robot in place 180 degrees and then stop the Opmode",
+                        + "Spin your robot in place 180 degrees counterclockwise and then stop the Opmode",
                 true
         );
         this.values = values;

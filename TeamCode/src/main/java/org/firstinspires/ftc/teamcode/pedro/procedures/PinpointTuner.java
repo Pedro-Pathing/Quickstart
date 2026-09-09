@@ -196,7 +196,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
     public PinpointOffsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
         super("Offsets Identification",
                 "Automatically identifies the offsets for your Pinpoint localizer. \n"
-                        + "Spin your robot in place 180 degrees and then stop the Opmode",
+                        + "Spin your robot in place 180 degrees counterclockwise and then stop the Opmode",
                 true);
         this.name = name;
         this.podType = podType;
