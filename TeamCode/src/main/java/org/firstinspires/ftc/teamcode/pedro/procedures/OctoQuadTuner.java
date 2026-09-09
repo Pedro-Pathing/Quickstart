@@ -171,7 +171,7 @@ class OctoQuadCustomPodScalar extends TuningOpMode<Double> {
         while (!isStopRequested()) {
             localizer.update();
         }
-        return Math.abs((distance / (localizer.pose().x())));
+        return Math.abs((localizer.pose().x() / distance));
     }
 }
 

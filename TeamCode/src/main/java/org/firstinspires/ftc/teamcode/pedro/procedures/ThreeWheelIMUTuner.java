@@ -230,7 +230,7 @@ class ThreeWheelIMUResolution extends TuningOpMode<List<Double>> {
         if (movement == 0.0) {
             return null;
         }
-        return List.of(Math.abs(distance / movement), movement < 0 ? Encoder.REVERSE : Encoder.FORWARD);
+        return List.of(Math.abs(movement / distance), movement < 0 ? Encoder.REVERSE : Encoder.FORWARD);
     }
 }
 

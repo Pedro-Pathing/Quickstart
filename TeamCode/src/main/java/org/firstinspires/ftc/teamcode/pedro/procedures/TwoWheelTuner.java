@@ -182,7 +182,7 @@ class TwoWheelForwardResolution extends TuningOpMode<Double> {
             localizer.update();
         }
 
-        return Math.abs(distance / localizer.pose().x());
+        return Math.abs(localizer.pose().x() / distance);
     }
 }
 
@@ -221,7 +221,7 @@ class TwoWheelStrafeResolution extends TuningOpMode<Double> {
             localizer.update();
         }
 
-        return Math.abs(distance / localizer.pose().y());
+        return Math.abs(localizer.pose().y() / distance);
     }
 }
 
