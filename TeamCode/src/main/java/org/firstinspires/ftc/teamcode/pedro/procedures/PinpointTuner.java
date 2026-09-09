@@ -211,7 +211,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.name.set(name);
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.yPodDirection.set(strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
-            if (!customPodScalar.isPresent()) {
+            if (customPodScalar.isPresent()) {
                 c.encoderResolutionUnit.set(DistanceUnit.INCH); c.ticksPerUnit.set(customPodScalar);
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
