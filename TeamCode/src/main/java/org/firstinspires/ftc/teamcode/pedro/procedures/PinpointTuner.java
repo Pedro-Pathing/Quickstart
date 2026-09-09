@@ -194,7 +194,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
     private Pose previous = Pose.zero();
 
     public PinpointOffsets(String name, PinpointTuner.PodType podType, OptionalDouble customPodScalar, Boolean forwardPodReversed, Boolean strafePodReversed) {
-        super("PinpointOffsets Identification",
+        super("Offsets Identification",
                 "Automatically identifies the offsets for your Pinpoint localizer. \n"
                         + "Spin your robot in place 180 degrees and then stop the Opmode",
                 true);
@@ -214,6 +214,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.xPodDirection.set(forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
             c.yPodDirection.set(strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
             if (customPodScalar.isPresent()) {
+                c.encoderResolutionUnit.set(DistanceUnit.INCH);
                 c.ticksPerUnit.set(OptionalDouble.of(customPodScalar.getAsDouble()));
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
