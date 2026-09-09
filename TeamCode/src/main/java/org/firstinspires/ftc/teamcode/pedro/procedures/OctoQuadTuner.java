@@ -168,10 +168,20 @@ class OctoQuadCustomPodScalar extends TuningOpMode<Double> {
         OctoQuadLocalizer localizer = new OctoQuadLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
         waitForStart();
+
+        double startTicks = localizer.octoQuad.readAllEncoderData().positions[xPodPort];
+        double lastLastTicksPerInch = 0;
+        double lastTicksPerInch = 0;
+
         while (!isStopRequested()) {
             localizer.update();
+
+            double pos = localizer.octoQuad.readAllEncoderData().positions[xPodPort];
+            lastLastTicksPerInch = lastTicksPerInch;
+            lastTicksPerInch = Math.abs(pos - startTicks) / distance;
         }
-        return Math.abs((localizer.pose().x() / distance));
+
+        return lastLastTicksPerInch;
     }
 }
 
