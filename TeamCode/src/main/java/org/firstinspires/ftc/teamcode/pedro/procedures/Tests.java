@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode.pedro.procedures;
 
+import com.pedropathing.algorithm.Algorithm;
+import com.pedropathing.drivetrain.DrivePowers;
+import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.interpolator.Interpolator;
@@ -11,6 +15,7 @@ import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
@@ -25,41 +30,91 @@ public class Tests extends Procedure {
         CURVED,
         @DisplayName("Interpolation Test")
         INTERPOLATION_CURVED,
-
         @DisplayName("Localization Test")
-        LOCALIZATION
+        LOCALIZATION,
+        @DisplayName("Driving Test")
+        DRIVING,
+        @DisplayName("Pose Test")
+        POSE
+
     }
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    Function<HardwareMap, Localizer> localizerFunction;
+    Supplier<Algorithm> algorithmSupplier;
     Function<HardwareMap, Follower> followerFunction;
 
-    public Tests(Function<HardwareMap, Follower> followerFunction) {
+    public Tests(Function<HardwareMap, Drivetrain> drivetrainFunction, Function<HardwareMap, Localizer> localizerFunction, Supplier<Algorithm> algorithmSupplier) {
         super("Tests", "A procedure for testing the Follower.");
-        this.followerFunction = followerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+        this.localizerFunction = localizerFunction;
+        this.algorithmSupplier = algorithmSupplier;
     }
 
     @Override
     public void run() throws InterruptedException {
         boolean completed = false;
+        boolean algorithm = true, localizer = true, drivetrain = true;
+
+        if (algorithmSupplier == null)
+            algorithm = false;
+
+        if (localizerFunction == null)
+            localizer = false;
+
+        if (drivetrainFunction == null)
+            drivetrain = false;
+
+        if (algorithm && localizer && drivetrain)
+            followerFunction = (hardwareMap) -> new Follower(localizerFunction.apply(hardwareMap), drivetrainFunction.apply(hardwareMap), algorithmSupplier.get());
 
         Inputs inputs = inputs("Select", "Select");
         Inputs.Field<Test> selectedTest = inputs.e("Test", Test.class).withDefault(Test.LINE);
-        Inputs.Field<Double> distance = inputs.d("Distance").withDefault(48.0);
+        Inputs.Field<Double> distance = null;
+
+        if (selectedTest.get() == Test.LINE || selectedTest.get() == Test.CURVED || selectedTest.get() == Test.INTERPOLATION_CURVED) {
+            distance = inputs.d("Distance").withDefault(48.0);
+        }
+
         awaitInputs(inputs);
 
         switch (selectedTest.get()) {
             case HOLD:
-                completed = runOpMode(new TestsHold(followerFunction, distance.get()));
+                if (!algorithm)
+                    throw new IllegalArgumentException("Algorithm is required for Hold Test.");
+                completed = runOpMode(new TestsHold(followerFunction));
                 break;
             case LINE:
+                if (!algorithm)
+                    throw new IllegalArgumentException("Algorithm is required for Hold Test.");
                 completed = runOpMode(new TestsLine(followerFunction, distance.get()));
                 break;
             case CURVED:
+                if (!algorithm)
+                    throw new IllegalArgumentException("Algorithm is required for Hold Test.");
                 completed = runOpMode(new TestsCurve(followerFunction, distance.get()));
                 break;
             case INTERPOLATION_CURVED:
+                if (!algorithm)
+                    throw new IllegalArgumentException("Algorithm is required for Hold Test.");
                 completed = runOpMode(new TestsInterpolation(followerFunction, distance.get()));
                 break;
             case LOCALIZATION:
-                completed = runOpMode(new TestsLocalization(followerFunction));
+                if (!drivetrain)
+                    throw new IllegalArgumentException("Drivetrain is required for Localization Test.");
+                if (!localizer)
+                    throw new IllegalArgumentException("Localizer is required for Localization Test.");
+                completed = runOpMode(new TestsLocalization(drivetrainFunction, localizerFunction));
+                break;
+            case POSE:
+                if (!localizer)
+                    throw new IllegalArgumentException("Localizer is required for Pose Test.");
+                completed = runOpMode(new TestsPose(localizerFunction));
+                break;
+            case DRIVING:
+                if (!drivetrain)
+                    throw new IllegalArgumentException("Drivetrain is required for Driving Test.");
+                completed = runOpMode(new TestsDriving(drivetrainFunction));
+                break;
         }
 
         result("Completed", completed);
@@ -68,12 +123,10 @@ public class Tests extends Procedure {
 
 class TestsHold extends TuningOpMode<Boolean> {
     Function<HardwareMap, Follower> followerFunction;
-    double distance;
 
-    public TestsHold(Function<HardwareMap, Follower> followerFunction, double distance) {
+    public TestsHold(Function<HardwareMap, Follower> followerFunction) {
         super("Hold Test", "Tests the Follower's ability to hold a position.", true);
         this.followerFunction = followerFunction;
-        this.distance = distance;
     }
 
     @Override
@@ -207,24 +260,68 @@ class TestsInterpolation extends TuningOpMode<Boolean> {
 }
 
 class TestsLocalization extends TuningOpMode<Boolean> {
-    Function<HardwareMap, Follower> followerFunction;
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    Function<HardwareMap, Localizer> localizerFunction;
 
-    public TestsLocalization(Function<HardwareMap, Follower> followerFunction) {
+    public TestsLocalization(Function<HardwareMap, Drivetrain> drivetrainFunction, Function<HardwareMap, Localizer> localizerFunction) {
         super("Localization Test", "Verifies localization and manual control.", true);
-        this.followerFunction = followerFunction;
+        this.drivetrainFunction = drivetrainFunction;
+        this.localizerFunction = localizerFunction;
     }
 
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
-        Follower follower = followerFunction.apply(hardwareMap);
-        follower.setPose(Pose.zero());
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
 
         waitForStart();
 
         while (opModeIsActive()) {
-            follower.manual(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-            follower.update();
-            telemetry.addData("Pose", follower.pose());
+            drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), false);
+            localizer.update();
+            telemetry.addData("Pose", localizer.pose());
+            telemetry.update();
+        }
+        return true;
+    }
+}
+
+class TestsDriving extends TuningOpMode<Boolean> {
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+
+    public TestsDriving(Function<HardwareMap, Drivetrain> drivetrainFunction) {
+        super("Driving Test", "Tests raw drivetrain control without localization.", true);
+        this.drivetrainFunction = drivetrainFunction;
+    }
+
+    @Override
+    public Boolean runTuningOpMode() throws InterruptedException {
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+        waitForStart();
+        while (opModeIsActive()) {
+            drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), true);
+        }
+        return true;
+    }
+}
+
+class TestsPose extends TuningOpMode<Boolean> {
+    Function<HardwareMap, Localizer> localizerFunction;
+
+    public TestsPose(Function<HardwareMap, Localizer> localizerFunction) {
+        super("Pose Test", "Verifies localizer output without a drivetrain.", true);
+        this.localizerFunction = localizerFunction;
+    }
+
+    @Override
+    public Boolean runTuningOpMode() throws InterruptedException {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        waitForStart();
+        while (opModeIsActive()) {
+            localizer.update();
+            telemetry.addData("Pose", localizer.pose());
             telemetry.update();
         }
         return true;
