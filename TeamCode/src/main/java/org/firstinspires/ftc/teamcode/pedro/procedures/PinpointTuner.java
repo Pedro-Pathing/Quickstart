@@ -226,8 +226,12 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.offsetUnits.set(DistanceUnit.INCH);
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
+        if (customPodScalar.isPresent()) {
+            localizer.reset();
+        }
         localizer.setPose(Pose.zero());
         localizer.update();
+
 
         waitForStart();
 
