@@ -216,6 +216,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             if (customPodScalar.isPresent()) {
                 c.encoderResolutionUnit.set(DistanceUnit.INCH);
                 c.ticksPerUnit.set(OptionalDouble.of(customPodScalar.getAsDouble()));
+                c.resetMode.set(PinpointLocalizer.ResetMode.RESET_AND_RECALIBRATE_IMU);
             } else {
                 c.podType.set(podType == PinpointTuner.PodType.SWING_ARM ? GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD : GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
             }
@@ -223,7 +224,6 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.yPodOffset.set(0.0);
             c.globalDistanceUnit.set(DistanceUnit.INCH);
             c.offsetUnits.set(DistanceUnit.INCH);
-            c.resetMode.set(PinpointLocalizer.ResetMode.RESET_AND_RECALIBRATE_IMU);
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(Pose.zero());
