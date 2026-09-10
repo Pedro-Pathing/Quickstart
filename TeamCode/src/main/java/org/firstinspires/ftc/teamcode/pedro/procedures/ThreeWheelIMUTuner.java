@@ -76,8 +76,13 @@ public class ThreeWheelIMUTuner extends Procedure {
             return;
         }
 
-        double forward = 2.0 / (1.0 / left.get(0) + 1.0 / right.get(0));
-        double lateral = strafe.get(0);
+        double leftTicksPerInch = left.get(0);
+        double rightTicksPerInch = right.get(0);
+        double strafeTicksPerInch = strafe.get(0);
+        double forwardTicksPerInch = 2.0 / (1.0 / leftTicksPerInch + 1.0 / rightTicksPerInch);
+
+        double forward = 1.0 / forwardTicksPerInch;
+        double lateral = 1.0 / strafeTicksPerInch;
 
         List<Double> leftOffsets = runOpMode(new ThreeWheelIMUOffsets(
                 true, forward, lateral, left.get(1), right.get(1), strafe.get(1)));
@@ -92,11 +97,6 @@ public class ThreeWheelIMUTuner extends Procedure {
             abort("Right stage ended without parallel pod travel. Rotate 180 degrees CCW, then press Stop.");
             return;
         }
-        if (leftOffsets.get(0) <= rightOffsets.get(0)) {
-            abort("The measured left offset must be greater than the right offset. Check pod mapping and CCW rotation.");
-            return;
-        }
-
         ThreeWheelIMUConfig config = config(true, forward, lateral,
                 left.get(1), right.get(1), strafe.get(1));
         config.leftPodY.set(leftOffsets.get(0));
@@ -119,6 +119,10 @@ public class ThreeWheelIMUTuner extends Procedure {
         result("leftPodY", leftOffsets.get(0));
         result("rightPodY", rightOffsets.get(0));
         result("strafePodX", strafeX);
+        result("leftTicksPerInch", leftTicksPerInch);
+        result("rightTicksPerInch", rightTicksPerInch);
+        result("forwardTicksPerInch", forwardTicksPerInch);
+        result("strafeTicksPerInch", strafeTicksPerInch);
         result("forwardTicksToInches", forward);
         result("strafeTicksToInches", lateral);
         result("turnTicksToRadians", turn);
@@ -132,10 +136,10 @@ public class ThreeWheelIMUTuner extends Procedure {
                         "    c.rightEncoderName.set(\"" + rightEncoderName + "\");\n" +
                         "    c.strafeEncoderName.set(\"" + strafeEncoderName + "\");\n" +
                         "    c.imuName.set(\"" + imuName + "\");\n" +
-                        "    c.imu.set(new RevHubIMU(new RevHubOrientationOnRobot(\n" +
+                        "    c.imuOrientation.set(new RevHubOrientationOnRobot(\n" +
                         "            RevHubOrientationOnRobot.LogoFacingDirection." + logoDirection.name() + ",\n" +
                         "            RevHubOrientationOnRobot.UsbFacingDirection." + usbDirection.name() + "\n" +
-                        "    )));\n" +
+                        "    ));\n" +
                         "    c.leftPodY.set(" + leftOffsets.get(0) + ");\n" +
                         "    c.rightPodY.set(" + rightOffsets.get(0) + ");\n" +
                         "    c.strafePodX.set(" + strafeX + ");\n" +
@@ -168,8 +172,7 @@ public class ThreeWheelIMUTuner extends Procedure {
             c.rightEncoderName.set(rightEncoderName);
             c.strafeEncoderName.set(strafeEncoderName);
             c.imuName.set(imuName);
-            c.imu.set(new RevHubIMU(new RevHubOrientationOnRobot(logoDirection, usbDirection)));
-            c.leftPodY.set(left ? 0.0 : 1.0);
+            c.imu.set(new RevHubIMU(new RevHubOrientationOnRobot(logoDirection, usbDirection)));            c.leftPodY.set(left ? 0.0 : 1.0);
             c.rightPodY.set(left ? -1.0 : 0.0);
             c.strafePodX.set(0.0);
             c.forwardTicksToInches.set(forward);
@@ -247,7 +250,7 @@ class ThreeWheelIMUOffsets extends TuningOpMode<List<Double>> {
                          double leftDirection, double rightDirection, double strafeDirection) {
         super((left ? "Left" : "Right") + " Pod Offset Identification",
                 "After Start, rotate exactly 180 degrees counterclockwise about the robot center. " +
-                        "Press Stop to save this measurement.", true);
+                        "Keep that center fixed. Stop moving, press Stop to save this measurement.", true);
         this.left = left;
         this.forward = forward;
         this.strafe = strafe;
@@ -260,26 +263,27 @@ class ThreeWheelIMUOffsets extends TuningOpMode<List<Double>> {
     protected List<Double> runTuningOpMode() {
         ThreeWheelIMUConfig config = ThreeWheelIMUTuner.config(left, forward, strafe,
                 leftDirection, rightDirection, strafeDirection);
-        ThreeWheelIMULocalizer localizer = ThreeWheelIMUTuner.localizer(hardwareMap, config);
-        localizer.setPose(new Pose(0, 0));
-        localizer.update();
-        Pose position = null;
-
-        waitForStart();
-        while (!isStopRequested()) {
+        boolean previousUseIMU = ThreeWheelIMULocalizer.useIMU;
+        ThreeWheelIMULocalizer.useIMU = false;
+        try {
+            ThreeWheelIMULocalizer localizer = ThreeWheelIMUTuner.localizer(hardwareMap, config);
+            localizer.setPose(new Pose(0, 0));
             localizer.update();
-            position = localizer.pose();
-            telemetry.addData("heading", localizer.pose().heading());
-            telemetry.update();
-        }
+            Pose position = null;
 
-        if (position == null) {
-            return null;
+            waitForStart();
+            while (!isStopRequested()) {
+                localizer.update();
+                position = localizer.pose();
+            }
+
+            if (position == null) {
+                return null;
+            }
+            return List.of(-position.x() / Math.PI, position.y() / Math.PI);
+        } finally {
+            ThreeWheelIMULocalizer.useIMU = previousUseIMU;
         }
-        if (position.x() == 0.0) {
-            return null;
-        }
-        return List.of(-position.x() / Math.PI, position.y() / Math.PI);
     }
 }
 
@@ -296,22 +300,28 @@ class ThreeWheelIMUTurn extends TuningOpMode<Double> {
 
     @Override
     protected Double runTuningOpMode() {
-        ThreeWheelIMULocalizer localizer = ThreeWheelIMUTuner.localizer(hardwareMap, config);
-        localizer.setPose(new Pose(0, 0));
-        localizer.update();
-        double startHeading = localizer.getTotalHeading();
-        Double heading = null;
-
-        waitForStart();
-        while (!isStopRequested()) {
+        boolean previousUseIMU = ThreeWheelIMULocalizer.useIMU;
+        ThreeWheelIMULocalizer.useIMU = false;
+        try {
+            ThreeWheelIMULocalizer localizer = ThreeWheelIMUTuner.localizer(hardwareMap, config);
+            localizer.setPose(new Pose(0, 0));
             localizer.update();
-            heading = localizer.getTotalHeading();
-        }
+            double startHeading = localizer.getTotalHeading();
+            Double heading = null;
 
-        if (heading == null || heading <= startHeading) {
-            return null;
+            waitForStart();
+            while (!isStopRequested()) {
+                localizer.update();
+                heading = localizer.getTotalHeading();
+            }
+
+            if (heading == null || heading <= startHeading) {
+                return null;
+            }
+            return config.turnTicksToRadians.get() * (2.0 * Math.PI) / (heading - startHeading);
+        } finally {
+            ThreeWheelIMULocalizer.useIMU = previousUseIMU;
         }
-        return config.turnTicksToRadians.get() * (2.0 * Math.PI) / (heading - startHeading);
     }
 }
 
