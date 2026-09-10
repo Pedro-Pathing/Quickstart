@@ -223,6 +223,7 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
             c.yPodOffset.set(0.0);
             c.globalDistanceUnit.set(DistanceUnit.INCH);
             c.offsetUnits.set(DistanceUnit.INCH);
+            c.resetMode.set(PinpointLocalizer.ResetMode.RESET_AND_RECALIBRATE_IMU);
         });
         PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, config);
         localizer.setPose(Pose.zero());
