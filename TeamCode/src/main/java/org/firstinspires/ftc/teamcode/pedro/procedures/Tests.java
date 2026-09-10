@@ -69,11 +69,7 @@ public class Tests extends Procedure {
 
         Inputs inputs = inputs("Select", "Select");
         Inputs.Field<Test> selectedTest = inputs.e("Test", Test.class).withDefault(Test.LINE);
-        Inputs.Field<Double> distance = null;
-
-        if (selectedTest.get() == Test.LINE || selectedTest.get() == Test.CURVED || selectedTest.get() == Test.INTERPOLATION_CURVED) {
-            distance = inputs.d("Distance").withDefault(48.0);
-        }
+        Inputs.Field<Double> distance = inputs.d("Distance").withDefault(48.0);
 
         awaitInputs(inputs);
 
