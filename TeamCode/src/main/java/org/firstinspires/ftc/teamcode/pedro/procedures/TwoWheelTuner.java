@@ -44,8 +44,20 @@ public class TwoWheelTuner extends Procedure {
                 usbDirection.get()
         );
 
-        double forwardTicksToInches = runOpMode(new TwoWheelForwardResolution(values, distance.get()));
-        double strafeTicksToInches = runOpMode(new TwoWheelStrafeResolution(values, distance.get()));
+        Double forwardTicksPerInchResult = runOpMode(new TwoWheelForwardResolution(values, distance.get()));
+        Double strafeTicksPerInchResult = runOpMode(new TwoWheelStrafeResolution(values, distance.get()));
+
+        if (forwardTicksPerInchResult == null || strafeTicksPerInchResult == null
+                || forwardTicksPerInchResult == 0.0 || strafeTicksPerInchResult == 0.0) {
+            abort("Encoder resolution measurement was zero. Complete both pushes before pressing Stop.");
+            return;
+        }
+
+        double forwardTicksPerInch = forwardTicksPerInchResult;
+        double strafeTicksPerInch = strafeTicksPerInchResult;
+
+        double forwardTicksToInches = 1.0 / forwardTicksPerInch;
+        double strafeTicksToInches = 1.0 / strafeTicksPerInch;
 
         boolean forwardPodReversed = runOpMode(
                 new TwoWheelForwardDirection(values, forwardTicksToInches, strafeTicksToInches)
@@ -70,6 +82,8 @@ public class TwoWheelTuner extends Procedure {
         result("imuName", values.imuName);
         result("logoDirection", values.logoDirection);
         result("usbDirection", values.usbDirection);
+        result("forwardTicksPerInch", forwardTicksPerInch);
+        result("strafeTicksPerInch", strafeTicksPerInch);
         result("forwardTicksToInches", forwardTicksToInches);
         result("strafeTicksToInches", strafeTicksToInches);
         result("xPodDirection", forwardPodReversed ? "REVERSED" : "FORWARD");
@@ -176,13 +190,21 @@ class TwoWheelForwardResolution extends TuningOpMode<Double> {
 
         TwoWheelLocalizer localizer = new TwoWheelLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
+        Pose position = null;
 
         waitForStart();
         while (!isStopRequested()) {
             localizer.update();
+            position = localizer.pose();
+            telemetry.addData("heading", localizer.pose().heading());
+            telemetry.addData("pose", localizer.pose());
+            telemetry.update();
         }
 
-        return Math.abs(localizer.pose().x() / distance);
+        if (position == null || position.x() == 0.0) {
+            return null;
+        }
+        return Math.abs(position.x() / distance);
     }
 }
 
@@ -215,13 +237,18 @@ class TwoWheelStrafeResolution extends TuningOpMode<Double> {
 
         TwoWheelLocalizer localizer = new TwoWheelLocalizer(hardwareMap, config);
         localizer.setPose(new Pose(0, 0));
+        Pose position = null;
 
         waitForStart();
         while (!isStopRequested()) {
             localizer.update();
+            position = localizer.pose();
         }
 
-        return Math.abs(localizer.pose().y() / distance);
+        if (position == null || position.y() == 0.0) {
+            return null;
+        }
+        return Math.abs(position.y() / distance);
     }
 }
 
@@ -316,7 +343,7 @@ class TwoWheelOffsets extends TuningOpMode<List<Double>> {
     double strafeTicksToInches;
     boolean forwardPodReversed;
     boolean strafePodReversed;
-    Pose previous;
+    Pose previous = Pose.zero();
 
     TwoWheelOffsets(
             TwoWheelSetup values,
@@ -326,7 +353,7 @@ class TwoWheelOffsets extends TuningOpMode<List<Double>> {
             boolean strafePodReversed
     ) {
         super(
-                "PinpointOffsets Identification",
+                "Two Wheel Offset Identification",
                 "Automatically identifies the offsets for your Two Wheel localizer.\n"
                         + "Spin your robot in place 180 degrees counterclockwise and then stop the Opmode",
                 true
@@ -351,20 +378,25 @@ class TwoWheelOffsets extends TuningOpMode<List<Double>> {
         );
 
         TwoWheelLocalizer localizer = new TwoWheelLocalizer(hardwareMap, config);
-        localizer.setPose(new Pose(0, 0));
+        localizer.setPose(Pose.zero());
         localizer.update();
 
         waitForStart();
 
+        localizer.setPose(Pose.zero());
+
         while (!isStopRequested()) {
             previous = localizer.pose();
             localizer.update();
+
             telemetry.addData("heading", localizer.pose().heading());
+            telemetry.addData("pose", localizer.pose());
+            telemetry.addData("previous", previous);
             telemetry.update();
         }
 
         if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y()) {
-            previous =  localizer.pose();
+            previous = localizer.pose();
         }
 
         return List.of(((-previous.y()) / 2.0), ((-previous.x()) / 2.0));

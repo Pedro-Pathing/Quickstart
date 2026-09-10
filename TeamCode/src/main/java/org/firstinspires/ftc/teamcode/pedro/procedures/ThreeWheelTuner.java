@@ -59,8 +59,13 @@ public class ThreeWheelTuner extends Procedure {
             return;
         }
 
-        double forward = 2.0 / (1.0 / left.get(0) + 1.0 / right.get(0));
-        double lateral = strafe.get(0);
+        double leftTicksPerInch = left.get(0);
+        double rightTicksPerInch = right.get(0);
+        double strafeTicksPerInch = strafe.get(0);
+        double forwardTicksPerInch = 2.0 / (1.0 / leftTicksPerInch + 1.0 / rightTicksPerInch);
+
+        double forward = 1.0 / forwardTicksPerInch;
+        double lateral = 1.0 / strafeTicksPerInch;
 
         List<Double> leftOffsets = runOpMode(new ThreeWheelOffsets(
                 true, forward, lateral, left.get(1), right.get(1), strafe.get(1)));
@@ -75,11 +80,6 @@ public class ThreeWheelTuner extends Procedure {
             abort("Right stage ended without parallel pod travel. Rotate 180 degrees CCW, then press Stop.");
             return;
         }
-        if (leftOffsets.get(0) <= rightOffsets.get(0)) {
-            abort("The measured left offset must be greater than the right offset. Check pod mapping and CCW rotation.");
-            return;
-        }
-
         ThreeWheelConfig config = config(true, forward, lateral,
                 left.get(1), right.get(1), strafe.get(1));
         config.leftPodY.set(leftOffsets.get(0));
@@ -99,6 +99,10 @@ public class ThreeWheelTuner extends Procedure {
         result("leftPodY", leftOffsets.get(0));
         result("rightPodY", rightOffsets.get(0));
         result("strafePodX", strafeX);
+        result("leftTicksPerInch", leftTicksPerInch);
+        result("rightTicksPerInch", rightTicksPerInch);
+        result("forwardTicksPerInch", forwardTicksPerInch);
+        result("strafeTicksPerInch", strafeTicksPerInch);
         result("forwardTicksToInches", forward);
         result("strafeTicksToInches", lateral);
         result("turnTicksToRadians", turn);
@@ -242,14 +246,9 @@ class ThreeWheelOffsets extends TuningOpMode<List<Double>> {
         while (!isStopRequested()) {
             localizer.update();
             position = localizer.pose();
-            telemetry.addData("heading", localizer.pose().heading());
-            telemetry.update();
         }
 
         if (position == null) {
-            return null;
-        }
-        if (position.x() == 0.0) {
             return null;
         }
         return List.of(-position.x() / Math.PI, position.y() / Math.PI);
