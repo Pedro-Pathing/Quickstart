@@ -51,12 +51,13 @@ public class ForesightTuner extends Procedure {
         double headingLinear = headingBraking.get(0);
         double headingQuadratic = headingBraking.get(1);
 
-        Inputs distanceBrakingInput = inputs("Distance", "The distance to drive in inches for the Forward and Strafe Braking Identifiers");
+        Inputs distanceBrakingInput = inputs("Distance", "The distance to drive in inches for the Forward and Strafe Braking Identifiers. Distance must be at least 15 inches for accurate results.");
         Inputs.Field<Double> distanceBraking = distanceBrakingInput.d("Distance").withDefault(36.0);
         awaitInputs(distanceBrakingInput);
+        double safeDistanceBraking = Math.max(distanceBraking.get(), 15.0);
 
-        List<Double> forwardBraking = runOpMode(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, distanceBraking.get()));
-        List<Double> strafeBraking = runOpMode(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, distanceBraking.get()));
+        List<Double> forwardBraking = runOpMode(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, safeDistanceBraking));
+        List<Double> strafeBraking = runOpMode(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, safeDistanceBraking));
 
         double forwardLinear = forwardBraking.get(0);
         double forwardQuadratic = forwardBraking.get(1);
@@ -271,7 +272,7 @@ class ForwardDeceleration extends TuningOpMode<Double> {
         while (!stopping) {
             localizer.update();
             double currentVelocity = localizer.twist().toVector2D().x();
-            if (currentVelocity > velocity) {
+            if (Math.abs(currentVelocity) > velocity) {
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();
 
@@ -359,7 +360,7 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         while (!stopping) {
             localizer.update();
             double currentVelocity = localizer.twist().toVector2D().y();
-            if (currentVelocity > velocity) {
+            if (Math.abs(currentVelocity) > velocity) {
                 previousVelocity = currentVelocity;
                 previousTimeNano = System.nanoTime();
 
@@ -722,7 +723,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
             switch (state) {
                 case DRIVE: {
-                    if ((direction > 0 && localizer.pose().x() >= distance) || (direction < 0 && localizer.pose().x() <= 12)) {
+                    if ((direction > 0 && Math.abs(localizer.pose().x()) >= distance) || (direction < 0 && Math.abs(localizer.pose().x()) <= 12)) {
                         startPosition = localizer.pose().toVector2D();
                         measuredVelocity = localizer.velocity().toVector2D().magnitude();
 
@@ -887,8 +888,8 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
             switch (state) {
                 case DRIVE: {
-                    if ((direction > 0 && localizer.pose().y() > distance) ||
-                            (direction < 0 && localizer.pose().y() <= 6)) {
+                    if ((direction > 0 && Math.abs(localizer.pose().y()) > distance) ||
+                            (direction < 0 && Math.abs(localizer.pose().y()) <= 6)) {
                         startPosition = localizer.pose().toVector2D();
                         measuredVelocity = localizer.velocity().toVector2D().magnitude();
 
