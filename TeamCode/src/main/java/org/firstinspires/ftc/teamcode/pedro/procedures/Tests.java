@@ -12,7 +12,9 @@ import com.pedropathing.tuning.autotune.DisplayName;
 import com.pedropathing.tuning.autotune.Inputs;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.TuningOpMode;
+import com.pedropathing.utils.Angle;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -32,11 +34,12 @@ public class Tests extends Procedure {
         INTERPOLATION_CURVED,
         @DisplayName("Localization Test")
         LOCALIZATION,
+        @DisplayName("Odometry Test")
+        ODOMETRY,
         @DisplayName("Driving Test")
         DRIVING,
         @DisplayName("Pose Test")
         POSE
-
     }
     Function<HardwareMap, Drivetrain> drivetrainFunction;
     Function<HardwareMap, Localizer> localizerFunction;
@@ -99,7 +102,14 @@ public class Tests extends Procedure {
                     throw new IllegalArgumentException("Drivetrain is required for Localization Test.");
                 if (!localizer)
                     throw new IllegalArgumentException("Localizer is required for Localization Test.");
-                completed = runOpMode(new TestsLocalization(drivetrainFunction, localizerFunction));
+                completed = runOpMode(new TestsOdometry(drivetrainFunction, localizerFunction));
+                break;
+            case ODOMETRY:
+                if (!drivetrain)
+                    throw new IllegalArgumentException("Drivetrain is required for Odometry Test.");
+                if (!localizer)
+                    throw new IllegalArgumentException("Localizer is required for Odometry Test.");
+                completed = runOpMode(new TestsOdometry(drivetrainFunction, localizerFunction));
                 break;
             case POSE:
                 if (!localizer)
@@ -275,8 +285,125 @@ class TestsLocalization extends TuningOpMode<Boolean> {
         waitForStart();
 
         while (opModeIsActive()) {
-            drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), false);
+            drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), true);
             localizer.update();
+            telemetry.addData("Pose", localizer.pose());
+            telemetry.update();
+        }
+        return true;
+    }
+}
+
+class TestsOdometry extends TuningOpMode<Boolean> {
+    Function<HardwareMap, Drivetrain> drivetrainFunction;
+    Function<HardwareMap, Localizer> localizerFunction;
+
+    public enum Test {
+        FORWARD,
+        LEFT,
+        TURN,
+        IDLE
+    }
+
+    private Test test = Test.FORWARD;
+    public static double POWER = 0.5;
+
+    double totalHeading;
+    double prevHeading;
+
+    private final ElapsedTime timer = new ElapsedTime();
+
+    public TestsOdometry(Function<HardwareMap, Drivetrain> drivetrainFunction, Function<HardwareMap, Localizer> localizerFunction) {
+        super("Localization Test", "Verifies localization and manual control.", true);
+        this.drivetrainFunction = drivetrainFunction;
+        this.localizerFunction = localizerFunction;
+    }
+
+    @Override
+    public Boolean runTuningOpMode() throws InterruptedException {
+        Localizer localizer = localizerFunction.apply(hardwareMap);
+        Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
+
+        localizer.setPose(Pose.zero());
+
+        waitForStart();
+
+        timer.reset();
+
+        while (opModeIsActive()) {
+            localizer.update();
+
+            if (localizer.pose().x() != Pose.zero().x() || localizer.pose().y() != Pose.zero().y() || localizer.pose().heading() != Pose.zero().heading()) {
+                double currentHeading = localizer.pose().heading();
+                totalHeading += Angle.normalizeSigned(currentHeading - prevHeading);
+                prevHeading = currentHeading;
+            }
+
+            switch (test) {
+                case FORWARD:
+                    drivetrain.drive(new DrivePowers(POWER, 0, 0), false);
+
+                    if (timer.seconds() > 1) {
+                        test = Test.LEFT;
+                        timer.reset();
+                    }
+                    break;
+                case LEFT:
+                    drivetrain.drive(new DrivePowers(0, POWER, 0), false);
+
+                    if (timer.seconds() > 1) {
+                        test = Test.TURN;
+                        timer.reset();
+
+                        prevHeading = localizer.pose().heading();
+                        totalHeading = 0;
+                    }
+                    break;
+                case TURN:
+                    drivetrain.drive(new DrivePowers(0, 0, POWER), false);
+
+                    if (timer.seconds() > 1) {
+                        test = Test.IDLE;
+                        timer.reset();
+                    }
+                    break;
+                case IDLE:
+                    drivetrain.drive(new DrivePowers(0, 0, 0), true);
+
+                    telemetry.addData("Test", "Completed");
+
+                    Pose pose = localizer.pose();
+
+                    if (pose.x() < 0)
+                        telemetry.addData("xPod Direction", "Flipped");
+                    else if (pose.x() < 2)
+                        telemetry.addData("xPod Resolution", "Too high");
+                    else if (pose.x() > 144)
+                        telemetry.addData("xPod Resolution", "Too low");
+                    else
+                        telemetry.addData("xPod", "Good");
+
+                    if (pose.y() < 0)
+                        telemetry.addData("yPod Direction", "Flipped");
+                    else if (pose.y() < 2)
+                        telemetry.addData("yPod Resolution", "Too high");
+                    else if (pose.y() > 144)
+                        telemetry.addData("yPod Resolution", "Too low");
+                    else
+                        telemetry.addData("yPod", "Good");
+
+                    if (totalHeading < 0)
+                        telemetry.addData("Heading Direction", "Flipped");
+                    else if (totalHeading < 0.02)
+                        telemetry.addData("Heading Resolution", "Too high");
+                    else if (totalHeading > 2 * Math.PI)
+                        telemetry.addData("Heading Resolution", "Too low");
+                    else
+                        telemetry.addData("Heading", "Good");
+
+                    break;
+            }
+
             telemetry.addData("Pose", localizer.pose());
             telemetry.update();
         }
