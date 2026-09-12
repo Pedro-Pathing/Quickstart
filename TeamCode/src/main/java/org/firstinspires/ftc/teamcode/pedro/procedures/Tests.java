@@ -102,7 +102,7 @@ public class Tests extends Procedure {
                     throw new IllegalArgumentException("Drivetrain is required for Localization Test.");
                 if (!localizer)
                     throw new IllegalArgumentException("Localizer is required for Localization Test.");
-                completed = runOpMode(new TestsOdometry(drivetrainFunction, localizerFunction));
+                completed = runOpMode(new TestsLocalization(drivetrainFunction, localizerFunction));
                 break;
             case ODOMETRY:
                 if (!drivetrain)
@@ -110,6 +110,8 @@ public class Tests extends Procedure {
                 if (!localizer)
                     throw new IllegalArgumentException("Localizer is required for Odometry Test.");
                 completed = runOpMode(new TestsOdometry(drivetrainFunction, localizerFunction));
+                if (!completed)
+                    abort("Failed odometry test. Please check your odometry pods and ensure they are functioning correctly.");
                 break;
             case POSE:
                 if (!localizer)
@@ -313,6 +315,10 @@ class TestsOdometry extends TuningOpMode<Boolean> {
 
     private final ElapsedTime timer = new ElapsedTime();
 
+    private boolean passedX = false;
+    private boolean passedY = false;
+    private boolean passedHeading = false;
+
     public TestsOdometry(Function<HardwareMap, Drivetrain> drivetrainFunction, Function<HardwareMap, Localizer> localizerFunction) {
         super("Localization Test", "Verifies localization and manual control.", true);
         this.drivetrainFunction = drivetrainFunction;
@@ -380,8 +386,10 @@ class TestsOdometry extends TuningOpMode<Boolean> {
                         telemetry.addData("xPod Resolution", "Too high");
                     else if (pose.x() > 144)
                         telemetry.addData("xPod Resolution", "Too low");
-                    else
+                    else {
                         telemetry.addData("xPod", "Good");
+                        passedX = true;
+                    }
 
                     if (pose.y() < 0)
                         telemetry.addData("yPod Direction", "Flipped");
@@ -389,8 +397,10 @@ class TestsOdometry extends TuningOpMode<Boolean> {
                         telemetry.addData("yPod Resolution", "Too high");
                     else if (pose.y() > 144)
                         telemetry.addData("yPod Resolution", "Too low");
-                    else
+                    else {
                         telemetry.addData("yPod", "Good");
+                        passedY = true;
+                    }
 
                     if (totalHeading < 0)
                         telemetry.addData("Heading Direction", "Flipped");
@@ -398,8 +408,10 @@ class TestsOdometry extends TuningOpMode<Boolean> {
                         telemetry.addData("Heading Resolution", "Too high");
                     else if (totalHeading > 2 * Math.PI)
                         telemetry.addData("Heading Resolution", "Too low");
-                    else
+                    else {
                         telemetry.addData("Heading", "Good");
+                        passedHeading = true;
+                    }
 
                     break;
             }
@@ -407,7 +419,7 @@ class TestsOdometry extends TuningOpMode<Boolean> {
             telemetry.addData("Pose", localizer.pose());
             telemetry.update();
         }
-        return true;
+        return passedX && passedY && passedHeading;
     }
 }
 
