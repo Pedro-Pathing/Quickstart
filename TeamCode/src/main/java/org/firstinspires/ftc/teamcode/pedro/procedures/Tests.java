@@ -141,7 +141,10 @@ class TestsHold extends TuningOpMode<Boolean> {
     public Boolean runTuningOpMode() throws InterruptedException {
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
+        Thread.sleep(1000);
         waitForStart();
+        follower.setPose(Pose.zero());
+        follower.update();
         follower.hold(Pose.zero());
         while (opModeIsActive()) {
             follower.update();
@@ -171,7 +174,10 @@ class TestsLine extends TuningOpMode<Boolean> {
         Path path1 = line(Pose.zero(), new Pose(distance,0, 0)).constant(0);
         Path path2 = line(new Pose(distance,0, 0), Pose.zero()).constant(0);
 
+        Thread.sleep(1000);
         waitForStart();
+        follower.setPose(Pose.zero());
+        follower.update();
         follower.follow(path1);
 
         while (opModeIsActive()) {
@@ -210,7 +216,10 @@ class TestsCurve extends TuningOpMode<Boolean> {
         Path path1 = curve(Pose.zero(), new Pose(distance + 0,0), new Pose(distance,distance)).tangent();
         Path path2 = curve(new Pose(distance,distance), new Pose(distance,0), Pose.zero()).tangent();
 
+        Thread.sleep(1000);
         waitForStart();
+        follower.setPose(Pose.zero());
+        follower.update();
         follower.follow(path1);
 
         while (opModeIsActive()) {
@@ -249,7 +258,10 @@ class TestsInterpolation extends TuningOpMode<Boolean> {
         Path path1 = curve(Pose.zero(), new Pose(distance + 0,0), new Pose(distance,distance)).heading((curve, t) -> Math.PI);
         Path path2 = curve(new Pose(distance,distance), new Pose(distance,0), Pose.zero()).heading(Interpolator.piecewise().until(0.5, Interpolator.tangent).until(1.0, Interpolator.constant(0)));
 
+        Thread.sleep(1000);
         waitForStart();
+        follower.setPose(Pose.zero());
+        follower.update();
         follower.follow(path1);
 
         while (opModeIsActive()) {
@@ -284,7 +296,9 @@ class TestsLocalization extends TuningOpMode<Boolean> {
 
         localizer.setPose(Pose.zero());
 
+        Thread.sleep(1000);
         waitForStart();
+        localizer.setPose(Pose.zero());
 
         while (opModeIsActive()) {
             drivetrain.drive(new DrivePowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x), true);
@@ -332,7 +346,9 @@ class TestsOdometry extends TuningOpMode<Boolean> {
 
         localizer.setPose(Pose.zero());
 
+        Thread.sleep(1000);
         waitForStart();
+        localizer.setPose(Pose.zero());
 
         timer.reset();
 
@@ -453,7 +469,10 @@ class TestsPose extends TuningOpMode<Boolean> {
     @Override
     public Boolean runTuningOpMode() throws InterruptedException {
         Localizer localizer = localizerFunction.apply(hardwareMap);
+        Thread.sleep(1000);
         waitForStart();
+        localizer.setPose(Pose.zero());
+        localizer.update();
         while (opModeIsActive()) {
             localizer.update();
             telemetry.addData("Pose", localizer.pose());
