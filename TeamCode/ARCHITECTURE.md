@@ -42,7 +42,8 @@ Controller. Change them in `RobotConfig.Hardware` if the configuration uses diff
 | `limelight` | Limelight 3A | Measures visible AprilTag range and relative height | Not applicable |
 | `imu` | Control/Expansion Hub IMU | Supplies robot heading for two-wheel odometry | Not applicable |
 | `intake` | Motor | Intake mechanism | Controlled by A and Y |
-| `shooter` | Motor | Shooting mechanism | Controlled by X |
+| `Shoot1` | 6000 RPM motor with encoder | First shooter wheel | Controlled by X |
+| `Shoot2` | 6000 RPM motor with encoder | Second shooter wheel | Controlled by X |
 | `servoMotor` | Continuous-rotation servo | Auxiliary servo mechanism | Controlled by B |
 
 The two right-side motors are reversed in `MecanumDrive`, allowing the same positive drive command
@@ -77,7 +78,7 @@ Both gamepads use the same robot-centric driving map:
 | Right stick | Unassigned |
 | A | Toggle intake motor on/off |
 | Y | Toggle intake direction forward/reverse |
-| X | Run shooter while held |
+| X | Run both shooter motors at their configured target RPM while held |
 | B | Toggle continuous-rotation servo on/off |
 
 Gamepad 1 has priority whenever it has active drive input. When gamepad 1 is idle, gamepad 2 can
@@ -119,6 +120,33 @@ Desktop geometry tests can be run with:
 ```shell
 ./gradlew :TeamCode:testDebugUnitTest
 ```
+
+## Component diagnostics
+
+The Driver Station's `Diagnostics` group contains isolated hardware tests. Each test initializes
+only the listed hardware so another unconfigured mechanism does not prevent it from starting.
+
+| OpMode | Hardware loaded | Controls |
+| --- | --- | --- |
+| `Test: Drive Motors` | Four drivetrain motors | D-pad selects one motor; left-stick Y runs it at up to 35% power |
+| `Test: Odometry Wheels` | Forward and strafe odometry encoders | Move the pods/robot by hand; A zeros both readings |
+| `Test: IMU` | Hub IMU | Rotate the robot by hand; A resets yaw |
+| `Test: Limelight` | Limelight only | View live tag measurements; A freezes/unfreezes the display |
+| `Test: Intake` | Intake motor only | A toggles power; Y reverses direction |
+| `Test: Shooter` | Both shooter motors | Hold X to run both at 6000 RPM |
+| `Test: Dual Shooter RPM` | `Shoot1` and `Shoot2` only | X/A raise/lower Shoot1; Y/B raise/lower Shoot2 by 100 RPM |
+| `Test: Servo Motor` | Continuous-rotation servo only | B toggles power |
+| `Test: Odo vs AprilTag` | Full drive/localization stack | A captures a reference; B clears it |
+
+Both gamepads work in every diagnostic. Lift the drive wheels off the floor before using the motor
+test, verify the selected motor name in telemetry, and keep clear of all mechanisms. Every powered
+diagnostic stops its output in a `finally` block when the OpMode ends.
+
+The dual-shooter RPM test begins at a 6000 RPM target for each motor after Play and shows both target
+and encoder-measured RPM. Button changes are edge-triggered, so holding a button changes its target
+only once; release and press again for another 100 RPM step. Targets cannot be reduced below zero.
+The motor controller must have the correct encoder-equipped motor type selected in the Robot
+Controller configuration for velocity measurements and control to be accurate.
 
 ## Dependency direction
 

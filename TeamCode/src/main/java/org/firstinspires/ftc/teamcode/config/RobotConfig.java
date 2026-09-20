@@ -14,7 +14,8 @@ public final class RobotConfig {
     public static final String LIMELIGHT = "limelight";
     public static final String IMU = "imu";
     public static final String INTAKE = "intake";
-    public static final String SHOOTER = "shooter";
+    public static final String SHOOTER_1 = "Shoot1";
+    public static final String SHOOTER_2 = "Shoot2";
     public static final String SERVO_MOTOR = "servoMotor";
 
     private Hardware() {}
@@ -44,10 +45,18 @@ public final class RobotConfig {
 
   public static final class Mechanisms {
     public static final double INTAKE_POWER = 1.0;
-    public static final double SHOOTER_POWER = 1.0;
+    public static final double SHOOTER_TARGET_RPM = 6000.0;
     public static final double SERVO_POWER = 1.0;
 
     private Mechanisms() {}
+  }
+
+  public static final class Diagnostics {
+    public static final double DRIVE_MOTOR_TEST_MAX_POWER = 0.35;
+    public static final double SHOOTER_INITIAL_RPM = 6000.0;
+    public static final double SHOOTER_RPM_STEP = 100.0;
+
+    private Diagnostics() {}
   }
 
   public static final class Autonomous {

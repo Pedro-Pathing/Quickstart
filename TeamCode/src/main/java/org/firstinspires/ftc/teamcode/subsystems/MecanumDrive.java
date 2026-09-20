@@ -9,6 +9,13 @@ import org.firstinspires.ftc.teamcode.drive.MecanumKinematics;
 
 /** Owns the drivetrain hardware and exposes robot-centric mecanum commands. */
 public final class MecanumDrive {
+  public enum MotorPosition {
+    FRONT_LEFT,
+    FRONT_RIGHT,
+    BACK_LEFT,
+    BACK_RIGHT
+  }
+
   private final DcMotor frontLeft;
   private final DcMotor frontRight;
   private final DcMotor backLeft;
@@ -47,6 +54,26 @@ public final class MecanumDrive {
     frontRight.setPower(power.getFrontRight());
     backLeft.setPower(power.getBackLeft());
     backRight.setPower(power.getBackRight());
+  }
+
+  /** Stops the drivetrain, then powers only the requested motor for hardware diagnostics. */
+  public void runSingleMotor(MotorPosition position, double power) {
+    stop();
+    double clippedPower = Math.max(-1.0, Math.min(1.0, power));
+    switch (position) {
+      case FRONT_LEFT:
+        frontLeft.setPower(clippedPower);
+        break;
+      case FRONT_RIGHT:
+        frontRight.setPower(clippedPower);
+        break;
+      case BACK_LEFT:
+        backLeft.setPower(clippedPower);
+        break;
+      case BACK_RIGHT:
+        backRight.setPower(clippedPower);
+        break;
+    }
   }
 
   public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {

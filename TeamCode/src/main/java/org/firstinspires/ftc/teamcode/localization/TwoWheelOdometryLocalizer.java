@@ -80,6 +80,14 @@ public final class TwoWheelOdometryLocalizer {
     return new PoseEstimate(x, y, Math.toDegrees(headingRadians));
   }
 
+  public double getForwardEncoderTicks() {
+    return getForwardTicks();
+  }
+
+  public double getStrafeEncoderTicks() {
+    return getStrafeTicks();
+  }
+
   private void captureEncoderPositions() {
     previousForwardTicks = getForwardTicks();
     previousStrafeTicks = getStrafeTicks();
