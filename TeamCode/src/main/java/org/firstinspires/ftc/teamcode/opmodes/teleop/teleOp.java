@@ -15,14 +15,13 @@ public class teleOp extends NextOpMode {
     CommandGamepad driver1 = new CommandGamepad(gamepad1);
     CommandGamepad driver2 = new CommandGamepad(gamepad2);
     public teleOp(Robot robot) {
-        super((NextRobot) robot);
+        super(robot);
         this.robot = robot;
     }
 
 
     @Override
     public void start() {
-        robot.flywheel.on();
         robot.intake.start(driver2);
         robot.flywheel.start(driver2);
         robot.drivetrain.startDrive(gamepad1);
