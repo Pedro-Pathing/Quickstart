@@ -10,7 +10,7 @@ import dev.nextftc.robot.Telemetry;
 import dev.nextftc.units.measuretypes.AngularVelocity;
 
 public class PewPew implements Mechanism {
-    private NextMotor Motor = new NextMotor("flywheelMotor");
+    private final NextMotor Motor = new NextMotor("flywheelMotor");
     private Double targetVelocity = 3500.0;
     public boolean isActive = false;
 
