@@ -22,8 +22,21 @@ android {
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
+
+    testOptions {
+        unitTests {
+            // Stub out android.* calls (e.g. android.util.Log) instead of throwing
+            // "not mocked". Pure classes like Rates don't need this, but anything
+            // that touches an SDK type will.
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
+
+    // Local JVM unit tests (src/test/java). Run with:
+    //     ./gradlew :TeamCode:testDebugUnitTest
+    testImplementation 'junit:junit:4.13.2'
 }
