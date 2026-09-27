@@ -9,14 +9,14 @@ teamcode/
 │   ├── paths/               Pedro path and pose definitions
 │   └── routines/            Autonomous sequences built from paths and actions
 ├── config/                  Robot-wide names, limits, and setpoints
+├── control/                 Gamepad mappings and TeleOp subsystem control
 ├── opmodes/
 │   ├── autonomous/          Competition autonomous entry points
 │   ├── teleop/              Competition driver-controlled entry points
-│   └── utility/             Test, calibration, and diagnostic OpModes
+│   └── tests/               Test, calibration, and diagnostic OpModes
 ├── pedro/                   Pedro configuration and tuning supplied by Quickstart
 ├── subsystems/              Hardware-owning classes, grouped by mechanism
-├── util/                    Small helpers with no mechanism ownership
-└── vision/                  Camera and vision processing
+└── util/                    Small helpers with no mechanism ownership
 ```
 
 Keep registered OpModes thin. They should select and coordinate behavior while
