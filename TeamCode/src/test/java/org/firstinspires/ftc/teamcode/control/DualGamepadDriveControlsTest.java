@@ -25,8 +25,8 @@ public final class DualGamepadDriveControlsTest {
     DriveCommand rotateLeft = DualGamepadDriveControls.fromInputs(0, 0, 0.8, 0, 1);
     DriveCommand rotateRight = DualGamepadDriveControls.fromInputs(0, 0, 0, 0.6, 2);
 
-    assertEquals(-0.8, rotateLeft.getRotate(), EPSILON);
-    assertEquals(0.6, rotateRight.getRotate(), EPSILON);
+    assertEquals(-0.64, rotateLeft.getRotate(), EPSILON);
+    assertEquals(0.36, rotateRight.getRotate(), EPSILON);
     assertEquals(2, rotateRight.getGamepadNumber());
   }
 

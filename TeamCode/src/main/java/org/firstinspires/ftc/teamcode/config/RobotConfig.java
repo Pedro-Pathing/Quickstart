@@ -21,6 +21,17 @@ public final class RobotConfig {
     private Hardware() {}
   }
 
+  public static final class Drive {
+    /**
+     * The installed drivetrain maps the standard mecanum forward/strafe patterns to the opposite
+     * physical axes and directions. Keep this enabled for the current wiring.
+     */
+    public static final boolean SWAP_FORWARD_AND_STRAFE = true;
+    public static final boolean REVERSE_ROTATION = true;
+
+    private Drive() {}
+  }
+
   public static final class Localization {
     public static final int APRILTAG_PIPELINE = 0;
     public static final int POLL_RATE_HZ = 100;

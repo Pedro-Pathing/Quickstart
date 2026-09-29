@@ -46,7 +46,15 @@ public final class MecanumDrive {
   }
 
   public void driveRobotCentric(double drive, double strafe, double rotate) {
-    setPower(MecanumKinematics.robotCentric(drive, strafe, rotate));
+    setPower(configuredRobotCentric(drive, strafe, rotate));
+  }
+
+  static DrivePower configuredRobotCentric(double drive, double strafe, double rotate) {
+    double configuredRotate = RobotConfig.Drive.REVERSE_ROTATION ? -rotate : rotate;
+    if (RobotConfig.Drive.SWAP_FORWARD_AND_STRAFE) {
+      return MecanumKinematics.robotCentric(-strafe, -drive, configuredRotate);
+    }
+    return MecanumKinematics.robotCentric(drive, strafe, configuredRotate);
   }
 
   public void setPower(DrivePower power) {

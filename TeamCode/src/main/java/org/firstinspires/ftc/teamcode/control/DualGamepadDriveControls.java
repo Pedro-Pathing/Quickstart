@@ -38,8 +38,14 @@ public final class DualGamepadDriveControls {
       int gamepadNumber) {
     double drive = applyDeadband(-leftStickY);
     double strafe = applyDeadband(leftStickX);
-    double rotate = applyDeadband(rightTrigger - leftTrigger);
+    double rotate = shapeRotation(rightTrigger - leftTrigger);
     return new DriveCommand(drive, strafe, rotate, gamepadNumber);
+  }
+
+  /** Gives the analog triggers finer low-speed control while retaining full rotation power. */
+  private static double shapeRotation(double value) {
+    double deadbanded = applyDeadband(value);
+    return Math.copySign(deadbanded * deadbanded, deadbanded);
   }
 
   private static double applyDeadband(double value) {

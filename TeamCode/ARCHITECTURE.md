@@ -50,6 +50,16 @@ The two right-side motors are reversed in `MecanumDrive`, allowing the same posi
 to move all four wheels forward. If a wheel spins the wrong way, first verify the physical motor
 position and wiring before changing that direction rule.
 
+The current installed drivetrain swaps and reverses the standard mecanum forward and strafe motor
+patterns. `RobotConfig.Drive.SWAP_FORWARD_AND_STRAFE` compensates for that layout, so joystick up is
+physical forward, joystick down is backward, joystick left strafes left, and joystick right strafes
+right. Set it to `false` if the motor wiring or hub configuration is later changed to the standard
+layout.
+
+`RobotConfig.Drive.REVERSE_ROTATION` corrects the installed drivetrain's reversed turn direction.
+The two trigger values are subtracted and passed through a signed-square response curve. This keeps
+full-trigger rotation at full power while making partial-trigger rotation slower and smoother.
+
 The two odometry wheels are required by both current OpModes. Their encoder channels must be
 configured as motors using the exact names above; they are read only and are never powered.
 
@@ -96,6 +106,13 @@ The mechanism buttons above apply to `Limelight TeleOp` on either gamepad. The
 `Test: Odo vs AprilTag` diagnostic does not operate the mechanisms; in that OpMode, A captures a
 baseline and B clears it. Pedro Pathing's generated `Tuning` OpMode retains its own controls and
 does not use this shared mapping.
+
+`TeleTourney` is the movement, odometry, and AprilTag-tracking competition OpMode. It uses the same
+dual-gamepad drive mapping at full power and reports field X/Y, IMU heading, active controller,
+drive commands, and both odometry encoder counts on Driver Station. It also starts the Limelight
+AprilTag pipeline and reports connection status, visible-tag count, and the nearest tag's ID,
+robot-relative forward/left offset, horizontal/3D distance, and height. Odometry and the IMU remain
+the only source of the robot pose; Limelight measurements do not overwrite field X/Y or heading.
 
 Mechanism power values are configured in `RobotConfig.Mechanisms`. The `servoMotor` mapping assumes
 a continuous-rotation servo (`CRServo`); a positional servo would require on/off positions instead
