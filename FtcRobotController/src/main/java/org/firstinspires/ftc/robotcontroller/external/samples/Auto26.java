@@ -30,7 +30,7 @@ public class Auto26 extends LinearOpMode {
         telemetry.addData("Status", "Initializing...");
         telemetry.update();
         ///
-
+//////
         // Initialize hardware
         frontLeft    = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight   = hardwareMap.get(DcMotor.class, "frontRight");
