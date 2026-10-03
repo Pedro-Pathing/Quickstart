@@ -15,7 +15,7 @@ public class Flywheel implements Mechanism {
     private final NextMotor motorOne = new NextMotor("flywheelMotorOne");
 
     private final NextMotor motorTwo = new NextMotor("flywheelMotorTwo");
-    private Double targetVelocity = 3500.0;
+    private Double targetVelocity = 1400.0;
     public boolean isActive = false;
 
     public void on() {
@@ -53,13 +53,14 @@ public class Flywheel implements Mechanism {
     public void periodic() {
         error = targetVelocity - this.getVelocity();
         if (isActive) {
-            if (error > 100) {
+            if (error > 30) {
                 motorOne.setThrottle(1.0);
-            } else if (error < -100) {
+            } else if (error < -30) {
                 motorOne.setThrottle(0.0);
-            } else {
-                motorOne.setVelocitySetpoint(RotationsPerMinute.of(targetVelocity));
-            } //had to add because .setVelocitySetpoint was not triggering when velocity too low -- PID issue?
+            } //Set Velocity setpoint doesn't appear to be doing anything
+//            else {
+//                motorOne.setVelocitySetpoint(RotationsPerMinute.of(targetVelocity));
+//            } //had to add because .setVelocitySetpoint was not triggering when velocity too low -- PID issue?
             motorOne.update();
         } else {
             motorOne.setVelocitySetpoint(RotationsPerMinute.of(0));
