@@ -8,10 +8,10 @@ import dev.nextftc.robot.Mechanism;
 import dev.nextftc.robot.drive.DriveCommands;
 
 public class Drivetrain implements Mechanism {
-    public final NextMotor frontLeft = new NextMotor("frontLeftDriveMotor");
-    public final NextMotor frontRight = new NextMotor("frontRightDriveMotor");
-    public final NextMotor backLeft = new NextMotor("backLeftDriveMotor");
-    public final NextMotor backRight = new NextMotor("backRightDriveMotor");
+    public final NextMotor frontLeft = new NextMotor("frontLeft");
+    public final NextMotor frontRight = new NextMotor("frontRight");
+    public final NextMotor backLeft = new NextMotor("backLeft");
+    public final NextMotor backRight = new NextMotor("backRight");
 
     //robot centric
     public void startDrive(Gamepad gamepad) {

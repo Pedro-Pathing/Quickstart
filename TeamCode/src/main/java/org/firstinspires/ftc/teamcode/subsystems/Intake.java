@@ -44,7 +44,7 @@ public class Intake implements Mechanism {
 
     public void start(CommandGamepad commandGamepad) {
         commandGamepad.leftTrigger().isOver(0.05)
-                .whileTrue(instant(() -> motor.setThrottle(commandGamepad.leftTrigger().invoke())))
+                .whileTrue(instant(() -> this.run(commandGamepad.leftTrigger().invoke())))
                 .onFalse(instant(() -> motor.setThrottle(0.0)));
     }
 

@@ -18,10 +18,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
     public static MecanumConfig drivetrainConfig = new MecanumConfig(
             c -> {
-                c.frontLeftName.set("frontLeftDriveMotor");
-                c.backLeftName.set("backLeftDriveMotor");
-                c.frontRightName.set("frontRightDriveMotor");
-                c.backRightName.set("backRightDriveMotor");
+                c.frontLeftName.set("frontLeft");
+                c.backLeftName.set("backLeftD");
+                c.frontRightName.set("frontRight");
+                c.backRightName.set("backRight");
 
                 c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
                 c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
@@ -35,9 +35,9 @@ public class Constants {
 
     public static ThreeWheelIMUConfig localizerConfig = new ThreeWheelIMUConfig(
             c -> {
-                c.leftEncoderName.set("frontLeftDriveMotor");
-                c.rightEncoderName.set("backRightDriveMotor");
-                c.strafeEncoderName.set("backLeftDriveMotor");
+                c.leftEncoderName.set("frontLeft");
+                c.rightEncoderName.set("backRight");
+                c.strafeEncoderName.set("backLeft");
                 c.imuName.set("imu");
                 c.imu.set(new RevHubIMU(new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
