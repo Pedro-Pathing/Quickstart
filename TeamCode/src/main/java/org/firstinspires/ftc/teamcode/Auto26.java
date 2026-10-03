@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Auto26(1)", group = "Autonomous")
+@Autonomous(name = "Auto26", group = "Autonomous")
 public class Auto26 extends LinearOpMode {
 
     // Declare OpMode members.
@@ -22,8 +22,8 @@ public class Auto26 extends LinearOpMode {
     private CRServo conveyor = null;
 
     // TODO: Tuning Constants (Encoder counts per inch for forward driving and strafing)
-    public static double COUNTS_PER_INCH_FORWARD = 500.0;
-    public static double COUNTS_PER_INCH_STRAFE = 500.0;
+    public static double COUNTS_PER_INCH_FORWARD = 1000.0;
+    public static double COUNTS_PER_INCH_STRAFE = 1000.0;
 
     @Override
     public void runOpMode() {
