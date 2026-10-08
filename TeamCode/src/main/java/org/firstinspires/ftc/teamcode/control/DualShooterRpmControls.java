@@ -22,13 +22,13 @@ public final class DualShooterRpmControls {
 
   void updateButtons(boolean aDown, boolean bDown, boolean xDown, boolean yDown) {
     if (xDown && !previousX) {
-      motor1Rpm += RobotConfig.Diagnostics.SHOOTER_RPM_STEP;
+      motor1Rpm = Math.min(6000, motor1Rpm + RobotConfig.Diagnostics.SHOOTER_RPM_STEP);
     }
     if (aDown && !previousA) {
       motor1Rpm = Math.max(0, motor1Rpm - RobotConfig.Diagnostics.SHOOTER_RPM_STEP);
     }
     if (yDown && !previousY) {
-      motor2Rpm += RobotConfig.Diagnostics.SHOOTER_RPM_STEP;
+      motor2Rpm = Math.min(6000, motor2Rpm + RobotConfig.Diagnostics.SHOOTER_RPM_STEP);
     }
     if (bDown && !previousB) {
       motor2Rpm = Math.max(0, motor2Rpm - RobotConfig.Diagnostics.SHOOTER_RPM_STEP);
