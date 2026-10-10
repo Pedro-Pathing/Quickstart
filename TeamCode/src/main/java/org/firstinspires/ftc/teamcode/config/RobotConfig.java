@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.config;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+
 /** Central configuration for hardware names and robot-wide tuning values. */
 public final class RobotConfig {
   private RobotConfig() {}
@@ -33,6 +35,12 @@ public final class RobotConfig {
   }
 
   public static final class Localization {
+    public static RevHubOrientationOnRobot imuOrientation() {
+      return new RevHubOrientationOnRobot(
+          RevHubOrientationOnRobot.LogoFacingDirection.UP,
+          RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
+    }
+
     public static final int APRILTAG_PIPELINE = 0;
     public static final int POLL_RATE_HZ = 100;
     public static final long APRILTAG_RESULT_STALE_MS = 250;

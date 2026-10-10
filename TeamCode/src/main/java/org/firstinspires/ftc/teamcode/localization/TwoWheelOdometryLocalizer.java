@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.localization;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -26,11 +25,7 @@ public final class TwoWheelOdometryLocalizer {
         hardwareMap.get(DcMotor.class, RobotConfig.Hardware.ODOMETRY_FORWARD);
     strafeEncoder = hardwareMap.get(DcMotor.class, RobotConfig.Hardware.ODOMETRY_STRAFE);
     imu = hardwareMap.get(IMU.class, RobotConfig.Hardware.IMU);
-    imu.initialize(
-        new IMU.Parameters(
-            new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD)));
+    imu.initialize(new IMU.Parameters(RobotConfig.Localization.imuOrientation()));
     resetPose(0, 0, 0);
   }
 

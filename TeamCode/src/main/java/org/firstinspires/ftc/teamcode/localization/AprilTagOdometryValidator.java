@@ -49,6 +49,20 @@ public final class AprilTagOdometryValidator {
     return trackedTagId;
   }
 
+  /** Translation inferred from the fixed baseline tag and the current odometry/IMU heading. */
+  public PoseEstimate estimateRobotPose(PoseEstimate headingSource, AprilTagObservation tag) {
+    if (trackedTagId == null || tag == null || tag.getId() != trackedTagId) {
+      return null;
+    }
+    double heading = Math.toRadians(headingSource.getHeadingDegrees());
+    return new PoseEstimate(
+        tagFieldX - tag.getForwardInches() * Math.cos(heading)
+            + tag.getLeftInches() * Math.sin(heading),
+        tagFieldY - tag.getForwardInches() * Math.sin(heading)
+            - tag.getLeftInches() * Math.cos(heading),
+        headingSource.getHeadingDegrees());
+  }
+
   public ValidationResult validate(PoseEstimate robotPose, AprilTagObservation observedTag) {
     if (trackedTagId == null || observedTag == null || observedTag.getId() != trackedTagId) {
       return ValidationResult.unavailable();

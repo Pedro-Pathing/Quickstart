@@ -124,8 +124,7 @@ public class Tuning extends SelectableOpMode {
 
     /** This creates a full stop of the robot by setting the drive motors to run at 0 power. */
     public static void stopRobot() {
-        follower.startTeleopDrive(true);
-        follower.setTeleOpDrive(0,0,0,true);
+        follower.breakFollowing();
     }
 }
 
@@ -236,9 +235,12 @@ class ForwardTuner extends OpMode {
     public void loop() {
         follower.update();
 
-        telemetryM.debug("Distance Moved: " + follower.getPose().getX());
+        double distanceMoved = follower.getPose().getX() - 72.0;
+        telemetryM.debug("Distance Moved: " + distanceMoved);
         telemetryM.debug("The multiplier will display what your forward ticks to inches should be to scale your current distance to " + DISTANCE + " inches.");
-        telemetryM.debug("Multiplier: " + (DISTANCE / (follower.getPose().getX() / follower.getPoseTracker().getLocalizer().getForwardMultiplier())));
+        if (Math.abs(distanceMoved) > 0.01) {
+            telemetryM.debug("Multiplier: " + (DISTANCE / (distanceMoved / follower.getPoseTracker().getLocalizer().getForwardMultiplier())));
+        }
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -271,7 +273,7 @@ class LateralTuner extends OpMode {
     /** This initializes the PoseUpdater as well as the Panels telemetry. */
     @Override
     public void init_loop() {
-        telemetryM.debug("Pull your robot to the right " + DISTANCE + " inches. Your strafe ticks to inches will be shown on the telemetry.");
+        telemetryM.debug("Pull your robot to the left " + DISTANCE + " inches. Your strafe inches per tick will be shown on the telemetry.");
         telemetryM.update(telemetry);
         drawCurrent();
     }
@@ -284,9 +286,12 @@ class LateralTuner extends OpMode {
     public void loop() {
         follower.update();
 
-        telemetryM.debug("Distance Moved: " + follower.getPose().getY());
+        double distanceMoved = follower.getPose().getY() - 72.0;
+        telemetryM.debug("Distance Moved: " + distanceMoved);
         telemetryM.debug("The multiplier will display what your strafe ticks to inches should be to scale your current distance to " + DISTANCE + " inches.");
-        telemetryM.debug("Multiplier: " + (DISTANCE / (follower.getPose().getY() / follower.getPoseTracker().getLocalizer().getLateralMultiplier())));
+        if (Math.abs(distanceMoved) > 0.01) {
+            telemetryM.debug("Multiplier: " + (DISTANCE / (distanceMoved / follower.getPoseTracker().getLocalizer().getLateralMultiplier())));
+        }
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();

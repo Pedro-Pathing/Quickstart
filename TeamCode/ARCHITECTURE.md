@@ -15,6 +15,7 @@ can be reused between TeleOp and Autonomous.
 | `subsystems` | Classes that own and command physical robot hardware |
 | `telemetry` | Driver Station and Dashboard presentation |
 | `opmodes` | Match lifecycle and coordination of the other modules |
+| `pedroPathing` | Pedro follower configuration, chassis adapter, and tuning suite |
 
 `LimelightTeleOp` reads the gamepad and passes movement commands to `MecanumDrive`.
 `LimelightAutoNav` passes each `Waypoint` and the current `PoseEstimate` to
@@ -25,6 +26,10 @@ field pose used for navigation. `AprilTagTracker` uses Limelight only to measure
 relative to the robot; tag observations never modify the odometry pose.
 `LocalizationTelemetry` displays both sets of data without coupling them to Driver Station or
 Dashboard code.
+
+`TeleTourney` and `Pedro Auto Nav` use Pedro's follower and `TwoWheelLocalizer` directly. Their
+translation comes from `odoForward`/`odoStrafe` and heading from `imu`. `Limelight TeleOp` and
+`Limelight Auto Nav` retain the custom stack described above as separate OpModes.
 
 ## Robot configuration names
 
@@ -102,7 +107,8 @@ thread therefore does not pause drivetrain updates. The main OpMode thread conti
 and telemetry. Stopping the OpMode—or an exception in either worker—signals both workers to stop
 and sets all controlled motors and the servo to zero.
 
-The mechanism buttons above apply to `Limelight TeleOp` on either gamepad. The
+The mechanism buttons above apply to `Limelight TeleOp` on either gamepad. In `TeleTourney`, A
+re-anchors the Pedro/Limelight consistency check and B clears it; no mechanisms operate there. The
 `Test: Odo vs AprilTag` diagnostic does not operate the mechanisms; in that OpMode, A captures a
 baseline and B clears it. Pedro Pathing's generated `Tuning` OpMode retains its own controls and
 does not use this shared mapping.
@@ -111,7 +117,8 @@ does not use this shared mapping.
 dual-gamepad drive mapping at full power and reports field X/Y, IMU heading, active controller,
 drive commands, and both odometry encoder counts on Driver Station. It also starts the Limelight
 AprilTag pipeline and reports connection status, visible-tag count, and the nearest tag's ID,
-robot-relative forward/left offset, horizontal/3D distance, and height. Odometry and the IMU remain
+robot-relative forward/left offset, horizontal/3D distance, and height. Its drive commands and pose
+now come from Pedro's follower. Odometry and the IMU remain
 the only source of the robot pose; Limelight measurements do not overwrite field X/Y or heading.
 
 Mechanism power values are configured in `RobotConfig.Mechanisms`. The `servoMotor` mapping assumes
@@ -120,12 +127,27 @@ of power values.
 
 ## Localization validation
 
-Run the Driver Station OpMode `Test: Odo vs AprilTag` with a tag in view. Press A to capture that
+Both `TeleTourney` and `Test: Odo vs AprilTag` now compare **Pedro's** two-wheel/IMU pose with
+Limelight using `PedroAprilTagValidation`. `TeleTourney` automatically anchors the check to the
+first connected, valid, non-stale visible tag. On either gamepad, A re-anchors to the nearest
+visible tag and B clears the baseline and disables automatic capture until A is pressed again.
+The baseline is retained when its tag leaves view; a different tag does not replace it. Missing
+or disconnected data reports NO DATA/DISCONNECTED, never PASS.
+
+Run the Driver Station OpMode `Test: Odo vs AprilTag` with a tag in view. This diagnostic uses
+Pedro drive at 35% maximum power and requires manual baseline capture. Press A to capture that
 tag as a fixed reference, then drive and rotate slowly while keeping it visible. The test converts
 the baseline Limelight observation into field coordinates, uses subsequent odometry poses to
 predict where the tag should appear relative to the robot, and compares that prediction with the
-new Limelight observation. Telemetry reports detection rate, distance error, robot-relative
-position error, height drift, and a live PASS/FAIL result. Press B to clear the baseline.
+new Limelight observation. Telemetry reports distance error, planar position error, height drift,
+and a live PASS/FAIL result. It also shows LL-inferred X/Y computed from the fixed baseline tag
+position and current odometry/IMU heading. Press B to clear the baseline.
+
+This is a relative drift check. The tag's baseline field position is inferred from the initial
+Pedro pose, so an initial pose error is shared by both estimates. LL-inferred X/Y also depends on
+IMU heading and camera calibration. The check does not reset, fuse, or correct Pedro's pose.
+Absolute field re-localization would require known field tag coordinates and a calibrated camera
+transform. Delayed camera frames can cause temporary disagreement while driving quickly.
 
 The default pass limits are 3 inches of planar position error and 2 inches of height drift. Adjust
 the `VALIDATION_*_TOLERANCE_INCHES` constants only after measuring the physical system's normal
@@ -153,7 +175,7 @@ only the listed hardware so another unconfigured mechanism does not prevent it f
 | `Test: Shooter` | Both shooter motors | Hold X to run both at 6000 RPM |
 | `Test: Dual Shooter RPM` | `Shoot1` and `Shoot2` only | X/A raise/lower Shoot1; Y/B raise/lower Shoot2 by 100 RPM |
 | `Test: Servo Motor` | Continuous-rotation servo only | B toggles power |
-| `Test: Odo vs AprilTag` | Full drive/localization stack | A captures a reference; B clears it |
+| `Test: Odo vs AprilTag` | Pedro drive, two odometry wheels, IMU, Limelight | A captures a reference; B clears it |
 
 Both gamepads work in every diagnostic. Lift the drive wheels off the floor before using the motor
 test, verify the selected motor name in telemetry, and keep clear of all mechanisms. Every powered
@@ -172,5 +194,40 @@ subsystems do not read gamepads or write telemetry. Keep new mechanisms behind a
 put reusable control math in `control` or `navigation`, and expose hardware names/tuning through
 `RobotConfig`.
 
-Pedro Pathing's generated tuning suite remains in `pedroPathing`; it is vendor-oriented setup code
-and is intentionally separate from the robot architecture above.
+## Pedro Pathing setup and tuning
+
+`pedroPathing.Constants.createFollower()` supplies both a drivetrain and a two-wheel localizer to
+Pedro 2.1.2. Encoder names, encoder direction, inches-per-tick (the reciprocal of ticks-per-inch),
+pod offsets, and hub orientation come from `RobotConfig.Localization`. The shared hub orientation
+currently assumes logo UP and USB FORWARD; change `imuOrientation()` to match the physical hub.
+Pedro resets the dedicated odometry encoder counters and IMU yaw during initialization. Do not
+initialize a second localizer alongside the follower in the same OpMode.
+
+`RobotMecanum` uses Pedro's vector allocation, motor caching, and configured motor directions.
+It refreshes the wheel vectors when the measured forward/lateral velocities change, including
+runtime tuning edits.
+`PedroDriveLayout` converts its LF/LR/RF/RR outputs through the same axis/rotation corrections used
+by `MecanumDrive`. Pedro commands and poses use inches, radians, positive Y left, and positive
+heading counterclockwise. `TeleTourney` converts the shared controller's right-strafe/clockwise
+commands to those conventions.
+
+The follower PID values and drivetrain velocities in `pedroPathing.Constants` are library defaults,
+not calibrated robot values. The pod offsets in `RobotConfig.Localization` are still zero and
+must be measured. Before using autonomous:
+
+1. Use `Tuning` → Localization → Localization Test to verify forward increases X, left increases
+   Y, and counterclockwise rotation increases heading. Translation should stay nearly constant
+   while rotating in place once pod offsets are correct.
+2. Measure offsets and calibrate using the Forward, Lateral, and Offsets tuners. Enter measured
+   values in `RobotConfig.Localization`. Pedro's multipliers are **inches per tick**; invert them
+   when entering the project's **ticks per inch** constants. Its turn multiplier tuner is intended
+   for encoder-derived heading; this two-wheel setup gets heading from the IMU.
+3. Run forward/lateral velocity and zero-power acceleration tuning. Persist velocity values in
+   `Constants.mecanumConstants` and follower acceleration/PID values in `Constants.followerConstants`.
+   Panels edits are runtime settings; save the measured values in source before rebuilding.
+4. Tune translational, heading, and drive controllers, then run the Line/Triangle/Circle tests.
+5. Select `Pedro Auto Nav` to run the 24-inch square at 35% maximum power. Each segment times out
+   after 10 seconds and aborts the remaining route. This is a demonstration route, not a match route.
+
+Limelight continues providing independent tag measurements in `TeleTourney`; it never changes the
+Pedro pose. `Pedro Auto Nav` loads only the drive motors, two encoder ports, and IMU.
