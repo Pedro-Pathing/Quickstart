@@ -9,9 +9,9 @@ import org.firstinspires.ftc.teamcode.subsystems.outtake.Shooter;
 public class Intake implements Subsystem {
 
     //---------------- Subsystems ----------------
-    private final Ramp ramp;
-    private final Spinner spinner;
-    private final Transfer transfer;
+    public final Ramp ramp;
+    public final Spinner spinner;
+    public final Transfer transfer;
 
     //---------------- Software ----------------
 

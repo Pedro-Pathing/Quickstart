@@ -10,33 +10,51 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.control.Control;
 import org.firstinspires.ftc.teamcode.control.DriveControl;
-import org.firstinspires.ftc.teamcode.control.IntakeControl;
+import org.firstinspires.ftc.teamcode.control.intake.IntakeControl;
 import org.firstinspires.ftc.teamcode.control.VisionControl;
-import org.firstinspires.ftc.teamcode.subsystems.Drive;
+import org.firstinspires.ftc.teamcode.control.intake.RampControl;
+import org.firstinspires.ftc.teamcode.control.intake.SpinnerControl;
+import org.firstinspires.ftc.teamcode.control.intake.TransferControl;
+import org.firstinspires.ftc.teamcode.control.outtake.LightsControl;
+import org.firstinspires.ftc.teamcode.control.outtake.OuttakeControl;
+import org.firstinspires.ftc.teamcode.control.outtake.ShooterControl;
+import org.firstinspires.ftc.teamcode.control.outtake.TurretControl;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@TeleOp
+@TeleOp(name = "MainTestTeleOp", group = "Test")
 public class MainTestTeleOp extends OpMode {
-    GoBildaPinpointDriver pinpoint;
-    Robot robot;
+
+    //---------------- Objects ----------------
+    private GoBildaPinpointDriver pinpoint;
+    private Robot robot;
     private JoinedTelemetry joinedTelemetry;
 
-    Gamepad currentGamepad1;
-    Gamepad previousGamepad1;
+    private Gamepad currentGamepad1;
+    private Gamepad previousGamepad1;
+    private Gamepad currentGamepad2;
+    private Gamepad previousGamepad2;
 
-    Gamepad currentGamepad2;
-    Gamepad previousGamepad2;
-    VisionControl visionControl;
-    IntakeControl intakeControl;
-    DriveControl driveControl;
-    List<Control> controls;
+    private ElapsedTime telemetryTimer;
 
-    public ElapsedTime telemetryTimer;
+    //---------------- Controls ----------------
+    private VisionControl visionControl;
+    private IntakeControl intakeControl;
+    private RampControl rampControl;
+    private SpinnerControl spinnerControl;
+    private TransferControl transferControl;
+    private OuttakeControl outtakeControl;
+    private ShooterControl shooterControl;
+    private TurretControl turretControl;
+    private LightsControl lightsControl;
+    private DriveControl driveControl;
+    private List<Control> controls;
 
+
+    //---------------- init/ basically constructor ----------------
     @Override
     public void init() {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
@@ -44,9 +62,20 @@ public class MainTestTeleOp extends OpMode {
         robot = new Robot(hardwareMap, telemetry);
         visionControl = new VisionControl(robot, gamepad1, gamepad2);
         intakeControl = new IntakeControl(robot, gamepad1, gamepad2);
+        rampControl = new RampControl(robot, gamepad1, gamepad2);
+        spinnerControl = new SpinnerControl(robot, gamepad1, gamepad2);
+        transferControl = new TransferControl(robot, gamepad1, gamepad2);
+        outtakeControl = new OuttakeControl(robot, gamepad1, gamepad2);
+        shooterControl = new ShooterControl(robot, gamepad1, gamepad2);
+        turretControl = new TurretControl(robot, gamepad1, gamepad2);
+        lightsControl = new LightsControl(robot, gamepad1, gamepad2);
         driveControl = new DriveControl(robot.drive, gamepad1, gamepad2);
 
-        controls = new ArrayList<>(Arrays.asList(visionControl, intakeControl, driveControl));
+        controls = new ArrayList<>(Arrays.asList(
+                visionControl,
+                intakeControl, rampControl, spinnerControl, transferControl,
+                outtakeControl, shooterControl, turretControl, lightsControl,
+                driveControl));
 
         currentGamepad1 = new Gamepad();
         previousGamepad1 = new Gamepad();
@@ -61,6 +90,7 @@ public class MainTestTeleOp extends OpMode {
         telemetryTimer = new ElapsedTime();
     }
 
+    //---------------- init loop ----------------
     @Override
     public void init_loop() {
         previousGamepad1.copy(currentGamepad1);
@@ -68,12 +98,14 @@ public class MainTestTeleOp extends OpMode {
         telemetry.update();
     }
 
+    //---------------- start ----------------
     @Override
     public void start() {
         robot.toInit();
         telemetryTimer.reset();
     }
 
+    //---------------- loop ----------------
     @Override
     public void loop() {
         gamepadUpdate();
@@ -82,11 +114,14 @@ public class MainTestTeleOp extends OpMode {
         controlsTelemetryUpdate();
     }
 
+    //---------------- stop ----------------
     @Override
     public void stop() {
         robot.stop();
     }
 
+
+    //---------------- Methods ----------------
     public void controlsUpdate() {
         for (Control c: controls) {
             c.update();

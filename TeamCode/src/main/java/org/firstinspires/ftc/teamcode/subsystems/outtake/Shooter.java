@@ -17,12 +17,10 @@ public class Shooter implements Subsystem {
 
     //---------------- Software ----------------
     private Utility util;
-
-    private double flywheelPow = 0.0;
-    private double hoodPos = 0.0;
-    private boolean hoodChanged = false;
-
     private final double hoodStart = 0.5;
+    private double flywheelPow = 0.0;
+    private double hoodPos = hoodStart;
+    private boolean hoodChanged = false;
     //TODO find hood limits
     private final double hoodMin = 0.0;
     private final double hoodMax = 1.0;

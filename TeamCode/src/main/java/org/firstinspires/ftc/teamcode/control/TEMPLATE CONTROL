@@ -1,0 +1,38 @@
+package org.firstinspires.ftc.teamcode.control.intake;
+
+import com.qualcomm.robotcore.hardware.Gamepad;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.control.Control;
+import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
+
+public class NAMEControl implements Control {
+    NAME name;
+    Gamepad gp1;
+    Gamepad gp2;
+    Robot robot;
+
+    public NAMEControl(NAME name, Gamepad gp1, Gamepad gp2){
+        this.name = name;
+        this.gp1 = gp1;
+        this.gp2 = gp2;
+    }
+
+    public NAMEControl(Robot robot, Gamepad gp1, Gamepad gp2) {
+        this.robot = robot;
+        this.name = robot.name;
+        this.gp1 = gp1;
+        this.gp2 = gp2;
+    }
+
+    @Override
+    public void update() {
+
+    }
+
+    @Override
+    public void addTelemetry(Telemetry t) {
+
+    }
+}

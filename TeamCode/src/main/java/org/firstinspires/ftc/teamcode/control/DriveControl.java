@@ -21,7 +21,7 @@ public class DriveControl implements Control{
         this.gp2 = gp2;
 
         TSM = new EdgeDetector(drive::toggleSlowMode);
-        TFC = new EdgeDetector(() -> drive.toggleFieldCentric());
+        TFC = new EdgeDetector(drive::toggleFieldCentric);
     }
 
     //---------Methods--------------

@@ -90,8 +90,6 @@ public class TurretServoAssemblyAligner extends OpMode {
         applyPwmRange(turretL);
         applyPwmRange(turretR);
 
-        turretL.setDirection(Servo.Direction.REVERSE);
-
         writeServo(turretL, false, 0.5);
         writeServo(turretR, false, 0.5);
 

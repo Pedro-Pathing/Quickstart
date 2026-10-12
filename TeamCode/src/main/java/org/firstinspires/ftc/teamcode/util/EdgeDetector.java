@@ -13,6 +13,10 @@ public class EdgeDetector {
         isFallingDetector = isFalling;
     }
 
+    public EdgeDetector(Runnable f) {
+        this(f, false);
+    }
+
     public void update(boolean cond) {
         if (cond && !isPressed) { //Rising Edge
             if (!isFallingDetector) {
