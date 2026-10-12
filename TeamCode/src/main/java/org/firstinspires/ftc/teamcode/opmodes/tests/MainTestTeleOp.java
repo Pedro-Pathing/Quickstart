@@ -41,10 +41,10 @@ public class MainTestTeleOp extends OpMode {
     public void init() {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
-        robot = new Robot(hardwareMap, telemetry, gamepad1, gamepad2);
+        robot = new Robot(hardwareMap, telemetry);
         visionControl = new VisionControl(robot, gamepad1, gamepad2);
         intakeControl = new IntakeControl(robot, gamepad1, gamepad2);
-        driveControl = new DriveControl(robot, gamepad1, gamepad2);
+        driveControl = new DriveControl(robot.drive, gamepad1, gamepad2);
 
         controls = new ArrayList<>(Arrays.asList(visionControl, intakeControl, driveControl));
 

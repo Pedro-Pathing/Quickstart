@@ -11,23 +11,16 @@ public class DriveControl implements Control{
     Drive drive;
     Gamepad gp1;
     Gamepad gp2;
-    Robot robot;
     EdgeDetector TSM;
     EdgeDetector TFC;
     //--------Constructor---------
-    public DriveControl(Drive drive, Gamepad gp1, Gamepad gp2){
+
+    public DriveControl(Drive drive, Gamepad gp1, Gamepad gp2) {
         this.drive = drive;
         this.gp1 = gp1;
         this.gp2 = gp2;
-    }
 
-    public DriveControl(Robot robot, Gamepad gp1, Gamepad gp2) {
-        this.robot = robot;
-        this.drive = robot.drive;
-        this.gp1 = gp1;
-        this.gp2 = gp2;
-
-        TSM = new EdgeDetector(() -> drive.toggleSlowMode());
+        TSM = new EdgeDetector(drive::toggleSlowMode);
         TFC = new EdgeDetector(() -> drive.toggleFieldCentric());
     }
 

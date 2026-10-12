@@ -4,79 +4,40 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
+import org.firstinspires.ftc.teamcode.subsystems.outtake.Shooter;
 
 public class Intake implements Subsystem {
-    //---------------- Hardware -----------------
-    DcMotor intake;
 
     //---------------- Subsystems ----------------
-
+    private final Ramp ramp;
+    private final Spinner spinner;
+    private final Transfer transfer;
 
     //---------------- Software ----------------
-    private double megaSpinPow = 0;
-    private double overridePow = 0;
-    public boolean spinOverride = false;
-    public boolean autoSpin = true;
-    private boolean useMegaSpin = true;
 
 
     //---------------- Constructor ----------------
     public Intake(HardwareMap map) {
-        intake = map.get(DcMotor.class, "Intake");
+        ramp = new Ramp(map);
+        spinner = new Spinner(map);
+        transfer = new Transfer(map);
     }
 
     //---------------- Methods ----------------
-    private void moveMegaSpinPow(double pow){
-        intake.setPower(pow);
-    }
 
-    public void setMegaSpinPow(double pow){
-        megaSpinPow = pow;
-    }
-
-    public void setMegaSpinIn(){
-        megaSpinPow = 0.98;
-        overrideSpinZero();
-    }
-
-    public void setMegaSpinOut(){
-        megaSpinPow = -0.98;
-        overrideSpinZero();
-    }
-
-    public void setMegaSpinZero(){
-        megaSpinPow = 0;
-        overrideSpinZero();
-    }
-
-    public void overrideSpinIn(){
-        overridePow = 0.8;
-        spinOverride = true;
-    }
-
-    public void overrideSpinOut(){
-        overridePow = -0.8;
-        spinOverride = true;
-    }
-
-    public void overrideSpinZero(){
-        overridePow = 0;
-        spinOverride = false;
-    }
 
     //---------------- Interface Methods ----------------
     @Override
-    public void toInit(){}
-
-    @Override
-    public void update(){
-        if(spinOverride && autoSpin){
-            moveMegaSpinPow(overridePow);
-        } else if (useMegaSpin){
-            moveMegaSpinPow(megaSpinPow);
-        }
+    public void init(){
+        ramp.init();
+        spinner.init();
+        transfer.init();
     }
 
     @Override
-    public void stop(){}
+    public void update(){
+        ramp.update();
+        spinner.update();
+        transfer.update();
+    }
 }

@@ -11,57 +11,65 @@ import org.firstinspires.ftc.teamcode.util.Utility;
 public class Shooter implements Subsystem {
 
     //---------------- Hardware ----------------
-    private DcMotorEx leftFlywheel;
-    private DcMotorEx rightFlywheel;
-    private Servo hood;
+    private final DcMotorEx flywheelLeft;
+    private final DcMotorEx flywheelRight;
+    private final Servo hood;
 
     //---------------- Software ----------------
     private Utility util;
+
     private double flywheelPow = 0.0;
+    private double hoodPos = 0.0;
+    private boolean hoodChanged = false;
+
+    private final double hoodStart = 0.5;
+    //TODO find hood limits
+    private final double hoodMin = 0.0;
+    private final double hoodMax = 1.0;
 
     //---------------- Constructor ----------------
     public Shooter(HardwareMap map) {
-//        leftFlywheel = map.get(DcMotorEx.class, "fly_left");
-//        rightFlywheel = map.get(DcMotorEx.class, "fly_right");
-//        leftFlywheel.setDirection(DcMotorSimple.Direction.REVERSE);
-//        rightFlywheel.setDirection(DcMotorSimple.Direction.FORWARD);
-//        hood = map.get(Servo.class, "hood");
-
+        flywheelLeft = map.get(DcMotorEx.class, "fly_left");
+        flywheelRight = map.get(DcMotorEx.class, "fly_right");
+        flywheelLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        hood = map.get(Servo.class, "hood");
     }
 
     //---------------- Core Methods ----------------
-    private void setLeftFlywheelPow(double pow){
-        leftFlywheel.setPower(pow);
+    private void setFlywheel(double pow){
+        flywheelLeft.setPower(pow);
+        flywheelRight.setPower(pow);
     }
 
-    private void setRightFlywheelPow(double pow){
-        rightFlywheel.setPower(pow);
+    private void setHood(double pos){
+        hood.setPosition(util.clamp(pos, hoodMin, hoodMax));
     }
 
-    private void setFlywheelPow(double pow){
-        leftFlywheel.setPower(pow);
-        rightFlywheel.setPower(pow);
-    }
-
-    private void setHood(double target){
-        hood.setPosition(target);
-    }
 
     //---------------- Methods ----------------
+    public void setFlywheelPow(double pow){
+        flywheelPow = pow;
+    }
 
-
+    public void setHoodPos(double pos){
+        hoodChanged = true;
+        hoodPos = pos;
+    }
 
     //---------------- Interface Methods ----------------
     @Override
-    public void toInit(){
-
+    public void init(){
+        setHoodPos(hoodStart);
     }
 
     @Override
     public void update(){
-//        setFlywheelPow(flywheelPow);
-    }
+        setFlywheel(flywheelPow);
 
-    @Override
-    public void stop(){}
+        if (hoodChanged){
+            setHood(hoodPos);
+            hoodChanged = false;
+        }
+    }
 }

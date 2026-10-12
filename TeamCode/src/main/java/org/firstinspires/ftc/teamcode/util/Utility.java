@@ -6,7 +6,7 @@ public class Utility {
 
     }
 
-    public double clamp(double v, double lo, double hi) {
-        return Math.max(lo, Math.min(hi, v));
+    public double clamp(double var, double lo, double hi) {
+        return Math.max(lo, Math.min(hi, var));
     }
 }

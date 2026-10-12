@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.vision;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.pedropathing.math.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -7,7 +7,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
 
 import java.io.OutputStream;
 import java.net.Socket;
@@ -17,6 +16,7 @@ public class Vision implements Subsystem {
 
     //-------------Hardware------------
     private Limelight3A limelight;
+    //HUSKY
 
     //-------------Software-------------
     private LLResult latest;
@@ -51,8 +51,16 @@ public class Vision implements Subsystem {
     private String connectionStatus = "Disconnected"; //Status tracker
 
     //--------Constructor--------
-    public Vision(HardwareMap map) {
+    private Vision(HardwareMap map) {
         limelight = map.get(Limelight3A.class, "limelight");
+    }
+    private static Vision instance = null;
+
+    public static Vision getInstance(HardwareMap hardwareMap) {
+        if (instance == null) {
+            instance = new Vision(hardwareMap);
+        }
+        return instance;
     }
 
     //---------Methods-----------
@@ -306,7 +314,7 @@ public class Vision implements Subsystem {
 
     //---------Interface Methods---------
     @Override
-    public void toInit() {
+    public void init() {
         limelightInit();
         startSnapshotServer();
     }

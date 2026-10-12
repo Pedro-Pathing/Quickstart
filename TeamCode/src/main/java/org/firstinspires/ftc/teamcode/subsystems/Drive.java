@@ -130,7 +130,7 @@ public class Drive implements Subsystem{
 
     //---------------- Interface Methods ----------------
     @Override
-    public void toInit(){}
+    public void init(){}
 
     @Override
     public void update(){
