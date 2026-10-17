@@ -10,7 +10,6 @@ import com.pedropathing.tuning.autotune.TuningOpMode;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.List;
@@ -20,6 +19,10 @@ public class ThreeWheelTuner extends Procedure {
     private static String leftEncoderName = "lf";
     private static String rightEncoderName = "rr";
     private static String strafeEncoderName = "lr";
+    private static String frontLeftName = "lf";
+    private static String backLeftName = "lr";
+    private static String frontRightName = "rf";
+    private static String backRightName = "rr";
 
     public ThreeWheelTuner() {
         super("Three Wheel Tuner", "Tune three odometry pods");
@@ -32,10 +35,18 @@ public class ThreeWheelTuner extends Procedure {
         Inputs.Field<String> leftEncoder = setup.s("Left Encoder Motor Name").withDefault("lf");
         Inputs.Field<String> rightEncoder = setup.s("Right Encoder Motor Name").withDefault("rr");
         Inputs.Field<String> strafeEncoder = setup.s("Strafe Encoder Motor Name").withDefault("lr");
+        Inputs.Field<String> frontLeft = setup.s("Front Left Drive Motor Name").withDefault("lf");
+        Inputs.Field<String> backLeft = setup.s("Back Left Drive Motor Name").withDefault("lr");
+        Inputs.Field<String> frontRight = setup.s("Front Right Drive Motor Name").withDefault("rf");
+        Inputs.Field<String> backRight = setup.s("Back Right Drive Motor Name").withDefault("rr");
         awaitInputs(setup);
         leftEncoderName = leftEncoder.get();
         rightEncoderName = rightEncoder.get();
         strafeEncoderName = strafeEncoder.get();
+        frontLeftName = frontLeft.get();
+        backLeftName = backLeft.get();
+        frontRightName = frontRight.get();
+        backRightName = backRight.get();
 
         Inputs resolution = inputs("Encoder Resolution Identification",
                 "Set a positive push distance in inches. Keep the robot straight during each push.");
@@ -162,11 +173,12 @@ public class ThreeWheelTuner extends Procedure {
         for (LynxModule hub : map.getAll(LynxModule.class)) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-        for (String name : new String[]{"lf", "lr", "rf", "rr"}) {
-            DcMotorEx motor = map.get(DcMotorEx.class, name);
+        for (String name : new String[]{frontLeftName, backLeftName, frontRightName, backRightName}) {
+            DcMotorEx motor = map.tryGet(DcMotorEx.class, name);
+            if (motor == null) {
+                continue;
+            }
             motor.setPower(0);
-            motor.setDirection(name.equals("lf") || name.equals("lr")
-                    ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
         return new ThreeWheelLocalizer(map, config);
