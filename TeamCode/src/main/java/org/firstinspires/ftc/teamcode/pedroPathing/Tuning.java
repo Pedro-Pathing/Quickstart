@@ -18,6 +18,7 @@ import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
 import com.pedropathing.geometry.*;
 import com.pedropathing.math.*;
 import com.pedropathing.paths.*;
@@ -28,6 +29,7 @@ import static com.pedropathing.math.MathFunctions.quadraticFit;
 import android.annotation.SuppressLint;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -35,6 +37,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.firstinspires.ftc.teamcode.config.RobotConfig;
 
 /**
  * This is the Tuning class. It contains a selection menu for various tuning OpModes.
@@ -143,10 +146,15 @@ public class Tuning extends SelectableOpMode {
  */
 class LocalizationTest extends OpMode {
     boolean debugStringEnabled = false;
+    private GoBildaPinpointDriver pinpoint;
+    private long odometryUpdates;
 
     @Override
     public void init() {
         follower.setStartingPose(new Pose(72,72));
+        // Use the follower's existing driver; do not create/reset a second localizer.
+        pinpoint = ((PinpointLocalizer) follower.getPoseTracker().getLocalizer()).getPinpoint();
+        odometryUpdates = 0;
     }
 
     /** This initializes the PoseUpdater, the drive motors, and the Panels telemetry. */
@@ -161,9 +169,10 @@ class LocalizationTest extends OpMode {
                 + "allowing robot control through a basic drive on gamepad 1.");
         telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
                 " (press gamepad a to toggle)");
-        OdometryTelemetry.add(telemetryM);
-        telemetryM.update(telemetry);
-        follower.update();
+        // Refresh sensors without commanding the drivetrain before Play.
+        follower.updatePose();
+        odometryUpdates++;
+        publishOdometryTelemetry("INIT");
         drawCurrent();
     }
 
@@ -185,19 +194,33 @@ class LocalizationTest extends OpMode {
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
         follower.update();
+        odometryUpdates++;
+        publishOdometryTelemetry("RUN");
 
-        telemetryM.debug("x:" + follower.getPose().getX());
-        telemetryM.debug("y:" + follower.getPose().getY());
-        telemetryM.debug("heading:" + follower.getPose().getHeading());
-        telemetryM.debug("total heading:" + follower.getTotalHeading());
+        drawCurrentAndHistory();
+    }
+
+    /** Send the same live sensor snapshot to Driver Station and Panels in INIT and RUN. */
+    private void publishOdometryTelemetry(String phase) {
+        Pose pose = follower.getPose();
+        telemetryM.addData("Phase", phase);
+        telemetryM.addData("Odometry Updates (software)", odometryUpdates);
+        telemetryM.addData("Pose Source", "Pedro: Pinpoint (2 pods + onboard IMU)");
+        telemetryM.addData("Field X (in)", pose.getX());
+        telemetryM.addData("Field Y (in)", pose.getY());
+        telemetryM.addData("Heading (deg)", Math.toDegrees(pose.getHeading()));
+        telemetryM.addData("Total Heading (deg)", Math.toDegrees(follower.getTotalHeading()));
+        telemetryM.addData("Pinpoint Status", pinpoint.getDeviceStatus());
+        telemetryM.addData("Connection", pinpoint.getConnectionInfo());
+        telemetryM.addData("Required Control Hub I2C Bus", RobotConfig.Hardware.PINPOINT_I2C_BUS);
+        telemetryM.addData("Forward Pod Raw Ticks (X)", pinpoint.getEncoderX());
+        telemetryM.addData("Strafe Pod Raw Ticks (Y)", pinpoint.getEncoderY());
         if (debugStringEnabled) {
             telemetryM.debug("Drivetrain Debug String:\n" +
                     follower.getDrivetrain().debugString());
         }
         OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
-
-        drawCurrentAndHistory();
     }
 }
 
