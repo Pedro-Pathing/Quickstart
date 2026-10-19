@@ -55,3 +55,13 @@ Keep the robot stationary during INIT while the Pinpoint calibrates. Run `Test: 
 
 Then verify `Tuning → Localization Test`, retune the follower as needed, and run
 `Test: Odo vs AprilTag`. Limelight validation continues using Pedro's pose, now provided by Pinpoint.
+
+In `Tuning → Localization → Localization Test`, live field X/Y (starting at 72/72 inches),
+heading in degrees, Pinpoint status, and raw X/Y pod counts appear on both Driver Station and
+Panels before and after Play. Select the test with right bumper; the selection menu itself does
+not read Pinpoint. Keep still during initial gyro calibration, then push the robot by hand during
+INIT to verify that the pose and counts change without motor commands. After Play, the test also
+enables its existing gamepad-1 stick driving controls; leave the sticks centered for hand testing.
+The `Odometry Updates (software)` counter confirms software refreshes, not successful sensor
+communication. If it increases but pose/counts remain frozen while moving, inspect Pinpoint status,
+pod cables/contact, and the active hub configuration; the configured coefficient should stay fixed.
