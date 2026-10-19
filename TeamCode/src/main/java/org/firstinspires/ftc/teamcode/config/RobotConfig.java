@@ -8,10 +8,10 @@ public final class RobotConfig {
   private RobotConfig() {}
 
   public static final class Hardware {
-    public static final String FRONT_LEFT = "frontLeft";
-    public static final String FRONT_RIGHT = "frontRight";
-    public static final String BACK_LEFT = "backLeft";
-    public static final String BACK_RIGHT = "backRight";
+    public static final String FRONT_LEFT = "frontLeftMotor";
+    public static final String FRONT_RIGHT = "frontRightMotor";
+    public static final String BACK_LEFT = "backLeftMotor";
+    public static final String BACK_RIGHT = "backRightMotor";
     public static final String PINPOINT = "pinpoint";
     // Physical bus selection is made in the active Robot Controller hardware configuration.
     public static final int PINPOINT_I2C_BUS = 1;
