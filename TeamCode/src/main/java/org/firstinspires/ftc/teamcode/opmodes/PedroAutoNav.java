@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-/** Small square for verifying a tuned Pedro follower; initializes drive, two pods, and IMU only. */
+/** Small square for verifying a tuned Pedro follower; initializes drive and Pinpoint only. */
 @Autonomous(name = "Pedro Auto Nav", group = "Pedro Pathing")
 public final class PedroAutoNav extends LinearOpMode {
   @Override
@@ -40,7 +40,7 @@ public final class PedroAutoNav extends LinearOpMode {
           telemetry.addData("Segment", "%d / %d", i, route.length - 1);
           telemetry.addData("Pose", "X %.1f, Y %.1f in; heading %.1f deg",
               pose.getX(), pose.getY(), Math.toDegrees(pose.getHeading()));
-          telemetry.addData("Pose Source", "Pedro: 2-wheel odometry + IMU");
+          telemetry.addData("Pose Source", "Pedro: Pinpoint (2 pods + onboard IMU)");
           telemetry.update();
           idle();
         }

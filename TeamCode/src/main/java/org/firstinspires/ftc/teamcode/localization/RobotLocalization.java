@@ -5,11 +5,11 @@ import java.util.List;
 
 /** Coordinates independent odometry positioning and Limelight AprilTag ranging. */
 public final class RobotLocalization {
-  private final TwoWheelOdometryLocalizer odometry;
+  private final PinpointOdometryLocalizer odometry;
   private final AprilTagTracker aprilTags;
 
   public RobotLocalization(HardwareMap hardwareMap) {
-    odometry = new TwoWheelOdometryLocalizer(hardwareMap);
+    odometry = new PinpointOdometryLocalizer(hardwareMap);
     aprilTags = new AprilTagTracker(hardwareMap);
   }
 
@@ -30,7 +30,7 @@ public final class RobotLocalization {
     odometry.resetPose(x, y, headingDegrees);
   }
 
-  /** Returns translation from the two odometry pods and heading from the hub IMU. */
+  /** Returns the Pinpoint's fused two-pod translation and onboard IMU heading. */
   public PoseEstimate getPoseEstimate() {
     return odometry.getPoseEstimate();
   }

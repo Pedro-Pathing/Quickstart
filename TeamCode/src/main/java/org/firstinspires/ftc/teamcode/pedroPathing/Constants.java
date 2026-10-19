@@ -5,7 +5,8 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
-import com.pedropathing.ftc.localization.constants.TwoWheelConstants;
+import com.pedropathing.ftc.localization.constants.PinpointConstants;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -29,23 +30,20 @@ public final class Constants {
 
   private Constants() {}
 
-  public static TwoWheelConstants twoWheelConstants() {
-    return new TwoWheelConstants()
-        .forwardEncoder_HardwareMapName(RobotConfig.Hardware.ODOMETRY_FORWARD)
-        .strafeEncoder_HardwareMapName(RobotConfig.Hardware.ODOMETRY_STRAFE)
-        .IMU_HardwareMapName(RobotConfig.Hardware.IMU)
-        .IMU_Orientation(RobotConfig.Localization.imuOrientation())
-        .forwardTicksToInches(1.0 / RobotConfig.Localization.ODOMETRY_FORWARD_TICKS_PER_INCH)
-        .strafeTicksToInches(1.0 / RobotConfig.Localization.ODOMETRY_STRAFE_TICKS_PER_INCH)
-        .forwardEncoderDirection(RobotConfig.Localization.ODOMETRY_FORWARD_MULTIPLIER)
-        .strafeEncoderDirection(RobotConfig.Localization.ODOMETRY_STRAFE_MULTIPLIER)
-        .forwardPodY(RobotConfig.Localization.ODOMETRY_FORWARD_LATERAL_OFFSET_INCHES)
-        .strafePodX(RobotConfig.Localization.ODOMETRY_STRAFE_FORWARD_OFFSET_INCHES);
+  public static PinpointConstants pinpointConstants() {
+    return new PinpointConstants()
+        .hardwareMapName(RobotConfig.Hardware.PINPOINT)
+        .distanceUnit(DistanceUnit.INCH)
+        .customEncoderResolution(RobotConfig.Pinpoint.TICKS_PER_INCH)
+        .forwardEncoderDirection(RobotConfig.Pinpoint.FORWARD_DIRECTION)
+        .strafeEncoderDirection(RobotConfig.Pinpoint.STRAFE_DIRECTION)
+        .forwardPodY(RobotConfig.Pinpoint.FORWARD_POD_Y_INCHES)
+        .strafePodX(RobotConfig.Pinpoint.STRAFE_POD_X_INCHES);
   }
 
   public static Follower createFollower(HardwareMap hardwareMap) {
     return new FollowerBuilder(followerConstants, hardwareMap)
-        .twoWheelLocalizer(twoWheelConstants())
+        .pinpointLocalizer(pinpointConstants())
         .setDrivetrain(new RobotMecanum(hardwareMap, mecanumConstants))
         .pathConstraints(pathConstraints)
         .build();

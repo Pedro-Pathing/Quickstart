@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.PedroAprilTagValidation;
 import org.firstinspires.ftc.teamcode.telemetry.PedroValidationTelemetry;
 
-/** On-robot comparison of Pedro's two-wheel/IMU pose and Limelight tag measurements. */
+/** On-robot comparison of Pedro's Pinpoint pose and Limelight tag measurements. */
 @TeleOp(name = "Test: Odo vs AprilTag", group = "Diagnostics")
 public final class LocalizationValidationTeleOp extends LinearOpMode {
   @Override
@@ -45,7 +45,7 @@ public final class LocalizationValidationTeleOp extends LinearOpMode {
         validation.update(pose, tags.getObservations(), tags.isConnected(),
             gamepad1.a || gamepad2.a, gamepad1.b || gamepad2.b);
 
-        telemetry.addData("Pose Source", "Pedro: 2-wheel odometry + IMU");
+        telemetry.addData("Pose Source", "Pedro: Pinpoint (2 pods + onboard IMU)");
         telemetry.addData("Pedro Position", "X %.2f, Y %.2f in", pose.getX(), pose.getY());
         telemetry.addData("Heading", "%.1f deg", Math.toDegrees(pose.getHeading()));
         telemetry.addData("Active Driver", "Gamepad %d", command.getGamepadNumber());

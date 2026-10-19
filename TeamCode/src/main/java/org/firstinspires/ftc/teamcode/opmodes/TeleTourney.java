@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import java.util.List;
@@ -21,8 +21,7 @@ public final class TeleTourney extends LinearOpMode {
   @Override
   public void runOpMode() {
     Follower follower = Constants.createFollower(hardwareMap);
-    DcMotor forwardEncoder = hardwareMap.get(DcMotor.class, RobotConfig.Hardware.ODOMETRY_FORWARD);
-    DcMotor strafeEncoder = hardwareMap.get(DcMotor.class, RobotConfig.Hardware.ODOMETRY_STRAFE);
+    GoBildaPinpointDriver pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, RobotConfig.Hardware.PINPOINT);
     AprilTagTracker aprilTags = new AprilTagTracker(hardwareMap);
     PedroAprilTagValidation validation = new PedroAprilTagValidation(
         RobotConfig.Localization.VALIDATION_POSITION_TOLERANCE_INCHES,
@@ -65,9 +64,10 @@ public final class TeleTourney extends LinearOpMode {
             command.getRotate());
         telemetry.addData("Field Position", "X %.2f in, Y %.2f in", pose.getX(), pose.getY());
         telemetry.addData("Heading", "%.1f°", Math.toDegrees(pose.getHeading()));
-        telemetry.addData("Forward Odo", "%d ticks", forwardEncoder.getCurrentPosition());
-        telemetry.addData("Strafe Odo", "%d ticks", strafeEncoder.getCurrentPosition());
-        telemetry.addData("Pose Source", "Pedro: 2-wheel odometry + IMU");
+        telemetry.addData("Forward Odo", "%d ticks", pinpoint.getEncoderX());
+        telemetry.addData("Strafe Odo", "%d ticks", pinpoint.getEncoderY());
+        telemetry.addData("Pinpoint Status", pinpoint.getDeviceStatus());
+        telemetry.addData("Pose Source", "Pedro: Pinpoint (2 pods + onboard IMU)");
         telemetry.addData("Limelight", aprilTags.isConnected() ? "CONNECTED" : "DISCONNECTED");
         telemetry.addData("AprilTags", visibleTags.size());
         if (nearestTag == null) {

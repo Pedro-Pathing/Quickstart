@@ -10,7 +10,7 @@ can be reused between TeleOp and Autonomous.
 | `config` | Hardware-map names and tunable robot-wide values |
 | `control` | Generic feedback controllers |
 | `drive` | Hardware-independent drivetrain values and mecanum math |
-| `localization` | Two-wheel odometry, IMU heading, Limelight AprilTag ranging, and pose models |
+| `localization` | Pinpoint odometry, Limelight AprilTag ranging, and pose models |
 | `navigation` | Waypoints and field-to-robot pose control |
 | `subsystems` | Classes that own and command physical robot hardware |
 | `telemetry` | Driver Station and Dashboard presentation |
@@ -20,15 +20,15 @@ can be reused between TeleOp and Autonomous.
 `LimelightTeleOp` reads the gamepad and passes movement commands to `MecanumDrive`.
 `LimelightAutoNav` passes each `Waypoint` and the current `PoseEstimate` to
 `HolonomicPoseController`, then sends the resulting drive command to `MecanumDrive`.
-`RobotLocalization` updates two independent components. `TwoWheelOdometryLocalizer` uses the two
-odometry pods for translation and the hub IMU for heading; together they are the only source of the
+`RobotLocalization` updates two independent components. `PinpointOdometryLocalizer` reads fused
+translation and heading from the Pinpoint odometry computer; it is the only source of the
 field pose used for navigation. `AprilTagTracker` uses Limelight only to measure each visible tag
 relative to the robot; tag observations never modify the odometry pose.
 `LocalizationTelemetry` displays both sets of data without coupling them to Driver Station or
 Dashboard code.
 
-`TeleTourney` and `Pedro Auto Nav` use Pedro's follower and `TwoWheelLocalizer` directly. Their
-translation comes from `odoForward`/`odoStrafe` and heading from `imu`. `Limelight TeleOp` and
+`TeleTourney` and `Pedro Auto Nav` use Pedro's follower and `PinpointLocalizer` directly. Their
+translation and heading come from `pinpoint`, with two pods and its onboard IMU. `Limelight TeleOp` and
 `Limelight Auto Nav` retain the custom stack described above as separate OpModes.
 
 ## Robot configuration names
@@ -42,10 +42,9 @@ Controller. Change them in `RobotConfig.Hardware` if the configuration uses diff
 | `frontRight` | Motor | Front-right mecanum drive wheel | Reversed |
 | `backLeft` | Motor | Rear-left mecanum drive wheel | Forward |
 | `backRight` | Motor | Rear-right mecanum drive wheel | Reversed |
-| `odoForward` | Encoder motor port | Parallel odometry wheel | Positive when driving forward |
-| `odoStrafe` | Encoder motor port | Perpendicular odometry wheel | Positive when moving left |
+| `pinpoint` | goBILDA Pinpoint Odometry Computer | Control Hub I²C bus 1; forward pod on X, strafe pod on Y | Directions in `RobotConfig.Pinpoint` |
 | `limelight` | Limelight 3A | Measures visible AprilTag range and relative height | Not applicable |
-| `imu` | Control/Expansion Hub IMU | Supplies robot heading for two-wheel odometry | Not applicable |
+| `imu` | Control/Expansion Hub IMU | Used only by the standalone hub IMU test | Not applicable |
 | `intake` | Motor | Intake mechanism | Controlled by A and Y |
 | `Shoot1` | 6000 RPM motor with encoder | First shooter wheel | Controlled by X |
 | `Shoot2` | 6000 RPM motor with encoder | Second shooter wheel | Controlled by X |
@@ -65,13 +64,14 @@ layout.
 The two trigger values are subtracted and passed through a signed-square response curve. This keeps
 full-trigger rotation at full power while making partial-trigger rotation slower and smoother.
 
-The two odometry wheels are required by both current OpModes. Their encoder channels must be
-configured as motors using the exact names above; they are read only and are never powered.
+Both odometry pods now plug into the Pinpoint, freeing the two hub motor encoder ports. Configure
+the Pinpoint as `pinpoint` on **Control Hub I²C bus 1**, device slot 0. Java hardware-map lookup does
+not choose a bus; `RobotConfig.Hardware.PINPOINT_I2C_BUS` documents the required wiring. See
+[Pinpoint setup](../doc/PINPOINT_SETUP.md) for wiring and the XML configuration entry.
 
-Tune each pod's ticks-per-inch and its offset from the robot center in `RobotConfig.Localization`.
-`ODOMETRY_FORWARD_LATERAL_OFFSET_INCHES` is the forward pod's left/right offset;
-`ODOMETRY_STRAFE_FORWARD_OFFSET_INCHES` is the strafe pod's forward/back offset. If an encoder
-counts in the opposite direction, change its multiplier from `1.0` to `-1.0`. At heading 0°,
+Set the shared pod resolution, pod directions, and center offsets in `RobotConfig.Pinpoint`.
+`FORWARD_POD_Y_INCHES` is positive left of center; `STRAFE_POD_X_INCHES` is positive ahead of
+center. Both offsets are still zero and require measurement. At heading 0°,
 positive X is forward and positive Y is left. The autonomous route currently resets its starting
 pose to `(0, 0, 0°)`.
 
@@ -114,7 +114,7 @@ baseline and B clears it. Pedro Pathing's generated `Tuning` OpMode retains its 
 does not use this shared mapping.
 
 `TeleTourney` is the movement, odometry, and AprilTag-tracking competition OpMode. It uses the same
-dual-gamepad drive mapping at full power and reports field X/Y, IMU heading, active controller,
+dual-gamepad drive mapping at full power and reports field X/Y, Pinpoint heading, active controller,
 drive commands, and both odometry encoder counts on Driver Station. It also starts the Limelight
 AprilTag pipeline and reports connection status, visible-tag count, and the nearest tag's ID,
 robot-relative forward/left offset, horizontal/3D distance, and height. Its drive commands and pose
@@ -127,7 +127,7 @@ of power values.
 
 ## Localization validation
 
-Both `TeleTourney` and `Test: Odo vs AprilTag` now compare **Pedro's** two-wheel/IMU pose with
+Both `TeleTourney` and `Test: Odo vs AprilTag` compare **Pedro's Pinpoint** pose with
 Limelight using `PedroAprilTagValidation`. `TeleTourney` automatically anchors the check to the
 first connected, valid, non-stale visible tag. On either gamepad, A re-anchors to the nearest
 visible tag and B clears the baseline and disables automatic capture until A is pressed again.
@@ -168,14 +168,14 @@ only the listed hardware so another unconfigured mechanism does not prevent it f
 | OpMode | Hardware loaded | Controls |
 | --- | --- | --- |
 | `Test: Drive Motors` | Four drivetrain motors | D-pad selects one motor; left-stick Y runs it at up to 35% power |
-| `Test: Odometry Wheels` | Forward and strafe odometry encoders | Move the pods/robot by hand; A zeros both readings |
+| `Test: Odometry Wheels` | Pinpoint on I²C bus 1 and its two pods | Move robot by hand; A zeros displayed pose/counts; telemetry shows status |
 | `Test: IMU` | Hub IMU | Rotate the robot by hand; A resets yaw |
 | `Test: Limelight` | Limelight only | View live tag measurements; A freezes/unfreezes the display |
 | `Test: Intake` | Intake motor only | A toggles power; Y reverses direction |
 | `Test: Shooter` | Both shooter motors | Hold X to run both at 6000 RPM |
 | `Test: Dual Shooter RPM` | `Shoot1` and `Shoot2` only | X/A raise/lower Shoot1; Y/B raise/lower Shoot2 by 100 RPM |
 | `Test: Servo Motor` | Continuous-rotation servo only | B toggles power |
-| `Test: Odo vs AprilTag` | Pedro drive, two odometry wheels, IMU, Limelight | A captures a reference; B clears it |
+| `Test: Odo vs AprilTag` | Pedro drive, Pinpoint, Limelight | A captures a reference; B clears it |
 
 Both gamepads work in every diagnostic. Lift the drive wheels off the floor before using the motor
 test, verify the selected motor name in telemetry, and keep clear of all mechanisms. Every powered
@@ -196,11 +196,11 @@ put reusable control math in `control` or `navigation`, and expose hardware name
 
 ## Pedro Pathing setup and tuning
 
-`pedroPathing.Constants.createFollower()` supplies both a drivetrain and a two-wheel localizer to
-Pedro 2.1.2. Encoder names, encoder direction, inches-per-tick (the reciprocal of ticks-per-inch),
-pod offsets, and hub orientation come from `RobotConfig.Localization`. The shared hub orientation
-currently assumes logo UP and USB FORWARD; change `imuOrientation()` to match the physical hub.
-Pedro resets the dedicated odometry encoder counters and IMU yaw during initialization. Do not
+`pedroPathing.Constants.createFollower()` supplies a drivetrain and `PinpointLocalizer` to
+Pedro 2.1.2. The device name comes from `RobotConfig.Hardware.PINPOINT`; encoder directions,
+resolution (ticks per inch), and pod offsets come from `RobotConfig.Pinpoint`. Heading comes from
+the Pinpoint's onboard gyro, not the hub IMU. Keep the robot stationary during initialization:
+Pedro resets the Pinpoint and calibrates its gyro, taking approximately 300 ms. Do not
 initialize a second localizer alongside the follower in the same OpMode.
 
 `RobotMecanum` uses Pedro's vector allocation, motor caching, and configured motor directions.
@@ -212,16 +212,17 @@ heading counterclockwise. `TeleTourney` converts the shared controller's right-s
 commands to those conventions.
 
 The follower PID values and drivetrain velocities in `pedroPathing.Constants` are library defaults,
-not calibrated robot values. The pod offsets in `RobotConfig.Localization` are still zero and
+not calibrated robot values. The pod offsets in `RobotConfig.Pinpoint` are still zero and
 must be measured. Before using autonomous:
 
 1. Use `Tuning` → Localization → Localization Test to verify forward increases X, left increases
    Y, and counterclockwise rotation increases heading. Translation should stay nearly constant
    while rotating in place once pod offsets are correct.
-2. Measure offsets and calibrate using the Forward, Lateral, and Offsets tuners. Enter measured
-   values in `RobotConfig.Localization`. Pedro's multipliers are **inches per tick**; invert them
-   when entering the project's **ticks per inch** constants. Its turn multiplier tuner is intended
-   for encoder-derived heading; this two-wheel setup gets heading from the IMU.
+2. Measure offsets and confirm the pod specification. Enter them in `RobotConfig.Pinpoint`.
+   The Pinpoint receives **ticks per inch**, not inches per tick. Its two pods must use the same
+   resolution. The generic Forward/Lateral/Turn multiplier tuners are hidden from the menu because
+   Pedro's Pinpoint localizer exposes raw counts rather than scale factors. The Offsets tuner may
+   be used with both configured offsets initially zero; enter the resulting measurements in source.
 3. Run forward/lateral velocity and zero-power acceleration tuning. Persist velocity values in
    `Constants.mecanumConstants` and follower acceleration/PID values in `Constants.followerConstants`.
    Panels edits are runtime settings; save the measured values in source before rebuilding.
@@ -230,4 +231,4 @@ must be measured. Before using autonomous:
    after 10 seconds and aborts the remaining route. This is a demonstration route, not a match route.
 
 Limelight continues providing independent tag measurements in `TeleTourney`; it never changes the
-Pedro pose. `Pedro Auto Nav` loads only the drive motors, two encoder ports, and IMU.
+Pedro pose. `Pedro Auto Nav` loads only the four drive motors and Pinpoint.

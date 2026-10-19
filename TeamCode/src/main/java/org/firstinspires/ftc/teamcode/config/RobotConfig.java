@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.config;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 /** Central configuration for hardware names and robot-wide tuning values. */
 public final class RobotConfig {
@@ -11,8 +12,9 @@ public final class RobotConfig {
     public static final String FRONT_RIGHT = "frontRight";
     public static final String BACK_LEFT = "backLeft";
     public static final String BACK_RIGHT = "backRight";
-    public static final String ODOMETRY_FORWARD = "odoForward";
-    public static final String ODOMETRY_STRAFE = "odoStrafe";
+    public static final String PINPOINT = "pinpoint";
+    // Physical bus selection is made in the active Robot Controller hardware configuration.
+    public static final int PINPOINT_I2C_BUS = 1;
     public static final String LIMELIGHT = "limelight";
     public static final String IMU = "imu";
     public static final String INTAKE = "intake";
@@ -45,21 +47,24 @@ public final class RobotConfig {
     public static final int POLL_RATE_HZ = 100;
     public static final long APRILTAG_RESULT_STALE_MS = 250;
 
-    public static final double ODOMETRY_FORWARD_TICKS_PER_INCH =
-        1000.0 / (2.0 * Math.PI * 0.6889);
-    public static final double ODOMETRY_STRAFE_TICKS_PER_INCH =
-        1000.0 / (2.0 * Math.PI * 0.6889);
-    public static final double ODOMETRY_FORWARD_LATERAL_OFFSET_INCHES = 0.0;
-    public static final double ODOMETRY_STRAFE_FORWARD_OFFSET_INCHES = 0.0;
-
-    // Change a multiplier to -1 if that encoder counts backward when the robot moves positively.
-    public static final double ODOMETRY_FORWARD_MULTIPLIER = 1.0;
-    public static final double ODOMETRY_STRAFE_MULTIPLIER = 1.0;
-
     public static final double VALIDATION_POSITION_TOLERANCE_INCHES = 3.0;
     public static final double VALIDATION_HEIGHT_TOLERANCE_INCHES = 2.0;
 
     private Localization() {}
+  }
+
+  public static final class Pinpoint {
+    // Preserves the existing pod specification; confirm against the installed pods.
+    public static final double TICKS_PER_INCH = 1000.0 / (2.0 * Math.PI * 0.6889);
+    // Forward/X pod: positive offset left of center. Strafe/Y pod: positive offset ahead of center.
+    public static final double FORWARD_POD_Y_INCHES = 0.0;
+    public static final double STRAFE_POD_X_INCHES = 0.0;
+    public static final GoBildaPinpointDriver.EncoderDirection FORWARD_DIRECTION =
+        GoBildaPinpointDriver.EncoderDirection.FORWARD;
+    public static final GoBildaPinpointDriver.EncoderDirection STRAFE_DIRECTION =
+        GoBildaPinpointDriver.EncoderDirection.FORWARD;
+
+    private Pinpoint() {}
   }
 
   public static final class Mechanisms {
