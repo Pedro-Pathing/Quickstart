@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -31,6 +33,7 @@ public final class TeleTourney extends LinearOpMode {
     telemetry.addData("Status", "Drive, odometry, and Limelight initialized");
     telemetry.addLine("Left stick: drive/strafe | Triggers: rotate");
     telemetry.addLine("First visible tag anchors the check. A: re-anchor | B: clear");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -87,6 +90,7 @@ public final class TeleTourney extends LinearOpMode {
           telemetry.addData("Tag Height", "%.1f in", nearestTag.getHeightInches());
         }
         PedroValidationTelemetry.add(telemetry, validation);
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

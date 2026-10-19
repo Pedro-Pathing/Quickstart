@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -40,6 +42,7 @@ public class LimelightAutoNav extends LinearOpMode {
     try {
       telemetry.addData("Status", "Initialized");
       telemetry.addData("LL Connected", localization.isLimelightConnected());
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
 
       waitForStart();
@@ -102,6 +105,7 @@ public class LimelightAutoNav extends LinearOpMode {
       telemetry.addData("PID Turn", "%.3f", output.getTurn());
       telemetry.addData("Settling", settling);
       localizationTelemetry.add(telemetry, localization, target);
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
     }
 

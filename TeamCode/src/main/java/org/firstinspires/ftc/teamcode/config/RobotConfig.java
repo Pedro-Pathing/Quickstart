@@ -56,6 +56,8 @@ public final class RobotConfig {
   public static final class Pinpoint {
     // Preserves the existing pod specification; confirm against the installed pods.
     public static final double TICKS_PER_INCH = 1000.0 / (2.0 * Math.PI * 0.6889);
+    /** Configured distance per encoder tick, shared by both Pinpoint pods. */
+    public static final double INCHES_PER_TICK = 1.0 / TICKS_PER_INCH;
     // Forward/X pod: positive offset left of center. Strafe/Y pod: positive offset ahead of center.
     public static final double FORWARD_POD_Y_INCHES = 0.0;
     public static final double STRAFE_POD_X_INCHES = 0.0;

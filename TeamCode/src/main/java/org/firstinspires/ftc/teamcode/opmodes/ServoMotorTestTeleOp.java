@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.subsystems.ServoMotorSubsystem;
@@ -12,6 +14,7 @@ public final class ServoMotorTestTeleOp extends LinearOpMode {
     ServoMotorSubsystem servoMotor = new ServoMotorSubsystem(hardwareMap);
 
     telemetry.addLine("Press B on either gamepad to toggle the servo motor.");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -25,6 +28,7 @@ public final class ServoMotorTestTeleOp extends LinearOpMode {
         previousB = bDown;
 
         telemetry.addData("Servo Motor", servoMotor.isEnabled() ? "ON" : "OFF");
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

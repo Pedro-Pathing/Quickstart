@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -23,6 +25,7 @@ public final class PedroAutoNav extends LinearOpMode {
     follower.setMaxPower(0.35);
     try {
       telemetry.addLine("Pedro 24-inch square at 35% power. Run localization and tuning first.");
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
       waitForStart();
       if (isStopRequested()) {
@@ -41,11 +44,13 @@ public final class PedroAutoNav extends LinearOpMode {
           telemetry.addData("Pose", "X %.1f, Y %.1f in; heading %.1f deg",
               pose.getX(), pose.getY(), Math.toDegrees(pose.getHeading()));
           telemetry.addData("Pose Source", "Pedro: Pinpoint (2 pods + onboard IMU)");
+          OdometryTelemetry.add(telemetry);
           telemetry.update();
           idle();
         }
         if (follower.isBusy()) {
           telemetry.addData("Status", "Stopped: segment %d timed out or OpMode stopped", i);
+          OdometryTelemetry.add(telemetry);
           telemetry.update();
           break;
         }

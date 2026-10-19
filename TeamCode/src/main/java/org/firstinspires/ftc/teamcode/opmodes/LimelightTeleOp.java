@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.control.DualGamepadDriveControls.DriveCommand;
@@ -25,6 +27,7 @@ public class LimelightTeleOp extends LinearOpMode {
     try {
       telemetry.addData("Status", "Initialized. Waiting for start...");
       telemetry.addData("LL Connected", localization.isLimelightConnected());
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
 
       waitForStart();
@@ -52,6 +55,7 @@ public class LimelightTeleOp extends LinearOpMode {
             mechanisms.getIntakeDirection());
         telemetry.addData("Shooter", mechanisms.isShooterActive() ? "ON" : "OFF");
         telemetry.addData("Servo Motor", mechanisms.isServoEnabled() ? "ON" : "OFF");
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

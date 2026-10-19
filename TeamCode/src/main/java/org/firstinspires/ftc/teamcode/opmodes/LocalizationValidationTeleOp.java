@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -27,6 +29,7 @@ public final class LocalizationValidationTeleOp extends LinearOpMode {
     try {
       telemetry.addLine("Pedro + Limelight: A captures a tag baseline; B clears it.");
       telemetry.addLine("Drive slowly and keep the baseline tag visible. No mechanisms operate.");
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
       waitForStart();
       if (isStopRequested()) return;
@@ -52,6 +55,7 @@ public final class LocalizationValidationTeleOp extends LinearOpMode {
         telemetry.addData("Limelight Connected", tags.isConnected());
         telemetry.addData("Visible Tags", tags.getObservations().size());
         PedroValidationTelemetry.add(telemetry, validation);
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

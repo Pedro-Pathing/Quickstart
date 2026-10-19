@@ -34,6 +34,13 @@ revolution and 0.6889-inch radius, approximately 231 ticks per inch. Confirm thi
 actual pods. A Pinpoint uses one encoder resolution for both pods. Set `TICKS_PER_INCH` to the
 correct common value if the pods change. Do not copy a ticks-per-mm value directly into this field.
 
+All TeamCode OpModes (including standalone component tests), Pedro tuning telemetry, and FTC
+Dashboard localization packets display `Ticks to Inches Coefficient (in/tick, configured)`.
+This is `1 / TICKS_PER_INCH`, approximately **0.00432849 inches per tick** with the current settings.
+Multiply an encoder count change by this coefficient to convert it to pod travel in inches.
+The displayed value is configured, not a measured calibration or a hardware connection check;
+standalone component tests do not initialize Pinpoint just to display it.
+
 Set measured `FORWARD_POD_Y_INCHES` (positive left of center) and `STRAFE_POD_X_INCHES` (positive
 ahead of center). Change each direction to `EncoderDirection.REVERSED` if needed. The values
 currently default to zero offsets and FORWARD directions, pending physical verification.

@@ -51,6 +51,7 @@ public final class LocalizationTelemetry {
       AprilTagObservation nearestTag,
       Waypoint target) {
     TelemetryPacket packet = new TelemetryPacket();
+    OdometryTelemetry.add(packet);
     packet.put("x", pose.getX());
     packet.put("y", pose.getY());
     packet.put("heading (deg)", pose.getHeadingDegrees());

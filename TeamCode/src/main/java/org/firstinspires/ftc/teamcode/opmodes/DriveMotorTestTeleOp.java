@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.config.RobotConfig;
@@ -18,6 +20,7 @@ public final class DriveMotorTestTeleOp extends LinearOpMode {
 
     telemetry.addLine("Lift the wheels off the floor before running this test.");
     telemetry.addLine("D-pad selects a motor; left-stick Y powers only that motor.");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -33,6 +36,7 @@ public final class DriveMotorTestTeleOp extends LinearOpMode {
         telemetry.addData("D-pad Right", "frontRight");
         telemetry.addData("D-pad Left", "backLeft");
         telemetry.addData("D-pad Down", "backRight");
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

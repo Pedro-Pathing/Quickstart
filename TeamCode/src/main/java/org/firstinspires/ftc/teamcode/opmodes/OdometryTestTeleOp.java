@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -13,6 +15,7 @@ public final class OdometryTestTeleOp extends LinearOpMode {
   @Override
   public void runOpMode() {
     telemetry.addLine("Keep the robot still while Pinpoint calibrates.");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     PinpointOdometryLocalizer odometry = new PinpointOdometryLocalizer(hardwareMap);
     GoBildaPinpointDriver pinpoint = odometry.getPinpoint();
@@ -22,6 +25,7 @@ public final class OdometryTestTeleOp extends LinearOpMode {
 
     telemetry.addLine("Push the robot by hand or rotate each pod separately.");
     telemetry.addLine("A: zero displayed pose and pod counts (no gyro recalibration).");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -48,6 +52,7 @@ public final class OdometryTestTeleOp extends LinearOpMode {
       telemetry.addData("Strafe Pod Distance", "%.2f in", strafeTicks / RobotConfig.Pinpoint.TICKS_PER_INCH);
       telemetry.addData("Pinpoint Pose", "X %.2f, Y %.2f in; heading %.1f deg",
           pose.getX(), pose.getY(), pose.getHeadingDegrees());
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
       idle();
     }

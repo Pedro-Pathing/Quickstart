@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.control.DualShooterRpmControls;
@@ -16,6 +18,7 @@ public final class DualShooterRpmTestTeleOp extends LinearOpMode {
     telemetry.addLine("Both shooter targets start at 6000 RPM after Play.");
     telemetry.addLine("Shoot1: X +100 RPM, A -100 RPM");
     telemetry.addLine("Shoot2: Y +100 RPM, B -100 RPM");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -34,6 +37,7 @@ public final class DualShooterRpmTestTeleOp extends LinearOpMode {
         telemetry.addData(
             "Shoot2", "target %.0f, actual %.0f RPM", controls.getMotor2Rpm(), actualRpm2);
         telemetry.addData("Shoot2 Error", "%.0f RPM", controls.getMotor2Rpm() - actualRpm2);
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

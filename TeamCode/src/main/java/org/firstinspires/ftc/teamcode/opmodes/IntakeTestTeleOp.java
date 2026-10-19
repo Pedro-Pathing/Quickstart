@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.control.MechanismControls;
@@ -15,6 +17,7 @@ public final class IntakeTestTeleOp extends LinearOpMode {
     MechanismControls controls = new MechanismControls();
 
     telemetry.addLine("A toggles intake on/off; Y toggles forward/reverse.");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -30,6 +33,7 @@ public final class IntakeTestTeleOp extends LinearOpMode {
 
         telemetry.addData("Intake", intake.isEnabled() ? "ON" : "OFF");
         telemetry.addData("Direction", intake.getDirection());
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

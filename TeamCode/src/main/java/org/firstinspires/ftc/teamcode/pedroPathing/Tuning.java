@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.changes;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.drawCurrent;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.drawCurrentAndHistory;
@@ -105,7 +107,9 @@ public class Tuning extends SelectableOpMode {
     }
 
     @Override
-    public void onLog(List<String> lines) {}
+    public void onLog(List<String> lines) {
+        OdometryTelemetry.add(telemetry);
+    }
 
     public static void drawCurrent() {
         try {
@@ -157,6 +161,7 @@ class LocalizationTest extends OpMode {
                 + "allowing robot control through a basic drive on gamepad 1.");
         telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
                 " (press gamepad a to toggle)");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -189,6 +194,7 @@ class LocalizationTest extends OpMode {
             telemetryM.debug("Drivetrain Debug String:\n" +
                     follower.getDrivetrain().debugString());
         }
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -222,6 +228,7 @@ class ForwardTuner extends OpMode {
     @Override
     public void init_loop() {
         telemetryM.debug("Pull your robot forward " + DISTANCE + " inches. Your forward ticks to inches will be shown on the telemetry.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         drawCurrent();
     }
@@ -240,6 +247,7 @@ class ForwardTuner extends OpMode {
         if (Math.abs(distanceMoved) > 0.01) {
             telemetryM.debug("Multiplier: " + (DISTANCE / (distanceMoved / follower.getPoseTracker().getLocalizer().getForwardMultiplier())));
         }
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -273,6 +281,7 @@ class LateralTuner extends OpMode {
     @Override
     public void init_loop() {
         telemetryM.debug("Pull your robot to the left " + DISTANCE + " inches. Your strafe inches per tick will be shown on the telemetry.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         drawCurrent();
     }
@@ -291,6 +300,7 @@ class LateralTuner extends OpMode {
         if (Math.abs(distanceMoved) > 0.01) {
             telemetryM.debug("Multiplier: " + (DISTANCE / (distanceMoved / follower.getPoseTracker().getLocalizer().getLateralMultiplier())));
         }
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -324,6 +334,7 @@ class TurnTuner extends OpMode {
     @Override
     public void init_loop() {
         telemetryM.debug("Turn your robot " + ANGLE + " radians. Your turn ticks to inches will be shown on the telemetry.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrent();
@@ -340,6 +351,7 @@ class TurnTuner extends OpMode {
         telemetryM.debug("Total Angle: " + follower.getTotalHeading());
         telemetryM.debug("The multiplier will display what your turn ticks to inches should be to scale your current angle to " + ANGLE + " radians.");
         telemetryM.debug("Multiplier: " + (ANGLE / (follower.getTotalHeading() / follower.getPoseTracker().getLocalizer().getTurningMultiplier())));
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -381,6 +393,7 @@ class ForwardVelocityTuner extends OpMode {
         telemetryM.debug("After running the distance, the robot will cut power from the drivetrain and display the forward velocity.");
         telemetryM.debug("Press B on game pad 1 to stop.");
         telemetryM.debug("pose", follower.getPose());
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         follower.update();
@@ -441,7 +454,9 @@ class ForwardVelocityTuner extends OpMode {
                 telemetry.addData(String.valueOf(i), velocities.get(i));
             }
 
+            OdometryTelemetry.add(telemetryM);
             telemetryM.update(telemetry);
+            OdometryTelemetry.add(telemetry);
             telemetry.update();
 
             if (gamepad1.aWasPressed()) {
@@ -491,6 +506,7 @@ class LateralVelocityTuner extends OpMode {
         telemetryM.debug("Make sure you have enough room, since the robot has inertia after cutting power.");
         telemetryM.debug("After running the distance, the robot will cut power from the drivetrain and display the strafe velocity.");
         telemetryM.debug("Press B on Gamepad 1 to stop.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         follower.update();
@@ -544,6 +560,7 @@ class LateralVelocityTuner extends OpMode {
             telemetryM.debug("Strafe Velocity: " + average);
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Lateral Velocity temporarily (while robot remains on).");
+            OdometryTelemetry.add(telemetryM);
             telemetryM.update(telemetry);
 
             if (gamepad1.aWasPressed()) {
@@ -593,6 +610,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
         telemetryM.debug("Make sure you have enough room.");
         telemetryM.debug("After stopping, the forward zero power acceleration (natural deceleration) will be displayed.");
         telemetryM.debug("Press B on Gamepad 1 to stop.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -650,6 +668,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
             telemetryM.debug("Forward Zero Power Acceleration (Deceleration): " + average);
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Forward Zero Power Acceleration temporarily (while robot remains on).");
+            OdometryTelemetry.add(telemetryM);
             telemetryM.update(telemetry);
 
             if (gamepad1.aWasPressed()) {
@@ -697,6 +716,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
         telemetryM.debug("Make sure you have enough room.");
         telemetryM.debug("After stopping, the lateral zero power acceleration (natural deceleration) will be displayed.");
         telemetryM.debug("Press B on game pad 1 to stop.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -754,6 +774,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
             telemetryM.debug("Lateral Zero Power Acceleration (Deceleration): " + average);
             telemetryM.debug("\n");
             telemetryM.debug("Press A to set the Lateral Zero Power Acceleration temporarily (while robot remains on).");
+            OdometryTelemetry.add(telemetryM);
             telemetryM.update(telemetry);
 
             if (gamepad1.aWasPressed()) {
@@ -827,6 +848,7 @@ class PredictiveBrakingTuner extends OpMode {
         telemetryM.debug("After stopping, kFriction and kBraking will be displayed.");
         telemetryM.debug("Make sure to turn the timer off.");
         telemetryM.debug("Press B on game pad 1 to stop.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -908,6 +930,7 @@ class PredictiveBrakingTuner extends OpMode {
                 telemetryM.debug("Test " + iteration,
                         String.format("v=%.3f  d=%.3f", measuredVelocity,
                                 brakingDistance));
+                OdometryTelemetry.add(telemetryM);
                 telemetryM.update(telemetry);
 
                 iteration++;
@@ -925,6 +948,7 @@ class PredictiveBrakingTuner extends OpMode {
                 telemetryM.debug("Braking Profile:");
                 telemetryM.debug("kQuadratic", coefficients[1]);
                 telemetryM.debug("kLinear", coefficients[0]);
+                OdometryTelemetry.add(telemetryM);
                 telemetryM.update(telemetry);
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("Braking Profile:");
@@ -937,6 +961,7 @@ class PredictiveBrakingTuner extends OpMode {
                             p.getHeading(),
                             record.velocity));
                 }
+                OdometryTelemetry.add(telemetryM);
                 telemetryM.update();
                 break;
             }
@@ -972,6 +997,7 @@ class TranslationalTuner extends OpMode {
         telemetryM.debug("This will activate the translational PIDF(s)");
         telemetryM.debug("The robot will try to stay in place while you push it laterally.");
         telemetryM.debug("You can adjust the PIDF values to tune the robot's translational PIDF(s).");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1008,6 +1034,7 @@ class TranslationalTuner extends OpMode {
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error X", follower.errorCalculator.getTranslationalError().getXComponent());
         telemetryM.addData("Error Y", follower.errorCalculator.getTranslationalError().getYComponent());
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
     }
 }
@@ -1044,6 +1071,7 @@ class HeadingTuner extends OpMode {
         telemetryM.debug("This will activate the heading PIDF(s).");
         telemetryM.debug("The robot will try to stay at a constant heading while you try to turn it.");
         telemetryM.debug("You can adjust the PIDF values to tune the robot's heading PIDF(s).");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1082,6 +1110,7 @@ class HeadingTuner extends OpMode {
         telemetryM.debug("Turn the robot manually to test the Heading PIDF(s).");
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error", follower.errorCalculator.getHeadingError());
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
     }
 }
@@ -1116,6 +1145,7 @@ class DriveTuner extends OpMode {
         telemetryM.debug("This will run the robot in a straight line going " + DISTANCE + "inches forward.");
         telemetryM.debug("The robot will go forward and backward continuously along the path.");
         telemetryM.debug("Make sure you have enough room.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1163,6 +1193,7 @@ class DriveTuner extends OpMode {
         telemetryM.debug("Driving forward?: " + forward);
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error", follower.errorCalculator.getDriveErrors()[1]);
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
     }
 }
@@ -1195,6 +1226,7 @@ class Line extends OpMode {
         telemetryM.debug("This will activate all the PIDF(s)");
         telemetryM.debug("The robot will go forward and backward continuously along the path while correcting.");
         telemetryM.debug("You can adjust the PIDF values to tune the robot's drive PIDF(s).");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1227,6 +1259,7 @@ class Line extends OpMode {
         }
 
         telemetryM.debug("Driving Forward?: " + forward);
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
     }
 }
@@ -1265,6 +1298,7 @@ class CentripetalTuner extends OpMode {
         telemetryM.debug("This will run the robot in a curve going " + DISTANCE + " inches to the left and the same number of inches forward.");
         telemetryM.debug("The robot will go continuously along the path.");
         telemetryM.debug("Make sure you have enough room.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1301,6 +1335,7 @@ class CentripetalTuner extends OpMode {
         }
 
         telemetryM.debug("Driving away from the origin along the curve?: " + forward);
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
     }
 }
@@ -1344,6 +1379,7 @@ class Triangle extends OpMode {
     public void init_loop() {
         telemetryM.debug("This will run in a roughly triangular shape, starting on the bottom-middle point.");
         telemetryM.debug("So, make sure you have enough space to the left, front, and right to run the OpMode.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1401,6 +1437,7 @@ class Circle extends OpMode {
         telemetryM.debug("This will run in a roughly circular shape of radius " + RADIUS + ", starting on the right-most edge. ");
         telemetryM.debug("So, make sure you have enough space to the left, front, and back to run the OpMode.");
         telemetryM.debug("It will also continuously face the center of the circle to test your heading and centripetal correction.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1446,6 +1483,7 @@ class AnalogMinMaxTuner extends OpMode {
     public void init_loop() {
         telemetryM.debug("Press START. Then, Spin each pod slowly for 4 to 5 full rotations.\n" +
                 "The OpMode will keep track of the min and max voltages seen so far and print them to telemetry.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
     }
 
@@ -1484,6 +1522,7 @@ class AnalogMinMaxTuner extends OpMode {
             telemetryM.addLine("");
         }
 
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update();
     }
 }
@@ -1512,6 +1551,7 @@ class SwerveOffsetsTest extends OpMode {
                 + "\nensure your bot is not on the ground while running");
         telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
                 " (press gamepad a to toggle)");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1540,6 +1580,7 @@ class SwerveOffsetsTest extends OpMode {
             telemetryM.debug("Drivetrain Debug String:\n" +
                     follower.getDrivetrain().debugString());
         }
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -1570,6 +1611,7 @@ class SwerveTurnTest extends OpMode {
                 + "\nrun this once off the ground to check servo directions and motor directions before testing on the ground");
         telemetryM.debug("Drivetrain debug string " + (((debugStringEnabled) ? "enabled" : "disabled")) +
                 " (press gamepad a to toggle)");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
         follower.update();
         drawCurrent();
@@ -1598,6 +1640,7 @@ class SwerveTurnTest extends OpMode {
             telemetryM.debug("Drivetrain Debug String:\n" +
                     follower.getDrivetrain().debugString());
         }
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();
@@ -1625,6 +1668,7 @@ class OffsetsTuner extends OpMode {
     public void init_loop() {
         telemetryM.debug("Prerequisite: Make sure both your offsets are set to 0 in your localizer constants.");
         telemetryM.debug("Turn your robot " + Math.PI + " radians. Your offsets in inches will be shown on the telemetry.");
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrent();
@@ -1643,6 +1687,7 @@ class OffsetsTuner extends OpMode {
         telemetryM.debug("The following values are the offsets in inches that should be applied to your localizer.");
         telemetryM.debug("strafeX: " + ((72.0-follower.getPose().getX()) / 2.0));
         telemetryM.debug("forwardY: " + ((72.0-follower.getPose().getY()) / 2.0));
+        OdometryTelemetry.add(telemetryM);
         telemetryM.update(telemetry);
 
         drawCurrentAndHistory();

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import java.util.Collections;
@@ -20,6 +22,7 @@ public final class LimelightTestTeleOp extends LinearOpMode {
     tracker.start();
     try {
       telemetry.addLine("Press A on either gamepad to freeze/unfreeze measurements.");
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
       waitForStart();
 
@@ -46,6 +49,7 @@ public final class LimelightTestTeleOp extends LinearOpMode {
               tag.getRangeInches(),
               tag.getHeightInches());
         }
+        OdometryTelemetry.add(telemetry);
         telemetry.update();
         idle();
       }

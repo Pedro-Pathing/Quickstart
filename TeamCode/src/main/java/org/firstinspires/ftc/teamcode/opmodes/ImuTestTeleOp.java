@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import org.firstinspires.ftc.teamcode.telemetry.OdometryTelemetry;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -21,6 +23,7 @@ public final class ImuTestTeleOp extends LinearOpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD)));
 
     telemetry.addLine("Press A on either gamepad to reset yaw.");
+    OdometryTelemetry.add(telemetry);
     telemetry.update();
     waitForStart();
 
@@ -36,6 +39,7 @@ public final class ImuTestTeleOp extends LinearOpMode {
       telemetry.addData("Yaw", "%.1f°", angles.getYaw(AngleUnit.DEGREES));
       telemetry.addData("Pitch", "%.1f°", angles.getPitch(AngleUnit.DEGREES));
       telemetry.addData("Roll", "%.1f°", angles.getRoll(AngleUnit.DEGREES));
+      OdometryTelemetry.add(telemetry);
       telemetry.update();
       idle();
     }
