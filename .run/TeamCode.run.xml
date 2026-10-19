@@ -1,3 +1,11 @@
+<!--
+  Robot hardware: goBILDA Pinpoint named "pinpoint" on Control Hub I2C bus 1, device slot 0.
+  Forward odometry pod connects to Pinpoint X; strafe pod connects to Pinpoint Y.
+  Configure this in the active Robot Controller hardware XML/UI before running TeamCode.
+  Hardware XML entry: <goBILDAPinpoint name="pinpoint" port="0" bus="1" />
+  Wiring and calibration instructions: doc/PINPOINT_SETUP.md.
+  This Android Studio launch configuration deploys the app; it does not assign hardware ports.
+-->
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="TeamCode" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
     <module name="Astrid-Isnt-String-Cheese.TeamCode" />
