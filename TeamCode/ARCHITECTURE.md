@@ -169,6 +169,7 @@ only the listed hardware so another unconfigured mechanism does not prevent it f
 | --- | --- | --- |
 | `Test: Drive Motors` | Four drivetrain motors | D-pad selects one motor; left-stick Y runs it at up to 35% power |
 | `Test: Odometry Wheels` | Pinpoint on I²C bus 1 and its two pods | Move robot by hand; A zeros displayed pose/counts; telemetry shows status |
+| `Test: Odo 12-inch Movement` | Four drive motors and Pinpoint | Each fresh Y press: forward, left, backward, right 12 in; B aborts |
 | `Test: IMU` | Hub IMU | Rotate the robot by hand; A resets yaw |
 | `Test: Limelight` | Limelight only | View live tag measurements; A freezes/unfreezes the display |
 | `Test: Intake` | Intake motor only | A toggles power; Y reverses direction |

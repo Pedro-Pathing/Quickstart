@@ -65,3 +65,32 @@ enables its existing gamepad-1 stick driving controls; leave the sticks centered
 The `Odometry Updates (software)` counter confirms software refreshes, not successful sensor
 communication. If it increases but pose/counts remain frozen while moving, inspect Pinpoint status,
 pod cables/contact, and the active hub configuration; the configured coefficient should stay fixed.
+
+## Powered 12-inch movement test
+
+Select `Diagnostics → Test: Odo 12-inch Movement`, keep still during calibration, then press Play.
+Leave the robot on the floor with a clear test area and an operator ready to press B or Stop.
+Each fresh Y press on either controller runs one leg: **forward 12 in → strafe left 12 in →
+backward 12 in → strafe right 12 in**, then the sequence repeats. Each target is relative to the
+robot's pose at that press, keeping that leg's starting heading. The robot stops between legs;
+there is no automatic continuation or active position hold during the pause. Sticks do not drive.
+
+Power is capped at 25%. Each leg must stay within 0.5 inches of its target and 3 degrees of its
+starting heading for 0.2 seconds, with a 10-second timeout. B aborts immediately at the next control
+loop. Aborts, timeouts, and Pinpoint faults do not advance the sequence: release Y, resolve the
+problem, then press Y to retry the same direction. Busy or held-button presses are not queued.
+Only READY status and a finite pose permit starting movement. These are diagnostic safeguards,
+not collision detection; follower gains and pod offsets still require physical tuning.
+
+Telemetry remains live in INIT, during movement, and while paused: Pinpoint pose/status, raw X/Y
+counts, configured inches/tick, target/error, leg forward/left displacement, commanded-direction
+distance, and per-leg tick changes. The pose origin is reset to zero at Play without recalibrating
+the gyro. Results remain visible while paused so you can measure actual ground travel with a ruler.
+
+The commanded 12 inches is **Pinpoint-estimated**, not guaranteed physical travel. This test cannot
+independently calibrate its own distance source. For straight legs without rotation/slip, compute
+`new inches/tick = old inches/tick × measured physical travel / reported travel`, then set the
+reciprocal in `RobotConfig.Pinpoint.TICKS_PER_INCH` and rebuild. Repeat forward/backward and
+left/right measurements; Pinpoint has one shared resolution for both pods. The previous
+12-inch-actual versus 26-inch-reported result suggests approximately 500.56 ticks/inch, but this
+test does not automatically apply that calibration.
