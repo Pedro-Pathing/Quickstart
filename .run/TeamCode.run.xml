@@ -1,11 +1,3 @@
-<!--
-  Robot hardware: goBILDA Pinpoint named "pinpoint" on Control Hub I2C bus 1, device slot 0.
-  Forward odometry pod connects to Pinpoint X; strafe pod connects to Pinpoint Y.
-  Configure this in the active Robot Controller hardware XML/UI before running TeamCode.
-  Hardware XML entry: <goBILDAPinpoint name="pinpoint" port="0" bus="1" />
-  Wiring and calibration instructions: doc/PINPOINT_SETUP.md.
-  This Android Studio launch configuration deploys the app; it does not assign hardware ports.
--->
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="TeamCode" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
     <module name="Astrid-Isnt-String-Cheese.TeamCode" />
@@ -28,8 +20,6 @@
     <option name="CLEAR_LOGCAT" value="false" />
     <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
     <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
-    <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
-    <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
     <option name="DEBUGGER_TYPE" value="Auto" />
     <Auto>
       <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
@@ -38,7 +28,6 @@
       <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
       <option name="SHOW_OPTIMIZED_WARNING" value="true" />
       <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-      <option name="DEBUG_SANDBOX_SDK" value="false" />
     </Auto>
     <Hybrid>
       <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
@@ -47,11 +36,9 @@
       <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
       <option name="SHOW_OPTIMIZED_WARNING" value="true" />
       <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-      <option name="DEBUG_SANDBOX_SDK" value="false" />
     </Hybrid>
     <Java>
       <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-      <option name="DEBUG_SANDBOX_SDK" value="false" />
     </Java>
     <Native>
       <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
@@ -60,13 +47,12 @@
       <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
       <option name="SHOW_OPTIMIZED_WARNING" value="true" />
       <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-      <option name="DEBUG_SANDBOX_SDK" value="false" />
     </Native>
     <Profilers>
       <option name="ADVANCED_PROFILING_ENABLED" value="false" />
       <option name="STARTUP_PROFILING_ENABLED" value="false" />
       <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
-      <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
+      <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="LeakCanary" />
       <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
       <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
     </Profilers>
