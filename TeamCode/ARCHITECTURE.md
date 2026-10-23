@@ -121,6 +121,18 @@ robot-relative forward/left offset, horizontal/3D distance, and height. Its driv
 now come from Pedro's follower. Odometry and the IMU remain
 the only source of the robot pose; Limelight measurements do not overwrite field X/Y or heading.
 
+### Hold Position TeleOp
+
+`TeleOp: Hold Position` drives exactly like `TeleTourney`, but resists being pushed. When every
+drive input on both gamepads is released, the robot brakes until it has nearly stopped (below
+`RobotConfig.PositionHold` speed limits, or after the settle timeout). That pose becomes the
+hold target, and Pedro's `holdPoint` drives the robot back to it with the follower's
+translational and heading controllers whenever it is pushed or turned from any direction. Any
+stick or trigger input immediately cancels the hold and returns full control to the driver; the
+next release locks a new pose. `PositionHoldControls` contains the hardware-independent state
+machine and is covered by desktop unit tests. How firmly the robot holds depends on the Pedro
+translational and heading PID values, which must be tuned before relying on this behavior.
+
 Mechanism power values are configured in `RobotConfig.Mechanisms`. The `servoMotor` mapping assumes
 a continuous-rotation servo (`CRServo`); a positional servo would require on/off positions instead
 of power values.

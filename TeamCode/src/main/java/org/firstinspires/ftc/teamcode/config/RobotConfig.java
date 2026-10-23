@@ -85,6 +85,16 @@ public final class RobotConfig {
     private Diagnostics() {}
   }
 
+  public static final class PositionHold {
+    /** Below this translation speed the robot is treated as stopped and its pose is locked. */
+    public static final double SETTLED_SPEED_INCHES_PER_SECOND = 2.0;
+    public static final double SETTLED_TURN_DEGREES_PER_SECOND = 10.0;
+    /** Lock the pose anyway if the robot is still sliding this long after the sticks release. */
+    public static final double SETTLE_TIMEOUT_SECONDS = 0.5;
+
+    private PositionHold() {}
+  }
+
   public static final class Autonomous {
     public static final double POSITION_TOLERANCE_INCHES = 1.5;
     public static final double HEADING_TOLERANCE_DEGREES = 2.0;
