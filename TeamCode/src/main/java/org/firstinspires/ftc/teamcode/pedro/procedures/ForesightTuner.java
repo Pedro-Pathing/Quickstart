@@ -35,37 +35,38 @@ public class ForesightTuner extends Procedure {
         Inputs.Field<Double> distance = distanceInput.d("Distance").withDefault(48.0);
         awaitInputs(distanceInput);
 
-        double forwardVelocity = runOpMode(new ForwardVelocity(localizerFunction, drivetrainFunction, distance.get()));
-        double strafeVelocity = runOpMode(new StrafeVelocity(localizerFunction, drivetrainFunction, distance.get()));
+        double forwardVelocity = step(new ForwardVelocity(localizerFunction, drivetrainFunction, distance.get()));
+        double strafeVelocity = step(new StrafeVelocity(localizerFunction, drivetrainFunction, distance.get()));
 
         Inputs velocityInput = inputs("Velocity", "The velocity to drive to in inches for the Max Achievable Forward and Strafe Deceleration Identifiers");
         Inputs.Field<Double> velocity = velocityInput.d("Velocity").withDefault(30.0);
         awaitInputs(velocityInput);
 
-        double forwardDeceleration = runOpMode(new ForwardDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
-        double strafeDeceleration = runOpMode(new StrafeDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
+        double forwardDeceleration = step(new ForwardDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
+        double strafeDeceleration = step(new StrafeDeceleration(localizerFunction, drivetrainFunction, velocity.get()));
 
-        List<Double> headingBraking = runOpMode(new HeadingBraking(localizerFunction, drivetrainFunction));
-        double heading = runOpMode(new HeadingTuner(localizerFunction, drivetrainFunction));
+        List<Double> headingBraking = step(new HeadingBraking(localizerFunction, drivetrainFunction));
+        double heading = step(new HeadingTuner(localizerFunction, drivetrainFunction));
 
-        double headingLinear = headingBraking.get(0);
-        double headingQuadratic = headingBraking.get(1);
+        heading = measured("Heading Tuner", "heading kP", heading, true);
+        double headingLinear = measured("Heading Braking", "the linear coefficient", headingBraking.get(0), false);
+        double headingQuadratic = measured("Heading Braking", "the quadratic coefficient", headingBraking.get(1), false);
 
         Inputs distanceBrakingInput = inputs("Distance", "The distance to drive in inches for the Forward and Strafe Braking Identifiers. Distance must be at least 15 inches for accurate results.");
         Inputs.Field<Double> distanceBraking = distanceBrakingInput.d("Distance").withDefault(36.0);
         awaitInputs(distanceBrakingInput);
         double safeDistanceBraking = Math.max(distanceBraking.get(), 15.0);
 
-        List<Double> forwardBraking = runOpMode(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, safeDistanceBraking));
-        List<Double> strafeBraking = runOpMode(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, safeDistanceBraking));
+        List<Double> forwardBraking = step(new ForwardBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, safeDistanceBraking));
+        List<Double> strafeBraking = step(new StrafeBraking(localizerFunction, drivetrainFunction, headingLinear, headingQuadratic, heading, safeDistanceBraking));
 
         double forwardLinear = forwardBraking.get(0);
         double forwardQuadratic = forwardBraking.get(1);
         double strafeLinear = strafeBraking.get(0);
         double strafeQuadratic = strafeBraking.get(1);
 
-        List<Double> forwardTranslational = runOpMode(new ForwardTranslational(localizerFunction, drivetrainFunction));
-        List<Double> strafeTranslational = runOpMode(new StrafeTranslational(localizerFunction, drivetrainFunction));
+        List<Double> forwardTranslational = step(new ForwardTranslational(localizerFunction, drivetrainFunction));
+        List<Double> strafeTranslational = step(new StrafeTranslational(localizerFunction, drivetrainFunction));
 
         double forwardTranslationalPrimary = forwardTranslational.get(0);
         double forwardTranslationalSecondary = forwardTranslational.get(1);
@@ -74,6 +75,21 @@ public class ForesightTuner extends Procedure {
 
         double strafeTranslationalPrimary = strafeTranslational.get(0);
         double strafeTranslationalSecondary = strafeTranslational.get(1);
+
+        measured("Max Forward Velocity", "the max forward velocity", forwardVelocity, true);
+        measured("Max Strafe Velocity", "the max strafe velocity", strafeVelocity, true);
+        measured("Forward Deceleration", "the natural forward deceleration", forwardDeceleration, true);
+        measured("Strafe Deceleration", "the natural strafe deceleration", strafeDeceleration, true);
+        measured("Forward Braking", "the linear coefficient", forwardLinear, false);
+        measured("Forward Braking", "the quadratic coefficient", forwardQuadratic, false);
+        measured("Strafe Braking", "the linear coefficient", strafeLinear, false);
+        measured("Strafe Braking", "the quadratic coefficient", strafeQuadratic, false);
+        measured("Forward Translational", "the primary kP", forwardTranslationalPrimary, true);
+        measured("Forward Translational", "the secondary kP", forwardTranslationalSecondary, true);
+        measured("Strafe Translational", "the primary kP", strafeTranslationalPrimary, true);
+        measured("Strafe Translational", "the secondary kP", strafeTranslationalSecondary, true);
+        measured("Forward Translational", "coast kV", coast, false);
+        measured("Forward Translational", "brake kV", brake, false);
 
         result("maxAchievableForwardVelocity", forwardVelocity);
         result("maxAchievableStrafeVelocity", strafeVelocity);
@@ -119,6 +135,32 @@ public class ForesightTuner extends Procedure {
                 "                c.naturalStrafeDeceleration.set("+strafeDeceleration+");\n" +
                 "            }\n" +
                 "    );");
+    }
+
+    /**
+     * Runs one step. If it fails, the tuning stops with the step's name and reason instead of the
+     * exception ending the procedure without a message.
+     */
+    private <T> T step(TuningOpMode<T> opMode) throws InterruptedException {
+        try {
+            return runOpMode(opMode);
+        } catch (RuntimeException e) {
+            abort(opMode.name + " failed: " + e.getMessage());
+            throw e; // not reached: abort() throws
+        }
+    }
+
+    /**
+     * A measured value that later steps drive with, or that goes into the generated config. Stops the
+     * tuning if it is NaN or infinite, or not positive where it must be. A NaN heading kP, for example,
+     * made every power the braking steps sent NaN; CachedMotor ignores NaN powers, so the motors kept
+     * their last power and the robot drove off.
+     */
+    private double measured(String step, String name, double value, boolean positive) throws InterruptedException {
+        if (!Double.isFinite(value) || (positive && value <= 0)) {
+            abort(step + " measured " + name + " = " + value + ", which can't be used. Run the tuner again.");
+        }
+        return value;
     }
 }
 
@@ -681,7 +723,11 @@ class HeadingTuner extends TuningOpMode<Double> {
                 x.toArray(new Double[0]),
                 y.toArray(new Double[0])
         );
-        if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
+        // With fewer than two samples between 10% and 80% the slope is NaN, which `== 0` let through.
+        if (x.size() < 2 || !Double.isFinite(linReg[1]) || linReg[1] >= 0) {
+            throw new IllegalArgumentException("Failed calibration: only " + x.size()
+                    + " samples while the robot sped up.");
+        }
         this.tau = -1.0/linReg[1];
     }
 }
@@ -702,6 +748,10 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     public double brakingPower = 0.001;
     public double distance;
     public double IDLE_SECONDS = 1;
+    /** Stops the robot if it gets this many inches past the test's ends. */
+    public double OVERRUN = 24;
+    /** Stops the robot if it drifts this many inches across the test's direction. */
+    public double DRIFT = 48;
 
     private final ElapsedTime timer = new ElapsedTime();
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
@@ -745,6 +795,12 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            if (Math.abs(localizer.pose().x()) > distance + OVERRUN || Math.abs(localizer.pose().y()) > DRIFT) {
+                drivetrain.stop();
+                throw new IllegalStateException(String.format(Locale.US,
+                        "stopped the robot at (%.0f, %.0f): more than %.0f in past the test's ends or %.0f in across them",
+                        localizer.pose().x(), localizer.pose().y(), OVERRUN, DRIFT));
+            }
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
@@ -870,6 +926,10 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     public double brakingPower = 0.001;
     public double distance;
     public double IDLE_SECONDS = 1;
+    /** Stops the robot if it gets this many inches past the test's ends. */
+    public double OVERRUN = 24;
+    /** Stops the robot if it drifts this many inches across the test's direction. */
+    public double DRIFT = 48;
 
     private final ElapsedTime timer = new ElapsedTime();
     private final List<double[]> velocityToBrakingDistance = new ArrayList<>();
@@ -913,6 +973,12 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
         while (state != State.DONE && !isStopRequested()) {
             localizer.update();
+            if (Math.abs(localizer.pose().y()) > distance + OVERRUN || Math.abs(localizer.pose().x()) > DRIFT) {
+                drivetrain.stop();
+                throw new IllegalStateException(String.format(Locale.US,
+                        "stopped the robot at (%.0f, %.0f): more than %.0f in past the test's ends or %.0f in across them",
+                        localizer.pose().x(), localizer.pose().y(), OVERRUN, DRIFT));
+            }
             direction = (iteration % 2 == 0) ? 1 : -1;
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
@@ -1139,7 +1205,11 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
                 x.toArray(new Double[0]),
                 y.toArray(new Double[0])
         );
-        if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
+        // With fewer than two samples between 10% and 80% the slope is NaN, which `== 0` let through.
+        if (x.size() < 2 || !Double.isFinite(linReg[1]) || linReg[1] >= 0) {
+            throw new IllegalArgumentException("Failed calibration: only " + x.size()
+                    + " samples while the robot sped up.");
+        }
         this.tau = -1.0/linReg[1];
     }
 }
@@ -1258,7 +1328,11 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
                 x.toArray(new Double[0]),
                 y.toArray(new Double[0])
         );
-        if (linReg[1] == 0) throw new IllegalArgumentException("Failed calibration.");
+        // With fewer than two samples between 10% and 80% the slope is NaN, which `== 0` let through.
+        if (x.size() < 2 || !Double.isFinite(linReg[1]) || linReg[1] >= 0) {
+            throw new IllegalArgumentException("Failed calibration: only " + x.size()
+                    + " samples while the robot sped up.");
+        }
         this.tau = -1.0/linReg[1];
     }
 }
