@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.drive.TeleOpDrive;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
-import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
 
 /**
  * Driving test TeleOp: just the drive controls in TeleOpDrive (heading lock, robot/field-centric
@@ -22,39 +22,42 @@ public class DrivingTestTeleOp extends OpMode {
 
     public static Pose startingPose = new Pose(72, 72, 0);
 
+    private final SystemStatus status = new SystemStatus();
     private BulkCache bulkCache;
-    private Follower follower;
+    private Follower follower;  // null (and drive too) when a drive device is missing
     private TeleOpDrive drive;
     private TelemetryManager telemetryM;
 
     @Override
     public void init() {
         bulkCache = new BulkCache(hardwareMap);
-        follower = Constants.create(hardwareMap);
-        follower.setPose(startingPose);
-        follower.update();
-        drive = new TeleOpDrive(follower);
+        follower = TeleOpDrive.createFollower(hardwareMap, startingPose, status);
+        drive = follower != null ? new TeleOpDrive(follower) : null;
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         telemetry.addData("Status", "Initialized. Circle toggles robot/field-centric.");
+        status.addTelemetry(telemetry);
         telemetry.update();
     }
 
     @Override
     public void start() {
-        drive.start();
+        if (drive != null) drive.start();
     }
 
     @Override
     public void loop() {
         bulkCache.clear();
-        follower.update();
-        drive.update(gamepad1);
+        if (drive != null) {
+            follower.update();
+            drive.update(gamepad1);
+        }
 
         // Telemetry is only built when Panels is due to send it, to keep the loop fast
         if (telemetryM.getShouldUpdateLines()) {
-            drive.addTelemetry(telemetryM);
+            status.addTelemetry(telemetryM);
+            if (drive != null) drive.addTelemetry(telemetryM);
             telemetryM.update(telemetry);
         }
     }

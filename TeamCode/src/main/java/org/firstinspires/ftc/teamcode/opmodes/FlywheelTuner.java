@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
+import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,9 +77,10 @@ public class FlywheelTuner extends OpMode {
 
     private enum Mode { STOPPED, FEEDFORWARD, STEP, SHOT }
 
+    private final SystemStatus status = new SystemStatus();
     private BulkCache bulkCache;
     private Flywheel flywheel;
-    private VoltageSensor voltageSensor;
+    private VoltageSensor voltageSensor;  // null if there's no hub to read it from
     private TelemetryManager telemetryM;
     private final ElapsedTime modeTimer = new ElapsedTime();
     private final ElapsedTime loopTimer = new ElapsedTime();
@@ -122,12 +124,14 @@ public class FlywheelTuner extends OpMode {
         bulkCache = new BulkCache(hardwareMap);
         flywheel = new Flywheel(hardwareMap, motorName, direction);
         applySettings();
-        voltageSensor = hardwareMap.voltageSensor.iterator().next();
+        voltageSensor = hardwareMap.voltageSensor.iterator().hasNext() ? hardwareMap.voltageSensor.iterator().next() : null;
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        status.check("Flywheel", flywheel.missingDevices());
 
         telemetry.addLine("Flywheel Tuner ready for " + motorName + ". Press START, then:");
         telemetry.addLine("A/Cross: feedforward test   B/Circle: step test");
         telemetry.addLine("Y/Triangle: shot test   X/Square: stop");
+        status.addTelemetry(telemetry);
         telemetry.update();
     }
 
@@ -198,9 +202,10 @@ public class FlywheelTuner extends OpMode {
         telemetryM.addData("rawRPM", flywheel.rawRPM());
         telemetryM.addData("power", flywheel.power());
 
+        status.addTelemetry(telemetry);
         telemetry.addData("Flywheel", motorName);
         telemetry.addData("Mode", mode);
-        telemetry.addData("Battery", "%.2f V", voltageSensor.getVoltage());
+        if (voltageSensor != null) telemetry.addData("Battery", "%.2f V", voltageSensor.getVoltage());
         telemetry.addData("Loop time", "%.0f ms", loopMs);
         telemetry.addData("Gains", "kP %.6f  kI %.7f  kD %.7f", flywheel.getKP(), flywheel.getKI(), flywheel.getKD());
         telemetry.addData("Feedforward", "kV %.7f  kS %.3f", flywheel.getKV(), flywheel.getKS());

@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
+import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
 
 /**
  * Flywheel velocity test. Holds motorName at targetRPM using the shared Flywheel controller
@@ -54,6 +55,7 @@ public class FlyMeToTheWheel extends OpMode {
     public static DcMotorSimple.Direction direction = DcMotorSimple.Direction.FORWARD;
     public static double targetRPM = 5000;
 
+    private final SystemStatus status = new SystemStatus();
     private BulkCache bulkCache;
     private Flywheel flywheel;
     private TelemetryManager telemetryM;
@@ -64,8 +66,10 @@ public class FlyMeToTheWheel extends OpMode {
         bulkCache = new BulkCache(hardwareMap);
         flywheel = new Flywheel(hardwareMap, motorName, direction);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        status.check("Flywheel", flywheel.missingDevices());
 
         telemetry.addData("Status", "Initialized");
+        status.addTelemetry(telemetry);
         telemetry.update();
     }
 
@@ -83,6 +87,7 @@ public class FlyMeToTheWheel extends OpMode {
 
         // Telemetry is only built when Panels is due to send it, to keep the loop fast
         if (telemetryM.getShouldUpdateLines()) {
+            status.addTelemetry(telemetryM);
             telemetryM.addData("Run Time", runtime.toString());
             telemetryM.addData("targetRPM", targetRPM);
             telemetryM.addData("rawRPM", flywheel.rawRPM());

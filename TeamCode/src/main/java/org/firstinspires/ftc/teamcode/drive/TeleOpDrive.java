@@ -6,7 +6,13 @@ import com.pedropathing.controllers.Controller;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
+
+import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import java.util.function.DoubleSupplier;
 
@@ -53,6 +59,24 @@ public class TeleOpDrive {
     private double heading = 0.0;
     private double angularVelocity = 0.0;
     private DrivePowers powers = DrivePowers.zero();
+
+    /**
+     * Builds the follower at startingPose, or returns null (and notes Drive as disabled in status) if
+     * a drive motor or the localizer is missing, so the rest of the robot can still be tested.
+     */
+    public static Follower createFollower(HardwareMap hardwareMap, Pose startingPose, SystemStatus status) {
+        try {
+            Follower follower = Constants.create(hardwareMap);
+            follower.setPose(startingPose);
+            follower.update();
+            return follower;
+        } catch (RuntimeException e) {
+            String reason = e.getMessage() != null ? e.getMessage() : e.toString();
+            RobotLog.ww("TeleOpDrive", "Drive disabled: %s", reason);
+            status.disable("Drive", reason);
+            return null;
+        }
+    }
 
     public TeleOpDrive(Follower follower) {
         this.follower = follower;

@@ -13,12 +13,12 @@ import org.firstinspires.ftc.teamcode.drive.TeleOpDrive;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.gates.Gates;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
+import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
 import org.firstinspires.ftc.teamcode.launch.LaunchModel;
 import org.firstinspires.ftc.teamcode.launch.RpmTable;
 import org.firstinspires.ftc.teamcode.launch.ScoringPosition;
 import org.firstinspires.ftc.teamcode.launch.ShotQuality;
 import org.firstinspires.ftc.teamcode.leds.Leds;
-import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
 import org.firstinspires.ftc.teamcode.vision.HiveCells;
 import org.firstinspires.ftc.teamcode.vision.HiveTarget;
@@ -34,6 +34,9 @@ import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
  *
  * The flywheels always run, at the RPM for the camera's distance to the CELL, or the default speed
  * when no tags are in view. The LEDs show how good the robot's position is for scoring.
+ *
+ * Any part whose devices are missing is disabled and listed on telemetry, and the rest carries on:
+ * e.g. with no Limelight the flywheels use the default speed and auto-aim uses odometry only.
  */
 @TeleOp(name = "More Than Driving Test", group = "TeleOp")
 @Configurable
@@ -46,8 +49,9 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     /** Launch speed used when the camera can't see our tags. */
     private static final double DEFAULT_LAUNCH_SPEED_MPS = 6.0;
 
+    private final SystemStatus status = new SystemStatus();
     private BulkCache bulkCache;
-    private Follower follower;
+    private Follower follower;  // null (and drive too) when a drive device is missing
     private TeleOpDrive drive;
     private TelemetryManager telemetryM;
 
@@ -70,10 +74,8 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     public void init() {
         bulkCache = new BulkCache(hardwareMap);
         leds = new Leds(hardwareMap);  // shows yellow: ready to drive
-        follower = Constants.create(hardwareMap);
-        follower.setPose(startingPose);
-        follower.update();
-        drive = new TeleOpDrive(follower);
+        follower = TeleOpDrive.createFollower(hardwareMap, startingPose, status);
+        drive = follower != null ? new TeleOpDrive(follower) : null;
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -82,18 +84,25 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         gates = new Gates(hardwareMap);
         camera = new LimelightCamera(hardwareMap, alliance);
 
+        status.check("Nectar launcher", nectarLauncher.missingDevices());
+        status.check("Pollen launcher", pollenLauncher.missingDevices());
+        status.check("Feed gates", gates.missingDevices());
+        status.check("Vision", camera.missingDevices());
+        status.check("LEDs", leds.missingDevices());
+
         // Takes about a second on the Control Hub
         pollenRpmTable = new RpmTable(LaunchModel.Launcher.POLLEN);
         nectarRpmTable = new RpmTable(LaunchModel.Launcher.NECTAR);
 
         telemetry.addData("Status", "Initialized. Circle toggles robot/field-centric.");
+        status.addTelemetry(telemetry);
         telemetry.update();
     }
 
     @Override
     public void start() {
         bulkCache.clear();
-        drive.start();
+        if (drive != null) drive.start();
         nectarLauncher.reset();
         pollenLauncher.reset();
     }
@@ -110,11 +119,14 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         nectarLauncher.runToRPM(hiveTarget != null ? nectarRpmTable.rpmFor(hiveTarget) : defaultRPM);
         pollenLauncher.runToRPM(hiveTarget != null ? pollenRpmTable.rpmFor(hiveTarget) : defaultRPM);
         gates.update();
-        follower.update();
 
-        // How good this spot is for scoring both balls, shown on the LEDs
-        ShotQuality shotQuality = scoringPosition.update(alliance, follower.pose().x(), follower.pose().y());
-        leds.setState(shotQuality.ledState);
+        // How good this spot is for scoring both balls, shown on the LEDs (needs odometry)
+        ShotQuality shotQuality = null;
+        if (follower != null) {
+            follower.update();
+            shotQuality = scoringPosition.update(alliance, follower.pose().x(), follower.pose().y());
+            leds.setState(shotQuality.ledState);
+        }
         leds.update();
 
         // Only open a gate when its flywheel is at speed; presses while it isn't are ignored
@@ -125,11 +137,13 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
             gates.feedNectar();
         }
 
-        if (gamepad1.squareWasPressed()) {
-            aimFromVision = false;
-            drive.startAiming();
+        if (drive != null) {
+            if (gamepad1.squareWasPressed()) {
+                aimFromVision = false;
+                drive.startAiming();
+            }
+            drive.update(gamepad1, this::aimHeading);
         }
-        drive.update(gamepad1, this::aimHeading);
 
         // Telemetry is only built when Panels is due to send it, to keep the loop fast
         if (telemetryM.getShouldUpdateLines()) {
@@ -158,17 +172,20 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     }
 
     private void showTelemetry(ShotQuality shotQuality) {
+        status.addTelemetry(telemetryM);
         telemetryM.addData("Alliance", alliance);
-        telemetryM.addData("Auto Aim", !drive.isAiming() ? "Off" : (aimFromVision ? "Vision" : "Odometry"));
-        telemetryM.addData("Shot Position", shotQuality);
-        telemetryM.addData("Shot Chance (%)", 100 * scoringPosition.lastChance());
+        if (drive != null) {
+            telemetryM.addData("Auto Aim", !drive.isAiming() ? "Off" : (aimFromVision ? "Vision" : "Odometry"));
+            telemetryM.addData("Shot Position", shotQuality);
+            telemetryM.addData("Shot Chance (%)", 100 * scoringPosition.lastChance());
+        }
         telemetryM.addData("Tags Seen", hiveTarget != null ? hiveTarget.tagCount : 0);
         if (hiveTarget != null) {
             telemetryM.addData("Target CELL", hiveTarget.cell);
             telemetryM.addData("Target Distance (m)", hiveTarget.horizontalDistance());
             telemetryM.addData("Target Bearing", Math.toDegrees(hiveTarget.bearing()));
         }
-        drive.addTelemetry(telemetryM);
+        if (drive != null) drive.addTelemetry(telemetryM);
 
         telemetryM.addData("nectar.targetRPM", nectarLauncher.targetRPM());
         telemetryM.addData("nectar.filteredRPM", nectarLauncher.filteredRPM());

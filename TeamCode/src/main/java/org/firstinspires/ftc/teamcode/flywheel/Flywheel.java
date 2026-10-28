@@ -8,12 +8,17 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.helpers.Devices;
+
 /**
  * Flywheel velocity control using Pedro Pathing 3 controllers: PID feedback on the filtered RPM error
  * plus feedforward on the target RPM, with a per-second limit on how fast the power can change.
  * Call one of the run methods once per loop.
  *
  * Each flywheel starts with the DEFAULT_ gains below; use the setters to give it its own tuned values.
+ *
+ * If the motor isn't in the robot configuration, the flywheel is disabled: it reads 0 RPM, never
+ * reports ready, and the run methods do nothing (see missingDevices()).
  */
 public class Flywheel {
     // Default settings every new flywheel starts with
@@ -38,7 +43,8 @@ public class Flywheel {
     /** Power changes smaller than this aren't sent to the motor, as each write takes loop time. */
     private static final double POWER_WRITE_THRESHOLD = 0.002;
 
-    private final DcMotorEx motor;
+    private final String motorName;
+    private final DcMotorEx motor;  // null when the flywheel is disabled
     private final Controller controller;
     private final ElapsedTime loopTimer = new ElapsedTime();
 
@@ -59,9 +65,11 @@ public class Flywheel {
     private double targetRPM = 0;
 
     public Flywheel(HardwareMap hardwareMap, String motorName, DcMotorSimple.Direction direction) {
-        motor = hardwareMap.get(DcMotorEx.class, motorName);
-        motor.setDirection(direction);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        this.motorName = motorName;
+        motor = Devices.get(hardwareMap, DcMotorEx.class, motorName, m -> {
+            m.setDirection(direction);
+            m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        });
 
         // The controllers read this flywheel's gains through suppliers every loop, so the setters
         // take effect immediately without rebuilding the controllers
@@ -72,6 +80,16 @@ public class Flywheel {
                 Controller.proportionalFeedforward(() -> kV),
                 Controller.staticTargetFeedforward(() -> kS)
         );
+    }
+
+    /** Whether the motor was found. */
+    public boolean isAvailable() {
+        return motor != null;
+    }
+
+    /** The motor's name in quotes if it's missing, otherwise "". */
+    public String missingDevices() {
+        return Devices.missing(motor, motorName);
     }
 
     /** Call before starting closed-loop control, e.g. after waitForStart or when switching modes. */
@@ -103,7 +121,7 @@ public class Flywheel {
         targetRPM = 0;
         if (power != 0) {
             power = 0;
-            motor.setPower(0);
+            if (motor != null) motor.setPower(0);
         }
         measure();
     }
@@ -129,7 +147,7 @@ public class Flywheel {
      * readyTolerancePercent of it, so a ball fed now leaves at the intended speed.
      */
     public boolean isReady() {
-        return targetRPM > 0 && Math.abs(targetRPM - filteredRPM) <= targetRPM * readyTolerancePercent / 100;
+        return motor != null && targetRPM > 0 && Math.abs(targetRPM - filteredRPM) <= targetRPM * readyTolerancePercent / 100;
     }
 
     // ---------------- Settings ----------------
@@ -219,12 +237,13 @@ public class Flywheel {
         this.countsPerRev = countsPerRev;
     }
 
+    /** The motor's direction, or null if it's missing. */
     public DcMotorSimple.Direction getDirection() {
-        return motor.getDirection();
+        return motor != null ? motor.getDirection() : null;
     }
 
     public void setDirection(DcMotorSimple.Direction direction) {
-        motor.setDirection(direction);
+        if (motor != null) motor.setDirection(direction);
     }
 
     // ---------------- Internals ----------------
@@ -245,6 +264,7 @@ public class Flywheel {
     }
 
     private void applyPower(double requested, double dt) {
+        if (motor == null) return;
         double out = Range.clip(requested, 0.0, 1.0);
         // Limit how quickly the power can change, scaled by this loop's duration
         double maxStep = maxPowerRate * Math.min(dt, MAX_LOOP_SECONDS);
@@ -257,6 +277,6 @@ public class Flywheel {
     }
 
     private double readRPM() {
-        return motor.getVelocity() / countsPerRev * 60.0;
+        return motor != null ? motor.getVelocity() / countsPerRev * 60.0 : 0.0;
     }
 }

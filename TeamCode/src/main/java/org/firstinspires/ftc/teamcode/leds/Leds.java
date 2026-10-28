@@ -4,6 +4,8 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.helpers.Devices;
+
 /**
  * The REV Blinkin LED driver on the strip round the bottom of the robot (78 x 5 V addressable LEDs).
  *
@@ -14,6 +16,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *  - setState() sets the state the robot is in, e.g. GOOD_SHOT. It stays until it's changed.
  *  - flash() shows a state for a short time, then goes back to the set state, for one-off events later.
  * Call update() every loop. The Blinkin is only sent a new pattern when what's shown changes.
+ * If the Blinkin isn't in the configuration, the LEDs are disabled and the calls do nothing.
  *
  * Blinkin setup, once, with the strip connected and running (REV's Getting Started guide):
  *  1. If the 5V light isn't on, hold Strip Select until it is.
@@ -22,7 +25,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *  4. Hold Mode and Strip Select together for about 6 s to save.
  */
 public class Leds {
-    private final RevBlinkinLedDriver blinkin;
+    private static final String DEVICE_NAME = "blinkin";
+
+    private final RevBlinkinLedDriver blinkin;  // null when the LEDs are disabled
     private final ElapsedTime flashTimer = new ElapsedTime();
 
     private RobotState state = RobotState.READY;
@@ -33,7 +38,7 @@ public class Leds {
     private RobotState shown = null;
 
     public Leds(HardwareMap hw) {
-        blinkin = hw.get(RevBlinkinLedDriver.class, "blinkin");
+        blinkin = Devices.get(hw, RevBlinkinLedDriver.class, DEVICE_NAME);
         update();
     }
 
@@ -55,10 +60,20 @@ public class Leds {
             flashState = null;
         }
         RobotState wanted = flashState != null ? flashState : state;
-        if (wanted != shown) {
+        if (wanted != shown && blinkin != null) {
             blinkin.setPattern(wanted.pattern);
             shown = wanted;
         }
+    }
+
+    /** Whether the Blinkin was found. */
+    public boolean isAvailable() {
+        return blinkin != null;
+    }
+
+    /** The Blinkin's name in quotes if it's missing, otherwise "". */
+    public String missingDevices() {
+        return Devices.missing(blinkin, DEVICE_NAME);
     }
 
     /** The state set with setState(). */

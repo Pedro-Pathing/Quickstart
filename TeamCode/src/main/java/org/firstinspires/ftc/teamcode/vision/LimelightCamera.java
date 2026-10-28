@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.teamcode.helpers.Devices;
 
 import static org.firstinspires.ftc.teamcode.vision.LimelightConstants.*;
 
@@ -25,17 +26,31 @@ import static org.firstinspires.ftc.teamcode.vision.LimelightConstants.*;
  *    the SDK labels Limelight's camera-space angles inconsistently. The tags' downward tilt comes
  *    from tagFacingDownDegrees.
  * 3. tagToTargetOffset then moves from the tag to the centre of the CELL's open face.
+ *
+ * If the Limelight isn't in the configuration (or won't start), vision is disabled and findTarget()
+ * always returns null, as if no tags were in view.
  */
 public class LimelightCamera {
-    private final Limelight3A limelight;
+    private final Limelight3A limelight;  // null when vision is disabled
     private Alliance alliance;
 
     public LimelightCamera(HardwareMap hardwareMap, Alliance alliance) {
         this.alliance = alliance;
-        limelight = hardwareMap.get(Limelight3A.class, deviceName);
-        limelight.setPollRateHz(pollRateHz);
-        limelight.pipelineSwitch(aprilTagPipeline);
-        limelight.start();
+        limelight = Devices.get(hardwareMap, Limelight3A.class, deviceName, l -> {
+            l.setPollRateHz(pollRateHz);
+            l.pipelineSwitch(aprilTagPipeline);
+            l.start();
+        });
+    }
+
+    /** Whether the Limelight was found and started. */
+    public boolean isAvailable() {
+        return limelight != null;
+    }
+
+    /** The Limelight's name in quotes if it's missing, otherwise "". */
+    public String missingDevices() {
+        return Devices.missing(limelight, deviceName);
     }
 
     public Alliance getAlliance() {
@@ -47,14 +62,15 @@ public class LimelightCamera {
     }
 
     public void stop() {
-        limelight.stop();
+        if (limelight != null) limelight.stop();
     }
 
     /**
      * The current target, or null if none of our HIVE's tags are in view or the latest result is
-     * too old. Call once per loop and pair it with the robot heading from the same loop.
+     * too old (or vision is disabled). Call once per loop and pair it with the robot heading from the same loop.
      */
     public HiveTarget findTarget() {
+        if (limelight == null) return null;
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid() || result.getStaleness() > maxStalenessMs) return null;
 
