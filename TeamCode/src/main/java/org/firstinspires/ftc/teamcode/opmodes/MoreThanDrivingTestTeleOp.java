@@ -8,6 +8,7 @@ import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.TeleOpDrive;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
@@ -19,6 +20,7 @@ import org.firstinspires.ftc.teamcode.launch.RpmTable;
 import org.firstinspires.ftc.teamcode.launch.ScoringPosition;
 import org.firstinspires.ftc.teamcode.launch.ShotQuality;
 import org.firstinspires.ftc.teamcode.leds.Leds;
+import org.firstinspires.ftc.teamcode.leds.RobotState;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
 import org.firstinspires.ftc.teamcode.vision.HiveCells;
 import org.firstinspires.ftc.teamcode.vision.HiveTarget;
@@ -48,6 +50,9 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
 
     /** Launch speed used when the camera can't see our tags. */
     private static final double DEFAULT_LAUNCH_SPEED_MPS = 6.0;
+    /** While a launcher has a fault, the LEDs flash LAUNCHER_FAULT this often, for FAULT_FLASH_SECONDS. */
+    private static final double FAULT_FLASH_INTERVAL_SECONDS = 2.0;
+    private static final double FAULT_FLASH_SECONDS = 0.3;
 
     private final SystemStatus status = new SystemStatus();
     private BulkCache bulkCache;
@@ -68,6 +73,7 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     private boolean aimFromVision = false;
 
     private Leds leds;
+    private final ElapsedTime faultFlashTimer = new ElapsedTime();
     private final ScoringPosition scoringPosition = new ScoringPosition();
 
     @Override
@@ -127,14 +133,20 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
             shotQuality = scoringPosition.update(alliance, follower.pose().x(), follower.pose().y());
             leds.setState(shotQuality.ledState);
         }
+        if (hasLauncherFault() && faultFlashTimer.seconds() > FAULT_FLASH_INTERVAL_SECONDS) {
+            leds.flash(RobotState.LAUNCHER_FAULT, FAULT_FLASH_SECONDS);
+            faultFlashTimer.reset();
+        }
         leds.update();
 
         // Only open a gate when its flywheel is at speed; presses while it isn't are ignored
         if (gamepad1.rightTriggerWasPressed() && pollenLauncher.isReady()) {
             gates.feedPollen();
+            pollenLauncher.shotFired();
         }
         if (gamepad1.leftTriggerWasPressed() && nectarLauncher.isReady()) {
             gates.feedNectar();
+            nectarLauncher.shotFired();
         }
 
         if (drive != null) {
@@ -156,6 +168,10 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         camera.stop();
     }
 
+    private boolean hasLauncherFault() {
+        return pollenLauncher.getHealth() != Flywheel.Health.OK || nectarLauncher.getHealth() != Flywheel.Health.OK;
+    }
+
     /** The heading auto-aim holds this loop. */
     private double aimHeading() {
         if (hiveTarget != null) {
@@ -173,6 +189,12 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
 
     private void showTelemetry(ShotQuality shotQuality) {
         status.addTelemetry(telemetryM);
+        if (pollenLauncher.getHealth() != Flywheel.Health.OK) {
+            telemetryM.addLine("Pollen launcher FAULT: " + pollenLauncher.faultMessage());
+        }
+        if (nectarLauncher.getHealth() != Flywheel.Health.OK) {
+            telemetryM.addLine("Nectar launcher FAULT: " + nectarLauncher.faultMessage());
+        }
         telemetryM.addData("Alliance", alliance);
         if (drive != null) {
             telemetryM.addData("Auto Aim", !drive.isAiming() ? "Off" : (aimFromVision ? "Vision" : "Odometry"));

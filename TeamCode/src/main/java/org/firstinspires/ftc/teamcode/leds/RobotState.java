@@ -16,7 +16,9 @@ public enum RobotState {
     /** Marginal shooting position. Blinkin has no amber, and ORANGE stands out from YELLOW better than GOLD. */
     MARGINAL_SHOT(BlinkinPattern.ORANGE),
     /** No shot possible from here. */
-    NO_SHOT(BlinkinPattern.RED);
+    NO_SHOT(BlinkinPattern.RED),
+    /** Flashed while a launcher has a fault (Flywheel.Health). Not white: all 78 LEDs white is near the 5 A limit. */
+    LAUNCHER_FAULT(BlinkinPattern.VIOLET);
 
     public final BlinkinPattern pattern;
 

@@ -204,6 +204,9 @@ public class FlywheelTuner extends OpMode {
 
         status.addTelemetry(telemetry);
         telemetry.addData("Flywheel", motorName);
+        if (flywheel.getHealth() != Flywheel.Health.OK) {
+            telemetry.addData("FAULT", flywheel.faultMessage() + " (start a test again to retry)");
+        }
         telemetry.addData("Mode", mode);
         if (voltageSensor != null) telemetry.addData("Battery", "%.2f V", voltageSensor.getVoltage());
         telemetry.addData("Loop time", "%.0f ms", loopMs);
