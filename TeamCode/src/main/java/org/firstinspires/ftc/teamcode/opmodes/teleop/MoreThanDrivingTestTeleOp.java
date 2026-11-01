@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmodes;
+package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.launch.ShotQuality;
 import org.firstinspires.ftc.teamcode.leds.Leds;
 import org.firstinspires.ftc.teamcode.leds.RobotState;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
-import org.firstinspires.ftc.teamcode.vision.HiveCells;
+import org.firstinspires.ftc.teamcode.vision.HiveAim;
 import org.firstinspires.ftc.teamcode.vision.HiveTarget;
 import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
 
@@ -69,8 +69,7 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
 
     private LimelightCamera camera;
     private HiveTarget hiveTarget;
-    /** Whether this auto-aim has had a heading from the camera yet. */
-    private boolean aimFromVision = false;
+    private final HiveAim hiveAim = new HiveAim();
 
     private Leds leds;
     private final ElapsedTime faultFlashTimer = new ElapsedTime();
@@ -151,10 +150,10 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
 
         if (drive != null) {
             if (gamepad1.squareWasPressed()) {
-                aimFromVision = false;
+                hiveAim.reset();
                 drive.startAiming();
             }
-            drive.update(gamepad1, this::aimHeading);
+            drive.update(gamepad1, () -> hiveAim.update(alliance, hiveTarget, follower.pose()));
         }
 
         // Telemetry is only built when Panels is due to send it, to keep the loop fast
@@ -172,21 +171,6 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         return pollenLauncher.getHealth() != Flywheel.Health.OK || nectarLauncher.getHealth() != Flywheel.Health.OK;
     }
 
-    /** The heading auto-aim holds this loop. */
-    private double aimHeading() {
-        if (hiveTarget != null) {
-            // Tags in view: point straight at the CELL's open face
-            aimFromVision = true;
-            return hiveTarget.targetHeading(follower.pose().heading());
-        }
-        if (!aimFromVision) {
-            // No tags yet: point roughly at our nearest CELL using odometry
-            return HiveCells.headingToNearestCell(alliance, follower.pose().x(), follower.pose().y());
-        }
-        // Once the camera has given a heading, keep it if the tags drop out rather than going back to the rough one
-        return drive.getTargetHeading();
-    }
-
     private void showTelemetry(ShotQuality shotQuality) {
         status.addTelemetry(telemetryM);
         if (pollenLauncher.getHealth() != Flywheel.Health.OK) {
@@ -197,7 +181,7 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         }
         telemetryM.addData("Alliance", alliance);
         if (drive != null) {
-            telemetryM.addData("Auto Aim", !drive.isAiming() ? "Off" : (aimFromVision ? "Vision" : "Odometry"));
+            telemetryM.addData("Auto Aim", !drive.isAiming() ? "Off" : (hiveAim.isFromVision() ? "Vision" : "Odometry"));
             telemetryM.addData("Shot Position", shotQuality);
             telemetryM.addData("Shot Chance (%)", 100 * scoringPosition.lastChance());
         }
