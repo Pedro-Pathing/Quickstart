@@ -11,13 +11,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @TeleOp(name = "IntakePackage", group = "Linear OpMode")
 public class IntakePackage extends LinearOpMode {
 
-    private DcMotorEx launcher;
-    int launcherVelocity = 0;
+    private DcMotor intake;
+    int intakeVelocity = 0;
 
     @Override
     public void runOpMode() {
 
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -27,17 +27,17 @@ public class IntakePackage extends LinearOpMode {
         while (opModeIsActive()) {
 
             if (gamepad1.right_trigger_pressed) {
-                launcherVelocity = 6000;
+                intakeVelocity = 6000;
             }
             if (gamepad1.left_trigger_pressed) {
-                launcherVelocity = -6000;
+                intakeVelocity = -6000;
             }
             if (gamepad1.atRest()) {
-                launcherVelocity = 0;
+                intakeVelocity = 0;
             }
 
-            launcher.setVelocity(launcherVelocity);
-            telemetry.addData("Launch Velocity","%4.2f", launcher.getVelocity());
+            intake.setPower(intakeVelocity);
+            telemetry.addData("Launch Velocity","%4.2f", intake.getPower());
             telemetry.update();
         }
     }
