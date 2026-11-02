@@ -49,8 +49,8 @@ public class LimelightConstants {
 
     /**
      * Tags lower than this are under the lowered CELL. Those read upside down (top edge lowest), which
-     * targetFromTag doesn't handle, so they're ignored. Midway between the raised CELL's tags (1.248 m)
-     * and the lowered CELL's (0.919 m).
+     * targetFromTag doesn't handle, so they're ignored. Midway between the raised CELL's tags (1.265 m)
+     * and the lowered CELL's (0.902 m).
      */
     public static double minTagHeight = 1.08;
 
@@ -61,13 +61,16 @@ public class LimelightConstants {
      * (negative = into the HIVE), up = vertically upwards.
      *
      * Measured from the field CAD for the raised (up-facing) CELL, the same for all four CELLs:
-     * tags at -6.5, -2.75, +2.75 and +6.5 in along the sticker, centres 1.248 m up; the open face
-     * centre is 1.484 m up, facing 29.3 degrees above horizontal.
+     * tags at -6.5, -2.75, +2.75 and +6.5 in along the sticker, centres 1.265 m up; the open face
+     * centre is 1.484 m up, facing 29.3 degrees above horizontal. The sticker is where the competition
+     * manual puts it (TU05, Figure 9-15: its reference holes 9.938 in from the front of the CELL, the
+     * tag centres 2.75 in above them). Until 2026-11-02 these were 33 mm too deep into the CELL
+     * (out 0.1159, up 0.2356, tags 1.248 m up).
      */
     public static double[][] tagToTargetOffset = {
-            { 0.1651, 0.1159, 0.2356},
-            { 0.0698, 0.1159, 0.2356},
-            {-0.0699, 0.1159, 0.2356},
-            {-0.1651, 0.1159, 0.2356}
+            { 0.1651, 0.0870, 0.2189},
+            { 0.0698, 0.0870, 0.2189},
+            {-0.0699, 0.0870, 0.2189},
+            {-0.1651, 0.0870, 0.2189}
     };
 }
