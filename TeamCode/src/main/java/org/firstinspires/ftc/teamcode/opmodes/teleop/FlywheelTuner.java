@@ -211,7 +211,7 @@ public class FlywheelTuner extends OpMode {
         if (voltageSensor != null) telemetry.addData("Battery", "%.2f V", voltageSensor.getVoltage());
         telemetry.addData("Loop time", "%.0f ms", loopMs);
         telemetry.addData("Gains", "kP %.6f  kI %.7f  kD %.7f", flywheel.getKP(), flywheel.getKI(), flywheel.getKD());
-        telemetry.addData("Feedforward", "kV %.7f  kS %.3f", flywheel.getKV(), flywheel.getKS());
+        telemetry.addData("Feedforward", "kV %.10f  kS %.6f", flywheel.getKV(), flywheel.getKS());
 
         switch (mode) {
             case FEEDFORWARD:
@@ -343,8 +343,8 @@ public class FlywheelTuner extends OpMode {
             telemetry.addData(String.format(Locale.US, "Power %.2f", ffPowers.get(i)), "%.0f RPM", ffSpeeds.get(i));
         }
         if (ffHasResult) {
-            telemetry.addData("Fitted kV", "%.7f", fitKV);
-            telemetry.addData("Fitted kS", "%.3f", fitKS);
+            telemetry.addData("Fitted kV", "%.10f", fitKV);
+            telemetry.addData("Fitted kS", "%.6f", fitKS);
             telemetry.addData("Fit quality (R²)", "%.3f (aim for 0.98 or more)", fitR2);
             telemetryM.addData("fittedKV", fitKV);
             telemetryM.addData("fittedKS", fitKS);

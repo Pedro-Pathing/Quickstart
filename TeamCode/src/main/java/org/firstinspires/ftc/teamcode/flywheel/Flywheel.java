@@ -64,12 +64,12 @@ public class Flywheel {
     /** Encoder counts per motor revolution (the HD Hex motor's built-in encoder). */
     public static final double DEFAULT_COUNTS_PER_REV = 28.0;
     // Feedback gains (power per RPM of error)
-    public static final double DEFAULT_KP = 0.005;
-    public static final double DEFAULT_KI = 0.000002;
-    public static final double DEFAULT_KD = 0.000004;
+    public static final double DEFAULT_KP = 0.0005;
+    public static final double DEFAULT_KI = 0.0;
+    public static final double DEFAULT_KD = 0.0000064;
     // Feedforward gains: kV is power per RPM of target, kS is the constant power to overcome friction
-    public static final double DEFAULT_KV = 0.0;
-    public static final double DEFAULT_KS = 0.0;
+    public static final double DEFAULT_KV = 0.00015018455632909438;
+    public static final double DEFAULT_KS = 0.001970753886511566;
     /** Largest change in motor power allowed per second (2.0 = zero to full power in 0.5 s). */
     public static final double DEFAULT_MAX_POWER_RATE = 2.0;
     /** Low-pass filter time constant for the measured RPM in seconds (0 = no filtering). */
