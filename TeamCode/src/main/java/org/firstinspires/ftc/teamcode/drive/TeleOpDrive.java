@@ -7,6 +7,8 @@ import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Vector2D;
+import com.pedropathing.utils.Angle;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -24,14 +26,29 @@ import java.util.function.DoubleSupplier;
  * Hold the left bumper for slow mode or the right bumper for sprint.
  * Optional auto-aim (startAiming) holds headings given by the OpMode until the driver turns.
  * Gains are live-tunable from Panels.
+ *
+ * With useForesight, the heading lock works on where the robot would stop rather than where it is
+ * now, as Pedro's Foresight does: the heading it would still turn through if it braked now (from
+ * Constants' headingBrakeCoefficients, the Foresight tuner's coasting stop, times brakeScale) is
+ * taken off the error. It pushes while that stop falls short of the target and brakes once it
+ * would overshoot, so it can use a high gain without overshooting. Otherwise it's the PID above.
  */
 @Configurable
 public class TeleOpDrive {
-    // Heading lock gains (turn power per radian of error, and per rad/s of angular velocity for kD)
-    public static double kP = 0.8;
+    // Heading lock gains (turn power per radian of error, and per rad/s of angular velocity for kD).
+    // Tuned in the sim's auto-aim test (BiobuzzHub.Aim): retune on the robot.
+    public static double kP = 1.2;
     public static double kI = 0.0;
-    public static double kD = 0.08;
-    public static double kS = 0.0; // Static feedforward to overcome turning friction
+    public static double kD = 0.2;
+    public static double kS = 0.03; // Static feedforward to overcome turning friction
+
+    // Foresight heading lock (see the class comment): turn power per radian of the predicted error,
+    // kS while that error is over foresightKSDeadbandDegrees, and a scale on the brake model
+    public static boolean useForesight = true;
+    public static double foresightKP = 4.0;
+    public static double foresightKS = 0.03;
+    public static double foresightKSDeadbandDegrees = 0.5;
+    public static double brakeScale = 0.6;
 
     // Driver input tuning
     public static double turnDeadband = 0.05;
@@ -169,8 +186,12 @@ public class TeleOpDrive {
                 }
             }
 
-            // While settling the error is zero, so only kD acts and brakes the rotation
-            powers = ManualDrive.headingLock(follower, headingController, powers, targetHeading);
+            if (useForesight) {
+                powers = new DrivePowers(powers.forward(), powers.strafe(), foresightTurn());
+            } else {
+                // While settling the error is zero, so only kD acts and brakes the rotation
+                powers = ManualDrive.headingLock(follower, headingController, powers, targetHeading);
+            }
         }
 
         follower.manual(powers);
@@ -186,6 +207,22 @@ public class TeleOpDrive {
         telemetryM.addData("Turn Power", powers.turn());
         telemetryM.addData("X", follower.pose().x());
         telemetryM.addData("Y", follower.pose().y());
+    }
+
+    /**
+     * Turn power from the error left after the robot's predicted stop. While settling the target is
+     * where the robot is now, so this brakes it.
+     */
+    private double foresightTurn() {
+        Vector2D brake = Constants.foresightConfig.headingBrakeCoefficients.get();
+        double omega = angularVelocity;
+        double stop = brakeScale * (brake.x() * omega + brake.y() * omega * omega * Math.signum(omega));
+        double error = Angle.normalizeSigned(targetHeading - heading) - stop;
+        double turn = foresightKP * error;
+        if (Math.abs(error) > Math.toRadians(foresightKSDeadbandDegrees)) {
+            turn += Math.signum(error) * foresightKS;
+        }
+        return Math.max(-1.0, Math.min(1.0, turn));
     }
 
     private void lockHeading() {
