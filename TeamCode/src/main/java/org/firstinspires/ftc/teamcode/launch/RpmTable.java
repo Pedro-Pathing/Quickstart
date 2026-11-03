@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.launch;
 
+import com.pedropathing.math.Pose;
+
+import org.firstinspires.ftc.teamcode.vision.Alliance;
+import org.firstinspires.ftc.teamcode.vision.HiveCells;
 import org.firstinspires.ftc.teamcode.vision.HiveTarget;
 
 /**
@@ -11,6 +15,8 @@ public class RpmTable {
     public static final double MIN_DISTANCE = 0.30;
     public static final double MAX_DISTANCE = 2.30;
     public static final double STEP = 0.05;
+    /** Launch speed with neither the camera's target nor odometry to go on. */
+    public static final double DEFAULT_LAUNCH_SPEED_MPS = 6.0;
 
     private final LaunchModel.Launcher launcher;
     private final double[] rpm;
@@ -31,6 +37,25 @@ public class RpmTable {
                 if (i + d < n && !Double.isNaN(solved[i + d])) { rpm[i] = solved[i + d]; break; }
             }
         }
+    }
+
+    /**
+     * RPM for our HIVE: for the camera's target if it has one, otherwise for odometry's distance from
+     * this launcher's axle to our nearest CELL (HiveCells), as HiveAim falls back to odometry for the
+     * heading. A fixed default speed instead, shots before the camera saw tags went about 0.5 m/s too
+     * fast and long (the sim's shot log). With no pose either (no drive), the default speed.
+     *
+     * @param target the camera's target this loop, or null
+     * @param pose   the robot's pose (Pedro field frame), or null
+     */
+    public double rpmFor(HiveTarget target, Alliance alliance, Pose pose) {
+        if (target != null) return rpmFor(target);
+        if (pose == null) return LaunchModel.rpmForSpeed(DEFAULT_LAUNCH_SPEED_MPS);
+        double cos = Math.cos(pose.heading()), sin = Math.sin(pose.heading());
+        double axleX = pose.x() + (launcher.axleForward * cos - launcher.axleLeft * sin) / 0.0254;
+        double axleY = pose.y() + (launcher.axleForward * sin + launcher.axleLeft * cos) / 0.0254;
+        double[] cell = HiveCells.nearestCell(alliance, axleX, axleY);
+        return rpmAt(Math.hypot(cell[0] - axleX, cell[1] - axleY) * 0.0254);
     }
 
     /** RPM to hit a target the camera sees, from this launcher's axle. */

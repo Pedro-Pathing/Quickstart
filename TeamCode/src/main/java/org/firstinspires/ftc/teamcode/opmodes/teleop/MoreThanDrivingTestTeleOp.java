@@ -48,8 +48,6 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     /** Which HIVE to aim at. */
     public static Alliance alliance = Alliance.RED;
 
-    /** Launch speed used when the camera can't see our tags. */
-    private static final double DEFAULT_LAUNCH_SPEED_MPS = 6.0;
     /** While a launcher has a fault, the LEDs flash LAUNCHER_FAULT this often, for FAULT_FLASH_SECONDS. */
     private static final double FAULT_FLASH_INTERVAL_SECONDS = 2.0;
     private static final double FAULT_FLASH_SECONDS = 0.3;
@@ -120,9 +118,9 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         hiveTarget = camera.findTarget();
 
         // Flywheel speeds from the distance to the CELL, or the default speed when no tags are in view
-        double defaultRPM = LaunchModel.rpmForSpeed(DEFAULT_LAUNCH_SPEED_MPS);
-        nectarLauncher.runToRPM(hiveTarget != null ? nectarRpmTable.rpmFor(hiveTarget) : defaultRPM);
-        pollenLauncher.runToRPM(hiveTarget != null ? pollenRpmTable.rpmFor(hiveTarget) : defaultRPM);
+        Pose pose = follower != null ? follower.pose() : null;
+        nectarLauncher.runToRPM(nectarRpmTable.rpmFor(hiveTarget, alliance, pose));
+        pollenLauncher.runToRPM(pollenRpmTable.rpmFor(hiveTarget, alliance, pose));
         gates.update();
 
         // How good this spot is for scoring both balls, shown on the LEDs (needs odometry)

@@ -51,9 +51,6 @@ public class TestAuto extends LinearOpMode {
     /** After each feed, wait this long before the next shot can fire, so the ball clears and the gate closes. */
     public static double shotIntervalMs = 500;
 
-    /** Launch speed used when the camera can't see our tags. */
-    private static final double DEFAULT_LAUNCH_SPEED_MPS = 6.0;
-
     private Follower follower;
     private BulkCache bulkCache;
     private Flywheel pollenLauncher;
@@ -113,9 +110,7 @@ public class TestAuto extends LinearOpMode {
 
             camera.setAlliance(alliance);
             hiveTarget = camera.findTarget();
-            pollenLauncher.runToRPM(hiveTarget != null
-                    ? pollenRpmTable.rpmFor(hiveTarget)
-                    : LaunchModel.rpmForSpeed(DEFAULT_LAUNCH_SPEED_MPS));
+            pollenLauncher.runToRPM(pollenRpmTable.rpmFor(hiveTarget, alliance, follower.pose()));
             gates.update();
 
             follower.update();
