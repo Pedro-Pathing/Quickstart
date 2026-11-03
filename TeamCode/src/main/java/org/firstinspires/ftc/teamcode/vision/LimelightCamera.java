@@ -52,6 +52,11 @@ public class LimelightCamera {
     private Alliance alliance;
     private Mode mode = Mode.TAGS;
     private final ElapsedTime modeTimer = new ElapsedTime();
+    /** The latest image's number, the Limelight's timestamp and pipeline for it, and when it was captured. */
+    private long frame = 0;
+    private double frameTimestamp;
+    private int framePipeline;
+    private long frameCaptureNanos;
 
     public LimelightCamera(HardwareMap hardwareMap, Alliance alliance) {
         this.alliance = alliance;
@@ -114,8 +119,9 @@ public class LimelightCamera {
 
     /**
      * The current target, or null if none of our HIVE's tags are in view or the latest result is
-     * too old (or vision is disabled, or the camera isn't settled in TAGS mode). Call once per loop and
-     * pair it with the robot heading from the same loop.
+     * too old (or vision is disabled, or the camera isn't settled in TAGS mode). The same image is
+     * returned on each loop until a new one arrives; its frame number says which it is, and its
+     * captureNanos when it was taken (pair it with the robot's pose then, from a PoseHistory).
      */
     public HiveTarget findTarget() {
         LLResult result = latestResult(Mode.TAGS, aprilTagPipeline);
@@ -151,7 +157,7 @@ public class LimelightCamera {
         if (count == 0 || sumWeight <= 0) return null;
 
         return new HiveTarget(cell, sumX / sumWeight, sumY / sumWeight, sumZ / sumWeight,
-                count, largest.getFiducialId(), result.getStaleness());
+                count, largest.getFiducialId(), result.getStaleness(), frame, frameCaptureNanos);
     }
 
     /**
@@ -179,7 +185,8 @@ public class LimelightCamera {
             if (d[2] >= -1e-6) continue;  // at or above the horizon: not on the floor
             double t = (radius - cameraUp) / d[2];
             boolean atBottomEdge = py + radiusPx >= imageHeight - 2;
-            balls.add(new FloorBall(kind, cameraForward + t * d[0], cameraLeft + t * d[1], atBottomEdge));
+            balls.add(new FloorBall(kind, cameraForward + t * d[0], cameraLeft + t * d[1], atBottomEdge,
+                    frame, frameCaptureNanos));
         }
         return balls;
     }
@@ -191,7 +198,22 @@ public class LimelightCamera {
         if (result == null || result.getStaleness() > maxStalenessMs || result.getPipelineIndex() != pipeline) {
             return null;
         }
+        noteFrame(result);
         return result;
+    }
+
+    /**
+     * Number a result that's a new image, and work out when it was captured: before it reached the
+     * hub (its staleness) by the Limelight's capture and processing time. The same image polled again
+     * keeps its number and capture time.
+     */
+    private void noteFrame(LLResult result) {
+        if (frame > 0 && result.getTimestamp() == frameTimestamp && result.getPipelineIndex() == framePipeline) return;
+        frame++;
+        frameTimestamp = result.getTimestamp();
+        framePipeline = result.getPipelineIndex();
+        double latencyMs = result.getStaleness() + result.getCaptureLatency() + result.getTargetingLatency();
+        frameCaptureNanos = System.nanoTime() - (long) (latencyMs * 1e6);
     }
 
     /** Estimate of the open face's centre in the robot frame from one tag, or null if it has no 3D pose. */

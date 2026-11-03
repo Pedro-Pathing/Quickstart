@@ -19,8 +19,13 @@ public class HiveTarget {
     public final int largestTagId;
     /** Age of the camera result in milliseconds. */
     public final long stalenessMs;
+    /** Which camera frame this came from: the same number means the same image. */
+    public final long frame;
+    /** When the image was captured (System.nanoTime()), for pairing it with the robot's pose then. */
+    public final long captureNanos;
 
-    public HiveTarget(Cell cell, double x, double y, double z, int tagCount, int largestTagId, long stalenessMs) {
+    public HiveTarget(Cell cell, double x, double y, double z, int tagCount, int largestTagId, long stalenessMs,
+                      long frame, long captureNanos) {
         this.cell = cell;
         this.x = x;
         this.y = y;
@@ -28,6 +33,8 @@ public class HiveTarget {
         this.tagCount = tagCount;
         this.largestTagId = largestTagId;
         this.stalenessMs = stalenessMs;
+        this.frame = frame;
+        this.captureNanos = captureNanos;
     }
 
     /** Angle from the robot's forward direction to the target, positive to the left (CCW). */

@@ -115,7 +115,7 @@ public class TestAuto extends LinearOpMode {
 
             follower.update();
             Scheduler.execute();
-            if (aiming) updateAim();
+            updateAim();
 
             telemetry.addData("x", follower.pose().x());
             telemetry.addData("y", follower.pose().y());
@@ -150,10 +150,13 @@ public class TestAuto extends LinearOpMode {
         updateAim();
     }
 
-    /** Hold the end of path 1, turned to this loop's aim heading. */
+    /**
+     * This loop's aim heading (every loop, so the aim has the robot's recent poses), and while aiming,
+     * hold the end of path 1 turned to it.
+     */
     private void updateAim() {
         aimHeading = hiveAim.update(alliance, hiveTarget, follower.pose());
-        follower.hold(new Pose(path1.x(), path1.y(), aimHeading));
+        if (aiming) follower.hold(new Pose(path1.x(), path1.y(), aimHeading));
     }
 
     private boolean readyToFire() {

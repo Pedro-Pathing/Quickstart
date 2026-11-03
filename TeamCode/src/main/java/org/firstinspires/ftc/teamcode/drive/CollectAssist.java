@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.intake.Intake;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
 import org.firstinspires.ftc.teamcode.vision.FloorBall;
 import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
+import org.firstinspires.ftc.teamcode.vision.PoseHistory;
 
 import java.util.List;
 
@@ -30,8 +31,9 @@ import java.util.List;
  * nothing suitable is seen for searchTimeoutSeconds or a collect takes over collectTimeoutSeconds.
  *
  * While active it drives the follower with hold(), so the OpMode must not drive it as well.
- * Ball positions are turned into field positions with the pose from the loop they arrive in; the
- * camera's latency isn't allowed for, so turning fast can put them slightly out.
+ * Each camera image is used once, and its balls are turned into field positions with the robot's
+ * pose when the image was captured (from the pose history), so the camera's latency doesn't put
+ * them out while the robot turns. Call update() every loop, active or not, to keep the history.
  */
 @Configurable
 public class CollectAssist {
@@ -58,6 +60,9 @@ public class CollectAssist {
     private final Follower follower;
     private final LimelightCamera camera;
     private final Intake intake;
+    private final PoseHistory history = new PoseHistory();
+    /** The last camera image used, so each is only used once. */
+    private long frame = -1;
 
     private State state = State.IDLE;
     private final ElapsedTime stateTimer = new ElapsedTime();
@@ -114,14 +119,24 @@ public class CollectAssist {
      * @param balls this loop's camera.findBalls() (null when there's no fresh floor result)
      */
     public void update(List<FloorBall> balls, Alliance alliance) {
-        if (balls != null) ballsSeen = balls.size();
         Pose pose = follower.pose();
+        history.record(pose);
+        if (balls != null) ballsSeen = balls.size();
+        // An image already used, or one with no balls in, has nothing new
+        if (balls != null && (balls.isEmpty() || balls.get(0).frame == frame)) balls = null;
+        // Where the robot was when the image was captured
+        Pose seenFrom = pose;
+        if (balls != null) {
+            frame = balls.get(0).frame;
+            Pose then = history.at(balls.get(0).captureNanos);
+            if (then != null) seenFrom = then;
+        }
         switch (state) {
             case IDLE:
                 return;
             case SEARCHING:
                 follower.hold(new Pose(holdX, holdY, holdHeading));
-                if (balls != null && chooseTarget(balls, alliance, pose)) {
+                if (balls != null && chooseTarget(balls, alliance, seenFrom)) {
                     setState(State.TURNING);
                 } else if (stateTimer.seconds() > searchTimeoutSeconds) {
                     finish("no ball of ours in reach");
@@ -130,7 +145,7 @@ public class CollectAssist {
                 break;
             case TURNING:
             case DRIVING:
-                if (balls != null && !trackTarget(balls, alliance, pose)) {
+                if (balls != null && !trackTarget(balls, alliance, seenFrom)) {
                     // Their Nectar is now in the way: stop here and pick again
                     holdX = pose.x();
                     holdY = pose.y();

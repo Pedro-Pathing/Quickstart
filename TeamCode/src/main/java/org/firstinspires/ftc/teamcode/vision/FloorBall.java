@@ -35,12 +35,18 @@ public class FloorBall {
     public final double x, y;
     /** Touching the bottom of the image: the ball is about to pass out of view under the camera. */
     public final boolean atBottomEdge;
+    /** Which camera frame this came from: the same number means the same image. */
+    public final long frame;
+    /** When the image was captured (System.nanoTime()), for pairing it with the robot's pose then. */
+    public final long captureNanos;
 
-    public FloorBall(Kind kind, double x, double y, boolean atBottomEdge) {
+    public FloorBall(Kind kind, double x, double y, boolean atBottomEdge, long frame, long captureNanos) {
         this.kind = kind;
         this.x = x;
         this.y = y;
         this.atBottomEdge = atBottomEdge;
+        this.frame = frame;
+        this.captureNanos = captureNanos;
     }
 
     /** Pollen, or Nectar of our alliance's colour. */

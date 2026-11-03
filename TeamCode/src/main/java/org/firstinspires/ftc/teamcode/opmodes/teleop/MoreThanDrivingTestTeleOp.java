@@ -176,7 +176,11 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
                 hiveAim.reset();
                 drive.startAiming();
             }
-            drive.update(gamepad1, () -> hiveAim.update(alliance, hiveTarget, follower.pose()));
+        }
+        // Every loop, so it has the robot's recent poses when an aim starts
+        double aimHeading = follower != null ? hiveAim.update(alliance, hiveTarget, follower.pose()) : 0.0;
+        if (drive != null && !collecting) {
+            drive.update(gamepad1, () -> aimHeading);
         }
         wasCollecting = collecting;
 

@@ -219,7 +219,7 @@ public abstract class LoopingAuto extends LinearOpMode {
 
             follower.update();
             Scheduler.execute();
-            if (aiming) updateAim();
+            updateAim();
 
             telemetry.addData("x", follower.pose().x());
             telemetry.addData("y", follower.pose().y());
@@ -243,10 +243,13 @@ public abstract class LoopingAuto extends LinearOpMode {
         updateAim();
     }
 
-    /** Hold the shooting spot, turned to this loop's aim heading. */
+    /**
+     * This loop's aim heading (every loop, so the aim has the robot's recent poses), and while aiming,
+     * hold the shooting spot turned to it.
+     */
     private void updateAim() {
         aimHeading = hiveAim.update(alliance(), hiveTarget, follower.pose());
-        follower.hold(new Pose(shootingSpot().x(), shootingSpot().y(), aimHeading));
+        if (aiming) follower.hold(new Pose(shootingSpot().x(), shootingSpot().y(), aimHeading));
     }
 
     private boolean readyToFire() {
