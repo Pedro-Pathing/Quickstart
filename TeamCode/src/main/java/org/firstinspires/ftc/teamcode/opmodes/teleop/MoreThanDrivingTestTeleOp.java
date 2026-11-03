@@ -10,11 +10,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.drive.CollectAssist;
 import org.firstinspires.ftc.teamcode.drive.TeleOpDrive;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.gates.Gates;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
 import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
+import org.firstinspires.ftc.teamcode.intake.Intake;
 import org.firstinspires.ftc.teamcode.launch.LaunchModel;
 import org.firstinspires.ftc.teamcode.launch.RpmTable;
 import org.firstinspires.ftc.teamcode.launch.ScoringPosition;
@@ -31,6 +33,8 @@ import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
  * robot/field-centric, bumpers for slow and sprint), and:
  *
  * Square          Auto-aim at our HIVE until the right stick is turned
+ * Cross           Collect the nearest Pollen or Nectar of ours (CollectAssist); press again, or move
+ *                 a stick, to cancel
  * Right trigger   Feed a Pollen (only when its flywheel is at speed)
  * Left trigger    Feed a Nectar (only when its flywheel is at speed)
  *
@@ -69,6 +73,10 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     private HiveTarget hiveTarget;
     private final HiveAim hiveAim = new HiveAim();
 
+    private Intake intake;
+    private CollectAssist collect;  // null when the drive is disabled
+    private boolean wasCollecting = false;
+
     private Leds leds;
     private final ElapsedTime faultFlashTimer = new ElapsedTime();
     private final ScoringPosition scoringPosition = new ScoringPosition();
@@ -86,11 +94,15 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
         pollenLauncher = new Flywheel(hardwareMap, "PollenFlywheel", DcMotorSimple.Direction.REVERSE);
         gates = new Gates(hardwareMap);
         camera = new LimelightCamera(hardwareMap, alliance);
+        intake = new Intake(hardwareMap);
+        collect = follower != null ? new CollectAssist(follower, camera, intake) : null;
 
         status.check("Nectar launcher", nectarLauncher.missingDevices());
         status.check("Pollen launcher", pollenLauncher.missingDevices());
         status.check("Feed gates", gates.missingDevices());
         status.check("Vision", camera.missingDevices());
+        status.check("Floor vision (collect)", camera.floorMissingDevices());
+        status.check("Intake", intake.missingDevices());
         status.check("LEDs", leds.missingDevices());
 
         // Takes about a second on the Control Hub
@@ -146,13 +158,27 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
             nectarLauncher.shotFired();
         }
 
-        if (drive != null) {
+        // Cross collects the nearest ball of ours; cross again or moving a stick cancels
+        if (collect != null) {
+            if (gamepad1.crossWasPressed()) {
+                if (collect.isActive()) collect.cancel(); else collect.start();
+            } else if (collect.isActive() && sticksMoved()) {
+                collect.cancel();
+            }
+            collect.update(camera.findBalls(), alliance);
+        }
+        boolean collecting = collect != null && collect.isActive();
+
+        if (drive != null && !collecting) {
+            // After a collect, hold the heading it left the robot at
+            if (wasCollecting) drive.start();
             if (gamepad1.squareWasPressed()) {
                 hiveAim.reset();
                 drive.startAiming();
             }
             drive.update(gamepad1, () -> hiveAim.update(alliance, hiveTarget, follower.pose()));
         }
+        wasCollecting = collecting;
 
         // Telemetry is only built when Panels is due to send it, to keep the loop fast
         if (telemetryM.getShouldUpdateLines()) {
@@ -163,6 +189,11 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
     @Override
     public void stop() {
         camera.stop();
+    }
+
+    private boolean sticksMoved() {
+        return Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2
+                || Math.abs(gamepad1.right_stick_x) > 0.2;
     }
 
     private boolean hasLauncherFault() {
@@ -189,6 +220,7 @@ public class MoreThanDrivingTestTeleOp extends OpMode {
             telemetryM.addData("Target Distance (m)", hiveTarget.horizontalDistance());
             telemetryM.addData("Target Bearing", Math.toDegrees(hiveTarget.bearing()));
         }
+        if (collect != null) collect.addTelemetry(telemetryM);
         if (drive != null) drive.addTelemetry(telemetryM);
 
         telemetryM.addData("nectar.targetRPM", nectarLauncher.targetRPM());

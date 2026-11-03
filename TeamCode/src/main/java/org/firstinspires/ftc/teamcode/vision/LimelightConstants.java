@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.vision;
 import com.bylazar.configurables.annotations.Configurable;
 
 /**
- * Limelight mounting and HIVE AprilTag settings.
+ * Limelight mounting, HIVE AprilTag and floor-ball settings.
  *
  * Robot frame: +X forward, +Y left, +Z up, origin at the robot's centre of rotation on the floor.
  * Lengths are in metres, angles in degrees.
  *
- * TODO: the camera mount values are placeholders until the camera is fitted.
+ * TODO: the camera mount values, tilt servo positions and intake pitch are placeholders until the
+ * camera and its tilt mount are fitted.
  */
 @Configurable
 public class LimelightConstants {
@@ -16,6 +17,8 @@ public class LimelightConstants {
     public static String deviceName = "limelight";
     /** Limelight pipeline set up for 36h11 AprilTags (tag size 82.5 mm). */
     public static int aprilTagPipeline = 0;
+    /** Limelight pipeline running the Python script TeamCode/limelight/floor_balls.py. */
+    public static int floorPipeline = 1;
     public static int pollRateHz = 100;
     /** Results older than this are ignored. */
     public static long maxStalenessMs = 100;
@@ -28,10 +31,29 @@ public class LimelightConstants {
     // Camera orientation on the robot. All zero = level, facing straight forward.
     /** Positive turns the camera to the left. */
     public static double cameraYaw = 0.0;
-    /** Positive tilts the camera upwards. 40 keeps the near CELL's tags in view from 0.52 m to 2.74 m. */
-    public static double cameraPitch = 40.0;
+    /**
+     * Pitch in the shooting position, looking up at the HIVE tags. Positive tilts the camera upwards.
+     * 40 keeps the near CELL's tags in view from 0.52 m to 2.74 m.
+     */
+    public static double shootingPitch = 40.0;
+    /** Pitch in the intake position, looking down at the floor ahead of the intake. */
+    public static double intakePitch = -35.0;
     /** Right-hand rotation about the camera's forward axis. Usually 0. */
     public static double cameraRoll = 0.0;
+
+    // Tilt mount: a servo swings the camera between the shooting and intake pitches
+    public static String tiltServoName = "cameraTilt";
+    public static double shootingServoPosition = 0.0;
+    public static double intakeServoPosition = 1.0;
+    /** Time for the mount to swing and the pipeline to switch; results are ignored until then. */
+    public static long tiltSettleMs = 400;
+
+    // Camera image, for turning the Python pipeline's pixel positions into directions.
+    // Limelight 3A: 640 x 480 at 54.5 x 42 degrees field of view.
+    public static int imageWidth = 640;
+    public static int imageHeight = 480;
+    public static double horizontalFovDegrees = 54.5;
+    public static double verticalFovDegrees = 42.0;
 
     // HIVE AprilTag IDs: four tags under each CELL
     public static final int RED_SCORING_FIRST_TAG = 30;

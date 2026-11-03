@@ -4,16 +4,25 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.helpers.Devices;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.firstinspires.ftc.teamcode.vision.LimelightConstants.*;
 
 /**
- * Finds the centre of our HIVE's target CELL using the AprilTags under its CELLs.
+ * The Limelight on its tilt mount. In TAGS mode (the default) it looks up at the HIVE and finds the
+ * target CELL; in FLOOR mode it looks down and finds balls on the floor (findBalls()). setMode()
+ * swings the mount and switches pipeline; results are ignored for tiltSettleMs while it does.
+ *
+ * Finding the centre of our HIVE's target CELL using the AprilTags under its CELLs:
  *
  * Only our alliance's HIVE tags are used. If tags from both of its CELLs are in view, the largest
  * tag decides which CELL is the target, and every visible tag of that CELL is averaged.
@@ -27,12 +36,22 @@ import static org.firstinspires.ftc.teamcode.vision.LimelightConstants.*;
  *    from tagFacingDownDegrees.
  * 3. tagToTargetOffset then moves from the tag to the centre of the CELL's open face.
  *
+ * Finding balls: the floor pipeline (TeamCode/limelight/floor_balls.py) reports each ball's kind
+ * and its centre and radius in pixels. The ray through the centre is followed down to the height of
+ * a ball's centre above the floor, which gives the ball's position on the floor in the robot frame.
+ *
  * If the Limelight isn't in the configuration (or won't start), vision is disabled and findTarget()
- * always returns null, as if no tags were in view.
+ * always returns null, as if no tags were in view. Without the tilt servo the camera stays at the
+ * shooting pitch and FLOOR mode is unavailable.
  */
 public class LimelightCamera {
+    public enum Mode { TAGS, FLOOR }
+
     private final Limelight3A limelight;  // null when vision is disabled
+    private final Servo tilt;  // null when the tilt servo is missing: no FLOOR mode
     private Alliance alliance;
+    private Mode mode = Mode.TAGS;
+    private final ElapsedTime modeTimer = new ElapsedTime();
 
     public LimelightCamera(HardwareMap hardwareMap, Alliance alliance) {
         this.alliance = alliance;
@@ -41,6 +60,34 @@ public class LimelightCamera {
             l.pipelineSwitch(aprilTagPipeline);
             l.start();
         });
+        tilt = Devices.get(hardwareMap, Servo.class, tiltServoName, s -> s.setPosition(shootingServoPosition));
+    }
+
+    /** Names of what's missing for FLOOR mode (the Limelight or its tilt servo), or "" if nothing. */
+    public String floorMissingDevices() {
+        return Devices.join(Devices.missing(limelight, deviceName), Devices.missing(tilt, tiltServoName));
+    }
+
+    public boolean isFloorAvailable() {
+        return limelight != null && tilt != null;
+    }
+
+    /** Swing the mount and switch pipeline. FLOOR is ignored if the tilt servo or Limelight is missing. */
+    public void setMode(Mode newMode) {
+        if (newMode == mode || (newMode == Mode.FLOOR && !isFloorAvailable())) return;
+        mode = newMode;
+        if (tilt != null) tilt.setPosition(mode == Mode.FLOOR ? intakeServoPosition : shootingServoPosition);
+        if (limelight != null) limelight.pipelineSwitch(mode == Mode.FLOOR ? floorPipeline : aprilTagPipeline);
+        modeTimer.reset();
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    /** Whether the mount has finished swinging since the last setMode(). */
+    public boolean isSettled() {
+        return modeTimer.milliseconds() >= tiltSettleMs;
     }
 
     /** Whether the Limelight was found and started. */
@@ -67,12 +114,12 @@ public class LimelightCamera {
 
     /**
      * The current target, or null if none of our HIVE's tags are in view or the latest result is
-     * too old (or vision is disabled). Call once per loop and pair it with the robot heading from the same loop.
+     * too old (or vision is disabled, or the camera isn't settled in TAGS mode). Call once per loop and
+     * pair it with the robot heading from the same loop.
      */
     public HiveTarget findTarget() {
-        if (limelight == null) return null;
-        LLResult result = limelight.getLatestResult();
-        if (result == null || !result.isValid() || result.getStaleness() > maxStalenessMs) return null;
+        LLResult result = latestResult(Mode.TAGS, aprilTagPipeline);
+        if (result == null || !result.isValid()) return null;
 
         // The largest of our alliance's tags decides which CELL is the target
         LLResultTypes.FiducialResult largest = null;
@@ -105,6 +152,46 @@ public class LimelightCamera {
 
         return new HiveTarget(cell, sumX / sumWeight, sumY / sumWeight, sumZ / sumWeight,
                 count, largest.getFiducialId(), result.getStaleness());
+    }
+
+    /**
+     * The balls in view, nearest first (at most floor_balls.py's MAX_BALLS), or null if there's no
+     * usable floor result: not settled in FLOOR mode, the result is too old, or vision is disabled.
+     * An empty list means the camera is looking and sees no balls.
+     */
+    public List<FloorBall> findBalls() {
+        LLResult result = latestResult(Mode.FLOOR, floorPipeline);
+        if (result == null) return null;
+        double[] out = result.getPythonOutput();
+        List<FloorBall> balls = new ArrayList<>();
+        if (out == null || out.length < 1) return balls;
+
+        double fx = imageWidth / 2.0 / Math.tan(Math.toRadians(horizontalFovDegrees) / 2);
+        double fy = imageHeight / 2.0 / Math.tan(Math.toRadians(verticalFovDegrees) / 2);
+        int count = (int) out[0];
+        for (int i = 0; i < count && 1 + 4 * i + 3 < out.length; i++) {
+            FloorBall.Kind kind = FloorBall.Kind.fromCode((int) out[1 + 4 * i]);
+            if (kind == null) continue;
+            double px = out[2 + 4 * i], py = out[3 + 4 * i], radiusPx = out[4 + 4 * i];
+            // Direction of the ray through the ball's centre, in camera space, then in the robot frame
+            double[] d = rotateToRobot((px - imageWidth / 2.0) / fx, (py - imageHeight / 2.0) / fy, 1.0, intakePitch);
+            double radius = kind.diameter / 2;
+            if (d[2] >= -1e-6) continue;  // at or above the horizon: not on the floor
+            double t = (radius - cameraUp) / d[2];
+            boolean atBottomEdge = py + radiusPx >= imageHeight - 2;
+            balls.add(new FloorBall(kind, cameraForward + t * d[0], cameraLeft + t * d[1], atBottomEdge));
+        }
+        return balls;
+    }
+
+    /** The latest result if the camera is settled in this mode and it's from this pipeline and fresh, else null. */
+    private LLResult latestResult(Mode wanted, int pipeline) {
+        if (limelight == null || mode != wanted || !isSettled()) return null;
+        LLResult result = limelight.getLatestResult();
+        if (result == null || result.getStaleness() > maxStalenessMs || result.getPipelineIndex() != pipeline) {
+            return null;
+        }
+        return result;
     }
 
     /** Estimate of the open face's centre in the robot frame from one tag, or null if it has no 3D pose. */
@@ -153,14 +240,20 @@ public class LimelightCamera {
 
     /**
      * Converts a point from camera space (+X right, +Y down, +Z out of the lens) to the robot frame,
-     * using the camera mount position and orientation.
+     * using the camera mount position and its orientation in the shooting position.
      */
     private static double[] cameraToRobot(double cx, double cy, double cz) {
+        double[] r = rotateToRobot(cx, cy, cz, shootingPitch);
+        return new double[] {r[0] + cameraForward, r[1] + cameraLeft, r[2] + cameraUp};
+    }
+
+    /** Turns a direction in camera space into the robot frame's axes, for the camera at this pitch. */
+    private static double[] rotateToRobot(double cx, double cy, double cz, double pitchDegrees) {
         // Camera axes to robot axes for a level, forward-facing camera
         double x = cz, y = -cx, z = -cy;
 
         double roll = Math.toRadians(cameraRoll);
-        double pitch = Math.toRadians(cameraPitch);
+        double pitch = Math.toRadians(pitchDegrees);
         double yaw = Math.toRadians(cameraYaw);
 
         // Roll about the forward axis
@@ -173,7 +266,7 @@ public class LimelightCamera {
         double x3 = x2 * Math.cos(yaw) - y1 * Math.sin(yaw);
         double y3 = x2 * Math.sin(yaw) + y1 * Math.cos(yaw);
 
-        return new double[] {x3 + cameraForward, y3 + cameraLeft, z2 + cameraUp};
+        return new double[] {x3, y3, z2};
     }
 
     private static Position metres(Pose3D pose) {
