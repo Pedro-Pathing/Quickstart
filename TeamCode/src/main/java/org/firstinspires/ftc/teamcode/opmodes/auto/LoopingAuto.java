@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.gates.Gates;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
+import org.firstinspires.ftc.teamcode.intake.Intake;
 import org.firstinspires.ftc.teamcode.launch.LaunchModel;
 import org.firstinspires.ftc.teamcode.launch.RpmTable;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -39,7 +40,8 @@ import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
  * turn that CELL up: red's audience CELL and blue's scoring CELL start up). Then it takes the four
  * Pollen from the FLOWER in its quarter: in front first, pushing against it, backing off and
  * pushing again. It goes back and fires them, then loops: drive the collecting loop through its
- * quarter (the intake leading), back to the shooting spot and fire a volley. A volley aims at our
+ * quarter (the intake leading), back to the shooting spot and fire a volley. The intake runs from
+ * the FLOWER collect, and each collecting loop, until the robot is back at its shooting spot. A volley aims at our
  * HIVE (HiveAim, as TestAuto does) and feeds both launchers together volleyFeeds times, each time
  * both flywheels are at speed, or until shootTimeoutMs: a feed with nothing of that kind stored does
  * nothing. Every drive has a timeout, so a robot pushed off its path by another carries on with the
@@ -76,6 +78,7 @@ public abstract class LoopingAuto extends LinearOpMode {
     private RpmTable pollenRpmTable;
     private RpmTable nectarRpmTable;
     private Gates gates;
+    private Intake intake;
     private LimelightCamera camera;
     private HiveTarget hiveTarget;
     private final HiveAim hiveAim = new HiveAim();
@@ -109,12 +112,16 @@ public abstract class LoopingAuto extends LinearOpMode {
                 drive(Paths.line(startPose(), shootingSpot()).linear(startPose(), shootingSpot())),
                 waitMs(waitsForPartner() ? partnerDelayMs : 0),
                 shoot(),
+                instant(intake::run),
                 collectFlower(),
                 drive(Paths.line(flowerPose(), shootingSpot()).linear(flowerPose(), shootingSpot())),
+                instant(intake::stop),
                 shoot(),
                 Groups.loop(sequential(
+                        instant(intake::run),
                         drive(collectingPath()),
                         drive(returnPath()),
+                        instant(intake::stop),
                         shoot(),
                         instant(() -> loops++)
                 ))
@@ -188,6 +195,7 @@ public abstract class LoopingAuto extends LinearOpMode {
         pollenLauncher = new Flywheel(hardwareMap, "PollenFlywheel", DcMotorSimple.Direction.REVERSE);
         nectarLauncher = new Flywheel(hardwareMap, "NectarFlywheel", DcMotorSimple.Direction.FORWARD);
         gates = new Gates(hardwareMap);
+        intake = new Intake(hardwareMap);
         camera = new LimelightCamera(hardwareMap, alliance());
         pollenRpmTable = new RpmTable(LaunchModel.Launcher.POLLEN);
         nectarRpmTable = new RpmTable(LaunchModel.Launcher.NECTAR);
@@ -225,6 +233,7 @@ public abstract class LoopingAuto extends LinearOpMode {
             telemetry.update();
         }
 
+        intake.stop();
         camera.stop();
     }
 
