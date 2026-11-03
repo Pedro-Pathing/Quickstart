@@ -22,10 +22,12 @@ import java.util.List;
  *             isn't in the way of (none within half a robot width of the straight line to it, nearer
  *             than it). Their Nectar is never a target.
  *  TURNING    turns on the spot to face the ball.
- *  DRIVING    runs the intake and drives through the ball's position (driveBeyondBall past it), still
- *             facing it. Each new camera frame updates where the ball is; once it passes under the
- *             camera, the robot carries on to its last known position using odometry.
- * It finishes when the intake reports a pickup or the robot reaches the point past the ball, then
+ *  DRIVING    runs the intake and drives along a line through the ball's position to driveBeyondBall
+ *             past it, facing along the line. Each new camera frame updates where the ball is and
+ *             re-aims the line, until the ball is within steerUntilDistance; then the line is
+ *             fixed, so the robot doesn't turn round as it passes over the ball's spot. Once the
+ *             ball passes under the camera, the robot carries on along the line using odometry.
+ * It finishes when the intake reports a pickup or the robot passes the end of the line, then
  * runs the intake for intakeAfterSeconds more and tilts the camera back up. If their Nectar comes
  * into the way while turning or driving, it goes back to SEARCHING and picks again. It gives up if
  * nothing suitable is seen for searchTimeoutSeconds or a collect takes over collectTimeoutSeconds.
@@ -46,8 +48,10 @@ public class CollectAssist {
     public static double robotHalfWidth = 0.23;
     /** A ball seen within this (m) of the target's last field position is taken to be the target. */
     public static double matchRadius = 0.15;
-    /** Reaching the point past the ball within this (m) counts as done. */
+    /** Getting within this (m) of the end of the line, or past it, counts as done. */
     public static double arriveTolerance = 0.04;
+    /** Once the ball is this close (m) to the robot's centre, the line stops being re-aimed. */
+    public static double steerUntilDistance = 0.35;
     public static double searchTimeoutSeconds = 1.5;
     public static double collectTimeoutSeconds = 4.0;
     /** The intake keeps running this long after a collect, to pull the ball fully in. */
@@ -73,6 +77,8 @@ public class CollectAssist {
     /** The target's kind and last known field position (Pedro inches). */
     private FloorBall.Kind targetKind;
     private double targetX, targetY;
+    /** While DRIVING: the line's heading and its end (Pedro inches). */
+    private double lineHeading, endX, endY;
     private int ballsSeen = 0;
 
     public CollectAssist(Follower follower, LimelightCamera camera, Intake intake) {
@@ -154,22 +160,27 @@ public class CollectAssist {
                     setState(State.SEARCHING);
                     break;
                 }
-                double heading = Math.atan2(targetY - pose.y(), targetX - pose.x());
                 if (state == State.TURNING) {
+                    double heading = Math.atan2(targetY - pose.y(), targetX - pose.x());
                     follower.hold(new Pose(holdX, holdY, heading));
                     double error = Math.atan2(Math.sin(heading - pose.heading()), Math.cos(heading - pose.heading()));
                     if (Math.abs(error) < Math.toRadians(aimToleranceDegrees)
                             && Math.abs(follower.twist().omega) < turnSettleRate) {
+                        aimLine(pose);
                         intake.run();
                         setState(State.DRIVING);
                     }
                 } else {
-                    double beyond = driveBeyondBall * METRES_TO_INCHES;
-                    double endX = targetX + beyond * Math.cos(heading);
-                    double endY = targetY + beyond * Math.sin(heading);
-                    follower.hold(new Pose(endX, endY, heading));
+                    // Re-aim the line at the ball's latest position until it's close
+                    if (balls != null && Math.hypot(targetX - pose.x(), targetY - pose.y())
+                            > steerUntilDistance * METRES_TO_INCHES) {
+                        aimLine(pose);
+                    }
+                    follower.hold(new Pose(endX, endY, lineHeading));
                     intake.update();
-                    boolean arrived = Math.hypot(endX - pose.x(), endY - pose.y()) < arriveTolerance * METRES_TO_INCHES;
+                    // How far short of the end of the line the robot is, along the line (negative once past it)
+                    double shortBy = (endX - pose.x()) * Math.cos(lineHeading) + (endY - pose.y()) * Math.sin(lineHeading);
+                    boolean arrived = shortBy < arriveTolerance * METRES_TO_INCHES;
                     if (intake.hasPickedUp()) {
                         finish("picked up " + targetKind);
                     } else if (arrived) {
@@ -203,6 +214,14 @@ public class CollectAssist {
             telemetryM.addData("Intake Baseline (A)", intake.getBaselineAmps());
         }
         if (!result.isEmpty()) telemetryM.addData("Last Collect", result);
+    }
+
+    /** Aim the line from where the robot is through the ball, ending driveBeyondBall past it. */
+    private void aimLine(Pose pose) {
+        lineHeading = Math.atan2(targetY - pose.y(), targetX - pose.x());
+        double beyond = driveBeyondBall * METRES_TO_INCHES;
+        endX = targetX + beyond * Math.cos(lineHeading);
+        endY = targetY + beyond * Math.sin(lineHeading);
     }
 
     /** Pick the nearest ball of ours that isn't blocked. False if there isn't one. */
