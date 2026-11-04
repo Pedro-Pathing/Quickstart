@@ -42,13 +42,15 @@ public class Aim {
             })
             .setDone(() -> {
                 // return true when position has a tolerance of 5 degrees(or more)
+                return true;
             })
             .setEnd(endCondition -> {
                 aligned = true;
             })
-            .requiring(/* requirements */)
-            .setInterruptedBehavior(/* interrupted behavior */)
-            .setBlockedBehavior(/* blocked behavior */)
-            .setConflictBehavior(/* conflict behavior */)
-            .setPriority(/* priority */);
+//            .requiring(/* requirements */)
+//            .setInterruptedBehavior(/* interrupted behavior */)
+//            .setBlockedBehavior(/* blocked behavior */)
+//            .setConflictBehavior(/* conflict behavior */)
+//            .setPriority(/* priority */)
+;
 }
