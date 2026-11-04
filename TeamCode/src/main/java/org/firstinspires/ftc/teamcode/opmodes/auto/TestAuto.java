@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.gates.Gates;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
+import org.firstinspires.ftc.teamcode.helpers.MatchState;
 import org.firstinspires.ftc.teamcode.launch.LaunchModel;
 import org.firstinspires.ftc.teamcode.launch.RpmTable;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -44,10 +45,6 @@ public class TestAuto extends LinearOpMode {
     /** Which HIVE to aim at. */
     public static Alliance alliance = Alliance.RED;
     public static int pollenShots = 4;
-    /** The heading has settled when within this of the aim... */
-    public static double aimToleranceDegrees = 2.0;
-    /** ...and turning slower than this (rad/s). */
-    public static double settleRate = 0.3;
     /** After each feed, wait this long before the next shot can fire, so the ball clears and the gate closes. */
     public static double shotIntervalMs = 500;
 
@@ -137,6 +134,7 @@ public class TestAuto extends LinearOpMode {
             telemetry.update();
         }
 
+        MatchState.save(alliance, follower.pose());
         camera.stop();
     }
 
@@ -161,8 +159,7 @@ public class TestAuto extends LinearOpMode {
 
     private boolean readyToFire() {
         return pollenLauncher.isReady()
-                && Math.abs(headingError()) < Math.toRadians(aimToleranceDegrees)
-                && Math.abs(follower.twist().omega) < settleRate;
+                && HiveAim.isLocked(headingError(), follower.twist().omega);
     }
 
     private void firePollen() {

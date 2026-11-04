@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.math.Pose;
 
 /**
@@ -15,7 +16,13 @@ import com.pedropathing.math.Pose;
  * heading now instead, on every loop until the next image, would make the aim heading run ahead of
  * the robot as it turns and overshoot. Call update() every loop, aiming or not, to keep the history.
  */
+@Configurable
 public class HiveAim {
+    /** The aim is locked (ready to shoot) within this of the aim heading... */
+    public static double lockToleranceDegrees = 2.0;
+    /** ...while turning slower than this (rad/s). Shared by TeleOp and the autos. */
+    public static double lockSettleRate = 0.3;
+
     private final PoseHistory history = new PoseHistory();
     private boolean fromVision = false;
     private long frame = -1;
@@ -45,6 +52,11 @@ public class HiveAim {
             heading = HiveCells.headingToNearestCell(alliance, pose.x(), pose.y());
         }
         return heading;
+    }
+
+    /** Whether a heading error (radians) and turn rate (rad/s) count as locked on. */
+    public static boolean isLocked(double headingError, double turnRate) {
+        return Math.abs(headingError) < Math.toRadians(lockToleranceDegrees) && Math.abs(turnRate) < lockSettleRate;
     }
 
     /** Whether this aim has had a heading from the camera yet. */

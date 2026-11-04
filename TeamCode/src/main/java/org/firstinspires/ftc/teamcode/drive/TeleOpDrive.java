@@ -76,6 +76,10 @@ public class TeleOpDrive {
     private double heading = 0.0;
     private double angularVelocity = 0.0;
     private DrivePowers powers = DrivePowers.zero();
+    private double speed = normalSpeed;
+    private double forwardInput, strafeInput, turnInput;
+    /** The heading that counts as "away from the driver" for field-centric (resetFieldHeading()). */
+    private double fieldHeadingOffset = 0.0;
 
     /**
      * Builds the follower at startingPose, or returns null (and notes Drive as disabled in status) if
@@ -137,6 +141,26 @@ public class TeleOpDrive {
      *                   driver isn't turning
      */
     public void update(Gamepad gamepad, DoubleSupplier aimHeading) {
+        readDriver(gamepad);
+        double turn;
+        if (headingState == HeadingState.AIMING && !driverTurning()) {
+            turn = aimHeading != null ? aimTurn(aimHeading.getAsDouble()) : lockTurn();
+        } else {
+            turn = driverTurn();
+        }
+        DrivePowers translation = translation();
+        powers = new DrivePowers(translation.forward(), translation.strafe(), turn);
+        follower.manual(powers);
+    }
+
+    /*
+     * The parts of update(), for an OpMode that drives the translation and the turn separately (the
+     * two-gamepad TeleOp's Ivy commands): readDriver() once a loop, then translation() and either
+     * driverTurn() or aimTurn(), then drive().
+     */
+
+    /** Read the driver's sticks, bumpers and circle (robot/field-centric) for this loop. */
+    public void readDriver(Gamepad gamepad) {
         if (gamepad.circleWasPressed()) {
             fieldCentric = !fieldCentric;
         }
@@ -144,7 +168,6 @@ public class TeleOpDrive {
         heading = follower.pose().heading();
         angularVelocity = follower.twist().omega;
 
-        double speed;
         if (gamepad.left_bumper && !gamepad.right_bumper) {
             speedMode = "Slow";
             speed = slowSpeed;
@@ -157,44 +180,76 @@ public class TeleOpDrive {
         }
 
         // +forward is forward, +strafe is left and +turn is CCW, so the X axes are negated
-        double forward = -gamepad.left_stick_y;
-        double strafe = -gamepad.left_stick_x;
-        double turnInput = -gamepad.right_stick_x;
+        forwardInput = -gamepad.left_stick_y;
+        strafeInput = -gamepad.left_stick_x;
+        turnInput = -gamepad.right_stick_x;
+    }
 
-        // Speed scaling applies to driver input only, so the heading lock keeps full authority
-        powers = new DrivePowers(forward * speed, strafe * speed, turnInput * turnScale * speed);
+    /** This loop's translation from the left stick, with the speed mode and field-centric applied (no turn). */
+    public DrivePowers translation() {
+        DrivePowers translation = new DrivePowers(forwardInput * speed, strafeInput * speed, 0.0);
+        return fieldCentric ? ManualDrive.fieldCentric(translation, heading, -fieldHeadingOffset) : translation;
+    }
 
-        if (fieldCentric) {
-            powers = ManualDrive.fieldCentric(powers, heading);
-        }
+    /** Whether the driver is turning with the right stick this loop. */
+    public boolean driverTurning() {
+        return Math.abs(turnInput) > turnDeadband;
+    }
 
-        if (Math.abs(turnInput) > turnDeadband) {
-            // Driver is turning: pass the stick straight through (this also ends auto-aim)
+    /**
+     * The driver's turn: the right stick while it's moved, then braking and holding the heading the
+     * robot settles at. Leaving AIMING this way settles at wherever the aim left the robot.
+     */
+    public double driverTurn() {
+        if (driverTurning()) {
             headingState = HeadingState.TURNING;
             targetHeading = heading;
-        } else {
-            if (headingState == HeadingState.AIMING) {
-                if (aimHeading != null) {
-                    targetHeading = aimHeading.getAsDouble();
-                }
-            } else if (headingState != HeadingState.LOCKED) {
-                headingState = HeadingState.SETTLING;
-                targetHeading = heading;
-
-                if (Math.abs(angularVelocity) < settleRate) {
-                    lockHeading();
-                }
-            }
-
-            if (useForesight) {
-                powers = new DrivePowers(powers.forward(), powers.strafe(), foresightTurn());
-            } else {
-                // While settling the error is zero, so only kD acts and brakes the rotation
-                powers = ManualDrive.headingLock(follower, headingController, powers, targetHeading);
+            // Speed scaling applies to driver input only, so the heading lock keeps full authority
+            return turnInput * turnScale * speed;
+        }
+        if (headingState != HeadingState.LOCKED) {
+            headingState = HeadingState.SETTLING;
+            targetHeading = heading;
+            if (Math.abs(angularVelocity) < settleRate) {
+                lockHeading();
             }
         }
+        return lockTurn();
+    }
 
+    /** Turn to hold this field heading (auto-aim's). */
+    public double aimTurn(double aimHeading) {
+        if (headingState != HeadingState.AIMING) {
+            headingState = HeadingState.AIMING;
+            headingController.reset();
+        }
+        targetHeading = aimHeading;
+        return lockTurn();
+    }
+
+    /** Brake and then hold wherever the robot settles, e.g. when the heading lock takes over again after an assist. */
+    public void holdCurrentHeading() {
+        headingState = HeadingState.SETTLING;
+        targetHeading = follower.pose().heading();
+        headingController.reset();
+    }
+
+    /** Make the robot's current heading "away from the driver" for field-centric driving. */
+    public void resetFieldHeading() {
+        fieldHeadingOffset = follower.pose().heading();
+    }
+
+    /** Drive with this translation and turn. */
+    public void drive(DrivePowers translation, double turn) {
+        powers = new DrivePowers(translation.forward(), translation.strafe(), turn);
         follower.manual(powers);
+    }
+
+    /** The turn power that holds targetHeading, with the Foresight lock or the PID. */
+    private double lockTurn() {
+        if (useForesight) return foresightTurn();
+        // While settling the error is zero, so only kD acts and brakes the rotation
+        return ManualDrive.headingLock(follower, headingController, DrivePowers.zero(), targetHeading).turn();
     }
 
     public void addTelemetry(TelemetryManager telemetryM) {

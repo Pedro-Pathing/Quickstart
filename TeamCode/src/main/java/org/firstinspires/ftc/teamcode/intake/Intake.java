@@ -44,6 +44,7 @@ public class Intake {
     private final ElapsedTime loopTimer = new ElapsedTime();
 
     private boolean running = false;
+    private boolean reversing = false;
     private boolean rising = false;
     private boolean pickedUp = false;
     private double baselineAmps = Double.NaN;
@@ -68,6 +69,7 @@ public class Intake {
     /** Start pulling balls in. Clears any earlier pickup. */
     public void run() {
         if (!running && motor != null) motor.setPower(power);
+        reversing = false;
         if (!running) {
             runTimer.reset();
             loopTimer.reset();
@@ -79,8 +81,20 @@ public class Intake {
     }
 
     public void stop() {
-        if (running && motor != null) motor.setPower(0);
+        if ((running || reversing) && motor != null) motor.setPower(0);
         running = false;
+        reversing = false;
+    }
+
+    /** Run the rollers outwards, to spit a ball out or clear a jam. run() or stop() ends it. */
+    public void reverse() {
+        if (!reversing && motor != null) motor.setPower(-power);
+        running = false;
+        reversing = true;
+    }
+
+    public boolean isReversing() {
+        return reversing;
     }
 
     public boolean isRunning() {

@@ -67,15 +67,40 @@ public class Kiwi implements Drivetrain {
     }
 
     public void applyDrive(DrivePowers powers) {
+        applyDrive(powers, false);
+    }
+
+    /**
+     * With turnFirst (driver control), a wheel over full power scales down only the translation, so
+     * the turn (e.g. auto-aim's) keeps its full power while the driver sprints. Otherwise all three
+     * wheels scale down together, keeping the direction of travel (path following).
+     */
+    public void applyDrive(DrivePowers powers, boolean turnFirst) {
         drivePowers = powers;
+        double voltageNormalized = config.voltageCompensation.get() ? getVoltageNormalized() : 1.0;
+
+        if (turnFirst) {
+            double turn = Math.max(-1.0, Math.min(1.0, powers.turn() * voltageNormalized));
+            double[] translation = computeWheelPowersUnnormalized(new DrivePowers(powers.forward(), powers.strafe(), 0.0));
+            // The largest share of the translation (0..1) that keeps every wheel within full power
+            double scale = 1.0;
+            for (double t : translation) {
+                double wheel = t * voltageNormalized;
+                if (Math.abs(wheel) < 1e-9) continue;
+                double limit = ((wheel > 0 ? 1.0 : -1.0) - turn) / wheel;
+                scale = Math.min(scale, Math.max(0.0, limit));
+            }
+            powerScale = scale;
+            for (int i = 0; i < translation.length; i++) {
+                wheelPowers[i] = translation[i] * voltageNormalized * scale + turn;
+                motors[i].setPower(wheelPowers[i]);
+            }
+            return;
+        }
 
         double[] requested = computeWheelPowersUnnormalized(powers);
-
-        if (config.voltageCompensation.get()) {
-            double voltageNormalized = getVoltageNormalized();
-            for (int i = 0; i < requested.length; i++) {
-                requested[i] *= voltageNormalized;
-            }
+        for (int i = 0; i < requested.length; i++) {
+            requested[i] *= voltageNormalized;
         }
 
         // Scale all three down together if any is over full power, keeping the direction of travel
@@ -131,7 +156,7 @@ public class Kiwi implements Drivetrain {
     public void drive(DrivePowers powers, boolean manual) {
         setZeroPowerBehavior(manual && config.manualBrakeMode.get()
                 ? DcMotor.ZeroPowerBehavior.BRAKE : DcMotor.ZeroPowerBehavior.FLOAT);
-        applyDrive(powers);
+        applyDrive(powers, manual);
     }
 
     @Override

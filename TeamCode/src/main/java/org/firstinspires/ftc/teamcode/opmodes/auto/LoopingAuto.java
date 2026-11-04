@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.gates.Gates;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
+import org.firstinspires.ftc.teamcode.helpers.MatchState;
 import org.firstinspires.ftc.teamcode.intake.Intake;
 import org.firstinspires.ftc.teamcode.launch.LaunchModel;
 import org.firstinspires.ftc.teamcode.launch.RpmTable;
@@ -56,8 +57,6 @@ public abstract class LoopingAuto extends LinearOpMode {
     public static int volleyFeeds = 4;
     public static double shootTimeoutMs = 6000;
     public static double driveTimeoutMs = 7000;
-    public static double aimToleranceDegrees = 2.0;
-    public static double settleRate = 0.3;
     public static double shotIntervalMs = 300;  // a gate's open for Gates.feedMs (250)
     public static double partnerDelayMs = 5000;
     // The FLOWER: stop flowerApproachInches short, push in to flowerPushInches past flowerPose() for
@@ -234,6 +233,7 @@ public abstract class LoopingAuto extends LinearOpMode {
         }
 
         intake.stop();
+        MatchState.save(alliance(), follower.pose());
         camera.stop();
     }
 
@@ -254,8 +254,7 @@ public abstract class LoopingAuto extends LinearOpMode {
 
     private boolean readyToFire() {
         return pollenLauncher.isReady() && nectarLauncher.isReady()
-                && Math.abs(headingError()) < Math.toRadians(aimToleranceDegrees)
-                && Math.abs(follower.twist().omega) < settleRate;
+                && HiveAim.isLocked(headingError(), follower.twist().omega);
     }
 
     private void fire() {
