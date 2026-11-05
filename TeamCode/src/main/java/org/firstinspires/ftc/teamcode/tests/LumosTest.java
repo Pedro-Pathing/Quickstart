@@ -9,6 +9,7 @@ public class LumosTest extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
+    org.firstinspires.ftc.teamcode.utilities.OpModeUtil.reportConfig(telemetry);
     Lumos lumos = new Lumos(hardwareMap);
     waitForStart();
 
@@ -16,6 +17,7 @@ public class LumosTest extends LinearOpMode {
 
     while (opModeIsActive()) {
       lumos.setColor(Lumos.Color.RED);
+      lumos.periodic();
       telemetry.addData("pos", lumos.getPosition());
       telemetry.update();
       idle();

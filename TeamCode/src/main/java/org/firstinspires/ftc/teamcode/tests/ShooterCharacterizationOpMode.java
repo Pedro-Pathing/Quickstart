@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.ballistics.FlywheelFeedforwardFit;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 /**
  * Steady-state characterization of the shooter flywheel.
@@ -35,7 +36,9 @@ import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 public class ShooterCharacterizationOpMode extends LinearOpMode {
 
   /** One settled (power, velocity) operating point. */
-  public record SweepPoint(double power, double velocityTicksPerSec, double rippleTicksPerSec) {}
+  /** One settled step; {@code busVolts} is the mean battery voltage while it was sampled. */
+  public record SweepPoint(
+      double power, double velocityTicksPerSec, double rippleTicksPerSec, double busVolts) {}
 
   /** Power setpoints to sample. Below ~0.25 a loaded flywheel may not turn at all. */
   private static final double[] POWER_STEPS = {
@@ -47,8 +50,15 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
 
   private static final double SAMPLE_SEC = 0.8;
 
-  /** Fraction of open-loop DC gain to use as proportional gain; keeps loop gain well under 1. */
-  private static final double LOOP_GAIN_TARGET = 0.30;
+  /**
+   * Proportional gain as a multiple of kV (loop gain), and the integral time: the pair
+   * FlywheelClosedLoopProperties found most robust across calibration error, battery voltage and
+   * velocity-sensor lag. Loop gain 0.3 with no integral left the wheel outside the feed band
+   * whenever kS or kV was a few percent off; above ~3 it tolerates less lag and hides ball dips.
+   */
+  private static final double LOOP_GAIN_TARGET = 2.0;
+
+  private static final double INTEGRAL_TIME_SEC = 2.0;
 
   private List<LynxModule> allHubs;
   private TelemetryManager telemetryM;
@@ -60,6 +70,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
 
     allHubs = hardwareMap.getAll(LynxModule.class);
     for (LynxModule module : allHubs) {
@@ -105,7 +116,12 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
 
     List<FlywheelFeedforwardFit.Sample> samples = new ArrayList<>();
     for (SweepPoint p : sweep) {
-      samples.add(new FlywheelFeedforwardFit.Sample(p.power(), p.velocityTicksPerSec()));
+      // Shooter scales its feedforward by nominal_voltage / measured volts, so its coefficients
+      // describe the wheel at nominal voltage. Fit the power that would have produced this speed
+      // at nominal; fitting raw power made feedforward ~9% low after characterizing on a fresh
+      // 13.2 V battery, the wheel settled under min_transfer_threshold and nothing fired.
+      double atNominal = p.power() * p.busVolts() / config.shooter.nominal_voltage;
+      samples.add(new FlywheelFeedforwardFit.Sample(atNominal, p.velocityTicksPerSec()));
     }
     reportResults(FlywheelFeedforwardFit.fit(samples));
   }
@@ -130,6 +146,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
         sleep(10);
       }
 
+      double voltSum = 0.0;
       double sum = 0.0;
       double min = Double.MAX_VALUE;
       double max = -Double.MAX_VALUE;
@@ -139,6 +156,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
       while (opModeIsActive() && !isStopRequested() && timer.seconds() < SAMPLE_SEC) {
         clearBulkCache();
         double v = Math.abs(shooter1.getVelocity());
+        voltSum += busVoltage();
         sum += v;
         min = Math.min(min, v);
         max = Math.max(max, v);
@@ -156,7 +174,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
         double mean = sum / n;
         // Discard points where the wheel never actually broke loose.
         if (mean > 20.0) {
-          sweep.add(new SweepPoint(power, mean, max - min));
+          sweep.add(new SweepPoint(power, mean, max - min, voltSum / n));
         }
       }
     }
@@ -205,11 +223,15 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
       telemetry.addData("Target", "%.0f ticks/s", target);
       telemetry.addData("Predicted open-loop cmd", "%.4f", predictedCommand);
       telemetry.addLine("");
-      telemetry.addLine("PASTE INTO config.yaml under shooter:");
+      if (config.shooter.use_ftc_pid) {
+        telemetry.addLine("!! shooter.use_ftc_pid is true: the robot uses motor_pidf and IGNORES");
+        telemetry.addLine("!! the values below. Set use_ftc_pid: false to use them.");
+      }
+      telemetry.addLine("PASTE INTO config.yaml under shooter (fitted at nominal_voltage):");
       telemetry.addLine(String.format("  ks: %.4f", kS));
       telemetry.addLine("  pidf:");
       telemetry.addLine(String.format("    p: %.7f", recommendedP));
-      telemetry.addLine("    i: 0");
+      telemetry.addLine(String.format("    i: %.7f", recommendedP / INTEGRAL_TIME_SEC));
       telemetry.addLine("    d: 0");
       telemetry.addLine(String.format("    f: %.4f", fittedF));
       telemetry.update();
@@ -275,6 +297,18 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
   private void stopMotors() {
     shooter1.setPower(0);
     shooter2.setPower(0);
+  }
+
+  /** Lowest positive bus voltage, the same reading Shooter's voltage compensation uses. */
+  private double busVoltage() {
+    double lowest = Double.POSITIVE_INFINITY;
+    for (var sensor : hardwareMap.voltageSensor) {
+      double v = sensor.getVoltage();
+      if (v > 0) {
+        lowest = Math.min(lowest, v);
+      }
+    }
+    return Double.isFinite(lowest) ? lowest : config.shooter.nominal_voltage;
   }
 
   private void clearBulkCache() {

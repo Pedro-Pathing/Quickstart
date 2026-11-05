@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -32,7 +32,7 @@ public class TurretMigrationDiagnosticTest {
   private double[] voltageBox; // mutable box so the Mockito stub can see later updates
   private Pose[] poseBox;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     HardwareMap hardwareMap = Mockito.mock(HardwareMap.class);
     mockServo = Mockito.mock(CRServo.class);
@@ -114,11 +114,11 @@ public class TurretMigrationDiagnosticTest {
     // Goal is due "north" (+Y) of the robot. Chassis facing "east" (heading 0) needs a 90 deg
     // relative turret angle to hit it -- beyond the mechanical limit, so it must clamp to
     // max_angle.
-    turret.setGoal(72.0, 200.0);
+    turret.setTargetPoint(72.0, 200.0);
     setPhysicalTurretAngle(0.0);
     poseBox[0] = new Pose(72.0, 72.0, 0.0);
 
-    turret.setAimMode(Turret.AimMode.AIM_AT_GOAL);
+    turret.setAimMode(Turret.AimMode.AIM_AT_TARGET);
     turret.periodic();
     assertEquals(config.turret.travel.max_angle, turret.getTargetTurnAngle(), 1e-6);
 

@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.pedropathing.drivetrain.DrivePowers;
@@ -16,8 +16,8 @@ import org.firstinspires.ftc.teamcode.utilities.DriveSlewLimiter;
 import org.firstinspires.ftc.teamcode.utilities.JumpDetector;
 import org.firstinspires.ftc.teamcode.utilities.SlewCalibrationSearch;
 import org.firstinspires.ftc.teamcode.utilities.SlewTravelBudget;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class SlewControlTest {
@@ -26,7 +26,7 @@ public class SlewControlTest {
       new SlewProfile(
           new SlewTuning(.22, .55), new SlewTuning(.22, .22), new SlewTuning(.088, .088));
 
-  @After
+  @AfterEach
   public void restoreConfig() {
     config.reload();
   }

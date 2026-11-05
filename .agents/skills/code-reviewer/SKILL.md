@@ -1,8 +1,6 @@
 ---
 name: code-reviewer
-description: "Specialized agent for code review and quality assurance"
-# Content-Hash: blake3:3b74d31304b7bec3aad78a4db06550c576db69c46a9ecd650b62a6a9708650e5
-# Source-Hash: blake3:3dfb7dd99abf50dc956318f7fc8823b4c9003173833a5851ad84ec0a4245e49b
+description: Specialized agent for code review and quality assurance
 ---
 
 # Code Reviewer

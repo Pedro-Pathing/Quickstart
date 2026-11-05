@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 @Configurable
 @TeleOp(name = "Hood Tuner", group = "Tuning")
@@ -22,6 +23,7 @@ public class HoodTunerOpMode extends OpMode {
   @Override
   public void init() {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     hood = hardwareMap.get(Servo.class, "hood");
     targetPosition = config.shooter.ballistics.min_hood_servo_pos;
     hood.setPosition(targetPosition);

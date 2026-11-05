@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.ballistics;
 
 import java.util.Locale;
+import org.firstinspires.ftc.teamcode.records.BallType;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 
 public final class ShotTable {
@@ -12,32 +13,47 @@ public final class ShotTable {
   private final double[] distances;
   private final double[] hoodServo;
   private final double[] rpm;
+  private final boolean calibrated;
 
-  private ShotTable(double[] distances, double[] hoodServo, double[] rpm) {
+  private ShotTable(double[] distances, double[] hoodServo, double[] rpm, boolean calibrated) {
     this.distances = distances;
     this.hoodServo = hoodServo;
     this.rpm = rpm;
+    this.calibrated = calibrated;
   }
 
   /**
-   * Builds the table from the flat {@code distance, hood_servo, rpm} triples in config.
+   * Builds the table for one SCORING ELEMENT from the flat {@code distance, hood_servo, rpm}
+   * triples in config. POLLEN (2.8 in) and NECTAR (3.6 in, heavier) leave the shooter differently,
+   * so each has its own rows.
    *
    * @throws IllegalStateException if the row data is malformed, since a silently mis-parsed shot
    *     table would command arbitrary hood and flywheel values on every shot of a match.
    */
-  public static ShotTable fromConfig() {
-    return fromPoints(config.shooter.shot_table.points);
+  public static ShotTable fromConfig(BallType ballType) {
+    var table = config.shooter.shot_table;
+    double[] points = ballType == BallType.NECTAR ? table.nectar_points : table.pollen_points;
+    return fromPoints(points, table.calibrated);
   }
 
-  /** Builds a table from flat {@code distance, hood_servo, rpm} triples. */
+  /** Builds a calibrated table from flat {@code distance, hood_servo, rpm} triples. */
   public static ShotTable fromPoints(double[] points) {
+    return fromPoints(points, true);
+  }
+
+  /**
+   * Builds a table from flat {@code distance, hood_servo, rpm} triples.
+   *
+   * @param calibrated false for placeholder rows, which the solver never treats as a valid shot
+   */
+  public static ShotTable fromPoints(double[] points, boolean calibrated) {
     if (points == null || points.length == 0) {
       throw new IllegalStateException(
-          "shooter.shot_table.points is empty — run the Ballistics Calibration OpMode");
+          "shooter.shot_table is empty — run the Ballistics Calibration OpMode");
     }
     if (points.length % 3 != 0) {
       throw new IllegalStateException(
-          "shooter.shot_table.points must be flat distance,hood_servo,rpm triples but had "
+          "shooter.shot_table rows must be flat distance,hood_servo,rpm triples but had "
               + points.length
               + " values");
     }
@@ -50,6 +66,9 @@ public final class ShotTable {
       d[i] = points[i * 3];
       h[i] = points[i * 3 + 1];
       r[i] = points[i * 3 + 2];
+      if (!Double.isFinite(d[i]) || !Double.isFinite(h[i]) || !Double.isFinite(r[i])) {
+        throw new IllegalStateException("shot table row " + i + " has a non-finite value");
+      }
       if (i > 0 && d[i] <= d[i - 1]) {
         throw new IllegalStateException(
             String.format(
@@ -62,7 +81,12 @@ public final class ShotTable {
                 d[i - 1]));
       }
     }
-    return new ShotTable(d, h, r);
+    return new ShotTable(d, h, r, calibrated);
+  }
+
+  /** False while the rows are placeholders that must not drive an automatic feed. */
+  public boolean isCalibrated() {
+    return calibrated;
   }
 
   /** Lowest calibrated distance (inches). */
@@ -85,6 +109,9 @@ public final class ShotTable {
    * withinCalibratedRange == false} so callers can gate on it rather than acting on a guess.
    */
   public Shot lookup(double distanceInches) {
+    if (!Double.isFinite(distanceInches)) {
+      return new Shot(hoodServo[0], rpm[0], false, "Non-finite shot distance");
+    }
     if (distanceInches <= distances[0]) {
       return new Shot(
           hoodServo[0],

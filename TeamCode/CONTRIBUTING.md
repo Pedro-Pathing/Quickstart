@@ -47,11 +47,9 @@ decode/
 ├── dairy-docs/                 # Dairy framework documentation
 ├── dairy-cachinghardware/      # Dairy CachingHardware library source
 ├── dairy-sloth/                # Dairy Sloth library source
-├── .ai-rulez/                  # AI governance rules & context (source of truth)
-│   ├── config.toml             # AI-Rulez configuration
-│   ├── rules/                  # Coding standards for AI assistants
-│   └── context/                # Architecture context for AI assistants
-├── AGENTS.md / GEMINI.md / CLAUDE.md   # AI-Rulez generated outputs (gitignored, regenerate locally — see §12)
+├── AGENTS.md                   # AI assistant rules & architecture context (source of truth — see §12)
+├── CLAUDE.md / GEMINI.md       # One-line `@AGENTS.md` imports
+├── .agents/skills/             # Shared AI skills (.claude/skills and .github/skills symlink here)
 ├── SETUP_HELPER.md             # Setup guide for new contributors
 └── build.dependencies.gradle   # Centralized dependency versions
 ```
@@ -200,7 +198,7 @@ Access config through `RobotConfig` in subsystem code. Do not call `org.firstins
 
 ### Hot-deploying config to a connected robot
 ```bash
-./gradlew pushConfig   # adb push config.yaml to /sdcard/FIRST/teamcode/, no rebuild needed
+./gradlew pushConfig   # runs checkPushConfig (route + config checks), then adb pushes config.yaml; no rebuild
 ./gradlew resetConfig  # remove the override, revert to the bundled config
 ```
 Re-init the OpMode on the Driver Station after pushing for the new values to take effect.
@@ -280,7 +278,8 @@ The **Dairy** framework is used for:
 |---|---|
 | `verifyBuild` | Spotless format, compile, JVM unit tests, and `checkConfigKeys` — no deployment |
 | `checkConfigKeys` | Runs `scripts/check_config_keys.py` (alliance symmetry + fuzzy-duplicate check on `config.yaml`) |
-| `pushConfig` | ADB-pushes `config.yaml` to a connected robot for hot reload (no rebuild) |
+| `pushConfig` | Runs `checkPushConfig`, then ADB-pushes `config.yaml` to a connected robot for hot reload (no rebuild) |
+| `checkPushConfig` | The `push-config`-tagged tests (autonomous routes, config sanity, match windows) against `config.yaml`; recompiles nothing for a value-only change |
 | `resetConfig` | Removes the ADB-pushed override |
 | `jacocoTestReport` | Coverage report over the JVM unit tests |
 
@@ -309,7 +308,7 @@ The **Dairy** framework is used for:
 
 ## 12. Contributing Rules
 
-These are enforced by the AI governance system (`.ai-rulez/`) and apply to all contributors:
+These are enforced by the AI assistant rules (`AGENTS.md`) and apply to all contributors:
 
 1. **No hardcoding** — all tunable values go in `config.yaml`, described in `config-docs.yaml`, accessed via `RobotConfig`.
 2. **Prefer libraries** — never write custom implementations of things libraries already do (geometry, PID, angle math, collections). The one sanctioned exception is `Sentinel`'s SAT fallback, which exists purely to make intersection math unit-testable under Robolectric.
@@ -324,6 +323,6 @@ These are enforced by the AI governance system (`.ai-rulez/`) and apply to all c
 ### AI Rule Maintenance
 
 To update the rules that AI assistants follow:
-1. Edit files in `.ai-rulez/rules/` or `.ai-rulez/context/` — treat these as the source of truth, not the generated files.
-2. Run `npx ai-rulez@latest generate` to regenerate `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and the per-tool skill files.
-3. Commit only the `.ai-rulez/` source changes — `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` are gitignored (see `.gitignore`) and are meant to be regenerated locally by each contributor/agent, not committed.
+1. Edit `AGENTS.md` directly and commit it. Claude Code, Codex, GitHub Copilot and Antigravity all read it; there is no generation step.
+2. Leave `CLAUDE.md` and `GEMINI.md` as bare `@AGENTS.md` imports — anything added there reaches only one tool.
+3. Put shared skills in `.agents/skills/<name>/SKILL.md`. `.claude/skills` and `.github/skills` are symlinks to it (on Windows, enable `core.symlinks`).

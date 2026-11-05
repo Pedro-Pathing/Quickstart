@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 /**
  * Measures the turret's plant characteristics and derives a proportional gain from them, replacing
@@ -80,6 +81,7 @@ public class TurretPlantCalibrationOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
       module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
     }
@@ -273,6 +275,8 @@ public class TurretPlantCalibrationOpMode extends LinearOpMode {
     telemetry.addLine("turret:");
     telemetry.addLine(String.format("  ks_positive: %.4f", Math.abs(ksPositive)));
     telemetry.addLine(String.format("  ks_negative: %.4f", Math.abs(ksNegative)));
+    // Velocity feedforward: power per deg/s, so the turret keeps up with a turning chassis.
+    telemetry.addLine(String.format("  kv: %.5f", k > 0 ? 1.0 / k : 0.0));
     telemetry.addLine("  pidf:");
     telemetry.addLine(String.format("    p: %.5f", recommendedP));
     telemetry.addLine("    i: 0");

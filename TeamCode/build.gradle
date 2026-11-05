@@ -37,6 +37,15 @@ android {
         unitTests {
             includeAndroidResources = false
             returnDefaultValues = true
+            all {
+                useJUnitPlatform {
+                    includeEngines 'junit-jupiter', 'jqwik'
+                    // Timing benchmarks report numbers rather than pass/fail: run them with -Pbenchmark.
+                    if (!project.hasProperty('benchmark')) {
+                        excludeTags 'benchmark'
+                    }
+                }
+            }
         }
     }
 
@@ -59,18 +68,40 @@ android {
         options.fork = true
         options.compilerArgs << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-path"
 
+    }
+}
 
-        if (plugins.hasPlugin("net.ltgt.errorprone")) {
-            options.errorprone {
-                check("NullAway", CheckSeverity.ERROR)
-                option("NullAway:AnnotatedPackages", "org.firstinspires.ftc.teamcode")
+// Error Prone + NullAway. The Android Gradle Plugin compiles with -proc:none and never puts the
+// `errorprone` configuration on the compiler's plugin path, and the Gradle plugin leaves Error
+// Prone disabled for its tasks, so both are set here, outside the android {} block. Without this,
+// NullAway silently does not run.
+// `errorprone` itself cannot be resolved, so resolve a configuration that extends it.
+def errorProneResolvable = configurations.create('errorproneResolvable') {
+    canBeResolved = true
+    canBeConsumed = false
+    extendsFrom configurations.errorprone
+}
+def errorProneClasspath = files(errorProneResolvable)
+tasks.withType(JavaCompile).configureEach { task ->
+    // AGP assigns its own (empty) processor path after this script runs, so set ours last.
+    task.options.compilerArgs << "--should-stop=ifError=FLOW" << "-Xmaxerrs" << "1000"
+    task.doFirst { task.options.annotationProcessorPath = errorProneClasspath }
+    task.options.errorprone {
+        enabled = true
+        // Unit tests pass null on purpose (to prove the defensive paths) and drive Mockito mocks,
+        // so NullAway checks production code only.
+        check("NullAway", task.name.contains("UnitTest") ? CheckSeverity.OFF : CheckSeverity.ERROR)
+        option("NullAway:AnnotatedPackages", "org.firstinspires.ftc.teamcode")
+        // Owned by Pedro-Pathing/Quickstart and generated code: not ours to annotate.
+        excludedPaths = ".*/pedro/procedures/.*|.*/generated/.*"
+        // FTC OpModes build their hardware in these entry points, not in a constructor.
+        option("NullAway:KnownInitializers",
+                "com.qualcomm.robotcore.eventloop.opmode.OpMode.init,"
+                + "com.qualcomm.robotcore.eventloop.opmode.LinearOpMode.runOpMode")
 
-                check("FloatDoubleComparison", CheckSeverity.ERROR)
-                check("FloatingPointLiteralPrecision", CheckSeverity.ERROR)
-                check("MathAbsoluteRandom", CheckSeverity.ERROR)
-                check("DeadException", CheckSeverity.ERROR)
-            }
-        }
+        check("FloatingPointLiteralPrecision", CheckSeverity.ERROR)
+        check("MathAbsoluteRandom", CheckSeverity.ERROR)
+        check("DeadException", CheckSeverity.ERROR)
     }
 }
 
@@ -89,11 +120,14 @@ spotless {
 preBuild.dependsOn 'generateConfig'
 
 
-// Hook tests and Spotless verification into all assemble, install, and deploy tasks (runs on clicking Build / Run)
+// Hook tests, the turret proofs and Spotless into all assemble, install and deploy tasks (runs on
+// clicking Build / Run). The proofs depend on nothing compiled, so they run alongside the build.
 tasks.configureEach { task ->
     if (task.name.startsWith('assemble') || task.name.startsWith('install')) {
         task.dependsOn 'testDebugUnitTest'
         task.dependsOn 'spotlessApply'
+        task.dependsOn 'verifyTurret'
+        task.dependsOn 'verifyTurretLean'
     }
 }
 
@@ -107,14 +141,18 @@ configurations.configureEach {
     }
 }
 
-// Optimize local JVM tests to run in a single warm JVM worker without multi-fork process overhead
+// One warm test JVM: the suite is ~5 s of work, and a second JVM costs more in class loading, JIT
+// warm-up and Mockito set-up than it saves. Coverage instrumentation slows every class load and
+// loop, so it is on only for jacocoTestReport (-Pcoverage).
 tasks.withType(Test).configureEach {
     maxParallelForks = 1
     forkEvery = 0
+    jacoco.enabled = project.hasProperty('coverage')
 }
 
 // JaCoCo Report Task
 tasks.register('jacocoTestReport', JacocoReport) {
+    description = 'Coverage report for the unit tests; run with -Pcoverage so they are instrumented.'
     dependsOn 'testDebugUnitTest'
     reports {
         xml.required = true
@@ -151,8 +189,11 @@ dependencies {
     // Nullability annotations for compile-time
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
-    // Test dependencies
-    testImplementation 'junit:junit:4.13.2'
+    // Test dependencies: JUnit 6 (Jupiter) example tests and jqwik property tests
+    testImplementation platform('org.junit:junit-bom:6.1.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'net.jqwik:jqwik:1.10.2'
     testImplementation 'com.networknt:json-schema-validator:3.0.8'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.22.3'
     testImplementation 'org.mockito:mockito-core:5.24.0'
@@ -206,11 +247,50 @@ tasks.matching { it.name.startsWith('spotless') }.configureEach {
     mustRunAfter 'generateConfig'
 }
 
+// The checks a config.yaml must pass before pushConfig sends it to the robot: the JUnit tests
+// tagged push-config (every autonomous route, start and park pose for both alliances, the schema,
+// ConfigSanity and the match windows). The robot itself no longer checks routes at INIT. Reuses the
+// unit-test classes and classpath, so a value-only config change recompiles nothing: only the
+// config resource is re-copied and the tagged tests run (well under a second of test time).
+tasks.register('checkPushConfig', Test) {
+    group = 'verification'
+    description = 'Runs the push-config tests against config.yaml; pushConfig requires them.'
+    dependsOn 'generateConfig', 'checkConfigKeys'
+    def unit = tasks.named('testDebugUnitTest', Test).get()
+    testClassesDirs = unit.testClassesDirs
+    classpath = unit.classpath
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+        includeTags 'push-config'
+    }
+    // Only the classes holding push-config tests, so JUnit does not load every test class to read
+    // its tags (that alone costs more than the tests). A tagged test in a class not listed here
+    // does not run: add its class.
+    filter {
+        includeTestsMatching 'org.firstinspires.ftc.teamcode.AutoRouteSafetyTest'
+        includeTestsMatching 'org.firstinspires.ftc.teamcode.ConfigSanityTest'
+        includeTestsMatching 'org.firstinspires.ftc.teamcode.MatchClockTest'
+    }
+    inputs.file("${rootProject.projectDir}/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/robot/config/config.yaml")
+    // These tests only read config, in a fresh JVM: skip FreshConfigExtension's two reloads per test.
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'false'
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+    }
+    afterSuite { desc, result ->
+        if (desc.parent == null) {
+            println String.format(Locale.ROOT, 'checkPushConfig: %d tests, %d failed, %.0f ms of test time',
+                result.testCount, result.failedTestCount, (result.endTime - result.startTime) as double)
+        }
+    }
+}
+
 // ADB YAML hot-deploy tasks (no APK rebuild required, pure Java, no Python dependency)
 tasks.register('pushConfig', JavaExec) {
     group = 'deploy'
-    description = 'Pushes config.yaml to the robot via ADB. Re-init your OpMode to apply.'
-    dependsOn ':config-compiler:compileDebugJavaWithJavac', 'generateConfig'
+    description = 'Checks config.yaml (checkPushConfig), then pushes it to the robot via ADB. Re-init your OpMode to apply.'
+    dependsOn ':config-compiler:compileDebugJavaWithJavac', 'generateConfig', 'checkPushConfig'
     classpath = project(':config-compiler').configurations.debugCompileClasspath +
                 files("${project(':config-compiler').layout.buildDirectory.get().asFile}/intermediates/javac/debug/compileDebugJavaWithJavac/classes")
     mainClass = 'org.firstinspires.ftc.teamcode.config.ConfigPusherMain'
@@ -285,9 +365,235 @@ tasks.register('connectAdb') {
     }
 }
 
+// Formal proofs (OpenJML) of the JML contracts in the classes below, against their real source.
+// Real-number arithmetic by default (seconds); -PexactDoubles proves with bit-exact IEEE-754 double
+// rounding instead (CVC5, minutes). Library contracts the proofs rely on live in verification/specs.
+def openJmlVersion = '21.0.29'
+def openJmlHome = file(project.findProperty('openjml.home') ?: "${System.getProperty('user.home')}/.openjml/${openJmlVersion}")
+// The code-level proofs: TurretLaw (the turret's decisions), TurretPlant (the physics TurretSim
+// runs) and TurretStep (one control loop as exact formulas over both). Proven against these files.
+// Beyond the turret: FeedLaw (the shot feed gate, G417), HiveLaw (HiveTracker's state machine),
+// and the static transitions of AntiWindupIntegrator and BallInventory (the G407 collect rule).
+// Only static methods are proven, and each file must compile on its own (java.lang plus the SDK).
+def provenSources = [
+    'src/main/java/org/firstinspires/ftc/teamcode/robot/TurretLaw.java',
+    'src/test/java/org/firstinspires/ftc/teamcode/robot/TurretPlant.java',
+    'verification/java/org/firstinspires/ftc/teamcode/robot/TurretStep.java',
+    'src/main/java/org/firstinspires/ftc/teamcode/robot/FeedLaw.java',
+    'src/main/java/org/firstinspires/ftc/teamcode/game/HiveLaw.java',
+    'src/main/java/org/firstinspires/ftc/teamcode/utilities/AntiWindupIntegrator.java',
+    'src/main/java/org/firstinspires/ftc/teamcode/utilities/BallInventory.java',
+]
+
+tasks.register('setupOpenJml') {
+    group = 'verification'
+    description = "Downloads OpenJML ${openJmlVersion} (with its JDK and solvers) to ${openJmlHome}, once."
+    onlyIf { !new File(openJmlHome, 'openjml').exists() }
+    doLast {
+        def os = System.getProperty('os.name').toLowerCase()
+        def arm = System.getProperty('os.arch') in ['aarch64', 'arm64']
+        def asset = os.contains('mac') ? "openjml-macos-${arm ? 'arm64' : 'x86_64'}-${openJmlVersion}.zip"
+                : "openjml-ubuntu-${arm ? 'arm64' : '24.04'}-${openJmlVersion}.zip"
+        def zip = new File(openJmlHome.parentFile, asset)
+        openJmlHome.parentFile.mkdirs()
+        if (!zip.exists()) {
+            println "Downloading ${asset} (~220 MB)..."
+            new URL("https://github.com/OpenJML/OpenJML/releases/download/${openJmlVersion}/${asset}")
+                .withInputStream { zip.bytes = it.bytes }
+        }
+        // Not named install*: those tasks are hooked to run the unit tests first (see above).
+        // System unzip keeps the solvers' executable bits; Gradle's and Ant's do not.
+        def unzip = new ProcessBuilder('unzip', '-q', '-o', zip.absolutePath, '-d', openJmlHome.absolutePath)
+            .inheritIO().start()
+        if (unzip.waitFor() != 0) {
+            throw new GradleException("unzip of ${zip} failed")
+        }
+        // The release's own one-time fix for macOS quarantine flags; verifyTurret launches the JDK
+        // directly rather than through the openjml script, which re-runs it on every call.
+        def macSetup = new File(openJmlHome, 'mac-setup')
+        if (os.contains('mac') && macSetup.exists()) {
+            new ProcessBuilder(macSetup.absolutePath).redirectErrorStream(true).start().waitFor()
+        }
+    }
+}
+
+tasks.register('verifyTurret') {
+    group = 'verification'
+    description = 'Proves the JML contracts (turret, feed gate, HIVE, integrator, inventory) with OpenJML (-PexactDoubles for IEEE rounding).'
+    dependsOn 'setupOpenJml'
+    // Prove the files as Spotless leaves them: it has turned //@ lines into plain comments before.
+    mustRunAfter 'spotlessApply'
+    def sources = provenSources.collect { file(it) }
+    def specs = file('verification/specs')
+    def exact = project.hasProperty('exactDoubles')
+    inputs.files(sources)
+    inputs.dir(specs)
+    inputs.property('openJml', openJmlVersion)
+    inputs.property('exact', exact)
+    def marker = layout.buildDirectory.file("reports/verifyTurret-${exact ? 'exact' : 'real'}.txt")
+    def timings = layout.buildDirectory.file("reports/verifyTurret-${exact ? 'exact' : 'real'}-times.txt")
+    outputs.file(marker)
+    outputs.file(timings)
+    // Unchanged proven files and specs: reuse the earlier result, here or from the build cache.
+    outputs.cacheIf { true }
+    // The SDK classes the proofs call (AngleUnit), as plain jars.
+    def libraries = configurations.named('debugCompileClasspath').map {
+        it.incoming.artifactView {
+            attributes { attribute(Attribute.of('artifactType', String), 'android-classes-jar') }
+        }.files
+    }
+    def workers = Math.max(1, Runtime.runtime.availableProcessors() - 2)
+    doLast {
+        // Every static method, qualified, one proof job each; spread over a few OpenJML JVMs so the
+        // ~1.5 s each spends starting up is paid a few times, not once per method.
+        def methods = []
+        sources.each { f ->
+            def text = f.text
+            def pkg = (text =~ /(?m)^package\s+([\w.]+);/)[0][1]
+            def cls = f.name - '.java'
+            (text =~ /(?m)^\s+(?:(?:public|private|protected)\s+)?static\s+(?:final\s+)?[\w.<>\[\]]+\s+(\w+)\s*\(/).each {
+                methods << "${pkg}.${cls}.${it[1]}".toString()
+            }
+        }
+        methods = methods.unique()
+        // Longest first onto the least loaded JVM, by the last run's proof times where known.
+        def cost = [:]
+        def timingFile = timings.get().asFile
+        if (timingFile.exists()) {
+            timingFile.eachLine { line ->
+                def parts = line.split(' ')
+                if (parts.length == 2) cost[parts[1]] = parts[0] as double
+            }
+        }
+        def groups = (0..<Math.min(workers, methods.size())).collect { [] }
+        def load = groups.collect { 0.0d }
+        methods.sort { -(cost[it] ?: 1.0d) }.each { m ->
+            int i = (0..<groups.size()).min { load[it] }
+            groups[i] << m
+            load[i] += (cost[m] ?: 1.0d)
+        }
+
+        def home = openJmlHome
+        def solvers = home.listFiles().find { it.isDirectory() && it.name.startsWith('Solvers-') }
+        def base = [new File(home, 'jdk/bin/javac').absolutePath,
+                    "-J--patch-module=jdk.compiler=${new File(home, 'libs/jSMTLIB.jar')}".toString(),
+                    // Each JVM runs a few seconds: the C1 compiler alone starts faster.
+                    '-J-XX:TieredStopAtLevel=1',
+                    '--esc', '--progress',
+                    '--specs-path', specs.absolutePath,
+                    '-cp', libraries.get().asPath]
+        base += exact ? ['--prover=cvc5', '--timeout=900']
+                      : ['--fpreal', '--fpreal-encoding=datatype', '--timeout=60']
+        def started = System.nanoTime()
+        def results = groups.collect { group ->
+            def cmd = base + ["--method=${group.join(',')}".toString()] + sources*.absolutePath
+            def pb = new ProcessBuilder(cmd).redirectErrorStream(true)
+            pb.environment().putAll([OPENJML_INSTALL: home.absolutePath,
+                                     SMT_SOLVER_DIR: solvers.absolutePath, OJ: ''])
+            def proc = pb.start()
+            def out = new StringBuilder()
+            def reader = Thread.start { out << proc.inputStream.text }
+            [proc: proc, out: out, reader: reader, group: group]
+        }
+        def failures = []
+        def times = [:]
+        results.each { r ->
+            int code = r.proc.waitFor()
+            r.reader.join()
+            def text = r.out.toString()
+            (text =~ /Completed proof of ([\w.]+)\(.*\[([0-9.]+) secs\]/).each { times[it[1]] = it[2] }
+            def bad = text.readLines().findAll { it.contains('verify:') || it.contains('error:') }
+            if (code != 0 || !bad.isEmpty()) {
+                failures << "In the JVM proving ${r.group.collect { it.tokenize('.').takeRight(2).join('.') }.join(', ')}:"
+                failures << text.readLines().findAll { !it.startsWith('Completed proof') && !it.startsWith('Method assertions') && !it.startsWith('Skipping proof') }.join('\n')
+            }
+        }
+        def seconds = (System.nanoTime() - started) / 1e9
+        timingFile.parentFile.mkdirs()
+        timingFile.text = times.collect { m, t -> "${t} ${m}" }.join('\n') + '\n'
+        if (!failures.isEmpty()) {
+            failures.each { println it }
+            throw new GradleException('OpenJML could not prove every obligation; see above.')
+        }
+        def report = String.format(Locale.ROOT, "All JML contracts proven (%s doubles): %d methods in %.1f s on %d JVMs%n",
+            exact ? 'exact IEEE-754' : 'real-number', methods.size(), seconds, groups.size())
+        print report
+        marker.get().asFile.text = report
+    }
+}
+
+// The convergence proof: Lean 4 + Mathlib, over Lean definitions generated from TurretStep's
+// contracts (gen_step.py), so the theorem is about the formulas OpenJML proves the code computes.
+def leanProject = file('verification/TurretProof')
+def lakePathProperty = project.findProperty('lake.path')
+def lakeExe = { ->
+    def candidates = [lakePathProperty,
+                      "${System.getProperty('user.home')}/.elan/bin/lake",
+                      '/opt/homebrew/bin/lake', '/usr/local/bin/lake'].findAll { it }
+    def found = candidates.collect { new File(it.toString()) }.find { it.canExecute() }
+    if (found == null) {
+        throw new GradleException('Lean is not installed: brew install elan-init (or see ' +
+            'https://lean-lang.org/install), or pass -Plake.path=/path/to/lake.')
+    }
+    found.absolutePath
+}
+
+tasks.register('setupLean') {
+    group = 'verification'
+    description = 'Fetches Mathlib for the turret convergence proof, once (prebuilt, ~5 GB).'
+    onlyIf { !new File(leanProject, '.lake/packages/mathlib').exists() }
+    doLast {
+        def proc = new ProcessBuilder(lakeExe(), 'exe', 'cache', 'get').directory(leanProject)
+            .inheritIO().start()
+        if (proc.waitFor() != 0) {
+            throw new GradleException('lake exe cache get failed')
+        }
+    }
+}
+
+tasks.register('verifyTurretLean') {
+    group = 'verification'
+    description = 'Checks the Lean proof that the turret converges on a still target.'
+    dependsOn 'setupLean'
+    def stepJava = file('verification/java/org/firstinspires/ftc/teamcode/robot/TurretStep.java')
+    def generator = new File(leanProject, 'gen_step.py')
+    def stepLean = new File(leanProject, 'TurretProof/Step.lean')
+    inputs.file(stepJava)
+    inputs.file(generator)
+    inputs.files(fileTree(leanProject) { include '*.lean', 'TurretProof/*.lean', 'lakefile.toml',
+        'lean-toolchain', 'lake-manifest.json'; exclude 'TurretProof/Step.lean' })
+    def marker = layout.buildDirectory.file('reports/verifyTurretLean.txt')
+    outputs.file(marker)
+    outputs.cacheIf { true }
+    doLast {
+        def started = System.nanoTime()
+        // Regenerated every run, so the Lean definitions can never drift from the Java contracts.
+        def gen = new ProcessBuilder('python3', generator.absolutePath, stepJava.absolutePath,
+            stepLean.absolutePath).redirectErrorStream(true).start()
+        def genOut = gen.inputStream.text
+        if (gen.waitFor() != 0) {
+            println genOut
+            throw new GradleException('gen_step.py could not translate TurretStep.java; see above.')
+        }
+        def build = new ProcessBuilder(lakeExe(), 'build').directory(leanProject)
+            .redirectErrorStream(true).start()
+        def out = build.inputStream.text
+        if (build.waitFor() != 0) {
+            println out.readLines().findAll { !it.contains('module system') }.join('\n')
+            throw new GradleException('The Lean convergence proof does not check; see above.')
+        }
+        def report = String.format(Locale.ROOT, 'Lean convergence proof checked in %.1f s%n',
+            (System.nanoTime() - started) / 1e9)
+        print report
+        marker.get().asFile.parentFile.mkdirs()
+        marker.get().asFile.text = report
+    }
+}
+
 // Custom verification task that mirrors compile/test/formatting checks without deployment
 tasks.register('verifyBuild') {
     group = 'verification'
-    description = 'Runs all formatting, compiler, unit test, and config checks without deploying.'
-    dependsOn 'generateConfig', 'spotlessApply', 'testDebugUnitTest', 'checkConfigKeys'
+    description = 'Runs all formatting, compiler, unit test, config and proof checks without deploying.'
+    dependsOn 'generateConfig', 'spotlessApply', 'testDebugUnitTest', 'checkConfigKeys', 'verifyTurret',
+        'verifyTurretLean'
 }

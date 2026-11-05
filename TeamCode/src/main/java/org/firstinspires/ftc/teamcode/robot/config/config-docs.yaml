@@ -119,7 +119,7 @@ divergence_deg:
   min: 0.0
 
 max_drift:
-  desc: "Maximum allowed chassis drift (inches) from target pose before auto-corrective drive motions engage."
+  desc: "Total lateral miss (inches) allowed at the target: the turret aim tolerance is asin((max_drift / 2) / distance), clamped to [min_deg, max_deg]. Size it from the CELL opening width seen from the shooting angle minus the ball diameter."
   min: 0.0
 
 near_cutoff:
@@ -135,7 +135,7 @@ min_deg:
   min: 0.0
 
 max_deg:
-  desc: "Maximum dynamic alignment tolerance (degrees) allowed. Prevents launching if the turret orientation error exceeds this."
+  desc: "Maximum dynamic alignment tolerance (degrees). Caps the tolerance at short range."
   min: 0.0
 
 logo:
@@ -145,39 +145,15 @@ usb:
   desc: "Mounting direction of the hub's USB ports."
 
 robot_width:
-  desc: "Total physical width of the robot (inches) used to build the collision footprint. Determines how close the robot can get to walls or goals."
+  desc: "Total physical width of the robot (inches) used to build its square collision footprint for HIVE-frame protection, LEAVE/PARK checks and the G402 alliance-side check."
   min: 0.0
 
 rotation_lookahead_time:
   desc: "Time horizon (seconds) used to project future rotation based on live angular velocity (|omega| * time). Seeded at 0.075s (derived from 0.45rad / assumed 6.0rad/s max omega); calibrate on robot using Friction Calibration TeleOp."
   min: 0.0
 
-size:
-  desc: "Length (inches) of one side of the square scoring goal zones on the field."
-  min: 0.0
-
-min_y:
-  desc: "The Y-coordinate boundary (inches) on the field where the scoring zones begin. Used to calculate red/blue alliance goal boxes."
-  min: 0.0
-
-red_goal_x:
-  desc: "Goal center X coordinate for RED alliance."
-  min: 0.0
-
-red_goal_y:
-  desc: "Goal center Y coordinate for RED alliance."
-  min: 0.0
-
-blue_goal_x:
-  desc: "Goal center X coordinate for BLUE alliance."
-  min: 0.0
-
-blue_goal_y:
-  desc: "Goal center Y coordinate for BLUE alliance."
-  min: 0.0
-
 power:
-  desc: "Motor power (0.0 to 1.0) commanded to push the robot away when it violates a goal zone boundary. Driver/safety policy parameter."
+  desc: "Motor power (0.0 to 1.0) commanded to push the robot back out when it is inside a protected zone (the HIVE frame). Driver/safety policy parameter."
   min: 0.0
   max: 1.0
 
@@ -187,18 +163,18 @@ decel_safety_factor:
   max: 1.0
 
 slow_down:
-  desc: "Distance (inches) from goal zone at which proximity speed reduction starts. Driver comfort / early-warning feel parameter."
+  desc: "Distance (inches) from a protected zone (the HIVE frame) at which proximity speed reduction starts. Driver comfort / early-warning feel parameter."
   min: 0.0
 
 hard_stop:
-  desc: "Distance (inches) from goal zone where drive power towards zone is cut to zero. Safety policy parameter."
+  desc: "Distance (inches) from a protected zone (the HIVE frame) where drive power toward it is cut to zero, so the robot cannot ram the HIVE (G417). Safety policy parameter."
   min: 0.0
 
 enable_depth_protection:
-  desc: "Enable/disable depth (X-axis) goal zone proximity protection. Safety policy parameter; leave true outside of debugging."
+  desc: "Enable/disable X-axis protection against driving into the HIVE frame. Safety policy parameter; leave true outside of debugging."
 
 enable_side_protection:
-  desc: "Enable/disable side (Y-axis) goal zone proximity protection. Safety policy parameter; leave true outside of debugging."
+  desc: "Enable/disable Y-axis protection against driving into the HIVE frame. Safety policy parameter; leave true outside of debugging."
 
 lane_blend_distance:
   desc: "Distance (inches) over which safety slows downs are interpolated from 0% to 100% strength to prevent jerky speed changes."
@@ -209,18 +185,6 @@ x:
 
 y:
   desc: "Y value coordinate."
-
-z:
-  desc: "Z value coordinate."
-
-yaw:
-  desc: "Yaw rotation (degrees)."
-
-pitch:
-  desc: "Pitch rotation (degrees)."
-
-roll:
-  desc: "Roll rotation (degrees)."
 
 rot:
   desc: "Minimum turn/yaw drive power (0.0 to 1.0) needed to overcome static wheel stiction. Calibrated using Friction Calibration OpMode."
@@ -253,6 +217,7 @@ moving_speed_threshold:
 max_power:
   desc: "Maximum motor power (0.0 to 1.0) the loop is allowed to command. Clamped to be completely imperceptible."
   min: 0.0
+  max: 1.0
 
 error_deadband_deg:
   desc: "Heading error (degrees) below which heading lock applies zero correction, to avoid chattering/jitter from sensor noise while holding a heading at rest."
@@ -270,7 +235,7 @@ motor_pidf:
   desc: "REV firmware velocity PIDF (p, i, d, f) applied directly to the flywheel motors via DcMotorEx.setPIDFCoefficients when shooter.use_ftc_pid is true. Distinct from shooter.pidf, which only feeds the software PIDFController used when use_ftc_pid is false and is never sent to the motor. Keep i at 0 here: a live integral on the motor firmware winds up during a feed's velocity sag and overshoots the setpoint once the ball leaves, which is what stalled the third shot of a magazine."
 
 max_rpm:
-  desc: "Maximum rotational speed (RPM) of the motor. Used to scale power percentage to velocity."
+  desc: "Flywheel velocity (DcMotorEx.setVelocity units: encoder ticks per second, despite the historical _rpm name) that a target power of 1.0 maps to."
   min: 0.0
 
 nominal_voltage:
@@ -289,12 +254,12 @@ voltage_refresh_sec:
   max: 5.0
 
 min_transfer_threshold:
-  desc: "Flywheel speed threshold (percentage, 0.0 to 1.0) required to trigger the transfer belt. Prevents launching rings before the shooter is up to speed."
+  desc: "Flywheel speed ratio (0.0 to 1.0) required to arm a feed. Prevents launching before the shooter is up to speed."
   min: 0.0
   max: 1.0
 
 constant_rpm:
-  desc: "Continuous fixed flywheel target speed (RPM). Flywheel holds this RPM constantly so time-to-shoot collapses to alignment time."
+  desc: "Fixed flywheel target (encoder ticks/s) for manual fixed-power shots and for holding the flywheel spun up between volleys."
   min: 0.0
   max: 3000.0
 
@@ -321,11 +286,7 @@ magnus_l:
   min: 0.0
 
 launch_height_inches:
-  desc: "Physical ring release height (inches) above field carpet floor."
-  min: 0.0
-
-goal_height_inches:
-  desc: "Center height (inches) of target scoring goal basket above field carpet floor."
+  desc: "Ball release height (inches) above the TILES. The target height is not configured here: it is field.hive.up_opening_height_in, the upward CELL opening centre."
   min: 0.0
 
 g_inches_per_sec2:
@@ -357,11 +318,11 @@ max_moving_speed_ips:
   min: 0.0
 
 min_valid_distance:
-  desc: "Minimum calibrated shot distance (inches) for valid solution."
+  desc: "Minimum horizontal distance (inches) from the robot to the target CELL opening centre for a valid solution."
   min: 0.0
 
 max_valid_distance:
-  desc: "Maximum calibrated shot distance (inches) for valid solution."
+  desc: "Maximum horizontal distance (inches) from the robot to the target CELL opening centre for a valid solution."
   min: 0.0
 
 lead_bias_gain:
@@ -374,7 +335,7 @@ v0_reference_rpm:
   max: 3000.0
 
 preferred_shot_rpm:
-  desc: "Flywheel setpoint the hood aims around. The solver holds this speed and lets the hood alone cover every distance it can, so the flywheel stays parked at one well-calibrated, already-spun-up speed. It only rises above this when no hood angle can reach the goal, and never falls below it. This is the main shot-strength knob: raise it if shots land weak across the board."
+  desc: "Lower bound (encoder ticks/s) the solved flywheel setpoint is clamped to. Raise it if shots land weak across the board."
   min: 0.0
   max: 3000.0
 
@@ -383,8 +344,13 @@ max_shot_rpm:
   min: 0.0
   max: 3000.0
 
+flight_time_base_sec:
+  desc: "Time-of-flight intercept (seconds): a BIOBUZZ lob spends most of its flight rising ~45 in to the CELL, so flight time is base + per_inch * range rather than proportional to range. Used only to lead a moving shot."
+  min: 0.0
+  max: 2.0
+
 flight_time_sec_per_inch:
-  desc: "Ring time of flight per inch of range, used only to lead a moving shot. A flat estimate on purpose: the measured shot table records hood and RPM but not flight time, and lead only shifts the aim azimuth slightly, so a rough value is adequate here where a wrong hood position would not be."
+  desc: "Additional time of flight per inch of horizontal range (seconds/inch), used only to lead a moving shot."
   min: 0.0
   max: 0.1
 
@@ -392,9 +358,6 @@ lead_min_speed_ips:
   desc: "Robot speed below which moving-shot lead is skipped entirely. A robot holding position still reports a small noisy velocity, and lead turns that noise into aim-azimuth jitter larger than the turret's settle tolerance, so the turret hunts instead of settling. Leading a nearly-stationary robot gains nothing."
   min: 0.0
   max: 100.0
-
-points:
-  desc: "Measured shot table as flat distance_in, hood_servo, flywheel_rpm triples, recorded by the Ballistics Calibration OpMode. Distances must strictly increase. Looked up by linear interpolation between rows and clamped outside them; a distance outside the calibrated range is reported as an invalid solution rather than extrapolated."
 
 v0_margin_fraction:
   desc: "Headroom above the slowest exit speed that still reaches the goal (0.12 = 12% faster), applied only to long shots that had to raise RPM past preferred_shot_rpm. Keeps those solutions off the boundary where the flat and lofted trajectory branches merge; larger values give a steeper, more forgiving entry angle at the cost of a hotter shot."
@@ -405,108 +368,23 @@ rpm_update_deadband:
   desc: "Minimum change in solved RPM (ticks/s) before the flywheel setpoint is re-commanded. Every setpoint write discards the flywheel's accumulated anti-windup integral, so without a deadband a continuously drifting target would keep the integrator reset and the flywheel permanently short of speed."
   min: 0.0
 
-wait_time_scale:
-  desc: "Multiplier converting distance to run-time (wait_time = distance * wait_time_scale) in milliseconds."
-  min: 0.0
-
-drink_wait_ms:
-  desc: "Wait delay (milliseconds) at the drink gate when intake gathers rings."
-  min: 0
-
 shot_time_points:
-  desc: "Measured shoot windows as flat target_rpm, shoot_window_ms pairs, recorded by the Shot Timing Tuner OpMode against whatever flywheel RPM the shot table commanded at each measured distance. RPMs must strictly increase. Looked up by linear interpolation on the flywheel's target RPM and clamped outside the measured range, since a shot just past the last row does not suddenly get faster. Keying on RPM rather than distance means the table stays correct after shooter.shot_table is recalibrated — the shot only ever behaved the way it did at the RPM it was actually fired at, not at whatever distance a recalibrated table now maps that RPM to. ShotController ends a scoring cycle when it counts auto.balls_per_shot_count balls OR this window expires, whichever comes first — the window is the safety net for a jam, not the primary signal. auto.shoot_wait_ms is only the fallback when this table is empty."
-
-balls_per_shot_count:
-  desc: "Balls loaded before each autonomous scoring cycle. ShotController counts them live via shooter.ball_detection and ends the shot the moment this many are detected, without waiting out the rest of auto.shot_time_points' window."
-  min: 1
+  desc: "Measured autonomous shoot windows as flat distance_in, shoot_window_ms pairs, written by the Shot Timing Tuner OpMode in exactly this format. Distances must strictly increase; interpolated and clamped at the ends. A volley ends when auto.balls_per_volley_count balls are counted OR this window expires; the window is the jam safety net. auto.shoot_wait_ms is the fallback when this table is empty."
 
 shoot_wait_ms:
-  desc: "Fallback wait time (milliseconds) allowed to fire a shot, used only when auto.shot_time_points is empty. Prefer the measured table: a single flat number cannot express that a close-range magazine takes longer than a long-range one."
+  desc: "Fallback autonomous shoot window (milliseconds), used only when auto.shot_time_points is empty."
   min: 0
 
 transfer_power:
-  desc: "Target power coefficient (0.0 to 1.0) for autonomous transfer motor."
+  desc: "Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter)."
   min: 0.0
   max: 1.0
-
-opposite_drink_wait_ms:
-  desc: "Wait delay (milliseconds) at the drink gate for opposite alliance autonomous."
-  min: 0
-
-opposite_shoot_wait_ms:
-  desc: "Wait time (milliseconds) allowed to fire a shot for opposite alliance autonomous."
-  min: 0
-
-opposite_launch_power:
-  desc: "Target power coefficient (0.0 to 1.0) for opposite alliance autonomous launcher."
-  min: 0.0
-  max: 1.0
-
-opposite_transfer_power:
-  desc: "Target power coefficient (0.0 to 1.0) for opposite alliance autonomous transfer."
-  min: 0.0
-  max: 1.0
-
-period_ms:
-  desc: "Length of the autonomous period (milliseconds), measured from the moment the OpMode starts. The endgame timers below are all counted backwards from it."
-  min: 0
-
-evacuate_ms:
-  desc: "Time left in autonomous (milliseconds) at which the auto sequence is cancelled and the robot drives the shortest straight line to a spot where it is committed — entirely inside a launch zone or entirely outside every one. A robot straddling a zone boundary at the buzzer gets neither the zone's benefit nor out of the next alliance's way."
-  min: 0
-
-freeze_ms:
-  desc: "Backstop deadline (milliseconds left in autonomous) at which the robot stops driving even if it never reached a committed spot. Normally motion stops earlier, on arrival. Must be smaller than auto.endgame.evacuate_ms, which is the window the move gets to finish in."
-  min: 0
-
-exit_clearance:
-  desc: "Inches of commitment required on whichever side of the launch zone boundary the robot parks on: its whole footprint must clear the line by this much, inside or out. Absorbs the follower's settling error so a spot that ends slightly short is still unambiguous. Measured against the footprint's half-diagonal, so it holds at any heading."
-  min: 0.0
 
 start:
-  desc: "Starting position coordinate pose."
-
-score:
-  desc: "High goal target scoring position coordinate pose."
-
-final_score:
-  desc: "Final scoring target position coordinate pose."
-
-drink_cp:
-  desc: "Control point pose on path to drink gate."
-
-drink_end:
-  desc: "Ending position coordinate pose at the drink gate."
-
-pickup1_cp:
-  desc: "Control point pose on path to first sample pickup."
-
-pickup1_end:
-  desc: "Ending position coordinate pose for first sample pickup."
-
-pickup2_cp:
-  desc: "Control point pose on path to second sample pickup."
-
-pickup2_end:
-  desc: "Ending position coordinate pose for second sample pickup."
-
-pickup3_cp:
-  desc: "Control point pose on path to third sample pickup."
-
-pickup3_end:
-  desc: "Ending position coordinate pose for third sample pickup."
-
-pickup4_cp:
-  desc: "Control point pose on path to fourth sample pickup."
-
-pickup4_end:
-  desc: "Ending position coordinate pose for fourth sample pickup."
+  desc: "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304)."
 
 park:
-  desc: "Parking destination coordinate pose."
-
-drink:
-  desc: "Drink gate alignment coordinate pose."
+  desc: "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO."
 
 max_speed:
   desc: "Maximum speed scaler (0.0 to 1.0) applied to chassis manual TeleOp drive inputs."
@@ -543,7 +421,7 @@ inverted:
   desc: "True if increasing turret angle produces decreasing analog voltage."
 
 max_velocity_threshold:
-  desc: "Flywheel velocity upper bound scale factor (e.g. 1.05) to prevent overshooting before feeding rings. Applies only when arming a feed, not while one is already running, since a ring can only ever slow the flywheel down."
+  desc: "Flywheel velocity upper bound ratio (e.g. 1.03) to prevent overshooting before a feed is armed. Applies only when arming, not while a feed is running, since a ball can only slow the flywheel down."
   min: 1.0
   max: 2.0
 
@@ -553,17 +431,12 @@ feed_release_threshold:
   max: 1.0
 
 feed_intake_power:
-  desc: "Front intake power (0.0 to 1.0) when feeding rings to the shooter."
+  desc: "Front intake power (0.0 to 1.0) when feeding SCORING ELEMENTS to the shooter."
   min: 0.0
   max: 1.0
 
 feed_transfer_power:
-  desc: "Transfer motor power (0.0 to 1.0) when feeding rings to the shooter."
-  min: 0.0
-  max: 1.0
-
-long_hood_power_threshold:
-  desc: "Launch power ratio threshold above which the high hood position is selected for long-range shots."
+  desc: "Transfer motor power (0.0 to 1.0) when feeding SCORING ELEMENTS to the shooter."
   min: 0.0
   max: 1.0
 
@@ -587,7 +460,7 @@ refractory_ms:
   min: 0
 
 intake_power:
-  desc: "Target motor power (0.0 to 1.0) for intake rollers in TeleOp."
+  desc: "Target motor power (0.0 to 1.0) for the intake rollers in TeleOp."
   min: 0.0
   max: 1.0
   suppress_similarity_check: true
@@ -612,7 +485,9 @@ imu_usb:
   desc: REV IMU USB-facing direction for the jump tuner; must match the physical mounting.
 calibration_pose:
   desc: Actual field starting pose [x inches, y inches, heading degrees] for every
-    manually repositioned jump-tuning trial. Collision protection uses this pose.
+    manually repositioned tuning trial; STRAFE trials start here turned 90 degrees.
+    Collision protection uses this pose, so it must leave HIVE protection inactive over
+    the whole trial (TunerPoseSafetyTest checks).
 trial_power:
   desc: Requested forward/reverse input power for jump tuning, before Casablanca friction
     compensation. Results are validated only at this power.
@@ -828,4 +703,340 @@ d_count:
 minimum_progress_degrees:
   desc: Angular travel that refreshes the TURN pod-contact trial stall watchdog.
   min: 0.1
+  max: 10.0
+
+# --- BIOBUZZ ---
+
+season:
+  desc: "Season tag. ConfigLoader ignores an ADB-pushed override whose meta.season differs from (or lacks) this value, so last season's pushed config can never override this season's bundled values."
+
+size_in:
+  desc: "Inside-wall field width (inches). The field centre is size_in / 2; BLUE geometry and every 'm' pose are the 180-degree rotation of RED about it. Manual nominal 144, official CAD ~141.3."
+  min: 120.0
+  max: 150.0
+
+center_to_center_in:
+  desc: "Horizontal distance (inches) between the RED and BLUE HIVE pivots, along x (manual Figure 9-10)."
+  min: 0.0
+
+pivot_height_in:
+  desc: "HIVE pivot height above the TILES (inches, manual Figure 9-8)."
+  min: 0.0
+
+up_opening_offset_in:
+  desc: "Horizontal distance (inches) from the HIVE pivot to an upward-facing CELL's opening centre, toward the side the opening faces (CAD-derived). This point is the SDK AprilTag cluster origin and the shot target."
+  min: 0.0
+
+up_opening_height_in:
+  desc: "Height (inches) of an upward-facing CELL's opening centre above the TILES (manual: opening spans 53.5-65.6 in)."
+  min: 0.0
+
+down_opening_offset_in:
+  desc: "Horizontal distance (inches) from the HIVE pivot to a downward-facing CELL's opening centre (the up geometry rotated 60 degrees about the pivot)."
+  min: 0.0
+
+down_opening_height_in:
+  desc: "Height (inches) of a downward-facing CELL's opening centre above the TILES."
+  min: 0.0
+
+frame_width_in:
+  desc: "HIVE frame base width (inches) along x (manual Figure 9-8)."
+  min: 0.0
+
+frame_depth_in:
+  desc: "HIVE frame base depth (inches) along y (manual Figure 9-8)."
+  min: 0.0
+
+bottom_height_in:
+  desc: "Lowest HIVE point above the TILES (inches). TU05 corrected V1's 25.5 in typo to 30.6 in; a robot must stay below this to pass under the HIVE."
+  min: 0.0
+
+start_y_in:
+  desc: "RED LOADING ZONE start along the RED alliance wall (inches from the audience wall). BLUE is the 180-degree rotation."
+  min: 0.0
+
+width_in:
+  desc: "LOADING ZONE length along its wall (inches, manual: ~23 in)."
+  min: 0.0
+
+depth_in:
+  desc: "Depth of a zone measured out from its wall (inches): LOADING ZONE ~11 in."
+  min: 0.0
+
+length_in:
+  desc: "GARDEN length along the audience/rear wall from the alliance corner (inches, manual: ~23 in)."
+  min: 0.0
+
+wall_offset_in:
+  desc: "Distance (inches) from a FLOWER's top-ring centre to the perimeter wall it is mounted on (official field CAD: 2.65)."
+  min: 0.0
+
+corner_offset_in:
+  desc: "Distance (inches) from the alliance corner to each alliance-side FLOWER along its wall (official field CAD: 23.39 in from the field centre line)."
+  min: 0.0
+
+up_height_threshold_in:
+  desc: "A detected CELL whose opening centre is above this height (inches) is classified upward-facing. Upward openings sit at ~59.6 in and downward ones at ~38.2 in."
+  min: 0.0
+
+confirm_frames_count:
+  desc: "Consecutive agreeing AprilTag observations required before the HIVE tracker accepts a TIP it did not already expect."
+  min: 1
+
+settle_ms:
+  desc: "After a TIP is detected or entered, feeding is locked out for this long while the HIVE swings and spilled SCORING ELEMENTS clear (manual 10.5.1: launching into a tipping HIVE can stop the TIP)."
+  min: 0
+
+max_observation_age_ms:
+  desc: "AprilTag CELL observations older than this (milliseconds) are ignored by the HIVE tracker."
+  min: 0
+
+auto_ms:
+  desc: "Length of AUTO (milliseconds, manual 10.4)."
+  min: 0
+
+teleop_ms:
+  desc: "Length of TELEOP (milliseconds, manual 10.4)."
+  min: 0
+
+flower_unlock_remaining_ms:
+  desc: "TELEOP time remaining (milliseconds) at which NECTAR may enter FLOWERS (G410) and humans may enter all remaining NECTAR (G426)."
+  min: 0
+
+final_warning_remaining_ms:
+  desc: "TELEOP time remaining (milliseconds) at which the park alert starts estimating the drive to the park pose. Nothing is signalled at this moment; the alert fires later, at park_alert_margin_ms before the estimated last moment."
+  min: 0
+
+capacity_count:
+  desc: "Maximum SCORING ELEMENTS the robot may CONTROL (G407: 4). The intake stops itself when the tracked inventory reaches this."
+  min: 1
+  max: 4
+
+preload_count:
+  desc: "SCORING ELEMENTS loaded at match start (manual 10.3.4: exactly 4 POLLEN)."
+  min: 0
+  max: 4
+
+entry_sensor_enabled:
+  desc: "True when an intake-entry beam break / proximity sensor is fitted. Without it the inventory count is unknown in TELEOP and the intake cannot cap itself at capacity_count."
+
+entry_sensor_name:
+  desc: "Robot configuration name of the intake-entry DigitalChannel sensor."
+
+entry_sensor_active_low:
+  desc: "True if the entry sensor reads false while a SCORING ELEMENT blocks it (most beam breaks)."
+
+entry_debounce_ms:
+  desc: "Minimum time (milliseconds) the entry sensor must stay blocked before a SCORING ELEMENT is counted."
+  min: 0
+
+continuous:
+  desc: "Stream the camera continuously so the HIVE tracker sees every TIP. False streams only while the operator holds relocalize."
+
+camera_name:
+  desc: "Robot configuration name of the webcam."
+
+decimation:
+  desc: "AprilTag decimation. Higher is faster with shorter detection range."
+  min: 1.0
+  max: 6.0
+
+forward_in:
+  desc: "Camera lens position forward of the robot centre (inches)."
+
+left_in:
+  desc: "Camera lens position left of the robot centre (inches)."
+
+height_in:
+  desc: "Camera lens height above the TILES (inches)."
+  min: 0.0
+
+yaw_deg:
+  desc: "Camera yaw (degrees) from robot forward, counter-clockwise positive."
+  min: -180.0
+  max: 180.0
+  suppress_similarity_check: true
+
+pitch_up_deg:
+  desc: "Camera pitch (degrees) above horizontal. BIOBUZZ tags are on CELL bottoms 30-60 in up, so this is positive."
+  min: -90.0
+  max: 90.0
+
+max_range_in:
+  desc: "Ignore CELL detections farther than this (inches) for relocalization; pose error grows with range."
+  min: 0.0
+
+max_correction_in:
+  desc: "Reject a vision relocalization that moves the pose farther than this (inches) from odometry; that is a misidentified or moving CELL, not drift."
+  min: 0.0
+
+protect_full_hive_footprint:
+  desc: "True protects the whole HIVE frame base rectangle (the robot never drives under the HIVE). False protects only the two 2 in frame foot bars, for a robot built to pass under the HIVE; the inward-leaning A-frame legs are not modelled, so verify leg clearance for the robot's height."
+
+frame_base_width_in:
+  desc: "Width (inches) of each triangular HIVE frame base rail, used when protect_full_hive_footprint is false."
+  min: 0.0
+
+center_line_margin_in:
+  desc: "Margin (inches) the robot footprint must keep from the field centre line to count as fully on its own side (G304.A / G402)."
+  min: 0.0
+
+max_off_axis_deg:
+  desc: "Largest angle (degrees) between the target CELL opening's outward direction and the line to the robot for a valid shot. The opening faces outward and 30 degrees up, so shots from behind or far to the side cannot enter it."
+  min: 0.0
+  max: 90.0
+
+calibrated:
+  desc: "False marks the shot tables as placeholders: the automatic feed gate refuses to fire. Set true only after the Ballistics Calibration OpMode has produced real BIOBUZZ rows."
+
+pollen_points:
+  desc: "POLLEN shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples from the Ballistics Calibration OpMode. Distances must strictly increase."
+  suppress_similarity_check: true
+
+nectar_points:
+  desc: "NECTAR shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples. NECTAR is 3.6 in and heavier than 2.8 in POLLEN, so it needs its own calibration. Distances must strictly increase."
+  suppress_similarity_check: true
+
+balls_per_volley_count:
+  desc: "SCORING ELEMENTS expected per autonomous volley. A volley ends when this many shots are counted by shooter.ball_detection or the shot window expires."
+  min: 1
+  max: 4
+
+tip_wait_ms:
+  desc: "Autonomous wait (milliseconds) for the target CELL to be seen upward-facing before giving up on it. The robot never launches at a downward-facing CELL (G417)."
+  min: 0
+
+collect_dwell_ms:
+  desc: "Autonomous time (milliseconds) spent at a FLOWER retrieval opening with the intake running."
+  min: 0
+
+park_margin_ms:
+  desc: "AUTO park deadline margin (milliseconds): the routine is cancelled and the robot parks once the time left is no more than the estimated drive to the park pose (stopping, then the HIVE-avoiding route) plus this."
+  min: 0
+
+park_reserve_ms:
+  desc: "Latest AUTO park start (milliseconds before the end): the robot parks at this point even if the estimated drive plus park_margin_ms is shorter, or when no estimate exists."
+  min: 0
+
+park_update_ms:
+  desc: "How often (milliseconds) AUTO re-plans the park route and re-estimates the drive time for the park deadline."
+  min: 20
+
+cell_a_collect_flower:
+  desc: "CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley."
+
+cell_a_second_volley:
+  desc: "CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is upward-facing."
+
+cell_b_collect_flower:
+  desc: "CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second volley."
+  suppress_similarity_check: true
+
+eject_power:
+  desc: "Intake power (negative = reverse) for the operator eject button, used to spit out a fifth SCORING ELEMENT (G407) or opponent NECTAR (G408)."
+  min: -1.0
+  max: 0.0
+
+rumble_ms:
+  desc: "Gamepad rumble length (milliseconds) for match-time cues."
+  min: 0
+
+park_alert_margin_ms:
+  desc: "TELEOP park alert: fires once the time left is no more than the estimated drive to the park pose plus this many milliseconds, and repeats until the robot is PARKED."
+  min: 0
+
+park_alert_update_ms:
+  desc: "How often (milliseconds) the TELEOP park alert re-plans the route and re-estimates the drive time."
+  min: 20
+
+park_alert_repeat_ms:
+  desc: "Period (milliseconds) of the TELEOP park alert's rumble, gamepad light flash and Driver Station voice while it is active."
+  min: 200
+
+shoot_a:
+  desc: "Pose facing CELL A's opening from the side it opens toward."
+  suppress_similarity_check: true
+
+shoot_b:
+  desc: "Pose facing CELL B's opening from the side it opens toward."
+  suppress_similarity_check: true
+
+score_a:
+  desc: "Autonomous volley pose for CELL A."
+  suppress_similarity_check: true
+
+score_b:
+  desc: "Autonomous volley pose for CELL B."
+  suppress_similarity_check: true
+
+score_b_cp:
+  desc: "Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE frame and on the alliance side."
+
+flower:
+  desc: "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom)."
+  suppress_similarity_check: true
+
+alt_via:
+  desc: "Waypoint on the CELL B routine's fallback route around the HIVE to alt_a."
+
+alt_a:
+  desc: "CELL B routine fallback volley pose for CELL A, used when CELL B never becomes upward-facing."
+  suppress_similarity_check: true
+
+wall_contact_tolerance_in:
+  desc: "Footprint distance from a perimeter wall (inches) that counts as touching for LEAVE."
+  min: 0.0
+park_lane_margin_in:
+  desc: "Clearance (inches) between the HIVE frame and the robot's turning radius in the emergency park lane."
+  min: 0.0
+route_sample_step:
+  desc: "Parameter increment for autonomous and assisted-drive path safety sampling. Smaller values check more positions."
+  min: 0.001
+  max: 0.02
+
+park_turn_rate_dps:
+  desc: "Turn rate (degrees/second) assumed when estimating how long a park route takes. Lower is more conservative."
+  min: 1.0
+
+park_settle_per_waypoint_sec:
+  desc: "Time (seconds) added per waypoint when estimating how long a park route takes, for slowing and settling at each corner."
+  min: 0.0
+
+geometry_epsilon_in:
+  desc: "Numerical tolerance (inches) for footprint containment at exact field boundaries after floating-point rotation."
+  min: 0.0
+  max: 0.000001
+
+kv:
+  desc: "Turret velocity feedforward (power per degree/second): 1 / K, where K is the plant gain the Turret Plant Calibration OpMode reports. Drives the turret at the rate chassis rotation and translation demand, so it stops lagging the target. 0 disables."
+  min: 0.0
+  max: 0.1
+
+ff_min_rate_dps:
+  desc: "A settled turret follows the chassis-driven rate (kS sign(v) + kV v) only above this rate (degrees/second); slower rates are odometry noise and would make it chatter."
+  min: 0.0
+
+pivot_forward_in:
+  desc: "Turret rotation axis position forward of the robot centre (inches). Aim bearings, shot distances and moving-shot lead are measured from this point."
+
+pivot_left_in:
+  desc: "Turret rotation axis position left of the robot centre (inches)."
+
+band_deg:
+  desc: "The turret I term only integrates while the aim error is within this many degrees. 30 covers the whole travel; narrow it only if the turret has symmetric, well-measured static friction compensation (a narrow band left a 3 deg stall when ks under-compensates)."
+  min: 0.0
+
+limit_power:
+  desc: "Largest power (0 to 1) the turret I term may contribute."
+  min: 0.0
+  max: 1.0
+
+exit_factor:
+  desc: "Turret settle hysteresis: settled when the error is within tolerance, unsettled again only past tolerance * exit_factor. Stops hunting at the tolerance edge and makes the aim gate steady. 1 disables the hysteresis."
+  min: 1.0
+  max: 5.0
+
+retry_after_sec:
+  desc: "Seconds after a turret stall fault before power is allowed again (0 keeps the fault latched until the OpMode restarts). A ball jam or a defender holding the turret must not disable aiming for the rest of the match."
+  min: 0.0
   max: 10.0

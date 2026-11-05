@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
@@ -12,11 +12,11 @@ import org.firstinspires.ftc.teamcode.tests.TeleopHeadingAutotuneOpMode;
 import org.firstinspires.ftc.teamcode.utilities.Casablanca;
 import org.firstinspires.ftc.teamcode.utilities.HeadingStepResponse;
 import org.firstinspires.ftc.teamcode.utilities.Sentinel;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class TeleopHeadingTest {
-  @After
+  @AfterEach
   public void restore() {
     config.reload();
   }
@@ -31,7 +31,7 @@ public class TeleopHeadingTest {
     Scheduler.execute();
     assertFalse(c.isTeleopSlewEnabled());
     assertFalse(config.casablanca.smoothing.auto_enabled);
-    c.setGoalHeadingLock(.1, true);
+    c.setTargetHeadingLock(.1, true);
     double[] output = c.adjustDriveInput(new Pose(72, 72, 0), Vector2D.zero(), 0, 0, 0, 0, 0);
     assertEquals(.02 + Casablanca.frictionRot + config.casablanca.heading_lock.ks, output[2], 1e-9);
     c.setHeadingPid(new PIDFCoefficients(.3, 0, 0, 0));

@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.firstinspires.ftc.teamcode.robot.ShotController;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers the latching feed gate in {@link ShotController#shouldFeed}. A ring entering the flywheel
@@ -25,52 +25,52 @@ public class FeedGateHysteresisTest {
 
   @Test
   public void testGateStaysShutDuringSpinUp() {
-    assertFalse("well below target must not feed", feed(0.50, false));
-    assertFalse("just under the arm floor must not feed", feed(0.94, false));
+    assertFalse(feed(0.50, false), "well below target must not feed");
+    assertFalse(feed(0.94, false), "just under the arm floor must not feed");
   }
 
   @Test
   public void testGateArmsInsideWindow() {
-    assertTrue("at the arm floor", feed(ARM_LOW, false));
-    assertTrue("on target", feed(1.00, false));
-    assertTrue("at the arm ceiling", feed(ARM_HIGH, false));
+    assertTrue(feed(ARM_LOW, false), "at the arm floor");
+    assertTrue(feed(1.00, false), "on target");
+    assertTrue(feed(ARM_HIGH, false), "at the arm ceiling");
   }
 
   @Test
   public void testOverspeedBlocksArming() {
-    assertFalse("above the arm ceiling must not start a feed", feed(1.06, false));
+    assertFalse(feed(1.06, false), "above the arm ceiling must not start a feed");
   }
 
   @Test
   public void testFeedSurvivesRingSag() {
     // The whole point: a ring pulls the wheel under the arm floor, and the feed must continue.
-    assertTrue("sag below arm floor keeps feeding", feed(0.90, true));
-    assertTrue("deeper sag still keeps feeding", feed(0.81, true));
-    assertTrue("exactly at the release floor keeps feeding", feed(RELEASE_LOW, true));
+    assertTrue(feed(0.90, true), "sag below arm floor keeps feeding");
+    assertTrue(feed(0.81, true), "deeper sag still keeps feeding");
+    assertTrue(feed(RELEASE_LOW, true), "exactly at the release floor keeps feeding");
   }
 
   @Test
   public void testFeedReleasesWhenFlywheelTrulyStalls() {
-    assertFalse("below the release floor cuts the feed", feed(0.79, true));
-    assertFalse("stalled wheel cuts the feed", feed(0.10, true));
+    assertFalse(feed(0.79, true), "below the release floor cuts the feed");
+    assertFalse(feed(0.10, true), "stalled wheel cuts the feed");
   }
 
   @Test
   public void testOverspeedDoesNotInterruptRunningFeed() {
     // Rings only ever slow the wheel, so an over-speed reading mid-feed is the controller
     // overshooting on recovery. Cutting the feed for it would stutter from the other direction.
-    assertTrue("overshoot while feeding must not cut the feed", feed(1.20, true));
+    assertTrue(feed(1.20, true), "overshoot while feeding must not cut the feed");
   }
 
   @Test
   public void testReleaseFloorIsBelowArmFloorSoBandIsRealHysteresis() {
     assertTrue(
-        "release floor must sit below the arm floor or there is no hysteresis at all",
-        RELEASE_LOW < ARM_LOW);
+        RELEASE_LOW < ARM_LOW,
+        "release floor must sit below the arm floor or there is no hysteresis at all");
 
     // A ratio inside the band resolves purely on prior state — that is the hysteresis.
     double insideBand = 0.90;
-    assertFalse("inside the band, a shut gate stays shut", feed(insideBand, false));
-    assertTrue("inside the band, an open gate stays open", feed(insideBand, true));
+    assertFalse(feed(insideBand, false), "inside the band, a shut gate stays shut");
+    assertTrue(feed(insideBand, true), "inside the band, an open gate stays open");
   }
 }

@@ -3,7 +3,8 @@ package org.firstinspires.ftc.teamcode.records;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 
 /**
- * Immutable parameters for the 2D point-mass ballistics trajectory model with drag and Magnus lift.
+ * Immutable parameters for the 2D point-mass ballistics trajectory model with drag and Magnus lift,
+ * aimed at the centre of an upward-facing HIVE CELL opening.
  *
  * <p>The exit-velocity fields describe a linear flywheel model: {@code v0} is the measured exit
  * speed produced when the flywheel holds {@code v0ReferenceRpm}, so exit speed and flywheel
@@ -14,8 +15,8 @@ public record BallisticsParameters(
     double v0, // Exit velocity at v0ReferenceRpm (in/s)
     double k, // Lumped quadratic drag coefficient (1/in)
     double L, // Lumped Magnus lift gain (1/s)
-    double launchHeightInches, // Physical ring release height above field floor (in)
-    double goalHeightInches, // Target goal center height above field floor (in)
+    double launchHeightInches, // Ball release height above the TILES (in)
+    double targetHeightInches, // Upward CELL opening centre height above the TILES (in)
     double gInchesPerSec2, // Gravitational acceleration (386.088 in/s²)
     double minHoodAngleDeg, // Minimum hood elevation angle (deg)
     double maxHoodAngleDeg, // Maximum hood elevation angle (deg)
@@ -29,8 +30,10 @@ public record BallisticsParameters(
     double preferredShotRpm, // Flywheel setpoint the hood aims around, and the solver's floor
     double maxShotRpm, // Highest flywheel setpoint the RPM solver may command
     double v0MarginFraction, // Headroom above the minimum reaching speed (0.15 = 15% faster)
-    double flightTimeSecPerInch, // Flat ring time-of-flight per inch, for moving-shot lead only
-    double leadMinSpeedIps // Robot speed below which lead is skipped as estimator noise
+    double flightTimeBaseSec, // Time of flight at zero range: lob rise time, for lead only
+    double flightTimeSecPerInch, // Added time of flight per inch of range, for lead only
+    double leadMinSpeedIps, // Robot speed below which lead is skipped as estimator noise
+    double maxOffAxisDeg // Largest angle off the CELL opening's outward direction to shoot from
     ) {
   public BallisticsParameters {
     if (v0 <= 0) throw new IllegalArgumentException("v0 must be positive");
@@ -53,7 +56,7 @@ public record BallisticsParameters(
         b.k,
         b.magnus_l,
         b.launch_height_inches,
-        b.goal_height_inches,
+        config.field.hive.up_opening_height_in,
         b.g_inches_per_sec2,
         b.min_hood_angle_deg,
         b.max_hood_angle_deg,
@@ -67,8 +70,10 @@ public record BallisticsParameters(
         b.preferred_shot_rpm,
         b.max_shot_rpm,
         b.v0_margin_fraction,
+        b.flight_time_base_sec,
         b.flight_time_sec_per_inch,
-        b.lead_min_speed_ips);
+        b.lead_min_speed_ips,
+        b.max_off_axis_deg);
   }
 
   /**
@@ -86,6 +91,11 @@ public record BallisticsParameters(
   /** Highest numeric servo position of the hood's travel. See {@link #servoTravelLow()}. */
   public double servoTravelHigh() {
     return Math.max(minHoodServoPos, maxHoodServoPos);
+  }
+
+  /** Estimated time of flight (seconds) for a shot at {@code distanceInches}, for lead only. */
+  public double flightTimeAt(double distanceInches) {
+    return flightTimeBaseSec + flightTimeSecPerInch * Math.max(0.0, distanceInches);
   }
 
   /** Exit speed (in/s) produced per unit of flywheel setpoint. */
@@ -110,7 +120,7 @@ public record BallisticsParameters(
         k,
         L,
         launchHeightInches,
-        goalHeightInches,
+        targetHeightInches,
         gInchesPerSec2,
         minHoodAngleDeg,
         maxHoodAngleDeg,
@@ -124,8 +134,10 @@ public record BallisticsParameters(
         preferredShotRpm,
         maxShotRpm,
         v0MarginFraction,
+        flightTimeBaseSec,
         flightTimeSecPerInch,
-        leadMinSpeedIps);
+        leadMinSpeedIps,
+        maxOffAxisDeg);
   }
 
   /** Copy with different fitted drag and Magnus coefficients, for parameter fitting. */
@@ -135,7 +147,7 @@ public record BallisticsParameters(
         newK,
         newL,
         launchHeightInches,
-        goalHeightInches,
+        targetHeightInches,
         gInchesPerSec2,
         minHoodAngleDeg,
         maxHoodAngleDeg,
@@ -149,7 +161,9 @@ public record BallisticsParameters(
         preferredShotRpm,
         maxShotRpm,
         v0MarginFraction,
+        flightTimeBaseSec,
         flightTimeSecPerInch,
-        leadMinSpeedIps);
+        leadMinSpeedIps,
+        maxOffAxisDeg);
   }
 }

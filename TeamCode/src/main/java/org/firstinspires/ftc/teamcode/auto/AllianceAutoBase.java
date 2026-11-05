@@ -1,45 +1,82 @@
 package org.firstinspires.ftc.teamcode.auto;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.instant;
+import static com.pedropathing.ivy.commands.Commands.lazy;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.commands.Commands.waitUntil;
+import static com.pedropathing.ivy.groups.Groups.race;
+import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import static org.firstinspires.ftc.teamcode.auto.PathUtil.pline;
 
+import androidx.annotation.Nullable;
 import com.bylazar.field.FieldManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.CommandBuilder;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Velocity;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import org.firstinspires.ftc.teamcode.ballistics.ShotSolver;
+import org.firstinspires.ftc.teamcode.ballistics.ShotTable;
 import org.firstinspires.ftc.teamcode.config.ConfigLoader;
+import org.firstinspires.ftc.teamcode.game.FieldModel;
+import org.firstinspires.ftc.teamcode.game.HiveTracker;
+import org.firstinspires.ftc.teamcode.game.MatchClock;
 import org.firstinspires.ftc.teamcode.records.Alliance;
-import org.firstinspires.ftc.teamcode.records.EndgameSpot;
-import org.firstinspires.ftc.teamcode.records.Field;
+import org.firstinspires.ftc.teamcode.records.BallType;
+import org.firstinspires.ftc.teamcode.records.BallisticsParameters;
+import org.firstinspires.ftc.teamcode.records.CellTarget;
+import org.firstinspires.ftc.teamcode.records.HiveCell;
 import org.firstinspires.ftc.teamcode.records.MatchProfile;
+import org.firstinspires.ftc.teamcode.records.ShotInputs;
+import org.firstinspires.ftc.teamcode.records.ShotSolution;
 import org.firstinspires.ftc.teamcode.robot.Intake;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
-import org.firstinspires.ftc.teamcode.robot.ShotController;
 import org.firstinspires.ftc.teamcode.robot.Turret;
-import org.firstinspires.ftc.teamcode.robot.config.generated.config.Auto;
+import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.DrawingUtil;
 import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
+import org.firstinspires.ftc.teamcode.utilities.ParkTimeEstimate;
 import org.firstinspires.ftc.teamcode.utilities.Sentinel;
 
 /**
- * Generic, season-agnostic autonomous base class encapsulating alliance state, hardware lifecycle,
- * dashboard field updates, telemetry, generic config binding, and shared commands.
+ * Alliance-agnostic BIOBUZZ autonomous base: hardware lifecycle, pose and HIVE handoff, CELL-aware
+ * volleys and the end-of-AUTO park.
+ *
+ * <p>Routes are not checked on the robot. {@code AutoRouteSafetyTest} checks every configured
+ * start, park and path for both alliances when the APK is built ({@code assemble*} / {@code
+ * install*}) and before {@code pushConfig} sends a config to the robot ({@code checkPushConfig}),
+ * so a config that would cross the centre line, hit the HIVE frame or miss LEAVE + PARK never
+ * reaches the robot.
+ *
+ * <p>Every routine ends the same way. LEAVE (3) plus AUTO PARK (5) from both alliance robots is
+ * exactly the 16-point SWARM ranking-point threshold at standard events, so {@link
+ * #updateParkGuard} cancels whatever the routine is doing once the time left is no more than the
+ * estimated drive to the park pose (stopping from the current speed, then the HIVE-avoiding route)
+ * plus {@code auto.park_margin_ms}, and never later than {@code auto.park_reserve_ms} before the
+ * end. It then drives to the routine's park pose, partly inside the LOADING ZONE and clear of the
+ * wall.
+ *
+ * <p>The robot never launches at a CELL it does not believe is upward-facing: {@link #volley} waits
+ * up to {@code auto.tip_wait_ms} for the HIVE tracker to report the CELL up and skips the volley
+ * otherwise, because launching into the outside of a CELL is a G417 violation.
+ *
+ * @param <T> the generated {@code config.*Auto} pose class for this routine
  */
 public abstract class AllianceAutoBase<T> extends OpMode {
 
   protected final Alliance alliance;
-  protected final double goalX;
-  protected final double goalY;
-
-  protected final Class<T> configClass;
+  protected final Class<T> poseClass;
   protected final String posePrefix;
-  protected T config;
+  protected T poses;
 
   protected Robot robot;
   protected Intake intake;
@@ -47,250 +84,319 @@ public abstract class AllianceAutoBase<T> extends OpMode {
   protected Turret turret;
   protected Follower follower;
   protected Sentinel sentinel;
-  protected FieldManager field;
+  protected FieldModel field;
+  protected HiveTracker hive;
+  protected FieldManager panels;
 
-  private final ElapsedTime autoTimer = new ElapsedTime();
-  private Command autoCommand;
-  private boolean evacuating;
-  private boolean frozen;
-  private boolean shootingOut;
-  private String endgameStatus = "scoring";
+  private MatchClock clock;
+  private boolean parking;
+  // Park deadline state (see updateParkGuard).
+  private boolean parkEstimateValid = false;
+  private long parkEstimatedAtMs = 0;
+  private double parkDriveSeconds = Double.NaN;
+  private String status = "waiting for start";
+  private final List<String> warnings = new ArrayList<>();
 
-  protected AllianceAutoBase(Alliance alliance, Class<T> configClass, String posePrefix) {
+  protected AllianceAutoBase(Alliance alliance, Class<T> poseClass, String posePrefix) {
     this.alliance = alliance;
-    this.goalX = Field.getGoalX(alliance);
-    this.goalY = Field.getGoalY(alliance);
-    this.configClass = configClass;
+    this.poseClass = poseClass;
     this.posePrefix = posePrefix;
   }
 
+  /** Builds this routine's paths from {@link #poses}. Called once at init. */
   protected abstract void buildPaths();
 
-  protected abstract CommandBuilder buildAuto();
+  /** The CELL the first volley is aimed at; the shooter is only pre-solved if it starts upward. */
+  protected HiveCell firstVolleyCell() {
+    return HiveCell.A;
+  }
 
   /**
-   * One scoring cycle's shot: the same aimed shot TeleOp's operator fires, capped at the window
-   * measured for whatever distance the robot is standing at when it starts — see {@link
-   * ShotController#timedAimAndShootCommand(Follower, Sentinel)}.
+   * Whether the robot starts AUTO holding {@code inventory.preload_count} elements. A routine that
+   * never shoots may run with or without them, so it reports the count as unknown: an unknown count
+   * never blocks the intake, while a wrong count of four would hold it off for all of TeleOp.
    */
-  protected CommandBuilder shoot() {
-    return robot.shotController.timedAimAndShootCommand(follower, sentinel);
+  protected boolean startsWithPreload() {
+    return true;
   }
 
-  private Pose extractStartPose(T config) {
-    try {
-      return (Pose) config.getClass().getField("start").get(config);
-    } catch (Exception e) {
-      return new Pose(0, 0, 0);
-    }
-  }
+  /** The routine itself; the park guard replaces it near the end of AUTO. */
+  protected abstract CommandBuilder buildAuto();
 
-  private Pose extractScorePose(T config) {
-    try {
-      return (Pose) config.getClass().getField("score").get(config);
-    } catch (Exception e) {
-      return null;
-    }
-  }
+  protected abstract Pose startPose();
 
-  private void primeShooterForScorePose(T config) {
-    Pose scorePose = extractScorePose(config);
-    if (scorePose == null) {
-      return;
-    }
+  /** Partly inside the LOADING ZONE, clear of the wall: earns LEAVE and PARK. */
+  protected abstract Pose parkPose();
 
-    org.firstinspires.ftc.teamcode.records.ShotInputs inputs =
-        new org.firstinspires.ftc.teamcode.records.ShotInputs(
-            scorePose, new Pose(0, 0, 0), goalX, goalY);
-    org.firstinspires.ftc.teamcode.records.ShotSolution solution =
-        org.firstinspires.ftc.teamcode.ballistics.ShotSolver.solve(
-            inputs,
-            org.firstinspires.ftc.teamcode.ballistics.ShotTable.fromConfig(),
-            org.firstinspires.ftc.teamcode.records.BallisticsParameters.fromConfig(),
-            0.4);
-    robot.shotController.setInitialSolution(solution);
-  }
+  /** Where the first volley is fired, to pre-position the hood at init; null if none. */
+  protected abstract @Nullable Pose firstVolleyPose();
 
   @Override
   public void init() {
-    org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
-    String allianceStr = alliance == Alliance.RED ? "red" : "blue";
-    this.config = ConfigLoader.loadMerged(configClass, posePrefix + "." + allianceStr, "auto");
+    config.reload();
+    String allianceKey = alliance == Alliance.RED ? "red" : "blue";
+    poses = ConfigLoader.loadMerged(poseClass, posePrefix + "." + allianceKey, "auto");
 
-    field = OpModeUtil.initPanelsField();
+    panels = OpModeUtil.initPanelsField();
 
     blackboard.clear();
     blackboard.put("ALLIANCE", alliance);
 
-    MatchProfile profile = new MatchProfile(alliance);
-
-    robot = new Robot(hardwareMap, telemetry, profile);
+    robot = new Robot(hardwareMap, telemetry, MatchProfile.loadMatchProfile(alliance));
     follower = robot.follower;
     intake = robot.intake;
     shooter = robot.shooter;
     turret = robot.turret;
     sentinel = robot.sentinel;
+    field = robot.field;
+    hive = robot.hive;
+    clock = MatchClock.fromConfig(MatchClock.Period.AUTO, Robot::nowMs);
 
-    Pose startPose = extractStartPose(config);
+    if (startsWithPreload()) {
+      intake.inventory().set(config.inventory.preload_count);
+    } else {
+      intake.inventory().markUnknown();
+    }
+    robot.shotController.setBallType(BallType.POLLEN);
     OpModeUtil.setupTurretAndShooter(turret, shooter);
-    primeShooterForScorePose(config);
+    primeShooter(firstVolleyPose());
 
-    follower.setPose(startPose);
+    follower.setPose(startPose());
     buildPaths();
     Scheduler.reset();
   }
 
+  /** Pre-solves the first volley; the hood target is applied by periodic() after START. */
+  private void primeShooter(@Nullable Pose volleyPose) {
+    // Only pre-solve against the CELL that is up now. A solution for the other CELL would carry the
+    // current epoch and count as current, so never create one.
+    if (volleyPose == null || firstVolleyCell() != hive.upCell()) {
+      return;
+    }
+    try {
+      robot.shotController.setInitialSolution(
+          solveInitialShot(
+              volleyPose,
+              robot.shotController.currentTarget(),
+              robot.shotController.getBallType()));
+    } catch (RuntimeException e) {
+      // A bad shot table stops volleys (they time out), not driving: LEAVE and PARK still count.
+      warnings.add("shot table: " + e.getMessage());
+    }
+  }
+
+  static ShotSolution solveInitialShot(Pose volleyPose, CellTarget target, BallType ballType) {
+    return ShotSolver.solve(
+        new ShotInputs(Turret.pivotPose(volleyPose), Velocity.zero(), target, ballType),
+        ShotTable.fromConfig(ballType),
+        BallisticsParameters.fromConfig(),
+        0.0);
+  }
+
+  @Override
+  public void init_loop() {
+    telemetry.addData("Alliance", alliance);
+    telemetry.addData("Config", ConfigLoader.loadedSource());
+    OpModeUtil.reportConfig(telemetry);
+    if (!config.shooter.shot_table.calibrated) {
+      telemetry.addLine("!! Shot tables are PLACEHOLDERS: volleys will time out without firing");
+    }
+    for (String warning : warnings) {
+      telemetry.addLine("!! " + warning);
+    }
+    telemetry.update();
+  }
+
   @Override
   public void start() {
-    evacuating = false;
-    frozen = false;
-    shootingOut = false;
-    endgameStatus = "scoring";
-    autoCommand = buildAuto();
-    autoTimer.reset();
-    schedule(autoCommand);
+    parking = false;
+    parkEstimateValid = false;
+    parkDriveSeconds = Double.NaN;
+    clock.start();
+    status = "running";
+    schedule(buildAuto());
   }
 
   @Override
   public void loop() {
-    updateEndgame();
+    updateParkGuard();
     robot.update();
 
     OpModeUtil.savePose(alliance, follower.pose());
-    OpModeUtil.drawRobot(field, follower, turret, goalX, goalY);
+    OpModeUtil.saveHandoff(blackboard, alliance, hive, heldForHandoff(), Robot.nowMs());
+    OpModeUtil.drawRobot(panels, follower, turret, robot.shotController.currentTarget());
+    DrawingUtil.drawFieldZones(panels, sentinel);
 
-    telemetry.addData("x", follower.pose().x());
-    telemetry.addData("y", follower.pose().y());
-    telemetry.addData("heading", follower.pose().heading());
+    telemetry.addData("Status", status);
+    telemetry.addData("AUTO left", "%.1f s", clock.remainingMs() / 1000.0);
     telemetry.addData(
-        "Endgame",
-        "%s  (%.1f s left)",
-        endgameStatus,
-        Math.max(0, endgame().period_ms - autoTimer.milliseconds()) / 1000.0);
-    addShooterDiagnostics();
+        "Park deadline",
+        Double.isFinite(parkDriveSeconds)
+            ? String.format(
+                Locale.ROOT,
+                "~%.1f s drive + %.1f s margin",
+                parkDriveSeconds,
+                config.auto.park_margin_ms / 1000.0)
+            : String.format(
+                Locale.ROOT, "no estimate: %.1f s reserve", config.auto.park_reserve_ms / 1000.0));
+    telemetry.addData(
+        "Pose",
+        "(%.1f, %.1f, %.0f deg)",
+        follower.pose().x(),
+        follower.pose().y(),
+        Math.toDegrees(follower.pose().heading()));
+    telemetry.addData(
+        "HIVE", "CELL %s up, %d TIPS (%s)", hive.upCell(), hive.tips(), hive.source());
+    telemetry.addData(
+        "Inventory",
+        intake.inventory().isKnown() ? Integer.toString(intake.inventory().count()) : "unknown");
+    telemetry.addData("Shot", robot.shotController.getGateReason());
+    telemetry.addData(
+        "Scoring at park",
+        sentinel.earnsLeaveAndPark(follower.pose()) ? "LEAVE + PARK" : "not yet");
     telemetry.update();
   }
 
-  private static Auto.Endgame endgame() {
-    return org.firstinspires.ftc.teamcode.robot.config.generated.config.auto.endgame;
-  }
-
-  private void updateEndgame() {
-    double remainingMs = endgame().period_ms - autoTimer.milliseconds();
-    if (!evacuating && remainingMs <= endgame().evacuate_ms) {
-      beginEvacuation();
-    }
-    if (!evacuating) {
+  /**
+   * Every {@code auto.park_update_ms}, re-estimates how long parking from here would take: stopping
+   * from the current speed, then {@link Sentinel#parkRoute} to the park pose ({@link
+   * ParkTimeEstimate}). Once {@link MatchClock#isParkDue} says the time left is no more than that
+   * plus {@code auto.park_margin_ms} (or {@code auto.park_reserve_ms}, whichever is earlier), it
+   * cancels the routine and drives the route.
+   *
+   * <p>A moment with no clear route keeps the last estimate, so it never cancels the routine early.
+   * If the deadline arrives where no route is clear, the routine keeps running and the route is
+   * re-planned every update until one is clear: the configured paths are checked to have a park
+   * route all along them ({@code AutoRouteSafetyTest}), so a moving robot soon reaches one.
+   */
+  private void updateParkGuard() {
+    if (parking) {
       return;
     }
-
-    Sentinel.ZoneStanding standing =
-        sentinel.zoneStanding(follower.pose(), endgame().exit_clearance);
-
-    if (!frozen
-        && (standing != Sentinel.ZoneStanding.ON_BOUNDARY || remainingMs <= endgame().freeze_ms)) {
-      freeze(standing);
+    var auto = config.auto;
+    long now = Robot.nowMs();
+    boolean refresh = !parkEstimateValid || now - parkEstimatedAtMs >= auto.park_update_ms;
+    if (!refresh && !clock.isParkDue(parkDriveSeconds, auto.park_margin_ms, auto.park_reserve_ms)) {
+      return;
     }
-    if (frozen) {
-      endgameStatus = (shootingOut ? "frozen, shooting - " : "frozen - ") + standing;
-      if (!shootingOut) {
-        follower.manual(0, 0, 0);
+    Pose here = follower.pose();
+    List<Pose> route = isFinite(here) ? sentinel.parkRoute(here, parkPose()) : List.of();
+    if (refresh) {
+      parkEstimateValid = true;
+      parkEstimatedAtMs = now;
+      double speed = follower.velocity().toVector2D().magnitude();
+      double estimate =
+          ParkTimeEstimate.stoppingSeconds(speed) + ParkTimeEstimate.seconds(here, route);
+      if (Double.isFinite(estimate)) {
+        parkDriveSeconds = estimate;
       }
     }
-  }
-
-  private void beginEvacuation() {
-    evacuating = true;
-
-    Scheduler.cancel(autoCommand);
+    if (!clock.isParkDue(parkDriveSeconds, auto.park_margin_ms, auto.park_reserve_ms)) {
+      return;
+    }
+    if (route.isEmpty()) {
+      status = "park due: no clear route from here yet, retrying";
+      parkEstimatedAtMs = now - auto.park_update_ms; // re-plan on the next loop
+      return;
+    }
+    parking = true;
     Scheduler.reset();
     robot.shotController.stopShot();
     intake.stop();
-    turret.setAimMode(Turret.AimMode.IDLE);
-    follower.stop();
-
-    Pose here = follower.pose();
-    EndgameSpot spot = sentinel.nearestEndgameSpot(here, endgame().exit_clearance);
-
-    if (spot == null) {
-      endgameStatus = "no committed spot on our half";
-      shooter.setTargetPower(0);
-      freeze(sentinel.zoneStanding(here, endgame().exit_clearance));
-      return;
-    }
-
-    shooter.setTargetPower(spot.insideLaunchZone() ? Shooter.constantPower() : 0);
-
-    endgameStatus =
-        String.format(
-            Locale.ROOT,
-            "moving %.1f in to (%.0f, %.0f), %s",
-            here.distance(spot.pose()),
-            spot.pose().x(),
-            spot.pose().y(),
-            spot.insideLaunchZone() ? "inside zone" : "outside zones");
-    schedule(follow(follower, pline(here, spot.pose())));
-  }
-
-  private void freeze(Sentinel.ZoneStanding standing) {
-    frozen = true;
-    Scheduler.reset();
-    intake.stop();
-    robot.shotController.stopShot();
-    follower.stop();
-
-    shootingOut = standing == Sentinel.ZoneStanding.INSIDE;
-    if (shootingOut) {
-      schedule(robot.shotController.aimAndShootCommand(follower, sentinel));
-      return;
-    }
-
     shooter.setTargetPower(0);
     turret.setAimMode(Turret.AimMode.IDLE);
-    follower.manual(0, 0, 0);
-    follower.manual(0, 0, 0);
+    status = String.format(Locale.ROOT, "parking via %d waypoint(s)", route.size());
+    schedule(followRoute(here, route));
   }
 
-  private void addShooterDiagnostics() {
-    double target = shooter.getLastTargetVelocity();
-    double actual = Math.abs(shooter.getShooterVelocity());
-    telemetry.addData(
-        "Flywheel",
-        String.format(
-            Locale.ROOT,
-            "%.0f / %.0f ticks/s (%.2fx)",
-            actual,
-            target,
-            target > 0 ? actual / target : 0.0));
-    telemetry.addData(
-        "Flywheel Cmd",
-        String.format(
-            Locale.ROOT,
-            "%.3f  (pid %.3f + i %.3f + ff %.3f) x%.2f",
-            shooter.getLastCommand(),
-            shooter.getLastPidTerm(),
-            shooter.getLastIntegralTerm(),
-            shooter.getLastFeedforwardTerm(),
-            shooter.getLastVoltageScale()));
-    telemetry.addData(
-        "Bus Voltage", String.format(Locale.ROOT, "%.2f V", shooter.getLastBusVoltage()));
-    telemetry.addData("Hood", shooter.getTargetHoodPosition());
-    telemetry.addData(
-        "Launch Legal",
-        sentinel.isLaunchAllowed(follower.pose()) ? "yes" : "NO - a shot here would not fire");
-    telemetry.addData(
-        "Shoot Window Here", "%d ms", robot.shotController.shotWindowMsAt(follower.pose()));
+  private static boolean isFinite(Pose p) {
+    return p != null
+        && Double.isFinite(p.x())
+        && Double.isFinite(p.y())
+        && Double.isFinite(p.heading());
+  }
 
-    var solution = robot.shotController.getLastSolution();
-    telemetry.addData(
-        "Shot Solver",
-        String.format(
-            Locale.ROOT,
-            "%.1f in -> hood %.3f, %.0f rpm [%s]",
-            solution.distanceInches(),
-            solution.targetHoodPosition(),
-            solution.targetRpm(),
-            solution.isValid() ? "valid" : solution.validityReason()));
+  // ---------------------------------------------------------------------------------------------
+  // Building blocks for routines
+
+  /** Follows straight segments through {@code waypoints}, starting from {@code from}. */
+  protected CommandBuilder followRoute(Pose from, List<Pose> waypoints) {
+    if (waypoints.isEmpty()) {
+      return instant(follower::stop).requiring(follower);
+    }
+    Command[] legs = new Command[waypoints.size()];
+    Pose previous = from;
+    for (int i = 0; i < waypoints.size(); i++) {
+      Pose to = waypoints.get(i);
+      legs[i] =
+          previous.distance(to) == 0.0
+              ? instant(() -> follower.hold(to)).requiring(follower)
+              : follow(follower, pline(previous, to));
+      previous = waypoints.get(i);
+    }
+    return sequential(legs);
+  }
+
+  /** Spins the flywheel up and starts collecting, then drives {@code path}. */
+  protected CommandBuilder intakeAndFollow(Path path) {
+    return sequential(
+        instant(
+            () -> {
+              shooter.setTargetPower(Shooter.constantPower());
+              intake.run(1.0, config.auto.transfer_power);
+            }),
+        follow(follower, path));
+  }
+
+  /** Drives into a FLOWER's retrieval opening with the intake running, then dwells there. */
+  protected CommandBuilder collectAt(Path path) {
+    return sequential(
+        intakeAndFollow(path),
+        waitMs(config.auto.collect_dwell_ms),
+        // Stop collecting once the dwell is over. Without an entry sensor the inventory count is
+        // unknown once the intake runs, so nothing else would stop a fifth element (G407) being
+        // picked up on the drive to the next volley.
+        instant(
+            () -> {
+              intake.stop();
+              status = "collected";
+            }));
+  }
+
+  /**
+   * Fires one volley into {@code cell} if it is (or within {@code auto.tip_wait_ms} becomes)
+   * upward-facing and settled. Otherwise skips: the robot never launches at a downward CELL.
+   */
+  protected CommandBuilder volley(HiveCell cell) {
+    return sequential(
+        instant(() -> status = "waiting for CELL " + cell + " up"),
+        race(
+            waitUntil(() -> hive.upCell() == cell && hive.isSettled()),
+            waitMs(config.auto.tip_wait_ms)),
+        lazy(
+            () -> {
+              if (hive.upCell() != cell) {
+                status = "skipped volley: CELL " + cell + " never came up";
+                return instant(() -> {});
+              }
+              status = "volley into CELL " + cell;
+              return robot.shotController.volleyCommand(
+                  follower, config.auto.balls_per_volley_count);
+            }));
+  }
+
+  /** Stops the intake and flywheel. */
+  protected CommandBuilder idleMechanisms() {
+    return instant(
+        () -> {
+          intake.stop();
+          shooter.setTargetPower(0);
+        });
+  }
+
+  /** Inventory count to hand to the next OpMode; -1 when it is not known. */
+  private int heldForHandoff() {
+    return intake.inventory().isKnown() ? intake.inventory().count() : -1;
   }
 
   @Override

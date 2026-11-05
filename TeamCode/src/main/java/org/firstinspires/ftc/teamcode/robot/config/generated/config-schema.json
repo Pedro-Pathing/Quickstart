@@ -3,6 +3,489 @@
   "title": "Robot Configuration Unified Schema",
   "type": "object",
   "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "season": {
+          "description": "Season tag. ConfigLoader ignores an ADB-pushed override whose meta.season differs from (or lacks) this value, so last season's pushed config can never override this season's bundled values.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "season"
+      ]
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "size_in": {
+          "description": "Inside-wall field width (inches). The field centre is size_in / 2; BLUE geometry and every 'm' pose are the 180-degree rotation of RED about it. Manual nominal 144, official CAD ~141.3.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 120.0,
+              "maximum": 150.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "hive": {
+          "type": "object",
+          "properties": {
+            "center_to_center_in": {
+              "description": "Horizontal distance (inches) between the RED and BLUE HIVE pivots, along x (manual Figure 9-10).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "pivot_height_in": {
+              "description": "HIVE pivot height above the TILES (inches, manual Figure 9-8).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "up_opening_offset_in": {
+              "description": "Horizontal distance (inches) from the HIVE pivot to an upward-facing CELL's opening centre, toward the side the opening faces (CAD-derived). This point is the SDK AprilTag cluster origin and the shot target.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "up_opening_height_in": {
+              "description": "Height (inches) of an upward-facing CELL's opening centre above the TILES (manual: opening spans 53.5-65.6 in).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "down_opening_offset_in": {
+              "description": "Horizontal distance (inches) from the HIVE pivot to a downward-facing CELL's opening centre (the up geometry rotated 60 degrees about the pivot).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "down_opening_height_in": {
+              "description": "Height (inches) of a downward-facing CELL's opening centre above the TILES.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "frame_width_in": {
+              "description": "HIVE frame base width (inches) along x (manual Figure 9-8).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "frame_depth_in": {
+              "description": "HIVE frame base depth (inches) along y (manual Figure 9-8).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "bottom_height_in": {
+              "description": "Lowest HIVE point above the TILES (inches). TU05 corrected V1's 25.5 in typo to 30.6 in; a robot must stay below this to pass under the HIVE.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            }
+          },
+          "required": [
+            "center_to_center_in",
+            "pivot_height_in",
+            "up_opening_offset_in",
+            "up_opening_height_in",
+            "down_opening_offset_in",
+            "down_opening_height_in",
+            "frame_width_in",
+            "frame_depth_in",
+            "bottom_height_in"
+          ]
+        },
+        "loading_zone": {
+          "type": "object",
+          "properties": {
+            "start_y_in": {
+              "description": "RED LOADING ZONE start along the RED alliance wall (inches from the audience wall). BLUE is the 180-degree rotation.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "width_in": {
+              "description": "LOADING ZONE length along its wall (inches, manual: ~23 in).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "depth_in": {
+              "description": "Depth of a zone measured out from its wall (inches): LOADING ZONE ~11 in.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            }
+          },
+          "required": [
+            "start_y_in",
+            "width_in",
+            "depth_in"
+          ]
+        },
+        "garden": {
+          "type": "object",
+          "properties": {
+            "length_in": {
+              "description": "GARDEN length along the audience/rear wall from the alliance corner (inches, manual: ~23 in).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "depth_in": {
+              "description": "Depth of a zone measured out from its wall (inches): LOADING ZONE ~11 in.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            }
+          },
+          "required": [
+            "length_in",
+            "depth_in"
+          ]
+        },
+        "flower": {
+          "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
+          "type": "object",
+          "properties": {
+            "wall_offset_in": {
+              "description": "Distance (inches) from a FLOWER's top-ring centre to the perimeter wall it is mounted on (official field CAD: 2.65).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "corner_offset_in": {
+              "description": "Distance (inches) from the alliance corner to each alliance-side FLOWER along its wall (official field CAD: 23.39 in from the field centre line).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            }
+          },
+          "required": [
+            "wall_offset_in",
+            "corner_offset_in"
+          ]
+        }
+      },
+      "required": [
+        "size_in",
+        "hive",
+        "loading_zone",
+        "garden",
+        "flower"
+      ]
+    },
+    "hive": {
+      "type": "object",
+      "properties": {
+        "up_height_threshold_in": {
+          "description": "A detected CELL whose opening centre is above this height (inches) is classified upward-facing. Upward openings sit at ~59.6 in and downward ones at ~38.2 in.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "confirm_frames_count": {
+          "description": "Consecutive agreeing AprilTag observations required before the HIVE tracker accepts a TIP it did not already expect.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 1.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "settle_ms": {
+          "description": "After a TIP is detected or entered, feeding is locked out for this long while the HIVE swings and spilled SCORING ELEMENTS clear (manual 10.5.1: launching into a tipping HIVE can stop the TIP).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "max_observation_age_ms": {
+          "description": "AprilTag CELL observations older than this (milliseconds) are ignored by the HIVE tracker.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        }
+      },
+      "required": [
+        "up_height_threshold_in",
+        "confirm_frames_count",
+        "settle_ms",
+        "max_observation_age_ms"
+      ]
+    },
+    "match": {
+      "type": "object",
+      "properties": {
+        "auto_ms": {
+          "description": "Length of AUTO (milliseconds, manual 10.4).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "teleop_ms": {
+          "description": "Length of TELEOP (milliseconds, manual 10.4).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "flower_unlock_remaining_ms": {
+          "description": "TELEOP time remaining (milliseconds) at which NECTAR may enter FLOWERS (G410) and humans may enter all remaining NECTAR (G426).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "final_warning_remaining_ms": {
+          "description": "TELEOP time remaining (milliseconds) at which the park alert starts estimating the drive to the park pose. Nothing is signalled at this moment; the alert fires later, at park_alert_margin_ms before the estimated last moment.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        }
+      },
+      "required": [
+        "auto_ms",
+        "teleop_ms",
+        "flower_unlock_remaining_ms",
+        "final_warning_remaining_ms"
+      ]
+    },
+    "inventory": {
+      "type": "object",
+      "properties": {
+        "capacity_count": {
+          "description": "Maximum SCORING ELEMENTS the robot may CONTROL (G407: 4). The intake stops itself when the tracked inventory reaches this.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 1.0,
+              "maximum": 4.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "preload_count": {
+          "description": "SCORING ELEMENTS loaded at match start (manual 10.3.4: exactly 4 POLLEN).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 4.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "entry_sensor_enabled": {
+          "description": "True when an intake-entry beam break / proximity sensor is fitted. Without it the inventory count is unknown in TELEOP and the intake cannot cap itself at capacity_count.",
+          "type": "boolean"
+        },
+        "entry_sensor_name": {
+          "description": "Robot configuration name of the intake-entry DigitalChannel sensor.",
+          "type": "string"
+        },
+        "entry_sensor_active_low": {
+          "description": "True if the entry sensor reads false while a SCORING ELEMENT blocks it (most beam breaks).",
+          "type": "boolean"
+        },
+        "entry_debounce_ms": {
+          "description": "Minimum time (milliseconds) the entry sensor must stay blocked before a SCORING ELEMENT is counted.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        }
+      },
+      "required": [
+        "capacity_count",
+        "preload_count",
+        "entry_sensor_enabled",
+        "entry_sensor_name",
+        "entry_sensor_active_low",
+        "entry_debounce_ms"
+      ]
+    },
     "pedro": {
       "type": "object",
       "properties": {
@@ -738,13 +1221,28 @@
                   "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
                 }
               ]
+            },
+            "retry_after_sec": {
+              "description": "Seconds after a turret stall fault before power is allowed again (0 keeps the fault latched until the OpMode restarts). A ball jam or a defender holding the turret must not disable aiming for the rest of the match.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 10.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
             }
           },
           "required": [
             "enabled",
             "power_threshold",
             "min_progress_deg",
-            "timeout_sec"
+            "timeout_sec",
+            "retry_after_sec"
           ]
         },
         "runaway": {
@@ -834,11 +1332,98 @@
             "f"
           ]
         },
+        "kv": {
+          "description": "Turret velocity feedforward (power per degree/second): 1 / K, where K is the plant gain the Turret Plant Calibration OpMode reports. Drives the turret at the rate chassis rotation and translation demand, so it stops lagging the target. 0 disables.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 0.1
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "ff_min_rate_dps": {
+          "description": "A settled turret follows the chassis-driven rate (kS sign(v) + kV v) only above this rate (degrees/second); slower rates are odometry noise and would make it chatter.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "pivot_forward_in": {
+          "description": "Turret rotation axis position forward of the robot centre (inches). Aim bearings, shot distances and moving-shot lead are measured from this point.",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "pivot_left_in": {
+          "description": "Turret rotation axis position left of the robot centre (inches).",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "integral": {
+          "type": "object",
+          "properties": {
+            "band_deg": {
+              "description": "The turret I term only integrates while the aim error is within this many degrees. 30 covers the whole travel; narrow it only if the turret has symmetric, well-measured static friction compensation (a narrow band left a 3 deg stall when ks under-compensates).",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "limit_power": {
+              "description": "Largest power (0 to 1) the turret I term may contribute.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            }
+          },
+          "required": [
+            "band_deg",
+            "limit_power"
+          ]
+        },
         "tolerance": {
           "type": "object",
           "properties": {
             "max_drift": {
-              "description": "Maximum allowed chassis drift (inches) from target pose before auto-corrective drive motions engage.",
+              "description": "Total lateral miss (inches) allowed at the target: the turret aim tolerance is asin((max_drift / 2) / distance), clamped to [min_deg, max_deg]. Size it from the CELL opening width seen from the shooting angle minus the ball diameter.",
               "oneOf": [
                 {
                   "type": "number",
@@ -890,11 +1475,25 @@
               ]
             },
             "max_deg": {
-              "description": "Maximum dynamic alignment tolerance (degrees) allowed. Prevents launching if the turret orientation error exceeds this.",
+              "description": "Maximum dynamic alignment tolerance (degrees). Caps the tolerance at short range.",
               "oneOf": [
                 {
                   "type": "number",
                   "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "exit_factor": {
+              "description": "Turret settle hysteresis: settled when the error is within tolerance, unsettled again only past tolerance * exit_factor. Stops hunting at the tolerance edge and makes the aim gate steady. 1 disables the hysteresis.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 1.0,
+                  "maximum": 5.0
                 },
                 {
                   "type": "string",
@@ -908,7 +1507,8 @@
             "near_cutoff",
             "near_val",
             "min_deg",
-            "max_deg"
+            "max_deg",
+            "exit_factor"
           ]
         },
         "analog_encoder": {
@@ -1012,6 +1612,11 @@
         "stall",
         "runaway",
         "pidf",
+        "kv",
+        "ff_min_rate_dps",
+        "pivot_forward_in",
+        "pivot_left_in",
+        "integral",
         "tolerance",
         "analog_encoder"
       ]
@@ -1019,57 +1624,37 @@
     "vision": {
       "type": "object",
       "properties": {
-        "camera_position": {
-          "type": "object",
-          "properties": {
-            "x": {
-              "description": "X value coordinate.",
-              "oneOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
+        "enabled": {
+          "description": "Enable/disable this subsystem, controller, watchdog, or feature.",
+          "type": "boolean"
+        },
+        "continuous": {
+          "description": "Stream the camera continuously so the HIVE tracker sees every TIP. False streams only while the operator holds relocalize.",
+          "type": "boolean"
+        },
+        "camera_name": {
+          "description": "Robot configuration name of the webcam.",
+          "type": "string"
+        },
+        "decimation": {
+          "description": "AprilTag decimation. Higher is faster with shorter detection range.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 1.0,
+              "maximum": 6.0
             },
-            "y": {
-              "description": "Y value coordinate.",
-              "oneOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "z": {
-              "description": "Z value coordinate.",
-              "oneOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
             }
-          },
-          "required": [
-            "x",
-            "y",
-            "z"
           ]
         },
-        "camera_orientation": {
+        "camera": {
           "type": "object",
           "properties": {
-            "yaw": {
-              "description": "Yaw rotation (degrees).",
+            "forward_in": {
+              "description": "Camera lens position forward of the robot centre (inches).",
               "oneOf": [
                 {
                   "type": "number"
@@ -1080,8 +1665,8 @@
                 }
               ]
             },
-            "pitch": {
-              "description": "Pitch rotation (degrees).",
+            "left_in": {
+              "description": "Camera lens position left of the robot centre (inches).",
               "oneOf": [
                 {
                   "type": "number"
@@ -1092,11 +1677,40 @@
                 }
               ]
             },
-            "roll": {
-              "description": "Roll rotation (degrees).",
+            "height_in": {
+              "description": "Camera lens height above the TILES (inches).",
               "oneOf": [
                 {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "yaw_deg": {
+              "description": "Camera yaw (degrees) from robot forward, counter-clockwise positive.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": -180.0,
+                  "maximum": 180.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "pitch_up_deg": {
+              "description": "Camera pitch (degrees) above horizontal. BIOBUZZ tags are on CELL bottoms 30-60 in up, so this is positive.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": -90.0,
+                  "maximum": 90.0
                 },
                 {
                   "type": "string",
@@ -1106,22 +1720,63 @@
             }
           },
           "required": [
-            "yaw",
-            "pitch",
-            "roll"
+            "forward_in",
+            "left_in",
+            "height_in",
+            "yaw_deg",
+            "pitch_up_deg"
+          ]
+        },
+        "relocalize": {
+          "type": "object",
+          "properties": {
+            "max_range_in": {
+              "description": "Ignore CELL detections farther than this (inches) for relocalization; pose error grows with range.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "max_correction_in": {
+              "description": "Reject a vision relocalization that moves the pose farther than this (inches) from odometry; that is a misidentified or moving CELL, not drift.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            }
+          },
+          "required": [
+            "max_range_in",
+            "max_correction_in"
           ]
         }
       },
       "required": [
-        "camera_position",
-        "camera_orientation"
+        "enabled",
+        "continuous",
+        "camera_name",
+        "decimation",
+        "camera",
+        "relocalize"
       ]
     },
     "sentinel": {
       "type": "object",
       "properties": {
         "robot_width": {
-          "description": "Total physical width of the robot (inches) used to build the collision footprint. Determines how close the robot can get to walls or goals.",
+          "description": "Total physical width of the robot (inches) used to build its square collision footprint for HIVE-frame protection, LEAVE/PARK checks and the G402 alliance-side check.",
           "oneOf": [
             {
               "type": "number",
@@ -1146,120 +1801,147 @@
             }
           ]
         },
-        "goals": {
-          "type": "object",
-          "properties": {
-            "size": {
-              "description": "Length (inches) of one side of the square scoring goal zones on the field.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
+        "protect_full_hive_footprint": {
+          "description": "True protects the whole HIVE frame base rectangle (the robot never drives under the HIVE). False protects only the two 2 in frame foot bars, for a robot built to pass under the HIVE; the inward-leaning A-frame legs are not modelled, so verify leg clearance for the robot's height.",
+          "type": "boolean"
+        },
+        "frame_base_width_in": {
+          "description": "Width (inches) of each triangular HIVE frame base rail, used when protect_full_hive_footprint is false.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
             },
-            "min_y": {
-              "description": "The Y-coordinate boundary (inches) on the field where the scoring zones begin. Used to calculate red/blue alliance goal boxes.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "red_goal_x": {
-              "description": "Goal center X coordinate for RED alliance.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "red_goal_y": {
-              "description": "Goal center Y coordinate for RED alliance.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "blue_goal_x": {
-              "description": "Goal center X coordinate for BLUE alliance.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "blue_goal_y": {
-              "description": "Goal center Y coordinate for BLUE alliance.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
             }
-          },
-          "required": [
-            "size",
-            "min_y",
-            "red_goal_x",
-            "red_goal_y",
-            "blue_goal_x",
-            "blue_goal_y"
+          ]
+        },
+        "center_line_margin_in": {
+          "description": "Margin (inches) the robot footprint must keep from the field centre line to count as fully on its own side (G304.A / G402).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "wall_contact_tolerance_in": {
+          "description": "Footprint distance from a perimeter wall (inches) that counts as touching for LEAVE.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_lane_margin_in": {
+          "description": "Clearance (inches) between the HIVE frame and the robot's turning radius in the emergency park lane.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "route_sample_step": {
+          "description": "Parameter increment for autonomous and assisted-drive path safety sampling. Smaller values check more positions.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 0.02
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_turn_rate_dps": {
+          "description": "Turn rate (degrees/second) assumed when estimating how long a park route takes. Lower is more conservative.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 1.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_settle_per_waypoint_sec": {
+          "description": "Time (seconds) added per waypoint when estimating how long a park route takes, for slowing and settling at each corner.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "geometry_epsilon_in": {
+          "description": "Numerical tolerance (inches) for footprint containment at exact field boundaries after floating-point rotation.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0E-6
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
           ]
         }
       },
       "required": [
         "robot_width",
         "rotation_lookahead_time",
-        "goals"
+        "protect_full_hive_footprint",
+        "frame_base_width_in",
+        "center_line_margin_in",
+        "wall_contact_tolerance_in",
+        "park_lane_margin_in",
+        "route_sample_step",
+        "park_turn_rate_dps",
+        "park_settle_per_waypoint_sec",
+        "geometry_epsilon_in"
       ]
     },
     "casablanca": {
       "type": "object",
       "properties": {
         "enable_depth_protection": {
-          "description": "Enable/disable depth (X-axis) goal zone proximity protection. Safety policy parameter; leave true outside of debugging.",
+          "description": "Enable/disable X-axis protection against driving into the HIVE frame. Safety policy parameter; leave true outside of debugging.",
           "type": "boolean"
         },
         "enable_side_protection": {
-          "description": "Enable/disable side (Y-axis) goal zone proximity protection. Safety policy parameter; leave true outside of debugging.",
+          "description": "Enable/disable Y-axis protection against driving into the HIVE frame. Safety policy parameter; leave true outside of debugging.",
           "type": "boolean"
         },
         "repulsion": {
           "type": "object",
           "properties": {
             "power": {
-              "description": "Motor power (0.0 to 1.0) commanded to push the robot away when it violates a goal zone boundary. Driver/safety policy parameter.",
+              "description": "Motor power (0.0 to 1.0) commanded to push the robot back out when it is inside a protected zone (the HIVE frame). Driver/safety policy parameter.",
               "oneOf": [
                 {
                   "type": "number",
@@ -1296,7 +1978,7 @@
           "type": "object",
           "properties": {
             "slow_down": {
-              "description": "Distance (inches) from goal zone at which proximity speed reduction starts. Driver comfort / early-warning feel parameter.",
+              "description": "Distance (inches) from a protected zone (the HIVE frame) at which proximity speed reduction starts. Driver comfort / early-warning feel parameter.",
               "oneOf": [
                 {
                   "type": "number",
@@ -1309,7 +1991,7 @@
               ]
             },
             "hard_stop": {
-              "description": "Distance (inches) from goal zone where drive power towards zone is cut to zero. Safety policy parameter.",
+              "description": "Distance (inches) from a protected zone (the HIVE frame) where drive power toward it is cut to zero, so the robot cannot ram the HIVE (G417). Safety policy parameter.",
               "oneOf": [
                 {
                   "type": "number",
@@ -1331,7 +2013,7 @@
           "type": "object",
           "properties": {
             "slow_down": {
-              "description": "Distance (inches) from goal zone at which proximity speed reduction starts. Driver comfort / early-warning feel parameter.",
+              "description": "Distance (inches) from a protected zone (the HIVE frame) at which proximity speed reduction starts. Driver comfort / early-warning feel parameter.",
               "oneOf": [
                 {
                   "type": "number",
@@ -1344,7 +2026,7 @@
               ]
             },
             "hard_stop": {
-              "description": "Distance (inches) from goal zone where drive power towards zone is cut to zero. Safety policy parameter.",
+              "description": "Distance (inches) from a protected zone (the HIVE frame) where drive power toward it is cut to zero, so the robot cannot ram the HIVE (G417). Safety policy parameter.",
               "oneOf": [
                 {
                   "type": "number",
@@ -1680,7 +2362,8 @@
               "oneOf": [
                 {
                   "type": "number",
-                  "minimum": 0.0
+                  "minimum": 0.0,
+                  "maximum": 1.0
                 },
                 {
                   "type": "string",
@@ -1732,7 +2415,7 @@
           "type": "object",
           "properties": {
             "calibration_pose": {
-              "description": "Actual field starting pose [x inches, y inches, heading degrees] for every manually repositioned jump-tuning trial. Collision protection uses this pose.",
+              "description": "Actual field starting pose [x inches, y inches, heading degrees] for every manually repositioned tuning trial; STRAFE trials start here turned 90 degrees. Collision protection uses this pose, so it must leave HIVE protection inactive over the whole trial (TunerPoseSafetyTest checks).",
               "oneOf": [
                 {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                 {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
@@ -2083,7 +2766,7 @@
               "type": "string"
             },
             "calibration_pose": {
-              "description": "Actual field starting pose [x inches, y inches, heading degrees] for every manually repositioned jump-tuning trial. Collision protection uses this pose.",
+              "description": "Actual field starting pose [x inches, y inches, heading degrees] for every manually repositioned tuning trial; STRAFE trials start here turned 90 degrees. Collision protection uses this pose, so it must leave HIVE protection inactive over the whole trial (TunerPoseSafetyTest checks).",
               "oneOf": [
                 {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                 {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
@@ -2601,7 +3284,7 @@
           ]
         },
         "max_rpm": {
-          "description": "Maximum rotational speed (RPM) of the motor. Used to scale power percentage to velocity.",
+          "description": "Flywheel velocity (DcMotorEx.setVelocity units: encoder ticks per second, despite the historical _rpm name) that a target power of 1.0 maps to.",
           "oneOf": [
             {
               "type": "number",
@@ -2614,7 +3297,7 @@
           ]
         },
         "constant_rpm": {
-          "description": "Continuous fixed flywheel target speed (RPM). Flywheel holds this RPM constantly so time-to-shoot collapses to alignment time.",
+          "description": "Fixed flywheel target (encoder ticks/s) for manual fixed-power shots and for holding the flywheel spun up between volleys.",
           "oneOf": [
             {
               "type": "number",
@@ -2628,7 +3311,7 @@
           ]
         },
         "min_transfer_threshold": {
-          "description": "Flywheel speed threshold (percentage, 0.0 to 1.0) required to trigger the transfer belt. Prevents launching rings before the shooter is up to speed.",
+          "description": "Flywheel speed ratio (0.0 to 1.0) required to arm a feed. Prevents launching before the shooter is up to speed.",
           "oneOf": [
             {
               "type": "number",
@@ -2642,7 +3325,7 @@
           ]
         },
         "max_velocity_threshold": {
-          "description": "Flywheel velocity upper bound scale factor (e.g. 1.05) to prevent overshooting before feeding rings. Applies only when arming a feed, not while one is already running, since a ring can only ever slow the flywheel down.",
+          "description": "Flywheel velocity upper bound ratio (e.g. 1.03) to prevent overshooting before a feed is armed. Applies only when arming, not while a feed is running, since a ball can only slow the flywheel down.",
           "oneOf": [
             {
               "type": "number",
@@ -2670,7 +3353,7 @@
           ]
         },
         "feed_intake_power": {
-          "description": "Front intake power (0.0 to 1.0) when feeding rings to the shooter.",
+          "description": "Front intake power (0.0 to 1.0) when feeding SCORING ELEMENTS to the shooter.",
           "oneOf": [
             {
               "type": "number",
@@ -2684,21 +3367,7 @@
           ]
         },
         "feed_transfer_power": {
-          "description": "Transfer motor power (0.0 to 1.0) when feeding rings to the shooter.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
-        },
-        "long_hood_power_threshold": {
-          "description": "Launch power ratio threshold above which the high hood position is selected for long-range shots.",
+          "description": "Transfer motor power (0.0 to 1.0) when feeding SCORING ELEMENTS to the shooter.",
           "oneOf": [
             {
               "type": "number",
@@ -2980,20 +3649,7 @@
               ]
             },
             "launch_height_inches": {
-              "description": "Physical ring release height (inches) above field carpet floor.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "goal_height_inches": {
-              "description": "Center height (inches) of target scoring goal basket above field carpet floor.",
+              "description": "Ball release height (inches) above the TILES. The target height is not configured here: it is field.hive.up_opening_height_in, the upward CELL opening centre.",
               "oneOf": [
                 {
                   "type": "number",
@@ -3088,7 +3744,7 @@
               ]
             },
             "min_valid_distance": {
-              "description": "Minimum calibrated shot distance (inches) for valid solution.",
+              "description": "Minimum horizontal distance (inches) from the robot to the target CELL opening centre for a valid solution.",
               "oneOf": [
                 {
                   "type": "number",
@@ -3101,11 +3757,25 @@
               ]
             },
             "max_valid_distance": {
-              "description": "Maximum calibrated shot distance (inches) for valid solution.",
+              "description": "Maximum horizontal distance (inches) from the robot to the target CELL opening centre for a valid solution.",
               "oneOf": [
                 {
                   "type": "number",
                   "minimum": 0.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
+            "max_off_axis_deg": {
+              "description": "Largest angle (degrees) between the target CELL opening's outward direction and the line to the robot for a valid shot. The opening faces outward and 30 degrees up, so shots from behind or far to the side cannot enter it.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 90.0
                 },
                 {
                   "type": "string",
@@ -3141,7 +3811,7 @@
               ]
             },
             "preferred_shot_rpm": {
-              "description": "Flywheel setpoint the hood aims around. The solver holds this speed and lets the hood alone cover every distance it can, so the flywheel stays parked at one well-calibrated, already-spun-up speed. It only rises above this when no hood angle can reach the goal, and never falls below it. This is the main shot-strength knob: raise it if shots land weak across the board.",
+              "description": "Lower bound (encoder ticks/s) the solved flywheel setpoint is clamped to. Raise it if shots land weak across the board.",
               "oneOf": [
                 {
                   "type": "number",
@@ -3195,8 +3865,22 @@
                 }
               ]
             },
+            "flight_time_base_sec": {
+              "description": "Time-of-flight intercept (seconds): a BIOBUZZ lob spends most of its flight rising ~45 in to the CELL, so flight time is base + per_inch * range rather than proportional to range. Used only to lead a moving shot.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 2.0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+                }
+              ]
+            },
             "flight_time_sec_per_inch": {
-              "description": "Ring time of flight per inch of range, used only to lead a moving shot. A flat estimate on purpose: the measured shot table records hood and RPM but not flight time, and lead only shifts the aim azimuth slightly, so a rough value is adequate here where a wrong hood position would not be.",
+              "description": "Additional time of flight per inch of horizontal range (seconds/inch), used only to lead a moving shot.",
               "oneOf": [
                 {
                   "type": "number",
@@ -3229,7 +3913,6 @@
             "k",
             "magnus_l",
             "launch_height_inches",
-            "goal_height_inches",
             "g_inches_per_sec2",
             "min_hood_angle_deg",
             "max_hood_angle_deg",
@@ -3238,12 +3921,14 @@
             "max_moving_speed_ips",
             "min_valid_distance",
             "max_valid_distance",
+            "max_off_axis_deg",
             "lead_bias_gain",
             "v0_reference_rpm",
             "preferred_shot_rpm",
             "max_shot_rpm",
             "v0_margin_fraction",
             "rpm_update_deadband",
+            "flight_time_base_sec",
             "flight_time_sec_per_inch",
             "lead_min_speed_ips"
           ]
@@ -3251,14 +3936,25 @@
         "shot_table": {
           "type": "object",
           "properties": {
-            "points": {
-              "description": "Measured shot table as flat distance_in, hood_servo, flywheel_rpm triples, recorded by the Ballistics Calibration OpMode. Distances must strictly increase. Looked up by linear interpolation between rows and clamped outside them; a distance outside the calibrated range is reported as an invalid solution rather than extrapolated.",
+            "calibrated": {
+              "description": "False marks the shot tables as placeholders: the automatic feed gate refuses to fire. Set true only after the Ballistics Calibration OpMode has produced real BIOBUZZ rows.",
+              "type": "boolean"
+            },
+            "pollen_points": {
+              "description": "POLLEN shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples from the Ballistics Calibration OpMode. Distances must strictly increase.",
+              "type": "array",
+              "items": {"type": "number"}
+            },
+            "nectar_points": {
+              "description": "NECTAR shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples. NECTAR is 3.6 in and heavier than 2.8 in POLLEN, so it needs its own calibration. Distances must strictly increase.",
               "type": "array",
               "items": {"type": "number"}
             }
           },
           "required": [
-            "points"
+            "calibrated",
+            "pollen_points",
+            "nectar_points"
           ]
         }
       },
@@ -3275,7 +3971,6 @@
         "feed_release_threshold",
         "feed_intake_power",
         "feed_transfer_power",
-        "long_hood_power_threshold",
         "ball_detection",
         "pidf",
         "motor_pidf",
@@ -3288,38 +3983,12 @@
       "type": "object",
       "properties": {
         "shot_time_points": {
-          "description": "Measured shoot windows as flat target_rpm, shoot_window_ms pairs, recorded by the Shot Timing Tuner OpMode against whatever flywheel RPM the shot table commanded at each measured distance. RPMs must strictly increase. Looked up by linear interpolation on the flywheel's target RPM and clamped outside the measured range, since a shot just past the last row does not suddenly get faster. Keying on RPM rather than distance means the table stays correct after shooter.shot_table is recalibrated — the shot only ever behaved the way it did at the RPM it was actually fired at, not at whatever distance a recalibrated table now maps that RPM to. ShotController ends a scoring cycle when it counts auto.balls_per_shot_count balls OR this window expires, whichever comes first — the window is the safety net for a jam, not the primary signal. auto.shoot_wait_ms is only the fallback when this table is empty.",
+          "description": "Measured autonomous shoot windows as flat distance_in, shoot_window_ms pairs, written by the Shot Timing Tuner OpMode in exactly this format. Distances must strictly increase; interpolated and clamped at the ends. A volley ends when auto.balls_per_volley_count balls are counted OR this window expires; the window is the jam safety net. auto.shoot_wait_ms is the fallback when this table is empty.",
           "type": "array",
           "items": {"type": "number"}
         },
-        "balls_per_shot_count": {
-          "description": "Balls loaded before each autonomous scoring cycle. ShotController counts them live via shooter.ball_detection and ends the shot the moment this many are detected, without waiting out the rest of auto.shot_time_points' window.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 1.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
-        },
-        "drink_wait_ms": {
-          "description": "Wait delay (milliseconds) at the drink gate when intake gathers rings.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 0.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
-        },
         "shoot_wait_ms": {
-          "description": "Fallback wait time (milliseconds) allowed to fire a shot, used only when auto.shot_time_points is empty. Prefer the measured table: a single flat number cannot express that a close-range magazine takes longer than a long-range one.",
+          "description": "Fallback autonomous shoot window (milliseconds), used only when auto.shot_time_points is empty.",
           "oneOf": [
             {
               "type": "number",
@@ -3331,10 +4000,78 @@
             }
           ]
         },
-        "launch_power": {
+        "balls_per_volley_count": {
+          "description": "SCORING ELEMENTS expected per autonomous volley. A volley ends when this many shots are counted by shooter.ball_detection or the shot window expires.",
           "oneOf": [
             {
-              "type": "number"
+              "type": "number",
+              "minimum": 1.0,
+              "maximum": 4.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "tip_wait_ms": {
+          "description": "Autonomous wait (milliseconds) for the target CELL to be seen upward-facing before giving up on it. The robot never launches at a downward-facing CELL (G417).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "collect_dwell_ms": {
+          "description": "Autonomous time (milliseconds) spent at a FLOWER retrieval opening with the intake running.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_margin_ms": {
+          "description": "AUTO park deadline margin (milliseconds): the routine is cancelled and the robot parks once the time left is no more than the estimated drive to the park pose (stopping, then the HIVE-avoiding route) plus this.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_reserve_ms": {
+          "description": "Latest AUTO park start (milliseconds before the end): the robot parks at this point even if the estimated drive plus park_margin_ms is shorter, or when no estimate exists.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_update_ms": {
+          "description": "How often (milliseconds) AUTO re-plans the park route and re-estimates the drive time for the park deadline.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 20.0
             },
             {
               "type": "string",
@@ -3343,7 +4080,7 @@
           ]
         },
         "transfer_power": {
-          "description": "Target power coefficient (0.0 to 1.0) for autonomous transfer motor.",
+          "description": "Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).",
           "oneOf": [
             {
               "type": "number",
@@ -3356,136 +4093,32 @@
             }
           ]
         },
-        "opposite_drink_wait_ms": {
-          "description": "Wait delay (milliseconds) at the drink gate for opposite alliance autonomous.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 0.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
+        "cell_a_collect_flower": {
+          "description": "CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley.",
+          "type": "boolean"
         },
-        "opposite_shoot_wait_ms": {
-          "description": "Wait time (milliseconds) allowed to fire a shot for opposite alliance autonomous.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 0.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
+        "cell_a_second_volley": {
+          "description": "CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is upward-facing.",
+          "type": "boolean"
         },
-        "opposite_launch_power": {
-          "description": "Target power coefficient (0.0 to 1.0) for opposite alliance autonomous launcher.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
-        },
-        "opposite_transfer_power": {
-          "description": "Target power coefficient (0.0 to 1.0) for opposite alliance autonomous transfer.",
-          "oneOf": [
-            {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            },
-            {
-              "type": "string",
-              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-            }
-          ]
-        },
-        "endgame": {
-          "type": "object",
-          "properties": {
-            "period_ms": {
-              "description": "Length of the autonomous period (milliseconds), measured from the moment the OpMode starts. The endgame timers below are all counted backwards from it.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "evacuate_ms": {
-              "description": "Time left in autonomous (milliseconds) at which the auto sequence is cancelled and the robot drives the shortest straight line to a spot where it is committed — entirely inside a launch zone or entirely outside every one. A robot straddling a zone boundary at the buzzer gets neither the zone's benefit nor out of the next alliance's way.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "freeze_ms": {
-              "description": "Backstop deadline (milliseconds left in autonomous) at which the robot stops driving even if it never reached a committed spot. Normally motion stops earlier, on arrival. Must be smaller than auto.endgame.evacuate_ms, which is the window the move gets to finish in.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            },
-            "exit_clearance": {
-              "description": "Inches of commitment required on whichever side of the launch zone boundary the robot parks on: its whole footprint must clear the line by this much, inside or out. Absorbs the follower's settling error so a spot that ends slightly short is still unambiguous. Measured against the footprint's half-diagonal, so it holds at any heading.",
-              "oneOf": [
-                {
-                  "type": "number",
-                  "minimum": 0.0
-                },
-                {
-                  "type": "string",
-                  "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
-                }
-              ]
-            }
-          },
-          "required": [
-            "period_ms",
-            "evacuate_ms",
-            "freeze_ms",
-            "exit_clearance"
-          ]
+        "cell_b_collect_flower": {
+          "description": "CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second volley.",
+          "type": "boolean"
         }
       },
       "required": [
         "shot_time_points",
-        "balls_per_shot_count",
-        "drink_wait_ms",
         "shoot_wait_ms",
-        "launch_power",
+        "balls_per_volley_count",
+        "tip_wait_ms",
+        "collect_dwell_ms",
+        "park_margin_ms",
+        "park_reserve_ms",
+        "park_update_ms",
         "transfer_power",
-        "opposite_drink_wait_ms",
-        "opposite_shoot_wait_ms",
-        "opposite_launch_power",
-        "opposite_transfer_power",
-        "endgame"
+        "cell_a_collect_flower",
+        "cell_a_second_volley",
+        "cell_b_collect_flower"
       ]
     },
     "teleop": {
@@ -3524,7 +4157,7 @@
           ]
         },
         "intake_power": {
-          "description": "Target motor power (0.0 to 1.0) for intake rollers in TeleOp.",
+          "description": "Target motor power (0.0 to 1.0) for the intake rollers in TeleOp.",
           "oneOf": [
             {
               "type": "number",
@@ -3538,7 +4171,7 @@
           ]
         },
         "transfer_power": {
-          "description": "Target power coefficient (0.0 to 1.0) for autonomous transfer motor.",
+          "description": "Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).",
           "oneOf": [
             {
               "type": "number",
@@ -3565,6 +4198,72 @@
             }
           ]
         },
+        "eject_power": {
+          "description": "Intake power (negative = reverse) for the operator eject button, used to spit out a fifth SCORING ELEMENT (G407) or opponent NECTAR (G408).",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1.0,
+              "maximum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "rumble_ms": {
+          "description": "Gamepad rumble length (milliseconds) for match-time cues.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_alert_margin_ms": {
+          "description": "TELEOP park alert: fires once the time left is no more than the estimated drive to the park pose plus this many milliseconds, and repeats until the robot is PARKED.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_alert_update_ms": {
+          "description": "How often (milliseconds) the TELEOP park alert re-plans the route and re-estimates the drive time.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 20.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
+        "park_alert_repeat_ms": {
+          "description": "Period (milliseconds) of the TELEOP park alert's rumble, gamepad light flash and Driver Station voice while it is active.",
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 200.0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"
+            }
+          ]
+        },
         "poses": {
           "type": "object",
           "properties": {
@@ -3572,28 +4271,35 @@
               "type": "object",
               "properties": {
                 "start": {
-                  "description": "Starting position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "score": {
-                  "description": "High goal target scoring position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "drink": {
-                  "description": "Drink gate alignment coordinate pose.",
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
                 "park": {
-                  "description": "Parking destination coordinate pose.",
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "shoot_a": {
+                  "description": "Pose facing CELL A's opening from the side it opens toward.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "shoot_b": {
+                  "description": "Pose facing CELL B's opening from the side it opens toward.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "flower": {
+                  "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
@@ -3602,37 +4308,45 @@
               },
               "required": [
                 "start",
-                "score",
-                "drink",
-                "park"
+                "park",
+                "shoot_a",
+                "shoot_b",
+                "flower"
               ]
             },
             "blue": {
               "type": "object",
               "properties": {
                 "start": {
-                  "description": "Starting position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "score": {
-                  "description": "High goal target scoring position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "drink": {
-                  "description": "Drink gate alignment coordinate pose.",
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
                 "park": {
-                  "description": "Parking destination coordinate pose.",
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "shoot_a": {
+                  "description": "Pose facing CELL A's opening from the side it opens toward.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "shoot_b": {
+                  "description": "Pose facing CELL B's opening from the side it opens toward.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "flower": {
+                  "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
@@ -3641,9 +4355,10 @@
               },
               "required": [
                 "start",
-                "score",
-                "drink",
-                "park"
+                "park",
+                "shoot_a",
+                "shoot_b",
+                "flower"
               ]
             }
           },
@@ -3660,185 +4375,60 @@
         "intake_power",
         "transfer_power",
         "manual_rev_power",
+        "eject_power",
+        "rumble_ms",
+        "park_alert_margin_ms",
+        "park_alert_update_ms",
+        "park_alert_repeat_ms",
         "poses"
       ]
     },
     "auto_poses": {
       "type": "object",
       "properties": {
-        "normal": {
+        "cell_a": {
           "type": "object",
           "properties": {
-            "blue": {
-              "type": "object",
-              "properties": {
-                "start": {
-                  "description": "Starting position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "score": {
-                  "description": "High goal target scoring position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "final_score": {
-                  "description": "Final scoring target position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "drink_cp": {
-                  "description": "Control point pose on path to drink gate.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "drink_end": {
-                  "description": "Ending position coordinate pose at the drink gate.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup1_cp": {
-                  "description": "Control point pose on path to first sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup1_end": {
-                  "description": "Ending position coordinate pose for first sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup2_cp": {
-                  "description": "Control point pose on path to second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup2_end": {
-                  "description": "Ending position coordinate pose for second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_cp": {
-                  "description": "Control point pose on path to third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_end": {
-                  "description": "Ending position coordinate pose for third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                }
-              },
-              "required": [
-                "start",
-                "score",
-                "final_score",
-                "drink_cp",
-                "drink_end",
-                "pickup1_cp",
-                "pickup1_end",
-                "pickup2_cp",
-                "pickup2_end",
-                "pickup3_cp",
-                "pickup3_end"
-              ]
-            },
             "red": {
               "type": "object",
               "properties": {
                 "start": {
-                  "description": "Starting position coordinate pose.",
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "score": {
-                  "description": "High goal target scoring position coordinate pose.",
+                "score_a": {
+                  "description": "Autonomous volley pose for CELL A.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "final_score": {
-                  "description": "Final scoring target position coordinate pose.",
+                "flower": {
+                  "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "drink_cp": {
-                  "description": "Control point pose on path to drink gate.",
+                "score_b_cp": {
+                  "description": "Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE frame and on the alliance side.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "drink_end": {
-                  "description": "Ending position coordinate pose at the drink gate.",
+                "score_b": {
+                  "description": "Autonomous volley pose for CELL B.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "pickup1_cp": {
-                  "description": "Control point pose on path to first sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup1_end": {
-                  "description": "Ending position coordinate pose for first sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup2_cp": {
-                  "description": "Control point pose on path to second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup2_end": {
-                  "description": "Ending position coordinate pose for second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_cp": {
-                  "description": "Control point pose on path to third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_end": {
-                  "description": "Ending position coordinate pose for third sample pickup.",
+                "park": {
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
@@ -3847,197 +4437,124 @@
               },
               "required": [
                 "start",
-                "score",
-                "final_score",
-                "drink_cp",
-                "drink_end",
-                "pickup1_cp",
-                "pickup1_end",
-                "pickup2_cp",
-                "pickup2_end",
-                "pickup3_cp",
-                "pickup3_end"
+                "score_a",
+                "flower",
+                "score_b_cp",
+                "score_b",
+                "park"
+              ]
+            },
+            "blue": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "score_a": {
+                  "description": "Autonomous volley pose for CELL A.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "flower": {
+                  "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "score_b_cp": {
+                  "description": "Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE frame and on the alliance side.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "score_b": {
+                  "description": "Autonomous volley pose for CELL B.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "park": {
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                }
+              },
+              "required": [
+                "start",
+                "score_a",
+                "flower",
+                "score_b_cp",
+                "score_b",
+                "park"
               ]
             }
           },
           "required": [
-            "blue",
-            "red"
+            "red",
+            "blue"
           ]
         },
-        "opposite": {
+        "cell_b": {
           "type": "object",
           "properties": {
-            "blue": {
-              "type": "object",
-              "properties": {
-                "start": {
-                  "description": "Starting position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "score": {
-                  "description": "High goal target scoring position coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "drink_cp": {
-                  "description": "Control point pose on path to drink gate.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "drink_end": {
-                  "description": "Ending position coordinate pose at the drink gate.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup2_cp": {
-                  "description": "Control point pose on path to second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup2_end": {
-                  "description": "Ending position coordinate pose for second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_cp": {
-                  "description": "Control point pose on path to third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_end": {
-                  "description": "Ending position coordinate pose for third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup4_cp": {
-                  "description": "Control point pose on path to fourth sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup4_end": {
-                  "description": "Ending position coordinate pose for fourth sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "park": {
-                  "description": "Parking destination coordinate pose.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                }
-              },
-              "required": [
-                "start",
-                "score",
-                "drink_cp",
-                "drink_end",
-                "pickup2_cp",
-                "pickup2_end",
-                "pickup3_cp",
-                "pickup3_end",
-                "pickup4_cp",
-                "pickup4_end",
-                "park"
-              ]
-            },
             "red": {
               "type": "object",
               "properties": {
                 "start": {
-                  "description": "Starting position coordinate pose.",
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "score": {
-                  "description": "High goal target scoring position coordinate pose.",
+                "score_b_cp": {
+                  "description": "Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE frame and on the alliance side.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "drink_cp": {
-                  "description": "Control point pose on path to drink gate.",
+                "score_b": {
+                  "description": "Autonomous volley pose for CELL B.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "drink_end": {
-                  "description": "Ending position coordinate pose at the drink gate.",
+                "flower": {
+                  "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "pickup2_cp": {
-                  "description": "Control point pose on path to second sample pickup.",
+                "alt_via": {
+                  "description": "Waypoint on the CELL B routine's fallback route around the HIVE to alt_a.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
-                "pickup2_end": {
-                  "description": "Ending position coordinate pose for second sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_cp": {
-                  "description": "Control point pose on path to third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup3_end": {
-                  "description": "Ending position coordinate pose for third sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup4_cp": {
-                  "description": "Control point pose on path to fourth sample pickup.",
-                  "oneOf": [
-                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
-                  ]
-                },
-                "pickup4_end": {
-                  "description": "Ending position coordinate pose for fourth sample pickup.",
+                "alt_a": {
+                  "description": "CELL B routine fallback volley pose for CELL A, used when CELL B never becomes upward-facing.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
                   ]
                 },
                 "park": {
-                  "description": "Parking destination coordinate pose.",
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
                   "oneOf": [
                     {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                     {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
@@ -4046,32 +4563,152 @@
               },
               "required": [
                 "start",
-                "score",
-                "drink_cp",
-                "drink_end",
-                "pickup2_cp",
-                "pickup2_end",
-                "pickup3_cp",
-                "pickup3_end",
-                "pickup4_cp",
-                "pickup4_end",
+                "score_b_cp",
+                "score_b",
+                "flower",
+                "alt_via",
+                "alt_a",
+                "park"
+              ]
+            },
+            "blue": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "score_b_cp": {
+                  "description": "Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE frame and on the alliance side.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "score_b": {
+                  "description": "Autonomous volley pose for CELL B.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "flower": {
+                  "description": "Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may only be removed from the bottom).",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "alt_via": {
+                  "description": "Waypoint on the CELL B routine's fallback route around the HIVE to alt_a.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "alt_a": {
+                  "description": "CELL B routine fallback volley pose for CELL A, used when CELL B never becomes upward-facing.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "park": {
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                }
+              },
+              "required": [
+                "start",
+                "score_b_cp",
+                "score_b",
+                "flower",
+                "alt_via",
+                "alt_a",
                 "park"
               ]
             }
           },
           "required": [
-            "blue",
-            "red"
+            "red",
+            "blue"
+          ]
+        },
+        "park_only": {
+          "type": "object",
+          "properties": {
+            "red": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "park": {
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                }
+              },
+              "required": [
+                "start",
+                "park"
+              ]
+            },
+            "blue": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "description": "Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING ZONE and not touching a FLOWER (G304).",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                },
+                "park": {
+                  "description": "Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.",
+                  "oneOf": [
+                    {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+                    {"type": "string", "pattern": "^(?i)(m|k|mirror|key)?\\s*[+\\-*/]?\\s*\\d*(\\.\\d+)?$"}
+                  ]
+                }
+              },
+              "required": [
+                "start",
+                "park"
+              ]
+            }
+          },
+          "required": [
+            "red",
+            "blue"
           ]
         }
       },
       "required": [
-        "normal",
-        "opposite"
+        "cell_a",
+        "cell_b",
+        "park_only"
       ]
     }
   },
   "required": [
+    "meta",
+    "field",
+    "hive",
+    "match",
+    "inventory",
     "pedro",
     "turret",
     "vision",

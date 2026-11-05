@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 /**
  * OpMode for tuning and monitoring shooter flywheel velocity in real-time.
@@ -30,6 +31,7 @@ public class ShooterVelocityTunerOpMode extends OpMode {
   @Override
   public void init() {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
 
     telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 

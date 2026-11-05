@@ -10,16 +10,19 @@ import org.firstinspires.ftc.teamcode.config.ConfigLoader;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.records.Alliance;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 /**
  * Odometry never starts the match knowing where it is; this OpMode gives a human the delta needed
- * to physically carry the robot from field center (72, 72, 0) to wherever the selected auto's
- * config start pose actually is, then lets that arrival be confirmed as the new origin.
+ * to physically carry the robot from a TILE seam crossing (two TILES from the audience wall and two
+ * from the RED alliance wall, heading 0; the field centre is inside the HIVE frame) to wherever the
+ * selected auto's config start pose actually is, then lets that arrival be confirmed as the new
+ * origin.
  *
  * <p>Gamepad1: left stick translates and right stick turns (robot-centric, scaled down for fine
- * positioning), dpad left/right selects alliance, dpad up/down selects Near ({@code
- * auto_poses.normal}) vs Far ({@code auto_poses.opposite}), A confirms the robot is now sitting at
- * the selected start pose and re-zeros the follower there.
+ * positioning), dpad left/right selects alliance, dpad up/down selects the CELL A ({@code
+ * auto_poses.cell_a}) or CELL B ({@code auto_poses.cell_b}) routine, A confirms the robot is now
+ * sitting at the selected start pose and re-zeros the follower there.
  */
 @TeleOp(name = "Start Pose Finder", group = "Calibration")
 @Configurable
@@ -43,8 +46,10 @@ public class StartPoseFinderOpMode extends OpMode {
   @Override
   public void init() {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     follower = Constants.create(hardwareMap);
-    follower.setPose(new Pose(72, 72, 0));
+    double seam = config.field.size_in / 3.0;
+    follower.setPose(new Pose(seam, seam, 0));
     recomputeConfigStartPose();
   }
 
@@ -53,7 +58,7 @@ public class StartPoseFinderOpMode extends OpMode {
     handleSelectionInput();
     telemetry.addLine("== Start Pose Finder ==");
     telemetry.addData("Alliance (dpad left/right)", alliance);
-    telemetry.addData("Auto (dpad up/down)", near ? "NEAR (normal)" : "FAR (opposite)");
+    telemetry.addData("Auto (dpad up/down)", near ? "CELL A routine" : "CELL B routine");
     telemetry.addData(
         "Config start pose",
         "(%.1f, %.1f, %.1f deg)",
@@ -91,7 +96,7 @@ public class StartPoseFinderOpMode extends OpMode {
 
     telemetry.addLine("== Start Pose Finder ==");
     telemetry.addData("Alliance (dpad left/right)", alliance);
-    telemetry.addData("Auto (dpad up/down)", near ? "NEAR (normal)" : "FAR (opposite)");
+    telemetry.addData("Auto (dpad up/down)", near ? "CELL A routine" : "CELL B routine");
     telemetry.addLine();
     telemetry.addData(
         "Raw follower pose",
@@ -147,10 +152,10 @@ public class StartPoseFinderOpMode extends OpMode {
     configStartPose =
         near
             ? ConfigLoader.loadMerged(
-                    config.NormalAuto.class, "auto_poses.normal." + allianceStr, "auto")
+                    config.CellAAuto.class, "auto_poses.cell_a." + allianceStr, "auto")
                 .start
             : ConfigLoader.loadMerged(
-                    config.OppositeAuto.class, "auto_poses.opposite." + allianceStr, "auto")
+                    config.CellBAuto.class, "auto_poses.cell_b." + allianceStr, "auto")
                 .start;
   }
 }

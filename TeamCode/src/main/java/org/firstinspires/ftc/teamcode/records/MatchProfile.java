@@ -1,48 +1,34 @@
 package org.firstinspires.ftc.teamcode.records;
 
 import com.pedropathing.math.Pose;
+import org.firstinspires.ftc.teamcode.config.ConfigLoader;
 
+/**
+ * Everything alliance-specific a match needs, threaded explicitly into {@code Robot} (there is no
+ * static "current alliance"). Poses are TeleOp hold points from {@code teleop.poses.<alliance>};
+ * BLUE's are the 180-degree rotation of RED's unless overridden.
+ */
 public record MatchProfile(
     Alliance alliance,
-    double goalX,
-    double goalY,
     Pose startPose,
-    Pose drinkPose,
     Pose parkPose,
-    Pose scorePose) {
+    Pose shootAPose,
+    Pose shootBPose,
+    Pose flowerPose) {
 
-  public MatchProfile(Alliance alliance) {
-    this(alliance, Field.getGoalX(alliance), Field.getGoalY(alliance), null, null, null, null);
-  }
-
-  public MatchProfile(
-      Alliance alliance, Pose startPose, Pose drinkPose, Pose parkPose, Pose scorePose) {
-    this(
-        alliance,
-        Field.getGoalX(alliance),
-        Field.getGoalY(alliance),
-        startPose,
-        drinkPose,
-        parkPose,
-        scorePose);
+  /** The hold pose facing {@code cell}'s opening from the side it opens toward. */
+  public Pose shootPose(HiveCell cell) {
+    return cell == HiveCell.A ? shootAPose : shootBPose;
   }
 
   public static MatchProfile loadMatchProfile(Alliance alliance) {
-    String allianceStr = alliance == Alliance.RED ? "red" : "blue";
-    double goalX = Field.getGoalX(alliance);
-    double goalY = Field.getGoalY(alliance);
-    Pose startPose =
-        org.firstinspires.ftc.teamcode.config.ConfigLoader.load(
-            Pose.class, "teleop.poses." + allianceStr + ".start");
-    Pose drinkPose =
-        org.firstinspires.ftc.teamcode.config.ConfigLoader.load(
-            Pose.class, "teleop.poses." + allianceStr + ".drink");
-    Pose parkPose =
-        org.firstinspires.ftc.teamcode.config.ConfigLoader.load(
-            Pose.class, "teleop.poses." + allianceStr + ".park");
-    Pose scorePose =
-        org.firstinspires.ftc.teamcode.config.ConfigLoader.load(
-            Pose.class, "teleop.poses." + allianceStr + ".score");
-    return new MatchProfile(alliance, goalX, goalY, startPose, drinkPose, parkPose, scorePose);
+    String prefix = "teleop.poses." + (alliance == Alliance.RED ? "red" : "blue") + ".";
+    return new MatchProfile(
+        alliance,
+        ConfigLoader.load(Pose.class, prefix + "start"),
+        ConfigLoader.load(Pose.class, prefix + "park"),
+        ConfigLoader.load(Pose.class, prefix + "shoot_a"),
+        ConfigLoader.load(Pose.class, prefix + "shoot_b"),
+        ConfigLoader.load(Pose.class, prefix + "flower"));
   }
 }

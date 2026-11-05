@@ -14,10 +14,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.records.Alliance;
-import org.firstinspires.ftc.teamcode.records.Field;
+import org.firstinspires.ftc.teamcode.records.HiveCell;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.Casablanca;
 import org.firstinspires.ftc.teamcode.utilities.DrawingUtil;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 import org.firstinspires.ftc.teamcode.utilities.Sentinel;
 
 @Configurable
@@ -38,15 +39,16 @@ public class CasablancaTest extends OpMode {
   private Sentinel sentinel;
   private Casablanca casablanca;
 
-  private double goalX;
-  private double goalY;
+  private double targetX;
+  private double targetY;
 
-  // Matching startPose from Pedro Pathing's LocalizationTest (Pose(72, 72, 0))
-  private final Pose startPose = new Pose(72, 72, 0);
+  /** Set in init: the tuners' open lane beside the HIVE, on BLUE's side. (72, 72) is inside it. */
+  private Pose startPose;
 
   @Override
   public void init() {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
 
     // Initialize Field Manager for Dashboard visualization
     field = PanelsField.INSTANCE.getField();
@@ -66,15 +68,17 @@ public class CasablancaTest extends OpMode {
       motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
 
-    // Build Pedro Pathing Follower with starting pose matching LocalizationTest
+    sentinel = new Sentinel(Alliance.BLUE);
+    casablanca = new Casablanca(sentinel);
+    startPose = sentinel.field().fromRedFrame(config.casablanca.heading_tuner.calibration_pose);
+
     follower = Constants.create(hardwareMap);
     follower.setPose(startPose);
 
-    goalX = Field.getBlueGoalX();
-    goalY = Field.getBlueGoalY();
-
-    sentinel = new Sentinel(Alliance.BLUE);
-    casablanca = new Casablanca(sentinel);
+    // Draw the line to BLUE's starting-upward CELL, matching the alliance this test drives as.
+    var opening = sentinel.field().upOpening(HiveCell.A);
+    targetX = opening.x();
+    targetY = opening.y();
   }
 
   @Override
@@ -218,15 +222,15 @@ public class CasablancaTest extends OpMode {
 
   private void drawField() {
     if (field != null) {
-      DrawingUtil.drawCasablancaZones(field, sentinel);
+      DrawingUtil.drawFieldZones(field, sentinel);
       DrawingUtil.drawRobotOnField(
           field,
           follower.pose().x(),
           follower.pose().y(),
           follower.pose().heading(),
           0.0,
-          goalX,
-          goalY);
+          targetX,
+          targetY);
     }
   }
 }

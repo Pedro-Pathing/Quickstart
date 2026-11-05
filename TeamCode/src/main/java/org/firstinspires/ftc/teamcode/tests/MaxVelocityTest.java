@@ -52,6 +52,7 @@ public class MaxVelocityTest extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
+    org.firstinspires.ftc.teamcode.utilities.OpModeUtil.reportConfig(telemetry);
     ElapsedTime runtime = new ElapsedTime();
     boolean running = true;
     boolean time_recorded = false;
@@ -152,6 +153,8 @@ public class MaxVelocityTest extends LinearOpMode {
       if (motor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
       }
+      // A velocity (ticks/s), not a power: setPower(1000) clipped to full power, so this ran at the
+      // motor's top speed and the reported time-to-95% of targetVelocity meant nothing.
       motor.setVelocity(targetVelocity);
     } else {
       if (motor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {

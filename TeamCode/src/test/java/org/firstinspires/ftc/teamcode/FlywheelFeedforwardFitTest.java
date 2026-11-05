@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.ballistics.FlywheelFeedforwardFit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FlywheelFeedforwardFitTest {
 
@@ -88,9 +88,9 @@ public class FlywheelFeedforwardFitTest {
     double twoPointError = Math.abs(twoPointKv - kV);
 
     assertTrue(
-        "full-sweep fit should be closer to truth than the two-point fit",
-        fullSweepError < twoPointError);
-    assertTrue("bad sample should surface as a residual", fit.maxResidual() > 1e-3);
+        fullSweepError < twoPointError,
+        "full-sweep fit should be closer to truth than the two-point fit");
+    assertTrue(fit.maxResidual() > 1e-3, "bad sample should surface as a residual");
   }
 
   @Test
@@ -127,7 +127,7 @@ public class FlywheelFeedforwardFitTest {
     double settledVelocity = trueVMax * (command - staleKs) / (1.0 - staleKs);
 
     assertTrue(
-        "stale constants settle above the 1.05x flywheel gate ceiling",
-        settledVelocity > target * 1.05);
+        settledVelocity > target * 1.05,
+        "stale constants settle above the 1.05x flywheel gate ceiling");
   }
 }

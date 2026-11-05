@@ -12,11 +12,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import org.firstinspires.ftc.teamcode.ballistics.ShotTable;
 import org.firstinspires.ftc.teamcode.records.Alliance;
-import org.firstinspires.ftc.teamcode.records.Field;
+import org.firstinspires.ftc.teamcode.records.HiveCell;
 import org.firstinspires.ftc.teamcode.records.MatchProfile;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
+import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.CalibrationRay;
 import org.firstinspires.ftc.teamcode.utilities.FlywheelDipDetector;
@@ -52,11 +54,11 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
       double hoodTarget,
       double solvedRpm) {}
 
-  /** Distances (inches from the goal) the run walks through. */
-  private static final double[] CALIBRATION_DISTANCES =
-      new double[] {52.0, 68.0, 86.0, 104.0, 122.0, 136.0};
+  /** Distances (inches from RED's CELL A opening centre) the run walks through. */
+  private static final double[] CALIBRATION_DISTANCES = new double[] {24.0, 30.0, 36.0, 42.0, 48.0};
 
-  private static final int DEFAULT_BALL_COUNT = 3;
+  /** Same ray Ballistics Calibration uses, so the two tables describe the same shots. */
+  private static final double RAY_OFF_AXIS_DEG = -40.0;
 
   /**
    * Time budget for one shot, sized from what the robot actually does.
@@ -83,12 +85,7 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
    * <p>The old 5% default sat just under the coast-down and produced a false third ball in every
    * single shot of both runs, which cut each measurement short before the real third ball landed.
    */
-  private static final double DIP_TRIGGER_FRACTION = 0.09;
-
   private static final double DIP_STEP = 0.005;
-  private static final double DIP_REBOUND_FRACTION = 0.05;
-  private static final double DIP_BASELINE_ALPHA = 0.03;
-  private static final long DIP_REFRACTORY_MS = 120;
 
   private Robot robot;
   private List<LynxModule> allHubs;
@@ -96,8 +93,14 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
   private final List<TimingPoint> trials = new ArrayList<>();
   private final List<TraceRow> trace = new ArrayList<>();
 
-  private double dipFraction = DIP_TRIGGER_FRACTION;
-  private int expectedBalls = DEFAULT_BALL_COUNT;
+  /**
+   * Starts at shooter.ball_detection.dip_fraction (9%, see above), the threshold the match code
+   * counts with; the stick adjusts it for this run only. Set in runOpMode, after the config reload,
+   * so a pushed value applies.
+   */
+  private double dipFraction;
+
+  private int expectedBalls;
   private int shotId = 0;
 
   /**
@@ -114,14 +117,17 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     config.reload();
+    dipFraction = config.shooter.ball_detection.dip_fraction;
+    expectedBalls = config.auto.balls_per_volley_count;
 
     allHubs = hardwareMap.getAll(LynxModule.class);
     for (LynxModule module : allHubs) {
       module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
     }
 
-    MatchProfile profile = config.loadMatchProfile(Alliance.BLUE);
+    MatchProfile profile = config.loadMatchProfile(Alliance.RED);
     robot = new Robot(hardwareMap, telemetry, profile);
+    CalibrationRay ray = CalibrationRay.forCell(robot.field, HiveCell.A, RAY_OFF_AXIS_DEG);
     OpModeUtil.setupTurretAndShooter(robot.turret, robot.shooter);
 
     telemetry.addLine("Shot Timing Tuner");
@@ -129,16 +135,36 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
     telemetry.addLine("The robot will NOT drive. Its pose is faked to each");
     telemetry.addLine("distance. It DOES fire and the turret DOES slew.");
     telemetry.addData("Load before each shot", "%d balls", expectedBalls);
+    if (!config.shooter.shot_table.calibrated) {
+      telemetry.addLine("!! Shot table not calibrated: every shot is refused. Run Ballistics");
+      telemetry.addLine("!! Calibration first and set shooter.shot_table.calibrated: true.");
+    }
+    OpModeUtil.reportConfig(telemetry);
     telemetry.update();
 
     waitForStart();
 
+    double tableMin = Double.NEGATIVE_INFINITY;
+    double tableMax = Double.POSITIVE_INFINITY;
+    try {
+      ShotTable table = ShotTable.fromConfig(robot.shotController.getBallType());
+      tableMin = table.minDistance();
+      tableMax = table.maxDistance();
+    } catch (RuntimeException e) {
+      // A malformed table is named on the INIT config report; shots refuse until it is fixed.
+    }
     try {
       for (double distance : CALIBRATION_DISTANCES) {
         if (!opModeIsActive()) break;
-        robot.follower.setPose(
-            CalibrationRay.waypoint(Field.getBlueGoalX(), Field.getBlueGoalY(), distance));
-        measureEndpoint(distance);
+        if (distance > ray.maxDistance()) {
+          continue;
+        }
+        // Inside the measured table: Ballistics Calibration records the distance it actually
+        // shot from (say 24.3 in), and the solver refuses anything outside the table's rows, so
+        // an exact 24.0 in endpoint could never fire.
+        double at = Math.clamp(distance, tableMin, tableMax);
+        robot.follower.setPose(Turret.robotPoseForPivot(ray.waypoint(at)));
+        measureEndpoint(at);
       }
       finish();
     } finally {
@@ -277,7 +303,7 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
         // — the gate shuts on the very dip the ball causes, and a ball left pressed against a
         // spinning flywheel with no intake behind it still works its way through, just late and
         // weak. That late ball is the one being measured. Depth is what separates a ball from
-        // noise here, not timing; see DIP_TRIGGER_FRACTION.
+        // noise here, not timing; see shooter.ball_detection.dip_fraction.
         boolean ball = armed && detector.update(robot.shooter.getShooterVelocity(), nowMs);
         if (ball) {
           ballTimesMs.add(elapsedMs);
@@ -300,7 +326,9 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
         if (!shotRunning) {
           robot.shotController.stopShot();
           robot.intake.stop();
-          if (!ballTimesMs.isEmpty()) {
+          // Only a complete volley is a measurement: a timed-out one with fewer balls gives a
+          // window too short for the balls that never came out.
+          if (ballTimesMs.size() >= expectedBalls) {
             resultFirstMs = ballTimesMs.get(0);
             resultLastMs = ballTimesMs.get(ballTimesMs.size() - 1);
             resultCount = ballTimesMs.size();
@@ -362,8 +390,9 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
   }
 
   private FlywheelDipDetector newDetector() {
+    var d = config.shooter.ball_detection;
     return new FlywheelDipDetector(
-        dipFraction, DIP_REBOUND_FRACTION, DIP_BASELINE_ALPHA, DIP_REFRACTORY_MS);
+        dipFraction, d.rebound_fraction, d.baseline_alpha, d.refractory_ms);
   }
 
   private TraceRow row(
@@ -505,10 +534,10 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
     }
     try (FileWriter writer = new FileWriter(new File(dir, "shot_time_table.yaml"), false)) {
       writer.write("# Generated by Shot Timing Tuner\n");
-      writer.write("# Nothing reads this yet — auto still uses the flat auto.shoot_wait_ms.\n\n");
-      writer.write("  shot_time_table:\n");
-      writer.write("    # distance_in, shoot_window_ms\n");
-      writer.write("    points: [\n");
+      writer.write(
+          "# Paste under auto: in config.yaml; AUTO volleys look this up by distance.\n\n");
+      writer.write("  # distance_in, shoot_window_ms\n");
+      writer.write("  shot_time_points: [\n");
       for (int i = 0; i < points.size(); i++) {
         TimingPoint p = points.get(i);
         writer.write(
@@ -519,7 +548,7 @@ public class ShotTimingTunerOpMode extends LinearOpMode {
                 p.shootWindowMs(),
                 (i == points.size() - 1) ? "" : ","));
       }
-      writer.write("      ]\n");
+      writer.write("    ]\n");
       writer.write("\n# --- accepted measurements ---\n");
       for (TimingPoint p : trials) {
         writer.write(

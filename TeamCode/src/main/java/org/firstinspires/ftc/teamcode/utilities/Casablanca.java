@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
+import androidx.annotation.Nullable;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.controllers.PIDController;
 import com.pedropathing.drivetrain.DrivePowers;
@@ -9,6 +10,7 @@ import com.pedropathing.math.Vector2D;
 import com.pedropathing.utils.Timer;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.records.Alliance;
 import org.firstinspires.ftc.teamcode.records.SlewProfile;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.locationtech.jts.geom.Envelope;
@@ -54,8 +56,8 @@ public class Casablanca {
 
   private final Timer timer = new Timer();
   private final DriveSlewLimiter slewLimiter = new DriveSlewLimiter();
-  private SlewProfile slewTuning;
-  private Boolean teleopSlewOverride;
+  private @Nullable SlewProfile slewTuning;
+  private @Nullable Boolean teleopSlewOverride;
 
   private final Sentinel sentinel;
 
@@ -70,8 +72,13 @@ public class Casablanca {
   private boolean lastDepthRepulsion = false;
   private boolean lastSideRepulsion = false;
   private boolean lastPoseUntrusted = false;
-  private Envelope lastRobotBounds;
-  private Envelope lastProtectedZone;
+  private @Nullable Envelope lastRobotBounds;
+  private @Nullable Envelope lastProtectedZone;
+
+  /** The per-match geometry this instance protects, for callers that plan their own motion. */
+  public Sentinel sentinel() {
+    return sentinel;
+  }
 
   public boolean wasPoseUntrusted() {
     return lastPoseUntrusted;
@@ -101,11 +108,11 @@ public class Casablanca {
     return lastSideRepulsion;
   }
 
-  public Envelope getLastRobotBounds() {
+  public @Nullable Envelope getLastRobotBounds() {
     return lastRobotBounds;
   }
 
-  public Envelope getLastProtectedZone() {
+  public @Nullable Envelope getLastProtectedZone() {
     return lastProtectedZone;
   }
 
@@ -198,7 +205,7 @@ public class Casablanca {
     slewLimiter.reset();
     headingLockInitialized = false;
     armedAimActive = false;
-    goalLockActive = false;
+    targetLockActive = false;
     if (headingPidf != null) {
       headingPidf.reset();
     }
@@ -207,24 +214,24 @@ public class Casablanca {
   private double armedAimHeadingTarget = 0.0;
   private boolean armedAimActive = false;
 
-  private double goalLockHeadingTarget = 0.0;
-  private boolean goalLockActive = false;
+  private double targetLockHeading = 0.0;
+  private boolean targetLockActive = false;
 
   public void setArmedAimTarget(double targetHeadingRad, boolean armed) {
     this.armedAimHeadingTarget = targetHeadingRad;
     this.armedAimActive = armed;
   }
 
-  public void setGoalHeadingLock(double targetHeadingRad, boolean active) {
-    if (active && !goalLockActive) {
+  public void setTargetHeadingLock(double targetHeadingRad, boolean active) {
+    if (active && !targetLockActive) {
       headingPidf.reset();
     }
-    this.goalLockHeadingTarget = targetHeadingRad;
-    this.goalLockActive = active;
+    this.targetLockHeading = targetHeadingRad;
+    this.targetLockActive = active;
   }
 
-  public boolean isGoalHeadingLockActive() {
-    return goalLockActive;
+  public boolean isTargetHeadingLockActive() {
+    return targetLockActive;
   }
 
   public double[] adjustDriveInput(
@@ -263,8 +270,13 @@ public class Casablanca {
     }
 
     if (fieldCentric) {
+      // Stick-forward points away from this alliance's drivers: +x for RED, whose wall is x = 0,
+      // and
+      // -x for BLUE, whose wall is x = field size (the field is a half-turn, not a mirror).
+      double allianceRad = sentinel.getAlliance() == Alliance.BLUE ? Math.PI : 0.0;
       Vector2D stick =
-          Vector2D.cartesian(forward, strafe).rotate(fieldCentricOffsetRad - pose.heading());
+          Vector2D.cartesian(forward, strafe)
+              .rotate(fieldCentricOffsetRad + allianceRad - pose.heading());
       forward = stick.x();
       strafe = stick.y();
     }
@@ -280,12 +292,12 @@ public class Casablanca {
     if (armedAimActive && Double.isFinite(armedAimHeadingTarget)) {
       targetHeading = armedAimHeadingTarget;
       headingLockInitialized = true;
-    } else if (goalLockActive && Double.isFinite(goalLockHeadingTarget)) {
-      targetHeading = goalLockHeadingTarget;
+    } else if (targetLockActive && Double.isFinite(targetLockHeading)) {
+      targetHeading = targetLockHeading;
       headingLockInitialized = true;
     }
 
-    if (armedAimActive || goalLockActive || enableHeadingLock && stickReleased) {
+    if (armedAimActive || targetLockActive || enableHeadingLock && stickReleased) {
       if (!headingLockInitialized) {
         if (Math.abs(currentAngularVelocity) < headingLockSettleRateRad) {
           targetHeading = pose.heading();
@@ -299,6 +311,13 @@ public class Casablanca {
         if (Math.abs(headingError) < headingLockErrorDeadbandRad) {
           headingPidf.reset();
           turn = 0.0;
+        } else if (willCoastToHeading(headingError, currentAngularVelocity)) {
+          // Already turning toward the target fast enough that the measured stopping model says
+          // the chassis will coast the rest of the way. Pushing on (the friction step alone
+          // saturates the output at the deadband edge) is what made the lock overshoot and
+          // ring around its deadband.
+          headingPidf.reset();
+          turn = 0.0;
         } else {
           double speedMag = currentVelocity.magnitude();
           double speedRatio = Math.clamp(speedMag / headingLockMovingSpeedThreshold, 0.0, 1.0);
@@ -307,7 +326,8 @@ public class Casablanca {
           double correction =
               headingPidf.calculate(0, headingError, currentAngularVelocity)
                   + Math.copySign(ks + config.casablanca.heading_lock.ks, headingError);
-          turn = Math.clamp(correction, -headingLockMaxPower, headingLockMaxPower);
+          double limit = Math.min(1.0, Math.abs(headingLockMaxPower));
+          turn = Math.clamp(correction, -limit, limit);
         }
       }
     } else {
@@ -336,76 +356,95 @@ public class Casablanca {
     double adjFieldY = inputField.y();
 
     Envelope robotBounds = sentinel.getRobotBounds(pose);
-    Envelope protectedZone = sentinel.getProtectedZone();
 
     double currentVelX = currentVelocity.x();
     double currentVelY = currentVelocity.y();
-
-    double laneFadeY =
-        calculateLaneFade(
-            robotBounds.getMinY(),
-            robotBounds.getMaxY(),
-            protectedZone.getMinY(),
-            protectedZone.getMaxY(),
-            laneBlendDistance);
-    double laneFadeX =
-        calculateLaneFade(
-            robotBounds.getMinX(),
-            robotBounds.getMaxX(),
-            protectedZone.getMinX(),
-            protectedZone.getMaxX(),
-            laneBlendDistance);
+    Vector2D stop = fieldStoppingDistance(currentVelocity, pose.heading());
 
     lastRobotBounds = robotBounds;
-    lastProtectedZone = protectedZone;
-    lastLaneFadeX = laneFadeX;
-    lastLaneFadeY = laneFadeY;
+    lastProtectedZone = null;
+    lastLaneFadeX = 0.0;
+    lastLaneFadeY = 0.0;
     lastDepthScale = 1.0;
     lastSideScale = 1.0;
     lastDepthRepulsion = false;
     lastSideRepulsion = false;
 
-    if (enableDepthProtection && laneFadeY > 0) {
-      AxisState xState =
-          calculateAxisState(
-              robotBounds.getMinX(),
-              robotBounds.getMaxX(),
-              protectedZone.getMinX(),
-              protectedZone.getMaxX(),
-              currentVelX,
-              adjFieldX,
-              depthSlowDown,
-              depthHardStop,
-              config.pedro.braking.forward.linear,
-              config.pedro.braking.forward.quadratic);
-
-      lastDepthScale = xState.scale;
-      adjFieldX *= (1.0 + laneFadeY * (xState.scale - 1.0));
-      if (laneFadeY >= 0.9 && xState.triggerRepulsion) {
-        adjFieldX = xState.repulsionDir * wallRepulsionPower;
-        lastDepthRepulsion = true;
-      }
-    }
-
-    if (enableSideProtection && laneFadeX > 0) {
-      AxisState yState =
-          calculateAxisState(
+    // Each protected zone (the HIVE frame, or its two bases) is handled by the same per-axis math.
+    // X uses the zone's X bounds faded by Y-lane overlap and Y the mirror image, so depth and side
+    // protection stay symmetric however many zones there are.
+    for (Envelope protectedZone : sentinel.getProtectedZones()) {
+      double laneFadeY =
+          calculateLaneFade(
               robotBounds.getMinY(),
               robotBounds.getMaxY(),
               protectedZone.getMinY(),
               protectedZone.getMaxY(),
-              currentVelY,
-              adjFieldY,
-              sideSlowDown,
-              sideHardStop,
-              config.pedro.braking.strafe.linear,
-              config.pedro.braking.strafe.quadratic);
+              laneBlendDistance);
+      double laneFadeX =
+          calculateLaneFade(
+              robotBounds.getMinX(),
+              robotBounds.getMaxX(),
+              protectedZone.getMinX(),
+              protectedZone.getMaxX(),
+              laneBlendDistance);
 
-      lastSideScale = yState.scale;
-      adjFieldY *= (1.0 + laneFadeX * (yState.scale - 1.0));
-      if (laneFadeX >= 0.9 && yState.triggerRepulsion) {
-        adjFieldY = yState.repulsionDir * wallRepulsionPower;
-        lastSideRepulsion = true;
+      if (lastProtectedZone == null
+          || Math.max(laneFadeX, laneFadeY) > Math.max(lastLaneFadeX, lastLaneFadeY)) {
+        lastProtectedZone = protectedZone;
+        lastLaneFadeX = laneFadeX;
+        lastLaneFadeY = laneFadeY;
+      }
+
+      boolean overlapsX =
+          robotBounds.getMaxX() > protectedZone.getMinX()
+              && robotBounds.getMinX() < protectedZone.getMaxX();
+      boolean overlapsY =
+          robotBounds.getMaxY() > protectedZone.getMinY()
+              && robotBounds.getMinY() < protectedZone.getMaxY();
+
+      if (enableDepthProtection && laneFadeY > 0) {
+        AxisState xState =
+            calculateAxisState(
+                robotBounds.getMinX(),
+                robotBounds.getMaxX(),
+                protectedZone.getMinX(),
+                protectedZone.getMaxX(),
+                overlapsY,
+                currentVelX,
+                adjFieldX,
+                depthSlowDown,
+                depthHardStop,
+                Math.abs(stop.x()));
+
+        lastDepthScale = Math.min(lastDepthScale, xState.scale);
+        adjFieldX *= (1.0 + laneFadeY * (xState.scale - 1.0));
+        if (laneFadeY >= 0.9 && xState.triggerRepulsion) {
+          adjFieldX = repel(xState.repulsionDir, adjFieldX);
+          lastDepthRepulsion = true;
+        }
+      }
+
+      if (enableSideProtection && laneFadeX > 0) {
+        AxisState yState =
+            calculateAxisState(
+                robotBounds.getMinY(),
+                robotBounds.getMaxY(),
+                protectedZone.getMinY(),
+                protectedZone.getMaxY(),
+                overlapsX,
+                currentVelY,
+                adjFieldY,
+                sideSlowDown,
+                sideHardStop,
+                Math.abs(stop.y()));
+
+        lastSideScale = Math.min(lastSideScale, yState.scale);
+        adjFieldY *= (1.0 + laneFadeX * (yState.scale - 1.0));
+        if (laneFadeX >= 0.9 && yState.triggerRepulsion) {
+          adjFieldY = repel(yState.repulsionDir, adjFieldY);
+          lastSideRepulsion = true;
+        }
       }
     }
 
@@ -434,7 +473,7 @@ public class Casablanca {
   }
 
   /** Temporary per-instance calibration; null restores configured behavior. */
-  public void setSlewTuning(SlewProfile tuning) {
+  public void setSlewTuning(@Nullable SlewProfile tuning) {
     slewTuning = tuning;
   }
 
@@ -461,7 +500,7 @@ public class Casablanca {
   }
 
   /** Calibration override; null restores TeleOp YAML gains. Pedro auto gains are independent. */
-  public void setHeadingPid(PIDFCoefficients gains) {
+  public void setHeadingPid(@Nullable PIDFCoefficients gains) {
     PIDFCoefficients p = gains == null ? config.casablanca.heading_lock.pid : gains;
     headingPidf.kP = p.p;
     headingPidf.kI = p.i;
@@ -477,17 +516,32 @@ public class Casablanca {
     return 1.0 - (distToStrict / buffer);
   }
 
+  /**
+   * Repulsion away from a zone, but never weaker than what the driver is already commanding in that
+   * same direction: a driver backing out at full power keeps full power.
+   */
+  private static double repel(double repulsionDir, double commanded) {
+    return repulsionDir * Math.max(wallRepulsionPower, repulsionDir * commanded);
+  }
+
+  /**
+   * Protection along one axis for one zone.
+   *
+   * @param overlapsOtherAxis whether the robot's footprint overlaps the zone on the other axis;
+   *     only then does overlapping on this axis mean the robot is inside the zone. Overlapping on
+   *     this axis alone means it is beside the zone, driving parallel to its face.
+   */
   private AxisState calculateAxisState(
       double botMin,
       double botMax,
       double zoneMin,
       double zoneMax,
+      boolean overlapsOtherAxis,
       double currentVel,
       double inputVel,
       double slowDownDist,
       double hardStopDist,
-      double brakeLinear,
-      double brakeQuadratic) {
+      double stoppingDistance) {
     AxisState state = new AxisState();
     double distToStop;
     boolean movingTowards = false;
@@ -501,6 +555,10 @@ public class Casablanca {
       distToStop = botMin - zoneMax;
       repulsionDir = 1.0;
       if (currentVel < 0 || inputVel < 0) movingTowards = true;
+    } else if (!overlapsOtherAxis) {
+      // Beside the zone and moving along its face: this axis is not the approach axis.
+      state.scale = 1.0;
+      return state;
     } else {
       state.triggerRepulsion = true;
       double zoneCenter = (zoneMin + zoneMax) / 2.0;
@@ -512,8 +570,12 @@ public class Casablanca {
 
     state.repulsionDir = repulsionDir;
 
-    if (!movingTowards) {
+    // An input that already points away from the zone (the driver braking or backing out) is never
+    // attenuated, even while the robot still coasts toward it.
+    boolean inputAway = repulsionDir * inputVel > 0;
+    if (!movingTowards || inputAway) {
       state.scale = 1.0;
+      state.triggerRepulsion = inputAway && movingTowards && distToStop <= hardStopDist;
       return state;
     }
 
@@ -531,10 +593,7 @@ public class Casablanca {
     double physicsScale = 1.0;
     if (Math.abs(currentVel) > 0.2) {
       double brakingRoom = Math.max(0, distToStop - hardStopDist);
-      double predictedBrakingDist =
-          Math.abs(brakingDistance(currentVel, brakeLinear, brakeQuadratic));
-
-      predictedBrakingDist /= decelSafetyFactor;
+      double predictedBrakingDist = stoppingDistance / decelSafetyFactor;
 
       if (predictedBrakingDist > brakingRoom && predictedBrakingDist > 0) {
         physicsScale = Math.sqrt(brakingRoom / predictedBrakingDist);
@@ -544,9 +603,42 @@ public class Casablanca {
     return state;
   }
 
+  /**
+   * True when the chassis is already rotating toward {@code headingErrorRad} and its predicted
+   * stopping rotation (Foresight's measured heading braking model, {@code pedro.braking.heading})
+   * covers the remaining error.
+   */
+  public static boolean willCoastToHeading(double headingErrorRad, double angularVelocity) {
+    if (headingErrorRad == 0.0 || Math.signum(angularVelocity) != Math.signum(headingErrorRad)) {
+      return false;
+    }
+    double coast =
+        Math.abs(
+            brakingDistance(
+                angularVelocity,
+                config.pedro.braking.heading.linear,
+                config.pedro.braking.heading.quadratic));
+    return coast >= Math.abs(headingErrorRad);
+  }
+
   /** Signed stopping distance used by the protected-zone drive limiter. */
   public static double brakingDistance(double velocity, double linear, double quadratic) {
     return velocity * linear + velocity * Math.abs(velocity) * quadratic;
+  }
+
+  /** Apply the measured chassis-axis stopping model, then express its stop vector in the field. */
+  public static Vector2D fieldStoppingDistance(Vector2D fieldVelocity, double heading) {
+    Vector2D robotVelocity = fieldVelocity.rotate(-heading);
+    return Vector2D.cartesian(
+            brakingDistance(
+                robotVelocity.x(),
+                config.pedro.braking.forward.linear,
+                config.pedro.braking.forward.quadratic),
+            brakingDistance(
+                robotVelocity.y(),
+                config.pedro.braking.strafe.linear,
+                config.pedro.braking.strafe.quadratic))
+        .rotate(heading);
   }
 
   private static class AxisState {

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.utilities;
 
 import com.bylazar.field.FieldManager;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.locationtech.jts.geom.Envelope;
 
 public class DrawingUtil {
 
@@ -11,13 +12,13 @@ public class DrawingUtil {
       double y,
       double h,
       double turretH,
-      double goalX,
-      double goalY) {
+      double targetX,
+      double targetY) {
     if (field == null) return;
 
     field.setStyle("none", "cyan", 2.0);
     field.moveCursor(x, y);
-    field.line(goalX, goalY);
+    field.line(targetX, targetY);
 
     double cosA = Math.cos(h);
     double sinA = Math.sin(h);
@@ -65,37 +66,28 @@ public class DrawingUtil {
     field.update();
   }
 
-  public static void drawCasablancaZones(FieldManager field, Sentinel sentinel) {
+  /**
+   * Draws the BIOBUZZ landmarks this alliance cares about: the protected HIVE frame zones (red),
+   * the LOADING ZONE (green), the GARDEN (yellow) and the two alliance-side FLOWERS.
+   */
+  public static void drawFieldZones(FieldManager field, Sentinel sentinel) {
     if (field == null || sentinel == null) return;
     field.setStyle("stroke", "red", 1.0);
-    drawRect(
-        field,
-        sentinel.getRedGoalZone().getMinX(),
-        sentinel.getRedGoalZone().getMinY(),
-        sentinel.getRedGoalZone().getMaxX(),
-        sentinel.getRedGoalZone().getMaxY());
+    for (Envelope zone : sentinel.getProtectedZones()) {
+      drawRect(field, zone.getMinX(), zone.getMinY(), zone.getMaxX(), zone.getMaxY());
+    }
 
-    field.setStyle("stroke", "blue", 1.0);
-    drawRect(
-        field,
-        sentinel.getBlueGoalZone().getMinX(),
-        sentinel.getBlueGoalZone().getMinY(),
-        sentinel.getBlueGoalZone().getMaxX(),
-        sentinel.getBlueGoalZone().getMaxY());
-
+    Envelope loading = sentinel.field().loadingZone();
     field.setStyle("stroke", "green", 1.0);
-    drawPolygon(field, sentinel.getLeftBigLaunchZone());
-    drawPolygon(field, sentinel.getRightSmallLaunchZone());
-  }
+    drawRect(field, loading.getMinX(), loading.getMinY(), loading.getMaxX(), loading.getMaxY());
 
-  private static void drawPolygon(
-      FieldManager field, org.locationtech.jts.geom.Coordinate[] vertices) {
-    if (vertices == null || vertices.length < 2) return;
-    for (int i = 0; i < vertices.length; i++) {
-      org.locationtech.jts.geom.Coordinate current = vertices[i];
-      org.locationtech.jts.geom.Coordinate next = vertices[(i + 1) % vertices.length];
-      field.moveCursor(current.x, current.y);
-      field.line(next.x, next.y);
+    Envelope garden = sentinel.field().garden();
+    field.setStyle("stroke", "yellow", 1.0);
+    drawRect(field, garden.getMinX(), garden.getMinY(), garden.getMaxX(), garden.getMaxY());
+
+    for (org.locationtech.jts.geom.Coordinate flower : sentinel.field().allianceSideFlowers()) {
+      field.moveCursor(flower.x, flower.y);
+      field.circle(2.0);
     }
   }
 

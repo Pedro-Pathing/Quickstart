@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.ballistics;
 
+import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -133,7 +134,7 @@ public class BallisticsModel {
           if (!res.reachedDistance()) {
             return -1000.0 - (targetDistanceInches - res.heightAtTargetInches());
           }
-          return res.heightAtTargetInches() - params.goalHeightInches();
+          return res.heightAtTargetInches() - params.targetHeightInches();
         };
 
     double step = 1.0;
@@ -179,12 +180,12 @@ public class BallisticsModel {
     return new SolvedElevation(solvedAngle, servoPos, validFlightTime, result.entryAngleRad());
   }
 
-  private static boolean canReachGoal(double targetDistanceInches, BallisticsParameters params) {
+  private static boolean canReachTarget(double targetDistanceInches, BallisticsParameters params) {
     for (double a = params.maxHoodAngleDeg();
         a >= params.minHoodAngleDeg();
         a -= FEASIBILITY_SCAN_STEP_DEG) {
       TrajectoryResult res = integrateTrajectory(a, targetDistanceInches, params);
-      if (res.reachedDistance() && res.heightAtTargetInches() >= params.goalHeightInches()) {
+      if (res.reachedDistance() && res.heightAtTargetInches() >= params.targetHeightInches()) {
         return true;
       }
     }
@@ -196,11 +197,11 @@ public class BallisticsModel {
     double maxV0 = params.rpmToV0(params.maxShotRpm());
     double margin = 1.0 + params.v0MarginFraction();
 
-    if (canReachGoal(targetDistanceInches, params.withV0(preferredV0 / margin))) {
+    if (canReachTarget(targetDistanceInches, params.withV0(preferredV0 / margin))) {
       return shotAt(preferredV0, targetDistanceInches, params, true, "Valid");
     }
 
-    if (!canReachGoal(targetDistanceInches, params.withV0(maxV0))) {
+    if (!canReachTarget(targetDistanceInches, params.withV0(maxV0))) {
       return shotAt(
           maxV0,
           targetDistanceInches,
@@ -217,7 +218,7 @@ public class BallisticsModel {
     double hi = maxV0;
     for (int i = 0; i < V0_SEARCH_ITERATIONS; i++) {
       double mid = 0.5 * (lo + hi);
-      if (canReachGoal(targetDistanceInches, params.withV0(mid))) {
+      if (canReachTarget(targetDistanceInches, params.withV0(mid))) {
         hi = mid;
       } else {
         lo = mid;
@@ -286,7 +287,7 @@ public class BallisticsModel {
    * above the reference speed to reach some of the distances.
    */
   public static FittedBallistics fitParameters(
-      List<double[]> distanceAndElevationPoints, BallisticsParameters initialParams) {
+      @Nullable List<double[]> distanceAndElevationPoints, BallisticsParameters initialParams) {
     if (distanceAndElevationPoints == null) {
       return fitParametersWithRpm(null, initialParams);
     }
@@ -301,21 +302,21 @@ public class BallisticsModel {
    * As {@link #fitParameters}, but each point also carries the flywheel RPM it was actually shot
    * at: {@code {distanceInches, elevationDeg, rpm}}. A calibration point taken with the flywheel
    * raised above {@code v0ReferenceRpm} (the RPM solver's response to a distance the reference
-   * speed alone could not loft to goal height) has a correspondingly higher true exit speed; fixing
-   * every point to one exit speed regardless of what RPM it was actually shot at would corrupt the
-   * fit for exactly the long-range points that needed the RPM solver in the first place. The fitted
-   * free parameter {@code v0} remains the exit speed at {@code v0ReferenceRpm} — each point's
-   * effective exit speed is {@code v0 * (pointRpm / v0ReferenceRpm)}.
+   * speed alone could not loft to the CELL opening height) has a correspondingly higher true exit
+   * speed; fixing every point to one exit speed regardless of what RPM it was actually shot at
+   * would corrupt the fit for exactly the long-range points that needed the RPM solver in the first
+   * place. The fitted free parameter {@code v0} remains the exit speed at {@code v0ReferenceRpm} —
+   * each point's effective exit speed is {@code v0 * (pointRpm / v0ReferenceRpm)}.
    */
   public static FittedBallistics fitParametersWithRpm(
-      List<double[]> distanceAngleRpmPoints, BallisticsParameters initialParams) {
+      @Nullable List<double[]> distanceAngleRpmPoints, BallisticsParameters initialParams) {
     if (distanceAngleRpmPoints == null || distanceAngleRpmPoints.size() < 3) {
       return new FittedBallistics(initialParams.v0(), initialParams.k(), initialParams.L(), 0.0);
     }
 
     int n = distanceAngleRpmPoints.size();
     double[] targetHeights = new double[n];
-    Arrays.fill(targetHeights, initialParams.goalHeightInches());
+    Arrays.fill(targetHeights, initialParams.targetHeightInches());
     double refRpm = initialParams.v0ReferenceRpm();
 
     MultivariateJacobianFunction modelJacobian =

@@ -4,6 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,7 +13,14 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
+/**
+ * Retired: use Shooter Characterization. Its p = 0.3 kV reproduces the current gains exactly, while
+ * this search steps kP by 13x the current value, accepts kP = 0 whenever feedforward alone reaches
+ * the target, and on failure falls back to a gain ~300x the current one that oscillates hard.
+ */
+@Disabled
 @TeleOp(name = "Shooter Autotune", group = "Calibration")
 @Configurable
 public class ShooterAutotuneOpMode extends LinearOpMode {
@@ -32,6 +40,7 @@ public class ShooterAutotuneOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
 
     allHubs = hardwareMap.getAll(LynxModule.class);
     for (LynxModule module : allHubs) {

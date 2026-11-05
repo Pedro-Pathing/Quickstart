@@ -10,6 +10,11 @@ import org.firstinspires.ftc.teamcode.records.MatchProfile;
 public final class config {
   private config() {}
 
+  public static Meta meta;
+  public static Field field;
+  public static Hive hive;
+  public static Match match;
+  public static Inventory inventory;
   public static Pedro pedro;
   public static Turret turret;
   public static Vision vision;
@@ -19,6 +24,38 @@ public final class config {
   public static Auto auto;
   public static Teleop teleop;
 
+  public static String META_SEASON;
+  public static double FIELD_SIZE_IN;
+  public static double FIELD_HIVE_CENTER_TO_CENTER_IN;
+  public static double FIELD_HIVE_PIVOT_HEIGHT_IN;
+  public static double FIELD_HIVE_UP_OPENING_OFFSET_IN;
+  public static double FIELD_HIVE_UP_OPENING_HEIGHT_IN;
+  public static double FIELD_HIVE_DOWN_OPENING_OFFSET_IN;
+  public static double FIELD_HIVE_DOWN_OPENING_HEIGHT_IN;
+  public static double FIELD_HIVE_FRAME_WIDTH_IN;
+  public static double FIELD_HIVE_FRAME_DEPTH_IN;
+  public static double FIELD_HIVE_BOTTOM_HEIGHT_IN;
+  public static double FIELD_LOADING_ZONE_START_Y_IN;
+  public static double FIELD_LOADING_ZONE_WIDTH_IN;
+  public static double FIELD_LOADING_ZONE_DEPTH_IN;
+  public static double FIELD_GARDEN_LENGTH_IN;
+  public static double FIELD_GARDEN_DEPTH_IN;
+  public static double FIELD_FLOWER_WALL_OFFSET_IN;
+  public static double FIELD_FLOWER_CORNER_OFFSET_IN;
+  public static double HIVE_UP_HEIGHT_THRESHOLD_IN;
+  public static int HIVE_CONFIRM_FRAMES_COUNT;
+  public static int HIVE_SETTLE_MS;
+  public static int HIVE_MAX_OBSERVATION_AGE_MS;
+  public static int MATCH_AUTO_MS;
+  public static int MATCH_TELEOP_MS;
+  public static int MATCH_FLOWER_UNLOCK_REMAINING_MS;
+  public static int MATCH_FINAL_WARNING_REMAINING_MS;
+  public static int INVENTORY_CAPACITY_COUNT;
+  public static int INVENTORY_PRELOAD_COUNT;
+  public static boolean INVENTORY_ENTRY_SENSOR_ENABLED;
+  public static String INVENTORY_ENTRY_SENSOR_NAME;
+  public static boolean INVENTORY_ENTRY_SENSOR_ACTIVE_LOW;
+  public static int INVENTORY_ENTRY_DEBOUNCE_MS;
   public static double PEDRO_LOCALIZATION_X_POD_OFFSET;
   public static double PEDRO_LOCALIZATION_Y_POD_OFFSET;
   public static double PEDRO_HEADING_PID_P;
@@ -64,17 +101,25 @@ public final class config {
   public static double TURRET_STALL_POWER_THRESHOLD;
   public static double TURRET_STALL_MIN_PROGRESS_DEG;
   public static double TURRET_STALL_TIMEOUT_SEC;
+  public static double TURRET_STALL_RETRY_AFTER_SEC;
   public static boolean TURRET_RUNAWAY_ENABLED;
   public static double TURRET_RUNAWAY_DIVERGENCE_DEG;
   public static double TURRET_PIDF_P;
   public static double TURRET_PIDF_I;
   public static double TURRET_PIDF_D;
   public static double TURRET_PIDF_F;
+  public static double TURRET_KV;
+  public static double TURRET_FF_MIN_RATE_DPS;
+  public static double TURRET_PIVOT_FORWARD_IN;
+  public static double TURRET_PIVOT_LEFT_IN;
+  public static double TURRET_INTEGRAL_BAND_DEG;
+  public static double TURRET_INTEGRAL_LIMIT_POWER;
   public static double TURRET_TOLERANCE_MAX_DRIFT;
   public static double TURRET_TOLERANCE_NEAR_CUTOFF;
   public static double TURRET_TOLERANCE_NEAR_VAL;
   public static double TURRET_TOLERANCE_MIN_DEG;
   public static double TURRET_TOLERANCE_MAX_DEG;
+  public static double TURRET_TOLERANCE_EXIT_FACTOR;
   public static boolean TURRET_ANALOG_ENCODER_ENABLED;
   public static double TURRET_ANALOG_ENCODER_ZERO_VOLTAGE;
   public static double TURRET_ANALOG_ENCODER_DEGREES_PER_VOLT;
@@ -82,20 +127,28 @@ public final class config {
   public static double TURRET_ANALOG_ENCODER_MAX_VOLTAGE;
   public static double TURRET_ANALOG_ENCODER_FULL_SCALE_VOLTAGE;
   public static boolean TURRET_ANALOG_ENCODER_INVERTED;
-  public static double VISION_CAMERA_POSITION_X;
-  public static double VISION_CAMERA_POSITION_Y;
-  public static double VISION_CAMERA_POSITION_Z;
-  public static double VISION_CAMERA_ORIENTATION_YAW;
-  public static double VISION_CAMERA_ORIENTATION_PITCH;
-  public static double VISION_CAMERA_ORIENTATION_ROLL;
+  public static boolean VISION_ENABLED;
+  public static boolean VISION_CONTINUOUS;
+  public static String VISION_CAMERA_NAME;
+  public static double VISION_DECIMATION;
+  public static double VISION_CAMERA_FORWARD_IN;
+  public static double VISION_CAMERA_LEFT_IN;
+  public static double VISION_CAMERA_HEIGHT_IN;
+  public static double VISION_CAMERA_YAW_DEG;
+  public static double VISION_CAMERA_PITCH_UP_DEG;
+  public static double VISION_RELOCALIZE_MAX_RANGE_IN;
+  public static double VISION_RELOCALIZE_MAX_CORRECTION_IN;
   public static double SENTINEL_ROBOT_WIDTH;
   public static double SENTINEL_ROTATION_LOOKAHEAD_TIME;
-  public static double SENTINEL_GOALS_SIZE;
-  public static double SENTINEL_GOALS_MIN_Y;
-  public static double SENTINEL_GOALS_RED_GOAL_X;
-  public static double SENTINEL_GOALS_RED_GOAL_Y;
-  public static double SENTINEL_GOALS_BLUE_GOAL_X;
-  public static double SENTINEL_GOALS_BLUE_GOAL_Y;
+  public static boolean SENTINEL_PROTECT_FULL_HIVE_FOOTPRINT;
+  public static double SENTINEL_FRAME_BASE_WIDTH_IN;
+  public static double SENTINEL_CENTER_LINE_MARGIN_IN;
+  public static double SENTINEL_WALL_CONTACT_TOLERANCE_IN;
+  public static double SENTINEL_PARK_LANE_MARGIN_IN;
+  public static double SENTINEL_ROUTE_SAMPLE_STEP;
+  public static double SENTINEL_PARK_TURN_RATE_DPS;
+  public static double SENTINEL_PARK_SETTLE_PER_WAYPOINT_SEC;
+  public static double SENTINEL_GEOMETRY_EPSILON_IN;
   public static boolean CASABLANCA_ENABLE_DEPTH_PROTECTION;
   public static boolean CASABLANCA_ENABLE_SIDE_PROTECTION;
   public static double CASABLANCA_REPULSION_POWER;
@@ -196,7 +249,6 @@ public final class config {
   public static double SHOOTER_FEED_RELEASE_THRESHOLD;
   public static double SHOOTER_FEED_INTAKE_POWER;
   public static double SHOOTER_FEED_TRANSFER_POWER;
-  public static double SHOOTER_LONG_HOOD_POWER_THRESHOLD;
   public static double SHOOTER_BALL_DETECTION_DIP_FRACTION;
   public static double SHOOTER_BALL_DETECTION_REBOUND_FRACTION;
   public static double SHOOTER_BALL_DETECTION_BASELINE_ALPHA;
@@ -215,7 +267,6 @@ public final class config {
   public static double SHOOTER_BALLISTICS_K;
   public static double SHOOTER_BALLISTICS_MAGNUS_L;
   public static double SHOOTER_BALLISTICS_LAUNCH_HEIGHT_INCHES;
-  public static double SHOOTER_BALLISTICS_GOAL_HEIGHT_INCHES;
   public static double SHOOTER_BALLISTICS_G_INCHES_PER_SEC2;
   public static double SHOOTER_BALLISTICS_MIN_HOOD_ANGLE_DEG;
   public static double SHOOTER_BALLISTICS_MAX_HOOD_ANGLE_DEG;
@@ -224,43 +275,52 @@ public final class config {
   public static double SHOOTER_BALLISTICS_MAX_MOVING_SPEED_IPS;
   public static double SHOOTER_BALLISTICS_MIN_VALID_DISTANCE;
   public static double SHOOTER_BALLISTICS_MAX_VALID_DISTANCE;
+  public static double SHOOTER_BALLISTICS_MAX_OFF_AXIS_DEG;
   public static double SHOOTER_BALLISTICS_LEAD_BIAS_GAIN;
   public static double SHOOTER_BALLISTICS_V0_REFERENCE_RPM;
   public static double SHOOTER_BALLISTICS_PREFERRED_SHOT_RPM;
   public static double SHOOTER_BALLISTICS_MAX_SHOT_RPM;
   public static double SHOOTER_BALLISTICS_V0_MARGIN_FRACTION;
   public static double SHOOTER_BALLISTICS_RPM_UPDATE_DEADBAND;
+  public static double SHOOTER_BALLISTICS_FLIGHT_TIME_BASE_SEC;
   public static double SHOOTER_BALLISTICS_FLIGHT_TIME_SEC_PER_INCH;
   public static double SHOOTER_BALLISTICS_LEAD_MIN_SPEED_IPS;
-  public static double[] SHOOTER_SHOT_TABLE_POINTS;
+  public static boolean SHOOTER_SHOT_TABLE_CALIBRATED;
+  public static double[] SHOOTER_SHOT_TABLE_POLLEN_POINTS;
+  public static double[] SHOOTER_SHOT_TABLE_NECTAR_POINTS;
   public static double[] AUTO_SHOT_TIME_POINTS;
-  public static int AUTO_BALLS_PER_SHOT_COUNT;
-  public static int AUTO_DRINK_WAIT_MS;
   public static int AUTO_SHOOT_WAIT_MS;
-  public static double AUTO_LAUNCH_POWER;
+  public static int AUTO_BALLS_PER_VOLLEY_COUNT;
+  public static int AUTO_TIP_WAIT_MS;
+  public static int AUTO_COLLECT_DWELL_MS;
+  public static int AUTO_PARK_MARGIN_MS;
+  public static int AUTO_PARK_RESERVE_MS;
+  public static int AUTO_PARK_UPDATE_MS;
   public static double AUTO_TRANSFER_POWER;
-  public static int AUTO_OPPOSITE_DRINK_WAIT_MS;
-  public static int AUTO_OPPOSITE_SHOOT_WAIT_MS;
-  public static double AUTO_OPPOSITE_LAUNCH_POWER;
-  public static double AUTO_OPPOSITE_TRANSFER_POWER;
-  public static int AUTO_ENDGAME_PERIOD_MS;
-  public static int AUTO_ENDGAME_EVACUATE_MS;
-  public static int AUTO_ENDGAME_FREEZE_MS;
-  public static double AUTO_ENDGAME_EXIT_CLEARANCE;
+  public static boolean AUTO_CELL_A_COLLECT_FLOWER;
+  public static boolean AUTO_CELL_A_SECOND_VOLLEY;
+  public static boolean AUTO_CELL_B_COLLECT_FLOWER;
   public static double TELEOP_MAX_SPEED;
   public static boolean TELEOP_FIELD_CENTRIC;
   public static double TELEOP_FIELD_CENTRIC_OFFSET_DEG;
   public static double TELEOP_INTAKE_POWER;
   public static double TELEOP_TRANSFER_POWER;
   public static double TELEOP_MANUAL_REV_POWER;
+  public static double TELEOP_EJECT_POWER;
+  public static int TELEOP_RUMBLE_MS;
+  public static int TELEOP_PARK_ALERT_MARGIN_MS;
+  public static int TELEOP_PARK_ALERT_UPDATE_MS;
+  public static int TELEOP_PARK_ALERT_REPEAT_MS;
   public static Pose TELEOP_POSES_RED_START;
-  public static Pose TELEOP_POSES_RED_SCORE;
-  public static Pose TELEOP_POSES_RED_DRINK;
   public static Pose TELEOP_POSES_RED_PARK;
+  public static Pose TELEOP_POSES_RED_SHOOT_A;
+  public static Pose TELEOP_POSES_RED_SHOOT_B;
+  public static Pose TELEOP_POSES_RED_FLOWER;
   public static Pose TELEOP_POSES_BLUE_START;
-  public static Pose TELEOP_POSES_BLUE_SCORE;
-  public static Pose TELEOP_POSES_BLUE_DRINK;
   public static Pose TELEOP_POSES_BLUE_PARK;
+  public static Pose TELEOP_POSES_BLUE_SHOOT_A;
+  public static Pose TELEOP_POSES_BLUE_SHOOT_B;
+  public static Pose TELEOP_POSES_BLUE_FLOWER;
 
   static {
     reload();
@@ -268,6 +328,11 @@ public final class config {
 
   public static synchronized void reload() {
     ConfigLoader.reload();
+    meta = ConfigLoader.load(Meta.class, "meta");
+    field = ConfigLoader.load(Field.class, "field");
+    hive = ConfigLoader.load(Hive.class, "hive");
+    match = ConfigLoader.load(Match.class, "match");
+    inventory = ConfigLoader.load(Inventory.class, "inventory");
     pedro = ConfigLoader.load(Pedro.class, "pedro");
     turret = ConfigLoader.load(Turret.class, "turret");
     vision = ConfigLoader.load(Vision.class, "vision");
@@ -276,6 +341,38 @@ public final class config {
     shooter = ConfigLoader.load(Shooter.class, "shooter");
     auto = ConfigLoader.load(Auto.class, "auto");
     teleop = ConfigLoader.load(Teleop.class, "teleop");
+    META_SEASON = meta.season;
+    FIELD_SIZE_IN = field.size_in;
+    FIELD_HIVE_CENTER_TO_CENTER_IN = field.hive.center_to_center_in;
+    FIELD_HIVE_PIVOT_HEIGHT_IN = field.hive.pivot_height_in;
+    FIELD_HIVE_UP_OPENING_OFFSET_IN = field.hive.up_opening_offset_in;
+    FIELD_HIVE_UP_OPENING_HEIGHT_IN = field.hive.up_opening_height_in;
+    FIELD_HIVE_DOWN_OPENING_OFFSET_IN = field.hive.down_opening_offset_in;
+    FIELD_HIVE_DOWN_OPENING_HEIGHT_IN = field.hive.down_opening_height_in;
+    FIELD_HIVE_FRAME_WIDTH_IN = field.hive.frame_width_in;
+    FIELD_HIVE_FRAME_DEPTH_IN = field.hive.frame_depth_in;
+    FIELD_HIVE_BOTTOM_HEIGHT_IN = field.hive.bottom_height_in;
+    FIELD_LOADING_ZONE_START_Y_IN = field.loading_zone.start_y_in;
+    FIELD_LOADING_ZONE_WIDTH_IN = field.loading_zone.width_in;
+    FIELD_LOADING_ZONE_DEPTH_IN = field.loading_zone.depth_in;
+    FIELD_GARDEN_LENGTH_IN = field.garden.length_in;
+    FIELD_GARDEN_DEPTH_IN = field.garden.depth_in;
+    FIELD_FLOWER_WALL_OFFSET_IN = field.flower.wall_offset_in;
+    FIELD_FLOWER_CORNER_OFFSET_IN = field.flower.corner_offset_in;
+    HIVE_UP_HEIGHT_THRESHOLD_IN = hive.up_height_threshold_in;
+    HIVE_CONFIRM_FRAMES_COUNT = hive.confirm_frames_count;
+    HIVE_SETTLE_MS = hive.settle_ms;
+    HIVE_MAX_OBSERVATION_AGE_MS = hive.max_observation_age_ms;
+    MATCH_AUTO_MS = match.auto_ms;
+    MATCH_TELEOP_MS = match.teleop_ms;
+    MATCH_FLOWER_UNLOCK_REMAINING_MS = match.flower_unlock_remaining_ms;
+    MATCH_FINAL_WARNING_REMAINING_MS = match.final_warning_remaining_ms;
+    INVENTORY_CAPACITY_COUNT = inventory.capacity_count;
+    INVENTORY_PRELOAD_COUNT = inventory.preload_count;
+    INVENTORY_ENTRY_SENSOR_ENABLED = inventory.entry_sensor_enabled;
+    INVENTORY_ENTRY_SENSOR_NAME = inventory.entry_sensor_name;
+    INVENTORY_ENTRY_SENSOR_ACTIVE_LOW = inventory.entry_sensor_active_low;
+    INVENTORY_ENTRY_DEBOUNCE_MS = inventory.entry_debounce_ms;
     PEDRO_LOCALIZATION_X_POD_OFFSET = pedro.localization.x_pod_offset;
     PEDRO_LOCALIZATION_Y_POD_OFFSET = pedro.localization.y_pod_offset;
     PEDRO_HEADING_PID_P = pedro.heading.pid.p;
@@ -321,17 +418,25 @@ public final class config {
     TURRET_STALL_POWER_THRESHOLD = turret.stall.power_threshold;
     TURRET_STALL_MIN_PROGRESS_DEG = turret.stall.min_progress_deg;
     TURRET_STALL_TIMEOUT_SEC = turret.stall.timeout_sec;
+    TURRET_STALL_RETRY_AFTER_SEC = turret.stall.retry_after_sec;
     TURRET_RUNAWAY_ENABLED = turret.runaway.enabled;
     TURRET_RUNAWAY_DIVERGENCE_DEG = turret.runaway.divergence_deg;
     TURRET_PIDF_P = turret.pidf.p;
     TURRET_PIDF_I = turret.pidf.i;
     TURRET_PIDF_D = turret.pidf.d;
     TURRET_PIDF_F = turret.pidf.f;
+    TURRET_KV = turret.kv;
+    TURRET_FF_MIN_RATE_DPS = turret.ff_min_rate_dps;
+    TURRET_PIVOT_FORWARD_IN = turret.pivot_forward_in;
+    TURRET_PIVOT_LEFT_IN = turret.pivot_left_in;
+    TURRET_INTEGRAL_BAND_DEG = turret.integral.band_deg;
+    TURRET_INTEGRAL_LIMIT_POWER = turret.integral.limit_power;
     TURRET_TOLERANCE_MAX_DRIFT = turret.tolerance.max_drift;
     TURRET_TOLERANCE_NEAR_CUTOFF = turret.tolerance.near_cutoff;
     TURRET_TOLERANCE_NEAR_VAL = turret.tolerance.near_val;
     TURRET_TOLERANCE_MIN_DEG = turret.tolerance.min_deg;
     TURRET_TOLERANCE_MAX_DEG = turret.tolerance.max_deg;
+    TURRET_TOLERANCE_EXIT_FACTOR = turret.tolerance.exit_factor;
     TURRET_ANALOG_ENCODER_ENABLED = turret.analog_encoder.enabled;
     TURRET_ANALOG_ENCODER_ZERO_VOLTAGE = turret.analog_encoder.zero_voltage;
     TURRET_ANALOG_ENCODER_DEGREES_PER_VOLT = turret.analog_encoder.degrees_per_volt;
@@ -339,20 +444,28 @@ public final class config {
     TURRET_ANALOG_ENCODER_MAX_VOLTAGE = turret.analog_encoder.max_voltage;
     TURRET_ANALOG_ENCODER_FULL_SCALE_VOLTAGE = turret.analog_encoder.full_scale_voltage;
     TURRET_ANALOG_ENCODER_INVERTED = turret.analog_encoder.inverted;
-    VISION_CAMERA_POSITION_X = vision.camera_position.x;
-    VISION_CAMERA_POSITION_Y = vision.camera_position.y;
-    VISION_CAMERA_POSITION_Z = vision.camera_position.z;
-    VISION_CAMERA_ORIENTATION_YAW = vision.camera_orientation.yaw;
-    VISION_CAMERA_ORIENTATION_PITCH = vision.camera_orientation.pitch;
-    VISION_CAMERA_ORIENTATION_ROLL = vision.camera_orientation.roll;
+    VISION_ENABLED = vision.enabled;
+    VISION_CONTINUOUS = vision.continuous;
+    VISION_CAMERA_NAME = vision.camera_name;
+    VISION_DECIMATION = vision.decimation;
+    VISION_CAMERA_FORWARD_IN = vision.camera.forward_in;
+    VISION_CAMERA_LEFT_IN = vision.camera.left_in;
+    VISION_CAMERA_HEIGHT_IN = vision.camera.height_in;
+    VISION_CAMERA_YAW_DEG = vision.camera.yaw_deg;
+    VISION_CAMERA_PITCH_UP_DEG = vision.camera.pitch_up_deg;
+    VISION_RELOCALIZE_MAX_RANGE_IN = vision.relocalize.max_range_in;
+    VISION_RELOCALIZE_MAX_CORRECTION_IN = vision.relocalize.max_correction_in;
     SENTINEL_ROBOT_WIDTH = sentinel.robot_width;
     SENTINEL_ROTATION_LOOKAHEAD_TIME = sentinel.rotation_lookahead_time;
-    SENTINEL_GOALS_SIZE = sentinel.goals.size;
-    SENTINEL_GOALS_MIN_Y = sentinel.goals.min_y;
-    SENTINEL_GOALS_RED_GOAL_X = sentinel.goals.red_goal_x;
-    SENTINEL_GOALS_RED_GOAL_Y = sentinel.goals.red_goal_y;
-    SENTINEL_GOALS_BLUE_GOAL_X = sentinel.goals.blue_goal_x;
-    SENTINEL_GOALS_BLUE_GOAL_Y = sentinel.goals.blue_goal_y;
+    SENTINEL_PROTECT_FULL_HIVE_FOOTPRINT = sentinel.protect_full_hive_footprint;
+    SENTINEL_FRAME_BASE_WIDTH_IN = sentinel.frame_base_width_in;
+    SENTINEL_CENTER_LINE_MARGIN_IN = sentinel.center_line_margin_in;
+    SENTINEL_WALL_CONTACT_TOLERANCE_IN = sentinel.wall_contact_tolerance_in;
+    SENTINEL_PARK_LANE_MARGIN_IN = sentinel.park_lane_margin_in;
+    SENTINEL_ROUTE_SAMPLE_STEP = sentinel.route_sample_step;
+    SENTINEL_PARK_TURN_RATE_DPS = sentinel.park_turn_rate_dps;
+    SENTINEL_PARK_SETTLE_PER_WAYPOINT_SEC = sentinel.park_settle_per_waypoint_sec;
+    SENTINEL_GEOMETRY_EPSILON_IN = sentinel.geometry_epsilon_in;
     CASABLANCA_ENABLE_DEPTH_PROTECTION = casablanca.enable_depth_protection;
     CASABLANCA_ENABLE_SIDE_PROTECTION = casablanca.enable_side_protection;
     CASABLANCA_REPULSION_POWER = casablanca.repulsion.power;
@@ -457,7 +570,6 @@ public final class config {
     SHOOTER_FEED_RELEASE_THRESHOLD = shooter.feed_release_threshold;
     SHOOTER_FEED_INTAKE_POWER = shooter.feed_intake_power;
     SHOOTER_FEED_TRANSFER_POWER = shooter.feed_transfer_power;
-    SHOOTER_LONG_HOOD_POWER_THRESHOLD = shooter.long_hood_power_threshold;
     SHOOTER_BALL_DETECTION_DIP_FRACTION = shooter.ball_detection.dip_fraction;
     SHOOTER_BALL_DETECTION_REBOUND_FRACTION = shooter.ball_detection.rebound_fraction;
     SHOOTER_BALL_DETECTION_BASELINE_ALPHA = shooter.ball_detection.baseline_alpha;
@@ -476,7 +588,6 @@ public final class config {
     SHOOTER_BALLISTICS_K = shooter.ballistics.k;
     SHOOTER_BALLISTICS_MAGNUS_L = shooter.ballistics.magnus_l;
     SHOOTER_BALLISTICS_LAUNCH_HEIGHT_INCHES = shooter.ballistics.launch_height_inches;
-    SHOOTER_BALLISTICS_GOAL_HEIGHT_INCHES = shooter.ballistics.goal_height_inches;
     SHOOTER_BALLISTICS_G_INCHES_PER_SEC2 = shooter.ballistics.g_inches_per_sec2;
     SHOOTER_BALLISTICS_MIN_HOOD_ANGLE_DEG = shooter.ballistics.min_hood_angle_deg;
     SHOOTER_BALLISTICS_MAX_HOOD_ANGLE_DEG = shooter.ballistics.max_hood_angle_deg;
@@ -485,43 +596,250 @@ public final class config {
     SHOOTER_BALLISTICS_MAX_MOVING_SPEED_IPS = shooter.ballistics.max_moving_speed_ips;
     SHOOTER_BALLISTICS_MIN_VALID_DISTANCE = shooter.ballistics.min_valid_distance;
     SHOOTER_BALLISTICS_MAX_VALID_DISTANCE = shooter.ballistics.max_valid_distance;
+    SHOOTER_BALLISTICS_MAX_OFF_AXIS_DEG = shooter.ballistics.max_off_axis_deg;
     SHOOTER_BALLISTICS_LEAD_BIAS_GAIN = shooter.ballistics.lead_bias_gain;
     SHOOTER_BALLISTICS_V0_REFERENCE_RPM = shooter.ballistics.v0_reference_rpm;
     SHOOTER_BALLISTICS_PREFERRED_SHOT_RPM = shooter.ballistics.preferred_shot_rpm;
     SHOOTER_BALLISTICS_MAX_SHOT_RPM = shooter.ballistics.max_shot_rpm;
     SHOOTER_BALLISTICS_V0_MARGIN_FRACTION = shooter.ballistics.v0_margin_fraction;
     SHOOTER_BALLISTICS_RPM_UPDATE_DEADBAND = shooter.ballistics.rpm_update_deadband;
+    SHOOTER_BALLISTICS_FLIGHT_TIME_BASE_SEC = shooter.ballistics.flight_time_base_sec;
     SHOOTER_BALLISTICS_FLIGHT_TIME_SEC_PER_INCH = shooter.ballistics.flight_time_sec_per_inch;
     SHOOTER_BALLISTICS_LEAD_MIN_SPEED_IPS = shooter.ballistics.lead_min_speed_ips;
-    SHOOTER_SHOT_TABLE_POINTS = shooter.shot_table.points;
+    SHOOTER_SHOT_TABLE_CALIBRATED = shooter.shot_table.calibrated;
+    SHOOTER_SHOT_TABLE_POLLEN_POINTS = shooter.shot_table.pollen_points;
+    SHOOTER_SHOT_TABLE_NECTAR_POINTS = shooter.shot_table.nectar_points;
     AUTO_SHOT_TIME_POINTS = auto.shot_time_points;
-    AUTO_BALLS_PER_SHOT_COUNT = auto.balls_per_shot_count;
-    AUTO_DRINK_WAIT_MS = auto.drink_wait_ms;
     AUTO_SHOOT_WAIT_MS = auto.shoot_wait_ms;
-    AUTO_LAUNCH_POWER = auto.launch_power;
+    AUTO_BALLS_PER_VOLLEY_COUNT = auto.balls_per_volley_count;
+    AUTO_TIP_WAIT_MS = auto.tip_wait_ms;
+    AUTO_COLLECT_DWELL_MS = auto.collect_dwell_ms;
+    AUTO_PARK_MARGIN_MS = auto.park_margin_ms;
+    AUTO_PARK_RESERVE_MS = auto.park_reserve_ms;
+    AUTO_PARK_UPDATE_MS = auto.park_update_ms;
     AUTO_TRANSFER_POWER = auto.transfer_power;
-    AUTO_OPPOSITE_DRINK_WAIT_MS = auto.opposite_drink_wait_ms;
-    AUTO_OPPOSITE_SHOOT_WAIT_MS = auto.opposite_shoot_wait_ms;
-    AUTO_OPPOSITE_LAUNCH_POWER = auto.opposite_launch_power;
-    AUTO_OPPOSITE_TRANSFER_POWER = auto.opposite_transfer_power;
-    AUTO_ENDGAME_PERIOD_MS = auto.endgame.period_ms;
-    AUTO_ENDGAME_EVACUATE_MS = auto.endgame.evacuate_ms;
-    AUTO_ENDGAME_FREEZE_MS = auto.endgame.freeze_ms;
-    AUTO_ENDGAME_EXIT_CLEARANCE = auto.endgame.exit_clearance;
+    AUTO_CELL_A_COLLECT_FLOWER = auto.cell_a_collect_flower;
+    AUTO_CELL_A_SECOND_VOLLEY = auto.cell_a_second_volley;
+    AUTO_CELL_B_COLLECT_FLOWER = auto.cell_b_collect_flower;
     TELEOP_MAX_SPEED = teleop.max_speed;
     TELEOP_FIELD_CENTRIC = teleop.field_centric;
     TELEOP_FIELD_CENTRIC_OFFSET_DEG = teleop.field_centric_offset_deg;
     TELEOP_INTAKE_POWER = teleop.intake_power;
     TELEOP_TRANSFER_POWER = teleop.transfer_power;
     TELEOP_MANUAL_REV_POWER = teleop.manual_rev_power;
+    TELEOP_EJECT_POWER = teleop.eject_power;
+    TELEOP_RUMBLE_MS = teleop.rumble_ms;
+    TELEOP_PARK_ALERT_MARGIN_MS = teleop.park_alert_margin_ms;
+    TELEOP_PARK_ALERT_UPDATE_MS = teleop.park_alert_update_ms;
+    TELEOP_PARK_ALERT_REPEAT_MS = teleop.park_alert_repeat_ms;
     TELEOP_POSES_RED_START = teleop.poses.red.start;
-    TELEOP_POSES_RED_SCORE = teleop.poses.red.score;
-    TELEOP_POSES_RED_DRINK = teleop.poses.red.drink;
     TELEOP_POSES_RED_PARK = teleop.poses.red.park;
+    TELEOP_POSES_RED_SHOOT_A = teleop.poses.red.shoot_a;
+    TELEOP_POSES_RED_SHOOT_B = teleop.poses.red.shoot_b;
+    TELEOP_POSES_RED_FLOWER = teleop.poses.red.flower;
     TELEOP_POSES_BLUE_START = teleop.poses.blue.start;
-    TELEOP_POSES_BLUE_SCORE = teleop.poses.blue.score;
-    TELEOP_POSES_BLUE_DRINK = teleop.poses.blue.drink;
     TELEOP_POSES_BLUE_PARK = teleop.poses.blue.park;
+    TELEOP_POSES_BLUE_SHOOT_A = teleop.poses.blue.shoot_a;
+    TELEOP_POSES_BLUE_SHOOT_B = teleop.poses.blue.shoot_b;
+    TELEOP_POSES_BLUE_FLOWER = teleop.poses.blue.flower;
+  }
+
+  public static final class Meta {
+    /**
+     * Season tag. ConfigLoader ignores an ADB-pushed override whose meta.season differs from (or
+     * lacks) this value, so last season's pushed config can never override this season's bundled
+     * values.
+     */
+    public String season;
+  }
+
+  public static final class Field {
+    /**
+     * Inside-wall field width (inches). The field centre is size_in / 2; BLUE geometry and every
+     * 'm' pose are the 180-degree rotation of RED about it. Manual nominal 144, official CAD
+     * ~141.3. Minimum: 120.0 Maximum: 150.0
+     */
+    public double size_in;
+
+    public static final class Hive {
+      /**
+       * Horizontal distance (inches) between the RED and BLUE HIVE pivots, along x (manual Figure
+       * 9-10). Minimum: 0.0
+       */
+      public double center_to_center_in;
+
+      /** HIVE pivot height above the TILES (inches, manual Figure 9-8). Minimum: 0.0 */
+      public double pivot_height_in;
+
+      /**
+       * Horizontal distance (inches) from the HIVE pivot to an upward-facing CELL's opening centre,
+       * toward the side the opening faces (CAD-derived). This point is the SDK AprilTag cluster
+       * origin and the shot target. Minimum: 0.0
+       */
+      public double up_opening_offset_in;
+
+      /**
+       * Height (inches) of an upward-facing CELL's opening centre above the TILES (manual: opening
+       * spans 53.5-65.6 in). Minimum: 0.0
+       */
+      public double up_opening_height_in;
+
+      /**
+       * Horizontal distance (inches) from the HIVE pivot to a downward-facing CELL's opening centre
+       * (the up geometry rotated 60 degrees about the pivot). Minimum: 0.0
+       */
+      public double down_opening_offset_in;
+
+      /**
+       * Height (inches) of a downward-facing CELL's opening centre above the TILES. Minimum: 0.0
+       */
+      public double down_opening_height_in;
+
+      /** HIVE frame base width (inches) along x (manual Figure 9-8). Minimum: 0.0 */
+      public double frame_width_in;
+
+      /** HIVE frame base depth (inches) along y (manual Figure 9-8). Minimum: 0.0 */
+      public double frame_depth_in;
+
+      /**
+       * Lowest HIVE point above the TILES (inches). TU05 corrected V1's 25.5 in typo to 30.6 in; a
+       * robot must stay below this to pass under the HIVE. Minimum: 0.0
+       */
+      public double bottom_height_in;
+    }
+
+    public Hive hive;
+
+    public static final class LoadingZone {
+      /**
+       * RED LOADING ZONE start along the RED alliance wall (inches from the audience wall). BLUE is
+       * the 180-degree rotation. Minimum: 0.0
+       */
+      public double start_y_in;
+
+      /** LOADING ZONE length along its wall (inches, manual: ~23 in). Minimum: 0.0 */
+      public double width_in;
+
+      /** Depth of a zone measured out from its wall (inches): LOADING ZONE ~11 in. Minimum: 0.0 */
+      public double depth_in;
+    }
+
+    public LoadingZone loading_zone;
+
+    public static final class Garden {
+      /**
+       * GARDEN length along the audience/rear wall from the alliance corner (inches, manual: ~23
+       * in). Minimum: 0.0
+       */
+      public double length_in;
+
+      /** Depth of a zone measured out from its wall (inches): LOADING ZONE ~11 in. Minimum: 0.0 */
+      public double depth_in;
+    }
+
+    public Garden garden;
+
+    /**
+     * Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may
+     * only be removed from the bottom).
+     */
+    public static final class Flower {
+      /**
+       * Distance (inches) from a FLOWER's top-ring centre to the perimeter wall it is mounted on
+       * (official field CAD: 2.65). Minimum: 0.0
+       */
+      public double wall_offset_in;
+
+      /**
+       * Distance (inches) from the alliance corner to each alliance-side FLOWER along its wall
+       * (official field CAD: 23.39 in from the field centre line). Minimum: 0.0
+       */
+      public double corner_offset_in;
+    }
+
+    public Flower flower;
+  }
+
+  public static final class Hive {
+    /**
+     * A detected CELL whose opening centre is above this height (inches) is classified
+     * upward-facing. Upward openings sit at ~59.6 in and downward ones at ~38.2 in. Minimum: 0.0
+     */
+    public double up_height_threshold_in;
+
+    /**
+     * Consecutive agreeing AprilTag observations required before the HIVE tracker accepts a TIP it
+     * did not already expect. Minimum: 1.0
+     */
+    public int confirm_frames_count;
+
+    /**
+     * After a TIP is detected or entered, feeding is locked out for this long while the HIVE swings
+     * and spilled SCORING ELEMENTS clear (manual 10.5.1: launching into a tipping HIVE can stop the
+     * TIP). Minimum: 0.0
+     */
+    public int settle_ms;
+
+    /**
+     * AprilTag CELL observations older than this (milliseconds) are ignored by the HIVE tracker.
+     * Minimum: 0.0
+     */
+    public int max_observation_age_ms;
+  }
+
+  public static final class Match {
+    /** Length of AUTO (milliseconds, manual 10.4). Minimum: 0.0 */
+    public int auto_ms;
+
+    /** Length of TELEOP (milliseconds, manual 10.4). Minimum: 0.0 */
+    public int teleop_ms;
+
+    /**
+     * TELEOP time remaining (milliseconds) at which NECTAR may enter FLOWERS (G410) and humans may
+     * enter all remaining NECTAR (G426). Minimum: 0.0
+     */
+    public int flower_unlock_remaining_ms;
+
+    /**
+     * TELEOP time remaining (milliseconds) at which the park alert starts estimating the drive to
+     * the park pose. Nothing is signalled at this moment; the alert fires later, at
+     * park_alert_margin_ms before the estimated last moment. Minimum: 0.0
+     */
+    public int final_warning_remaining_ms;
+  }
+
+  public static final class Inventory {
+    /**
+     * Maximum SCORING ELEMENTS the robot may CONTROL (G407: 4). The intake stops itself when the
+     * tracked inventory reaches this. Minimum: 1.0 Maximum: 4.0
+     */
+    public int capacity_count;
+
+    /**
+     * SCORING ELEMENTS loaded at match start (manual 10.3.4: exactly 4 POLLEN). Minimum: 0.0
+     * Maximum: 4.0
+     */
+    public int preload_count;
+
+    /**
+     * True when an intake-entry beam break / proximity sensor is fitted. Without it the inventory
+     * count is unknown in TELEOP and the intake cannot cap itself at capacity_count.
+     */
+    public boolean entry_sensor_enabled;
+
+    /** Robot configuration name of the intake-entry DigitalChannel sensor. */
+    public String entry_sensor_name;
+
+    /**
+     * True if the entry sensor reads false while a SCORING ELEMENT blocks it (most beam breaks).
+     */
+    public boolean entry_sensor_active_low;
+
+    /**
+     * Minimum time (milliseconds) the entry sensor must stay blocked before a SCORING ELEMENT is
+     * counted. Minimum: 0.0
+     */
+    public int entry_debounce_ms;
   }
 
   public static final class Pedro {
@@ -767,6 +1085,13 @@ public final class config {
        * reading is wrong. Minimum: 0.0
        */
       public double timeout_sec;
+
+      /**
+       * Seconds after a turret stall fault before power is allowed again (0 keeps the fault latched
+       * until the OpMode restarts). A ball jam or a defender holding the turret must not disable
+       * aiming for the rest of the match. Minimum: 0.0 Maximum: 10.0
+       */
+      public double retry_after_sec;
     }
 
     public Stall stall;
@@ -786,10 +1111,48 @@ public final class config {
     public Runaway runaway;
     public com.qualcomm.robotcore.hardware.PIDFCoefficients pidf;
 
+    /**
+     * Turret velocity feedforward (power per degree/second): 1 / K, where K is the plant gain the
+     * Turret Plant Calibration OpMode reports. Drives the turret at the rate chassis rotation and
+     * translation demand, so it stops lagging the target. 0 disables. Minimum: 0.0 Maximum: 0.1
+     */
+    public double kv;
+
+    /**
+     * A settled turret follows the chassis-driven rate (kS sign(v) + kV v) only above this rate
+     * (degrees/second); slower rates are odometry noise and would make it chatter. Minimum: 0.0
+     */
+    public double ff_min_rate_dps;
+
+    /**
+     * Turret rotation axis position forward of the robot centre (inches). Aim bearings, shot
+     * distances and moving-shot lead are measured from this point.
+     */
+    public double pivot_forward_in;
+
+    /** Turret rotation axis position left of the robot centre (inches). */
+    public double pivot_left_in;
+
+    public static final class Integral {
+      /**
+       * The turret I term only integrates while the aim error is within this many degrees. 30
+       * covers the whole travel; narrow it only if the turret has symmetric, well-measured static
+       * friction compensation (a narrow band left a 3 deg stall when ks under-compensates).
+       * Minimum: 0.0
+       */
+      public double band_deg;
+
+      /** Largest power (0 to 1) the turret I term may contribute. Minimum: 0.0 Maximum: 1.0 */
+      public double limit_power;
+    }
+
+    public Integral integral;
+
     public static final class Tolerance {
       /**
-       * Maximum allowed chassis drift (inches) from target pose before auto-corrective drive
-       * motions engage. Minimum: 0.0
+       * Total lateral miss (inches) allowed at the target: the turret aim tolerance is
+       * asin((max_drift / 2) / distance), clamped to [min_deg, max_deg]. Size it from the CELL
+       * opening width seen from the shooting angle minus the ball diameter. Minimum: 0.0
        */
       public double max_drift;
 
@@ -809,10 +1172,17 @@ public final class config {
       public double min_deg;
 
       /**
-       * Maximum dynamic alignment tolerance (degrees) allowed. Prevents launching if the turret
-       * orientation error exceeds this. Minimum: 0.0
+       * Maximum dynamic alignment tolerance (degrees). Caps the tolerance at short range. Minimum:
+       * 0.0
        */
       public double max_deg;
+
+      /**
+       * Turret settle hysteresis: settled when the error is within tolerance, unsettled again only
+       * past tolerance * exit_factor. Stops hunting at the tolerance edge and makes the aim gate
+       * steady. 1 disables the hysteresis. Minimum: 1.0 Maximum: 5.0
+       */
+      public double exit_factor;
     }
 
     public Tolerance tolerance;
@@ -853,37 +1223,69 @@ public final class config {
   }
 
   public static final class Vision {
-    public static final class CameraPosition {
-      /** X value coordinate. */
-      public double x;
+    /** Enable/disable this subsystem, controller, watchdog, or feature. */
+    public boolean enabled;
 
-      /** Y value coordinate. */
-      public double y;
+    /**
+     * Stream the camera continuously so the HIVE tracker sees every TIP. False streams only while
+     * the operator holds relocalize.
+     */
+    public boolean continuous;
 
-      /** Z value coordinate. */
-      public double z;
+    /** Robot configuration name of the webcam. */
+    public String camera_name;
+
+    /**
+     * AprilTag decimation. Higher is faster with shorter detection range. Minimum: 1.0 Maximum: 6.0
+     */
+    public double decimation;
+
+    public static final class Camera {
+      /** Camera lens position forward of the robot centre (inches). */
+      public double forward_in;
+
+      /** Camera lens position left of the robot centre (inches). */
+      public double left_in;
+
+      /** Camera lens height above the TILES (inches). Minimum: 0.0 */
+      public double height_in;
+
+      /**
+       * Camera yaw (degrees) from robot forward, counter-clockwise positive. Minimum: -180.0
+       * Maximum: 180.0
+       */
+      public double yaw_deg;
+
+      /**
+       * Camera pitch (degrees) above horizontal. BIOBUZZ tags are on CELL bottoms 30-60 in up, so
+       * this is positive. Minimum: -90.0 Maximum: 90.0
+       */
+      public double pitch_up_deg;
     }
 
-    public CameraPosition camera_position;
+    public Camera camera;
 
-    public static final class CameraOrientation {
-      /** Yaw rotation (degrees). */
-      public double yaw;
+    public static final class Relocalize {
+      /**
+       * Ignore CELL detections farther than this (inches) for relocalization; pose error grows with
+       * range. Minimum: 0.0
+       */
+      public double max_range_in;
 
-      /** Pitch rotation (degrees). */
-      public double pitch;
-
-      /** Roll rotation (degrees). */
-      public double roll;
+      /**
+       * Reject a vision relocalization that moves the pose farther than this (inches) from
+       * odometry; that is a misidentified or moving CELL, not drift. Minimum: 0.0
+       */
+      public double max_correction_in;
     }
 
-    public CameraOrientation camera_orientation;
+    public Relocalize relocalize;
   }
 
   public static final class Sentinel {
     /**
-     * Total physical width of the robot (inches) used to build the collision footprint. Determines
-     * how close the robot can get to walls or goals. Minimum: 0.0
+     * Total physical width of the robot (inches) used to build its square collision footprint for
+     * HIVE-frame protection, LEAVE/PARK checks and the G402 alliance-side check. Minimum: 0.0
      */
     public double robot_width;
 
@@ -894,49 +1296,80 @@ public final class config {
      */
     public double rotation_lookahead_time;
 
-    public static final class Goals {
-      /** Length (inches) of one side of the square scoring goal zones on the field. Minimum: 0.0 */
-      public double size;
+    /**
+     * True protects the whole HIVE frame base rectangle (the robot never drives under the HIVE).
+     * False protects only the two 2 in frame foot bars, for a robot built to pass under the HIVE;
+     * the inward-leaning A-frame legs are not modelled, so verify leg clearance for the robot's
+     * height.
+     */
+    public boolean protect_full_hive_footprint;
 
-      /**
-       * The Y-coordinate boundary (inches) on the field where the scoring zones begin. Used to
-       * calculate red/blue alliance goal boxes. Minimum: 0.0
-       */
-      public double min_y;
+    /**
+     * Width (inches) of each triangular HIVE frame base rail, used when protect_full_hive_footprint
+     * is false. Minimum: 0.0
+     */
+    public double frame_base_width_in;
 
-      /** Goal center X coordinate for RED alliance. Minimum: 0.0 */
-      public double red_goal_x;
+    /**
+     * Margin (inches) the robot footprint must keep from the field centre line to count as fully on
+     * its own side (G304.A / G402). Minimum: 0.0
+     */
+    public double center_line_margin_in;
 
-      /** Goal center Y coordinate for RED alliance. Minimum: 0.0 */
-      public double red_goal_y;
+    /**
+     * Footprint distance from a perimeter wall (inches) that counts as touching for LEAVE. Minimum:
+     * 0.0
+     */
+    public double wall_contact_tolerance_in;
 
-      /** Goal center X coordinate for BLUE alliance. Minimum: 0.0 */
-      public double blue_goal_x;
+    /**
+     * Clearance (inches) between the HIVE frame and the robot's turning radius in the emergency
+     * park lane. Minimum: 0.0
+     */
+    public double park_lane_margin_in;
 
-      /** Goal center Y coordinate for BLUE alliance. Minimum: 0.0 */
-      public double blue_goal_y;
-    }
+    /**
+     * Parameter increment for autonomous and assisted-drive path safety sampling. Smaller values
+     * check more positions. Minimum: 0.001 Maximum: 0.02
+     */
+    public double route_sample_step;
 
-    public Goals goals;
+    /**
+     * Turn rate (degrees/second) assumed when estimating how long a park route takes. Lower is more
+     * conservative. Minimum: 1.0
+     */
+    public double park_turn_rate_dps;
+
+    /**
+     * Time (seconds) added per waypoint when estimating how long a park route takes, for slowing
+     * and settling at each corner. Minimum: 0.0
+     */
+    public double park_settle_per_waypoint_sec;
+
+    /**
+     * Numerical tolerance (inches) for footprint containment at exact field boundaries after
+     * floating-point rotation. Minimum: 0.0 Maximum: 1.0E-6
+     */
+    public double geometry_epsilon_in;
   }
 
   public static final class Casablanca {
     /**
-     * Enable/disable depth (X-axis) goal zone proximity protection. Safety policy parameter; leave
-     * true outside of debugging.
+     * Enable/disable X-axis protection against driving into the HIVE frame. Safety policy
+     * parameter; leave true outside of debugging.
      */
     public boolean enable_depth_protection;
 
     /**
-     * Enable/disable side (Y-axis) goal zone proximity protection. Safety policy parameter; leave
-     * true outside of debugging.
+     * Enable/disable Y-axis protection against driving into the HIVE frame. Safety policy
+     * parameter; leave true outside of debugging.
      */
     public boolean enable_side_protection;
 
     public static final class Repulsion {
       /**
-       * Motor power (0.0 to 1.0) commanded to push the robot away when it violates a goal zone
-       * boundary. Driver/safety policy parameter. Minimum: 0.0 Maximum: 1.0
+       * Motor power (0.0 to 1.0) commanded to push the robot back out when it is inside a protected
+       * zone (the HIVE frame). Driver/safety policy parameter. Minimum: 0.0 Maximum: 1.0
        */
       public double power;
 
@@ -951,14 +1384,14 @@ public final class config {
 
     public static final class Depth {
       /**
-       * Distance (inches) from goal zone at which proximity speed reduction starts. Driver comfort
-       * / early-warning feel parameter. Minimum: 0.0
+       * Distance (inches) from a protected zone (the HIVE frame) at which proximity speed reduction
+       * starts. Driver comfort / early-warning feel parameter. Minimum: 0.0
        */
       public double slow_down;
 
       /**
-       * Distance (inches) from goal zone where drive power towards zone is cut to zero. Safety
-       * policy parameter. Minimum: 0.0
+       * Distance (inches) from a protected zone (the HIVE frame) where drive power toward it is cut
+       * to zero, so the robot cannot ram the HIVE (G417). Safety policy parameter. Minimum: 0.0
        */
       public double hard_stop;
     }
@@ -967,14 +1400,14 @@ public final class config {
 
     public static final class Side {
       /**
-       * Distance (inches) from goal zone at which proximity speed reduction starts. Driver comfort
-       * / early-warning feel parameter. Minimum: 0.0
+       * Distance (inches) from a protected zone (the HIVE frame) at which proximity speed reduction
+       * starts. Driver comfort / early-warning feel parameter. Minimum: 0.0
        */
       public double slow_down;
 
       /**
-       * Distance (inches) from goal zone where drive power towards zone is cut to zero. Safety
-       * policy parameter. Minimum: 0.0
+       * Distance (inches) from a protected zone (the HIVE frame) where drive power toward it is cut
+       * to zero, so the robot cannot ram the HIVE (G417). Safety policy parameter. Minimum: 0.0
        */
       public double hard_stop;
     }
@@ -1112,7 +1545,7 @@ public final class config {
 
       /**
        * Maximum motor power (0.0 to 1.0) the loop is allowed to command. Clamped to be completely
-       * imperceptible. Minimum: 0.0
+       * imperceptible. Minimum: 0.0 Maximum: 1.0
        */
       public double max_power;
 
@@ -1136,7 +1569,9 @@ public final class config {
     public static final class HeadingTuner {
       /**
        * Actual field starting pose [x inches, y inches, heading degrees] for every manually
-       * repositioned jump-tuning trial. Collision protection uses this pose.
+       * repositioned tuning trial; STRAFE trials start here turned 90 degrees. Collision protection
+       * uses this pose, so it must leave HIVE protection inactive over the whole trial
+       * (TunerPoseSafetyTest checks).
        */
       public Pose calibration_pose;
 
@@ -1282,7 +1717,9 @@ public final class config {
 
       /**
        * Actual field starting pose [x inches, y inches, heading degrees] for every manually
-       * repositioned jump-tuning trial. Collision protection uses this pose.
+       * repositioned tuning trial; STRAFE trials start here turned 90 degrees. Collision protection
+       * uses this pose, so it must leave HIVE protection inactive over the whole trial
+       * (TunerPoseSafetyTest checks).
        */
       public Pose calibration_pose;
 
@@ -1494,27 +1931,27 @@ public final class config {
     public double voltage_refresh_sec;
 
     /**
-     * Maximum rotational speed (RPM) of the motor. Used to scale power percentage to velocity.
-     * Minimum: 0.0
+     * Flywheel velocity (DcMotorEx.setVelocity units: encoder ticks per second, despite the
+     * historical _rpm name) that a target power of 1.0 maps to. Minimum: 0.0
      */
     public double max_rpm;
 
     /**
-     * Continuous fixed flywheel target speed (RPM). Flywheel holds this RPM constantly so
-     * time-to-shoot collapses to alignment time. Minimum: 0.0 Maximum: 3000.0
+     * Fixed flywheel target (encoder ticks/s) for manual fixed-power shots and for holding the
+     * flywheel spun up between volleys. Minimum: 0.0 Maximum: 3000.0
      */
     public double constant_rpm;
 
     /**
-     * Flywheel speed threshold (percentage, 0.0 to 1.0) required to trigger the transfer belt.
-     * Prevents launching rings before the shooter is up to speed. Minimum: 0.0 Maximum: 1.0
+     * Flywheel speed ratio (0.0 to 1.0) required to arm a feed. Prevents launching before the
+     * shooter is up to speed. Minimum: 0.0 Maximum: 1.0
      */
     public double min_transfer_threshold;
 
     /**
-     * Flywheel velocity upper bound scale factor (e.g. 1.05) to prevent overshooting before feeding
-     * rings. Applies only when arming a feed, not while one is already running, since a ring can
-     * only ever slow the flywheel down. Minimum: 1.0 Maximum: 2.0
+     * Flywheel velocity upper bound ratio (e.g. 1.03) to prevent overshooting before a feed is
+     * armed. Applies only when arming, not while a feed is running, since a ball can only slow the
+     * flywheel down. Minimum: 1.0 Maximum: 2.0
      */
     public double max_velocity_threshold;
 
@@ -1528,21 +1965,16 @@ public final class config {
     public double feed_release_threshold;
 
     /**
-     * Front intake power (0.0 to 1.0) when feeding rings to the shooter. Minimum: 0.0 Maximum: 1.0
+     * Front intake power (0.0 to 1.0) when feeding SCORING ELEMENTS to the shooter. Minimum: 0.0
+     * Maximum: 1.0
      */
     public double feed_intake_power;
 
     /**
-     * Transfer motor power (0.0 to 1.0) when feeding rings to the shooter. Minimum: 0.0 Maximum:
-     * 1.0
+     * Transfer motor power (0.0 to 1.0) when feeding SCORING ELEMENTS to the shooter. Minimum: 0.0
+     * Maximum: 1.0
      */
     public double feed_transfer_power;
-
-    /**
-     * Launch power ratio threshold above which the high hood position is selected for long-range
-     * shots. Minimum: 0.0 Maximum: 1.0
-     */
-    public double long_hood_power_threshold;
 
     public static final class BallDetection {
       /**
@@ -1621,13 +2053,11 @@ public final class config {
        */
       public double magnus_l;
 
-      /** Physical ring release height (inches) above field carpet floor. Minimum: 0.0 */
-      public double launch_height_inches;
-
       /**
-       * Center height (inches) of target scoring goal basket above field carpet floor. Minimum: 0.0
+       * Ball release height (inches) above the TILES. The target height is not configured here: it
+       * is field.hive.up_opening_height_in, the upward CELL opening centre. Minimum: 0.0
        */
-      public double goal_height_inches;
+      public double launch_height_inches;
 
       /** Gravitational acceleration constant (in/s²). Minimum: 0.0 */
       public double g_inches_per_sec2;
@@ -1656,11 +2086,24 @@ public final class config {
       /** Maximum allowed robot translation speed (in/s) for valid moving shots. Minimum: 0.0 */
       public double max_moving_speed_ips;
 
-      /** Minimum calibrated shot distance (inches) for valid solution. Minimum: 0.0 */
+      /**
+       * Minimum horizontal distance (inches) from the robot to the target CELL opening centre for a
+       * valid solution. Minimum: 0.0
+       */
       public double min_valid_distance;
 
-      /** Maximum calibrated shot distance (inches) for valid solution. Minimum: 0.0 */
+      /**
+       * Maximum horizontal distance (inches) from the robot to the target CELL opening centre for a
+       * valid solution. Minimum: 0.0
+       */
       public double max_valid_distance;
+
+      /**
+       * Largest angle (degrees) between the target CELL opening's outward direction and the line to
+       * the robot for a valid shot. The opening faces outward and 30 degrees up, so shots from
+       * behind or far to the side cannot enter it. Minimum: 0.0 Maximum: 90.0
+       */
+      public double max_off_axis_deg;
 
       /** Empirical calibration multiplier for virtual lead target calculation. Minimum: 0.0 */
       public double lead_bias_gain;
@@ -1674,11 +2117,8 @@ public final class config {
       public double v0_reference_rpm;
 
       /**
-       * Flywheel setpoint the hood aims around. The solver holds this speed and lets the hood alone
-       * cover every distance it can, so the flywheel stays parked at one well-calibrated,
-       * already-spun-up speed. It only rises above this when no hood angle can reach the goal, and
-       * never falls below it. This is the main shot-strength knob: raise it if shots land weak
-       * across the board. Minimum: 0.0 Maximum: 3000.0
+       * Lower bound (encoder ticks/s) the solved flywheel setpoint is clamped to. Raise it if shots
+       * land weak across the board. Minimum: 0.0 Maximum: 3000.0
        */
       public double preferred_shot_rpm;
 
@@ -1708,10 +2148,15 @@ public final class config {
       public double rpm_update_deadband;
 
       /**
-       * Ring time of flight per inch of range, used only to lead a moving shot. A flat estimate on
-       * purpose: the measured shot table records hood and RPM but not flight time, and lead only
-       * shifts the aim azimuth slightly, so a rough value is adequate here where a wrong hood
-       * position would not be. Minimum: 0.0 Maximum: 0.1
+       * Time-of-flight intercept (seconds): a BIOBUZZ lob spends most of its flight rising ~45 in
+       * to the CELL, so flight time is base + per_inch * range rather than proportional to range.
+       * Used only to lead a moving shot. Minimum: 0.0 Maximum: 2.0
+       */
+      public double flight_time_base_sec;
+
+      /**
+       * Additional time of flight per inch of horizontal range (seconds/inch), used only to lead a
+       * moving shot. Minimum: 0.0 Maximum: 0.1
        */
       public double flight_time_sec_per_inch;
 
@@ -1728,12 +2173,23 @@ public final class config {
 
     public static final class ShotTable {
       /**
-       * Measured shot table as flat distance_in, hood_servo, flywheel_rpm triples, recorded by the
-       * Ballistics Calibration OpMode. Distances must strictly increase. Looked up by linear
-       * interpolation between rows and clamped outside them; a distance outside the calibrated
-       * range is reported as an invalid solution rather than extrapolated.
+       * False marks the shot tables as placeholders: the automatic feed gate refuses to fire. Set
+       * true only after the Ballistics Calibration OpMode has produced real BIOBUZZ rows.
        */
-      public double[] points;
+      public boolean calibrated;
+
+      /**
+       * POLLEN shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples from the
+       * Ballistics Calibration OpMode. Distances must strictly increase.
+       */
+      public double[] pollen_points;
+
+      /**
+       * NECTAR shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples. NECTAR
+       * is 3.6 in and heavier than 2.8 in POLLEN, so it needs its own calibration. Distances must
+       * strictly increase.
+       */
+      public double[] nectar_points;
     }
 
     public ShotTable shot_table;
@@ -1741,100 +2197,79 @@ public final class config {
 
   public static final class Auto {
     /**
-     * Measured shoot windows as flat target_rpm, shoot_window_ms pairs, recorded by the Shot Timing
-     * Tuner OpMode against whatever flywheel RPM the shot table commanded at each measured
-     * distance. RPMs must strictly increase. Looked up by linear interpolation on the flywheel's
-     * target RPM and clamped outside the measured range, since a shot just past the last row does
-     * not suddenly get faster. Keying on RPM rather than distance means the table stays correct
-     * after shooter.shot_table is recalibrated — the shot only ever behaved the way it did at the
-     * RPM it was actually fired at, not at whatever distance a recalibrated table now maps that RPM
-     * to. ShotController ends a scoring cycle when it counts auto.balls_per_shot_count balls OR
-     * this window expires, whichever comes first — the window is the safety net for a jam, not the
-     * primary signal. auto.shoot_wait_ms is only the fallback when this table is empty.
+     * Measured autonomous shoot windows as flat distance_in, shoot_window_ms pairs, written by the
+     * Shot Timing Tuner OpMode in exactly this format. Distances must strictly increase;
+     * interpolated and clamped at the ends. A volley ends when auto.balls_per_volley_count balls
+     * are counted OR this window expires; the window is the jam safety net. auto.shoot_wait_ms is
+     * the fallback when this table is empty.
      */
     public double[] shot_time_points;
 
     /**
-     * Balls loaded before each autonomous scoring cycle. ShotController counts them live via
-     * shooter.ball_detection and ends the shot the moment this many are detected, without waiting
-     * out the rest of auto.shot_time_points' window. Minimum: 1.0
-     */
-    public int balls_per_shot_count;
-
-    /** Wait delay (milliseconds) at the drink gate when intake gathers rings. Minimum: 0.0 */
-    public int drink_wait_ms;
-
-    /**
-     * Fallback wait time (milliseconds) allowed to fire a shot, used only when
-     * auto.shot_time_points is empty. Prefer the measured table: a single flat number cannot
-     * express that a close-range magazine takes longer than a long-range one. Minimum: 0.0
+     * Fallback autonomous shoot window (milliseconds), used only when auto.shot_time_points is
+     * empty. Minimum: 0.0
      */
     public int shoot_wait_ms;
 
-    public double launch_power;
+    /**
+     * SCORING ELEMENTS expected per autonomous volley. A volley ends when this many shots are
+     * counted by shooter.ball_detection or the shot window expires. Minimum: 1.0 Maximum: 4.0
+     */
+    public int balls_per_volley_count;
 
     /**
-     * Target power coefficient (0.0 to 1.0) for autonomous transfer motor. Minimum: 0.0 Maximum:
-     * 1.0
+     * Autonomous wait (milliseconds) for the target CELL to be seen upward-facing before giving up
+     * on it. The robot never launches at a downward-facing CELL (G417). Minimum: 0.0
+     */
+    public int tip_wait_ms;
+
+    /**
+     * Autonomous time (milliseconds) spent at a FLOWER retrieval opening with the intake running.
+     * Minimum: 0.0
+     */
+    public int collect_dwell_ms;
+
+    /**
+     * AUTO park deadline margin (milliseconds): the routine is cancelled and the robot parks once
+     * the time left is no more than the estimated drive to the park pose (stopping, then the
+     * HIVE-avoiding route) plus this. Minimum: 0.0
+     */
+    public int park_margin_ms;
+
+    /**
+     * Latest AUTO park start (milliseconds before the end): the robot parks at this point even if
+     * the estimated drive plus park_margin_ms is shorter, or when no estimate exists. Minimum: 0.0
+     */
+    public int park_reserve_ms;
+
+    /**
+     * How often (milliseconds) AUTO re-plans the park route and re-estimates the drive time for the
+     * park deadline. Minimum: 20.0
+     */
+    public int park_update_ms;
+
+    /**
+     * Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).
+     * Minimum: 0.0 Maximum: 1.0
      */
     public double transfer_power;
 
     /**
-     * Wait delay (milliseconds) at the drink gate for opposite alliance autonomous. Minimum: 0.0
+     * CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley.
      */
-    public int opposite_drink_wait_ms;
+    public boolean cell_a_collect_flower;
 
     /**
-     * Wait time (milliseconds) allowed to fire a shot for opposite alliance autonomous. Minimum:
-     * 0.0
+     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
+     * upward-facing.
      */
-    public int opposite_shoot_wait_ms;
+    public boolean cell_a_second_volley;
 
     /**
-     * Target power coefficient (0.0 to 1.0) for opposite alliance autonomous launcher. Minimum: 0.0
-     * Maximum: 1.0
+     * CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second
+     * volley.
      */
-    public double opposite_launch_power;
-
-    /**
-     * Target power coefficient (0.0 to 1.0) for opposite alliance autonomous transfer. Minimum: 0.0
-     * Maximum: 1.0
-     */
-    public double opposite_transfer_power;
-
-    public static final class Endgame {
-      /**
-       * Length of the autonomous period (milliseconds), measured from the moment the OpMode starts.
-       * The endgame timers below are all counted backwards from it. Minimum: 0.0
-       */
-      public int period_ms;
-
-      /**
-       * Time left in autonomous (milliseconds) at which the auto sequence is cancelled and the
-       * robot drives the shortest straight line to a spot where it is committed — entirely inside a
-       * launch zone or entirely outside every one. A robot straddling a zone boundary at the buzzer
-       * gets neither the zone's benefit nor out of the next alliance's way. Minimum: 0.0
-       */
-      public int evacuate_ms;
-
-      /**
-       * Backstop deadline (milliseconds left in autonomous) at which the robot stops driving even
-       * if it never reached a committed spot. Normally motion stops earlier, on arrival. Must be
-       * smaller than auto.endgame.evacuate_ms, which is the window the move gets to finish in.
-       * Minimum: 0.0
-       */
-      public int freeze_ms;
-
-      /**
-       * Inches of commitment required on whichever side of the launch zone boundary the robot parks
-       * on: its whole footprint must clear the line by this much, inside or out. Absorbs the
-       * follower's settling error so a spot that ends slightly short is still unambiguous. Measured
-       * against the footprint's half-diagonal, so it holds at any heading. Minimum: 0.0
-       */
-      public double exit_clearance;
-    }
-
-    public Endgame endgame;
+    public boolean cell_b_collect_flower;
   }
 
   public static final class Teleop {
@@ -1858,12 +2293,14 @@ public final class config {
      */
     public double field_centric_offset_deg;
 
-    /** Target motor power (0.0 to 1.0) for intake rollers in TeleOp. Minimum: 0.0 Maximum: 1.0 */
+    /**
+     * Target motor power (0.0 to 1.0) for the intake rollers in TeleOp. Minimum: 0.0 Maximum: 1.0
+     */
     public double intake_power;
 
     /**
-     * Target power coefficient (0.0 to 1.0) for autonomous transfer motor. Minimum: 0.0 Maximum:
-     * 1.0
+     * Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).
+     * Minimum: 0.0 Maximum: 1.0
      */
     public double transfer_power;
 
@@ -1873,35 +2310,86 @@ public final class config {
      */
     public double manual_rev_power;
 
+    /**
+     * Intake power (negative = reverse) for the operator eject button, used to spit out a fifth
+     * SCORING ELEMENT (G407) or opponent NECTAR (G408). Minimum: -1.0 Maximum: 0.0
+     */
+    public double eject_power;
+
+    /** Gamepad rumble length (milliseconds) for match-time cues. Minimum: 0.0 */
+    public int rumble_ms;
+
+    /**
+     * TELEOP park alert: fires once the time left is no more than the estimated drive to the park
+     * pose plus this many milliseconds, and repeats until the robot is PARKED. Minimum: 0.0
+     */
+    public int park_alert_margin_ms;
+
+    /**
+     * How often (milliseconds) the TELEOP park alert re-plans the route and re-estimates the drive
+     * time. Minimum: 20.0
+     */
+    public int park_alert_update_ms;
+
+    /**
+     * Period (milliseconds) of the TELEOP park alert's rumble, gamepad light flash and Driver
+     * Station voice while it is active. Minimum: 200.0
+     */
+    public int park_alert_repeat_ms;
+
     public static final class Poses {
       public static final class Red {
-        /** Starting position coordinate pose. */
+        /**
+         * Starting pose: touching the perimeter wall, fully on the alliance's side, not in the
+         * LOADING ZONE and not touching a FLOWER (G304).
+         */
         public Pose start;
 
-        /** High goal target scoring position coordinate pose. */
-        public Pose score;
-
-        /** Drink gate alignment coordinate pose. */
-        public Pose drink;
-
-        /** Parking destination coordinate pose. */
+        /**
+         * Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the
+         * perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.
+         */
         public Pose park;
+
+        /** Pose facing CELL A's opening from the side it opens toward. */
+        public Pose shoot_a;
+
+        /** Pose facing CELL B's opening from the side it opens toward. */
+        public Pose shoot_b;
+
+        /**
+         * Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN
+         * may only be removed from the bottom).
+         */
+        public Pose flower;
       }
 
       public Red red;
 
       public static final class Blue {
-        /** Starting position coordinate pose. */
+        /**
+         * Starting pose: touching the perimeter wall, fully on the alliance's side, not in the
+         * LOADING ZONE and not touching a FLOWER (G304).
+         */
         public Pose start;
 
-        /** High goal target scoring position coordinate pose. */
-        public Pose score;
-
-        /** Drink gate alignment coordinate pose. */
-        public Pose drink;
-
-        /** Parking destination coordinate pose. */
+        /**
+         * Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the
+         * perimeter wall, so the robot earns both LEAVE and PARK at the end of AUTO.
+         */
         public Pose park;
+
+        /** Pose facing CELL A's opening from the side it opens toward. */
+        public Pose shoot_a;
+
+        /** Pose facing CELL B's opening from the side it opens toward. */
+        public Pose shoot_b;
+
+        /**
+         * Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN
+         * may only be removed from the bottom).
+         */
+        public Pose flower;
       }
 
       public Blue blue;
@@ -1910,164 +2398,309 @@ public final class config {
     public Poses poses;
   }
 
-  public static final class NormalAuto {
-    /** Control point pose on path to drink gate. */
-    public Pose drinkCp;
-
-    /** Ending position coordinate pose at the drink gate. */
-    public Pose drinkEnd;
-
-    /** Final scoring target position coordinate pose. */
-    public Pose finalScore;
-
-    /** Control point pose on path to first sample pickup. */
-    public Pose pickup1Cp;
-
-    /** Ending position coordinate pose for first sample pickup. */
-    public Pose pickup1End;
-
-    /** Control point pose on path to second sample pickup. */
-    public Pose pickup2Cp;
-
-    /** Ending position coordinate pose for second sample pickup. */
-    public Pose pickup2End;
-
-    /** Control point pose on path to third sample pickup. */
-    public Pose pickup3Cp;
-
-    /** Ending position coordinate pose for third sample pickup. */
-    public Pose pickup3End;
-
-    /** High goal target scoring position coordinate pose. */
-    public Pose score;
-
-    /** Starting position coordinate pose. */
-    public Pose start;
-
-    // Shared operational parameters (same for both alliances)
+  public static final class CellAAuto {
     /**
-     * Measured shoot windows as flat target_rpm, shoot_window_ms pairs, recorded by the Shot Timing
-     * Tuner OpMode against whatever flywheel RPM the shot table commanded at each measured
-     * distance. RPMs must strictly increase. Looked up by linear interpolation on the flywheel's
-     * target RPM and clamped outside the measured range, since a shot just past the last row does
-     * not suddenly get faster. Keying on RPM rather than distance means the table stays correct
-     * after shooter.shot_table is recalibrated — the shot only ever behaved the way it did at the
-     * RPM it was actually fired at, not at whatever distance a recalibrated table now maps that RPM
-     * to. ShotController ends a scoring cycle when it counts auto.balls_per_shot_count balls OR
-     * this window expires, whichever comes first — the window is the safety net for a jam, not the
-     * primary signal. auto.shoot_wait_ms is only the fallback when this table is empty.
+     * Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may
+     * only be removed from the bottom).
      */
-    public double[] shotTimePoints;
+    public Pose flower;
 
     /**
-     * Balls loaded before each autonomous scoring cycle. ShotController counts them live via
-     * shooter.ball_detection and ends the shot the moment this many are detected, without waiting
-     * out the rest of auto.shot_time_points' window.
+     * Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter
+     * wall, so the robot earns both LEAVE and PARK at the end of AUTO.
      */
-    public int ballsPerShotCount;
-
-    /** Wait delay (milliseconds) at the drink gate when intake gathers rings. */
-    public int drinkWaitMs;
-
-    /**
-     * Fallback wait time (milliseconds) allowed to fire a shot, used only when
-     * auto.shot_time_points is empty. Prefer the measured table: a single flat number cannot
-     * express that a close-range magazine takes longer than a long-range one.
-     */
-    public int shootWaitMs;
-
-    public double launchPower;
-
-    /** Target power coefficient (0.0 to 1.0) for autonomous transfer motor. */
-    public double transferPower;
-
-    /** Wait delay (milliseconds) at the drink gate for opposite alliance autonomous. */
-    public int oppositeDrinkWaitMs;
-
-    /** Wait time (milliseconds) allowed to fire a shot for opposite alliance autonomous. */
-    public int oppositeShootWaitMs;
-
-    /** Target power coefficient (0.0 to 1.0) for opposite alliance autonomous launcher. */
-    public double oppositeLaunchPower;
-
-    /** Target power coefficient (0.0 to 1.0) for opposite alliance autonomous transfer. */
-    public double oppositeTransferPower;
-
-    public String endgame;
-  }
-
-  public static final class OppositeAuto {
-    /** Control point pose on path to drink gate. */
-    public Pose drinkCp;
-
-    /** Ending position coordinate pose at the drink gate. */
-    public Pose drinkEnd;
-
-    /** Parking destination coordinate pose. */
     public Pose park;
 
-    /** Control point pose on path to second sample pickup. */
-    public Pose pickup2Cp;
+    /** Autonomous volley pose for CELL A. */
+    public Pose scoreA;
 
-    /** Ending position coordinate pose for second sample pickup. */
-    public Pose pickup2End;
+    /** Autonomous volley pose for CELL B. */
+    public Pose scoreB;
 
-    /** Control point pose on path to third sample pickup. */
-    public Pose pickup3Cp;
+    /**
+     * Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE
+     * frame and on the alliance side.
+     */
+    public Pose scoreBCp;
 
-    /** Ending position coordinate pose for third sample pickup. */
-    public Pose pickup3End;
-
-    /** Control point pose on path to fourth sample pickup. */
-    public Pose pickup4Cp;
-
-    /** Ending position coordinate pose for fourth sample pickup. */
-    public Pose pickup4End;
-
-    /** High goal target scoring position coordinate pose. */
-    public Pose score;
-
-    /** Starting position coordinate pose. */
+    /**
+     * Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING
+     * ZONE and not touching a FLOWER (G304).
+     */
     public Pose start;
 
     // Shared operational parameters (same for both alliances)
     /**
-     * Measured shoot windows as flat target_rpm, shoot_window_ms pairs, recorded by the Shot Timing
-     * Tuner OpMode against whatever flywheel RPM the shot table commanded at each measured
-     * distance. RPMs must strictly increase. Looked up by linear interpolation on the flywheel's
-     * target RPM and clamped outside the measured range, since a shot just past the last row does
-     * not suddenly get faster. Keying on RPM rather than distance means the table stays correct
-     * after shooter.shot_table is recalibrated — the shot only ever behaved the way it did at the
-     * RPM it was actually fired at, not at whatever distance a recalibrated table now maps that RPM
-     * to. ShotController ends a scoring cycle when it counts auto.balls_per_shot_count balls OR
-     * this window expires, whichever comes first — the window is the safety net for a jam, not the
-     * primary signal. auto.shoot_wait_ms is only the fallback when this table is empty.
+     * Measured autonomous shoot windows as flat distance_in, shoot_window_ms pairs, written by the
+     * Shot Timing Tuner OpMode in exactly this format. Distances must strictly increase;
+     * interpolated and clamped at the ends. A volley ends when auto.balls_per_volley_count balls
+     * are counted OR this window expires; the window is the jam safety net. auto.shoot_wait_ms is
+     * the fallback when this table is empty.
      */
     public double[] shotTimePoints;
 
     /**
-     * Balls loaded before each autonomous scoring cycle. ShotController counts them live via
-     * shooter.ball_detection and ends the shot the moment this many are detected, without waiting
-     * out the rest of auto.shot_time_points' window.
-     */
-    public int ballsPerShotCount;
-
-    /** Wait delay (milliseconds) at the drink gate when intake gathers rings. */
-    public int drinkWaitMs;
-
-    /**
-     * Fallback wait time (milliseconds) allowed to fire a shot, used only when
-     * auto.shot_time_points is empty. Prefer the measured table: a single flat number cannot
-     * express that a close-range magazine takes longer than a long-range one.
+     * Fallback autonomous shoot window (milliseconds), used only when auto.shot_time_points is
+     * empty.
      */
     public int shootWaitMs;
 
-    public double launchPower;
+    /**
+     * SCORING ELEMENTS expected per autonomous volley. A volley ends when this many shots are
+     * counted by shooter.ball_detection or the shot window expires.
+     */
+    public int ballsPerVolleyCount;
 
-    /** Target power coefficient (0.0 to 1.0) for autonomous transfer motor. */
+    /**
+     * Autonomous wait (milliseconds) for the target CELL to be seen upward-facing before giving up
+     * on it. The robot never launches at a downward-facing CELL (G417).
+     */
+    public int tipWaitMs;
+
+    /**
+     * Autonomous time (milliseconds) spent at a FLOWER retrieval opening with the intake running.
+     */
+    public int collectDwellMs;
+
+    /**
+     * AUTO park deadline margin (milliseconds): the routine is cancelled and the robot parks once
+     * the time left is no more than the estimated drive to the park pose (stopping, then the
+     * HIVE-avoiding route) plus this.
+     */
+    public int parkMarginMs;
+
+    /**
+     * Latest AUTO park start (milliseconds before the end): the robot parks at this point even if
+     * the estimated drive plus park_margin_ms is shorter, or when no estimate exists.
+     */
+    public int parkReserveMs;
+
+    /**
+     * How often (milliseconds) AUTO re-plans the park route and re-estimates the drive time for the
+     * park deadline.
+     */
+    public int parkUpdateMs;
+
+    /**
+     * Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).
+     */
     public double transferPower;
 
-    public String endgame;
+    /**
+     * CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley.
+     */
+    public boolean cellACollectFlower;
+
+    /**
+     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
+     * upward-facing.
+     */
+    public boolean cellASecondVolley;
+
+    /**
+     * CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second
+     * volley.
+     */
+    public boolean cellBCollectFlower;
+  }
+
+  public static final class CellBAuto {
+    /**
+     * CELL B routine fallback volley pose for CELL A, used when CELL B never becomes upward-facing.
+     */
+    public Pose altA;
+
+    /** Waypoint on the CELL B routine's fallback route around the HIVE to alt_a. */
+    public Pose altVia;
+
+    /**
+     * Pose with the intake at an alliance-side FLOWER's bottom retrieval opening (G418: POLLEN may
+     * only be removed from the bottom).
+     */
+    public Pose flower;
+
+    /**
+     * Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter
+     * wall, so the robot earns both LEAVE and PARK at the end of AUTO.
+     */
+    public Pose park;
+
+    /** Autonomous volley pose for CELL B. */
+    public Pose scoreB;
+
+    /**
+     * Bezier control point on the path to score_b; keeps the swept footprint clear of the HIVE
+     * frame and on the alliance side.
+     */
+    public Pose scoreBCp;
+
+    /**
+     * Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING
+     * ZONE and not touching a FLOWER (G304).
+     */
+    public Pose start;
+
+    // Shared operational parameters (same for both alliances)
+    /**
+     * Measured autonomous shoot windows as flat distance_in, shoot_window_ms pairs, written by the
+     * Shot Timing Tuner OpMode in exactly this format. Distances must strictly increase;
+     * interpolated and clamped at the ends. A volley ends when auto.balls_per_volley_count balls
+     * are counted OR this window expires; the window is the jam safety net. auto.shoot_wait_ms is
+     * the fallback when this table is empty.
+     */
+    public double[] shotTimePoints;
+
+    /**
+     * Fallback autonomous shoot window (milliseconds), used only when auto.shot_time_points is
+     * empty.
+     */
+    public int shootWaitMs;
+
+    /**
+     * SCORING ELEMENTS expected per autonomous volley. A volley ends when this many shots are
+     * counted by shooter.ball_detection or the shot window expires.
+     */
+    public int ballsPerVolleyCount;
+
+    /**
+     * Autonomous wait (milliseconds) for the target CELL to be seen upward-facing before giving up
+     * on it. The robot never launches at a downward-facing CELL (G417).
+     */
+    public int tipWaitMs;
+
+    /**
+     * Autonomous time (milliseconds) spent at a FLOWER retrieval opening with the intake running.
+     */
+    public int collectDwellMs;
+
+    /**
+     * AUTO park deadline margin (milliseconds): the routine is cancelled and the robot parks once
+     * the time left is no more than the estimated drive to the park pose (stopping, then the
+     * HIVE-avoiding route) plus this.
+     */
+    public int parkMarginMs;
+
+    /**
+     * Latest AUTO park start (milliseconds before the end): the robot parks at this point even if
+     * the estimated drive plus park_margin_ms is shorter, or when no estimate exists.
+     */
+    public int parkReserveMs;
+
+    /**
+     * How often (milliseconds) AUTO re-plans the park route and re-estimates the drive time for the
+     * park deadline.
+     */
+    public int parkUpdateMs;
+
+    /**
+     * Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).
+     */
+    public double transferPower;
+
+    /**
+     * CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley.
+     */
+    public boolean cellACollectFlower;
+
+    /**
+     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
+     * upward-facing.
+     */
+    public boolean cellASecondVolley;
+
+    /**
+     * CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second
+     * volley.
+     */
+    public boolean cellBCollectFlower;
+  }
+
+  public static final class ParkOnlyAuto {
+    /**
+     * Parking pose: footprint partially inside the alliance LOADING ZONE but clear of the perimeter
+     * wall, so the robot earns both LEAVE and PARK at the end of AUTO.
+     */
+    public Pose park;
+
+    /**
+     * Starting pose: touching the perimeter wall, fully on the alliance's side, not in the LOADING
+     * ZONE and not touching a FLOWER (G304).
+     */
+    public Pose start;
+
+    // Shared operational parameters (same for both alliances)
+    /**
+     * Measured autonomous shoot windows as flat distance_in, shoot_window_ms pairs, written by the
+     * Shot Timing Tuner OpMode in exactly this format. Distances must strictly increase;
+     * interpolated and clamped at the ends. A volley ends when auto.balls_per_volley_count balls
+     * are counted OR this window expires; the window is the jam safety net. auto.shoot_wait_ms is
+     * the fallback when this table is empty.
+     */
+    public double[] shotTimePoints;
+
+    /**
+     * Fallback autonomous shoot window (milliseconds), used only when auto.shot_time_points is
+     * empty.
+     */
+    public int shootWaitMs;
+
+    /**
+     * SCORING ELEMENTS expected per autonomous volley. A volley ends when this many shots are
+     * counted by shooter.ball_detection or the shot window expires.
+     */
+    public int ballsPerVolleyCount;
+
+    /**
+     * Autonomous wait (milliseconds) for the target CELL to be seen upward-facing before giving up
+     * on it. The robot never launches at a downward-facing CELL (G417).
+     */
+    public int tipWaitMs;
+
+    /**
+     * Autonomous time (milliseconds) spent at a FLOWER retrieval opening with the intake running.
+     */
+    public int collectDwellMs;
+
+    /**
+     * AUTO park deadline margin (milliseconds): the routine is cancelled and the robot parks once
+     * the time left is no more than the estimated drive to the park pose (stopping, then the
+     * HIVE-avoiding route) plus this.
+     */
+    public int parkMarginMs;
+
+    /**
+     * Latest AUTO park start (milliseconds before the end): the robot parks at this point even if
+     * the estimated drive plus park_margin_ms is shorter, or when no estimate exists.
+     */
+    public int parkReserveMs;
+
+    /**
+     * How often (milliseconds) AUTO re-plans the park route and re-estimates the drive time for the
+     * park deadline.
+     */
+    public int parkUpdateMs;
+
+    /**
+     * Transfer motor power (0.0 to 1.0) while the intake is collecting (not feeding the shooter).
+     */
+    public double transferPower;
+
+    /**
+     * CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley.
+     */
+    public boolean cellACollectFlower;
+
+    /**
+     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
+     * upward-facing.
+     */
+    public boolean cellASecondVolley;
+
+    /**
+     * CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second
+     * volley.
+     */
+    public boolean cellBCollectFlower;
   }
 
   public static MatchProfile loadMatchProfile(Alliance alliance) {

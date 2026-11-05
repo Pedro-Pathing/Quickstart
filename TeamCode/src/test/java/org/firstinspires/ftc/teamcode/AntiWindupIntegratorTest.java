@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.firstinspires.ftc.teamcode.utilities.AntiWindupIntegrator;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AntiWindupIntegratorTest {
 
@@ -16,7 +16,7 @@ public class AntiWindupIntegratorTest {
 
   private AntiWindupIntegrator integrator;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     integrator = new AntiWindupIntegrator();
   }
@@ -68,7 +68,7 @@ public class AntiWindupIntegratorTest {
     }
     assertEquals(MAX_CONTRIBUTION, step(150.0), 1e-9);
     assertTrue(
-        "accumulator itself must be bounded", integrator.getAccumulator() <= MAX_CONTRIBUTION / KI);
+        integrator.getAccumulator() <= MAX_CONTRIBUTION / KI, "accumulator itself must be bounded");
   }
 
   @Test
@@ -152,7 +152,7 @@ public class AntiWindupIntegratorTest {
     }
 
     double pedroContribution = KI * pedroStyleAccumulator;
-    assertTrue("unbounded integral would saturate the motor on its own", pedroContribution > 0.4);
-    assertEquals("bounded integral contributes nothing during spin-up", 0.0, step(870.0), 1e-12);
+    assertTrue(pedroContribution > 0.4, "unbounded integral would saturate the motor on its own");
+    assertEquals(0.0, step(870.0), 1e-12, "bounded integral contributes nothing during spin-up");
   }
 }

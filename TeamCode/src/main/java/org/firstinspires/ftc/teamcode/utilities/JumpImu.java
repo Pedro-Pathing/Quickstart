@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
+import androidx.annotation.Nullable;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -11,7 +12,7 @@ import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 /** Reuses Pedro's Pinpoint, falling back to the configured Control Hub IMU on older firmware. */
 public final class JumpImu {
   private final GoBildaPinpointDriver pinpoint;
-  private final IMU hub;
+  private final @Nullable IMU hub;
   private final int firmware;
 
   public JumpImu(HardwareMap hardwareMap) {

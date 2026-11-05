@@ -1,34 +1,30 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Velocity;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.ballistics.ShotTable;
-import org.firstinspires.ftc.teamcode.ballistics.ShotTimeTable;
-import org.firstinspires.ftc.teamcode.config.ConfigLoader;
+import org.firstinspires.ftc.teamcode.game.FieldModel;
+import org.firstinspires.ftc.teamcode.game.HiveTracker;
 import org.firstinspires.ftc.teamcode.records.Alliance;
-import org.firstinspires.ftc.teamcode.records.EndgameSpot;
-import org.firstinspires.ftc.teamcode.records.Field;
+import org.firstinspires.ftc.teamcode.records.BallType;
+import org.firstinspires.ftc.teamcode.records.ShotSolution;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
-import org.firstinspires.ftc.teamcode.utilities.CalibrationRay;
 import org.firstinspires.ftc.teamcode.utilities.Casablanca;
 import org.firstinspires.ftc.teamcode.utilities.FlywheelDipDetector;
 import org.firstinspires.ftc.teamcode.utilities.Sentinel;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
 import org.mockito.Mockito;
 
 public class MathSafetyTest {
@@ -37,7 +33,7 @@ public class MathSafetyTest {
   private CRServo mockServo;
   private double[] turretVoltage;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Mock hardware dependencies for Turret initialization
     HardwareMap hardwareMap = Mockito.mock(HardwareMap.class);
@@ -87,23 +83,6 @@ public class MathSafetyTest {
     // Angle to (-10, 0) from (0, 0) should be PI radians (180 degrees)
     Pose pose3 = Turret.alignPose(0, 0, -10, 0);
     assertEquals(Math.PI, pose3.heading(), 1e-6);
-  }
-
-  @Test
-  public void testTurretShouldTurnLeft() {
-    // When limits are not violated, the shortest path decides direction
-    // Case 1: turning from 10 to 50 degrees -> turn left is true (40 deg diff)
-    assertTrue(turret.shouldTurnLeft(10, 50));
-    // Case 2: turning from 50 to 10 degrees -> turn left is false (320 deg diff, right is 40 deg)
-    assertFalse(turret.shouldTurnLeft(50, 10));
-
-    // Shortest path is right (0 to 359 is 1 deg right)
-    assertFalse(turret.shouldTurnLeft(0, 359));
-
-    // Limit violation check:
-    // turning left from 80 to 110 is shorter (30 deg) but both paths are bad (target is unsafe)
-    // so it defaults to the shortest path (left)
-    assertTrue(turret.shouldTurnLeft(80, 110));
   }
 
   @Test
@@ -168,52 +147,6 @@ public class MathSafetyTest {
   }
 
   @Test
-  public void testSentinelZoneCalculations() {
-    // Verify Sentinel goal zones bounding box calculations (loaded dynamically from config facade)
-    Sentinel sentinel = new Sentinel(Alliance.RED);
-    double goalSize = config.sentinel.goals.size;
-    double goalMinY = config.sentinel.goals.min_y;
-
-    Envelope blueZone = sentinel.getBlueGoalZone();
-    assertEquals(0.0, blueZone.getMinX(), 1e-6);
-    assertEquals(goalSize, blueZone.getMaxX(), 1e-6);
-    assertEquals(goalMinY, blueZone.getMinY(), 1e-6);
-    assertEquals(goalMinY + goalSize, blueZone.getMaxY(), 1e-6);
-
-    Envelope redZone = sentinel.getRedGoalZone();
-    assertEquals(144.0 - goalSize, redZone.getMinX(), 1e-6);
-    assertEquals(144.0, redZone.getMaxX(), 1e-6);
-    assertEquals(goalMinY, redZone.getMinY(), 1e-6);
-    assertEquals(goalMinY + goalSize, redZone.getMaxY(), 1e-6);
-  }
-
-  @Test
-  public void testTurretComputeSignedError() {
-    // Test case 1: turnLeft = true, target is ahead of current (no wrap)
-    assertEquals(40.0, Turret.computeSignedError(10.0, 50.0, true), 1e-6);
-
-    // Test case 2: turnLeft = true, target is behind current, wrapping over 360
-    assertEquals(30.0, Turret.computeSignedError(350.0, 20.0, true), 1e-6);
-
-    // Test case 3: turnLeft = false, target is behind current (no wrap)
-    assertEquals(-40.0, Turret.computeSignedError(50.0, 10.0, false), 1e-6);
-
-    // Test case 4: turnLeft = false, target is ahead of current, wrapping over 0
-    assertEquals(-30.0, Turret.computeSignedError(20.0, 350.0, false), 1e-6);
-
-    // Walk the turret across the limit boundary:
-    double current = 175.0;
-    double target = 185.0;
-    boolean turnLeft = turret.shouldTurnLeft(current, target);
-    double error = Turret.computeSignedError(current, target, turnLeft);
-    if (turnLeft) {
-      assertTrue(error > 0);
-    } else {
-      assertTrue(error < 0);
-    }
-  }
-
-  @Test
   public void testTurretDirectionalKsFeedforward() {
     turret.setKs(0.08, 0.12);
     turret.setPIDF(0, 0, 0, 0);
@@ -235,190 +168,36 @@ public class MathSafetyTest {
 
   @Test
   public void testSentinelFootprintRotationAndIntersections() {
-    Sentinel sentinel = new Sentinel(Alliance.RED); // opponent is BLUE_GOAL_ZONE
-
-    // 1. Robot Footprint rotation test at heading = 0
-    Pose poseZero = new Pose(10, 10, 0);
-    Coordinate[] footprintZero = sentinel.calculateRobotFootprint(poseZero);
-    assertEquals(4, footprintZero.length);
+    Sentinel sentinel = new Sentinel(Alliance.RED);
     double halfWidth = config.sentinel.robot_width / 2.0;
-    // Corner 0: (10 - halfWidth, 10 - halfWidth)
+
+    // 1. Footprint corners at heading 0: an axis-aligned square around the pose.
+    Coordinate[] footprintZero = sentinel.calculateRobotFootprint(new Pose(10, 10, 0));
+    assertEquals(4, footprintZero.length);
     assertEquals(10.0 - halfWidth, footprintZero[0].x, 1e-4);
     assertEquals(10.0 - halfWidth, footprintZero[0].y, 1e-4);
-    // Corner 1: (10 + halfWidth, 10 - halfWidth)
     assertEquals(10.0 + halfWidth, footprintZero[1].x, 1e-4);
     assertEquals(10.0 - halfWidth, footprintZero[1].y, 1e-4);
 
-    // 2. Bounding Box intersection with Goal Zone (violatesActiveGoal)
-    // Place robot centered at (2, 72) with heading = 0. It should overlap.
-    Pose poseViolating = new Pose(2, 72, 0);
-    Coordinate[] footprintViolating = sentinel.calculateRobotFootprint(poseViolating);
-    assertTrue(sentinel.violatesActiveGoal(footprintViolating));
+    // 2. Intersection with the HIVE frame. The frame is centred on the field, so the field centre
+    // is inside it and a corner of the field is not.
+    double centre = config.field.size_in / 2.0;
+    assertTrue(
+        sentinel.violatesProtectedZone(
+            sentinel.calculateRobotFootprint(new Pose(centre, centre, 0))));
+    assertFalse(
+        sentinel.violatesProtectedZone(sentinel.calculateRobotFootprint(new Pose(10, 10, 0))));
 
-    // Place robot centered at (72, 72) with heading = 0. It should NOT overlap.
-    Pose poseSafe = new Pose(72, 72, 0);
-    Coordinate[] footprintSafe = sentinel.calculateRobotFootprint(poseSafe);
-    assertFalse(sentinel.violatesActiveGoal(footprintSafe));
-
-    // 3. Launch allowed test
-    // Place robot centered at (72, 72).
-    assertTrue(sentinel.isLaunchAllowed(new Pose(72, 72, 0)));
-
-    // Place robot far away at (10, 10). Launch should NOT be allowed.
-    assertFalse(sentinel.isLaunchAllowed(new Pose(10, 10, 0)));
-
-    // 4. Rotation safety test
-    // Place robot near the blue goal zone with heading = 0.
-    double protectedMaxX = sentinel.getProtectedZone().getMaxX();
-    Pose poseRotationSafeCheck = new Pose(protectedMaxX + halfWidth + 0.5, 72, 0);
-    assertFalse(sentinel.isRotationSafe(poseRotationSafeCheck, 1.0, 0.5));
-  }
-
-  /**
-   * Every pose autonomous shoots from has to be inside a launch zone.
-   *
-   * <p>Auto fires the same aimed shot TeleOp does, and that command ends itself the moment {@code
-   * Sentinel.isLaunchAllowed} goes false. So a score pose that sits a few inches short of the zone
-   * does not shoot badly — it does not shoot at all, silently, for a whole match. That failure has
-   * no signature on the driver station beyond a zero, which is exactly why it belongs in a test.
-   *
-   * <p>This checks the configured poses. What the robot actually reaches after following a path is
-   * reported live by the "Launch Legal" telemetry line in {@code AllianceAutoBase}.
-   */
-  @Test
-  public void testAutoScorePosesAreInsideLaunchZone() {
-    for (Alliance alliance : Alliance.values()) {
-      // isLaunchAllowed checks both zones and is alliance-independent; the alliance here selects
-      // which set of (mirrored) poses gets checked.
-      Sentinel sentinel = new Sentinel(alliance);
-      String side = alliance == Alliance.RED ? "red" : "blue";
-
-      config.NormalAuto normal =
-          ConfigLoader.loadMerged(config.NormalAuto.class, "auto_poses.normal." + side, "auto");
-      assertTrue(
-          side + " normal auto score pose is outside every launch zone",
-          sentinel.isLaunchAllowed(normal.score));
-      assertTrue(
-          side + " normal auto final_score pose is outside every launch zone",
-          sentinel.isLaunchAllowed(normal.finalScore));
-
-      config.OppositeAuto opposite =
-          ConfigLoader.loadMerged(config.OppositeAuto.class, "auto_poses.opposite." + side, "auto");
-      assertTrue(
-          side + " opposite auto score pose is outside every launch zone",
-          sentinel.isLaunchAllowed(opposite.score));
-    }
-  }
-
-  /**
-   * The endgame parking spot: committed to one side of the launch zone boundary, on our own half,
-   * and the nearest such point.
-   *
-   * <p>Auto has about two seconds to execute whatever this returns, so a target that is subtly
-   * wrong is not recoverable at runtime — a spot that still straddles the line leaves the robot in
-   * exactly the state the whole feature exists to avoid, and one across the midline trades a minor
-   * foul for a worse one. All of it is pure geometry, so all of it is checkable here.
-   *
-   * <p>Checked from each alliance's own score pose, which by {@link
-   * #testAutoScorePosesAreInsideLaunchZone} overlaps a launch zone — the exact situation the timer
-   * fires in.
-   */
-  @Test
-  public void testEndgameSpotIsCommittedNearAndOnOurSide() {
-    double margin = config.auto.endgame.exit_clearance;
-    double halfDiagonal = config.sentinel.robot_width * Math.sqrt(2.0) / 2.0;
-
-    for (Alliance alliance : Alliance.values()) {
-      Sentinel sentinel = new Sentinel(alliance);
-      String side = alliance == Alliance.RED ? "red" : "blue";
-      boolean ownSideIsHighX = Field.getGoalX(alliance) > 72.0;
-
-      config.OppositeAuto opposite =
-          ConfigLoader.loadMerged(config.OppositeAuto.class, "auto_poses.opposite." + side, "auto");
-      Pose score = opposite.score;
-      EndgameSpot spot = sentinel.nearestEndgameSpot(score, margin);
-
-      assertNotNull(side + " has no committed endgame spot from its score pose", spot);
-      Pose parked = spot.pose();
-
-      // Committed at every heading, and matching what the spot claims about itself.
-      Sentinel.ZoneStanding expected =
-          spot.insideLaunchZone() ? Sentinel.ZoneStanding.INSIDE : Sentinel.ZoneStanding.OUTSIDE;
-      for (double heading = 0; heading < 2 * Math.PI; heading += Math.PI / 8) {
-        Pose rotated = new Pose(parked.x(), parked.y(), heading);
-        assertEquals(
-            side + " endgame spot is not committed at heading " + heading,
-            expected,
-            sentinel.zoneStanding(rotated, margin));
-
-        for (Coordinate corner : sentinel.calculateRobotFootprint(rotated)) {
-          assertTrue(
-              side + " endgame footprint crosses the midline at heading " + heading,
-              ownSideIsHighX ? corner.x >= 72.0 : corner.x <= 72.0);
-          assertTrue(
-              side + " endgame footprint leaves the field", corner.x >= 0 && corner.x <= 144);
-          assertTrue(
-              side + " endgame footprint leaves the field", corner.y >= 0 && corner.y <= 144);
-        }
-      }
-
-      // "Shortest path": nothing meaningfully closer is committed, in either direction — the search
-      // has to consider going deeper into the zone as well as out of it. The slack is what the
-      // heading-blind model deliberately gives away: it plans against the footprint's circumscribed
-      // circle, while the check below samples 16 discrete headings of the real square.
-      double spotDistance = score.distance(parked);
-      double slack = margin + 0.5;
-      assertTrue(side + " endgame move is implausibly long", spotDistance < 3 * halfDiagonal);
-      for (double angle = 0; angle < 2 * Math.PI; angle += Math.PI / 24) {
-        for (double r = 0.5; r < spotDistance - slack; r += 0.5) {
-          double cx = score.x() + r * Math.cos(angle);
-          double cy = score.y() + r * Math.sin(angle);
-          boolean committedAtEveryHeading = true;
-          for (double h = 0; h < 2 * Math.PI && committedAtEveryHeading; h += Math.PI / 8) {
-            committedAtEveryHeading =
-                sentinel.zoneStanding(new Pose(cx, cy, h), margin)
-                    != Sentinel.ZoneStanding.ON_BOUNDARY;
-          }
-          boolean onOurSide =
-              ownSideIsHighX ? cx - halfDiagonal >= 72.0 : cx + halfDiagonal <= 72.0;
-          assertFalse(
-              String.format(
-                  "%s has a committed point closer than the spot: (%.1f, %.1f)", side, cx, cy),
-              committedAtEveryHeading && onOurSide);
-        }
-      }
-
-      // A robot already committed is told to stay where it is.
-      EndgameSpot stay = sentinel.nearestEndgameSpot(parked, margin);
-      assertEquals(parked.x(), stay.pose().x(), 1e-9);
-      assertEquals(parked.y(), stay.pose().y(), 1e-9);
-    }
-  }
-
-  /**
-   * The small far triangle cannot hold this robot, which is why "get fully inside a zone" is only
-   * ever an option in the big one.
-   *
-   * <p>{@link Sentinel#nearestEndgameSpot} relies on this rather than special-casing it: eroding
-   * the zones by the footprint deletes the small triangle entirely. If the robot ever shrinks (or
-   * the zone grows) enough for it to fit, this test fails and the comment there stops being true —
-   * which is the point of asserting it.
-   */
-  @Test
-  public void testSmallLaunchZoneCannotContainTheRobot() {
-    Sentinel sentinel = new Sentinel(Alliance.RED);
-    double margin = config.auto.endgame.exit_clearance;
-
-    // The small zone spans x in [48, 96], y in [0, 24]. Sweep it densely at several headings.
-    for (double x = 48; x <= 96; x += 1.0) {
-      for (double y = 0; y <= 24; y += 1.0) {
-        for (double h = 0; h < Math.PI / 2; h += Math.PI / 16) {
-          assertFalse(
-              String.format("robot reported fully inside the small zone at (%.0f, %.0f)", x, y),
-              sentinel.zoneStanding(new Pose(x, y, h), margin) == Sentinel.ZoneStanding.INSIDE);
-        }
-      }
-    }
+    // 3. Rotation safety. A robot parked just clear of the frame at heading 0 would sweep into it
+    // if it turned by half a radian (its corners reach out to halfWidth * (cos + sin)).
+    double protectedMaxX = sentinel.getProtectedZones().get(0).getMaxX();
+    Pose beside = new Pose(protectedMaxX + halfWidth + 0.5, centre, 0);
+    assertFalse(sentinel.isRotationSafe(beside, 1.0, 0.5));
+    // A small turn stays clear, and no turn input is always safe.
+    assertTrue(sentinel.isRotationSafe(beside, 1.0, 0.01));
+    assertTrue(sentinel.isRotationSafe(beside, 0.0, 0.5));
+    // A robot already overlapping the frame may turn, so it can always rotate its way back out.
+    assertTrue(sentinel.isRotationSafe(new Pose(centre, centre, 0), 1.0, 0.5));
   }
 
   /**
@@ -490,7 +269,7 @@ public class MathSafetyTest {
     }
 
     // Ball one: 1020 -> 740 trough.
-    assertTrue("ball one missed", detector.update(920.0, t));
+    assertTrue(detector.update(920.0, t), "ball one missed");
     t += 10;
     for (double v : new double[] {860, 800, 760, 740}) {
       detector.update(v, t);
@@ -503,10 +282,10 @@ public class MathSafetyTest {
       detector.update(v, t);
       t += 10;
     }
-    assertEquals("recovery must not be counted as a ball", 1, detector.getEventCount());
+    assertEquals(1, detector.getEventCount(), "recovery must not be counted as a ball");
 
     // Ball two lands on that partial recovery.
-    assertTrue("ball two missed — detector latched in ball one's dip", detector.update(800.0, t));
+    assertTrue(detector.update(800.0, t), "ball two missed — detector latched in ball one's dip");
     assertEquals(2, detector.getEventCount());
   }
 
@@ -530,7 +309,7 @@ public class MathSafetyTest {
 
     long t = 2000L;
     for (int ball = 0; ball < 4; ball++) {
-      assertTrue("ball " + ball + " missed", detector.update(780.0, t));
+      assertTrue(detector.update(780.0, t), "ball " + ball + " missed");
       assertEquals(ball + 1, detector.getEventCount());
       // Recover to the local baseline, not to the setpoint.
       for (int i = 0; i < 12; i++) {
@@ -571,13 +350,13 @@ public class MathSafetyTest {
         new double[] {
           1280, 1260, 1280, 1260, 1240, 1260, 1240, 1220, 1220, 1200, 1200, 1200, 1180, 1180
         }) {
-      assertFalse("coast-down at " + v + " must not count as a ball", detector.update(v, t));
+      assertFalse(detector.update(v, t), "coast-down at " + v + " must not count as a ball");
       t += 20;
     }
     assertEquals(0, detector.getEventCount());
 
     // A real ball off that same decayed wheel is still caught: 1180 -> 980 is 17%.
-    assertTrue("a real ball after the coast must still register", detector.update(980.0, t));
+    assertTrue(detector.update(980.0, t), "a real ball after the coast must still register");
     assertEquals(1, detector.getEventCount());
   }
 
@@ -596,135 +375,6 @@ public class MathSafetyTest {
     assertEquals(1, detector.getEventCount());
   }
 
-  /**
-   * The calibration ray must stay inside the legal drive box and always face the goal.
-   *
-   * <p>{@code maxDistance} is what stops an unreachable endpoint being clamped onto a different
-   * bearing and recorded under the distance that was asked for rather than the one actually shot.
-   */
-  @Test
-  public void testCalibrationRayStaysInBoxAndFacesGoal() {
-    double gx = Field.getBlueGoalX();
-    double gy = Field.getBlueGoalY();
-
-    double maxDistance = CalibrationRay.maxDistance(gx, gy);
-    assertTrue("ray should reach well past the shot table's near end", maxDistance > 50.0);
-
-    Pose atLimit = CalibrationRay.waypoint(gx, gy, maxDistance);
-    assertTrue(
-        "ray must not leave the box in x", atLimit.x() <= CalibrationRay.MAX_TARGET_X + 1e-6);
-    assertTrue(
-        "ray must not leave the box in y", atLimit.y() >= CalibrationRay.MIN_TARGET_Y - 1e-6);
-
-    for (double distance : new double[] {40.0, 72.0, 120.0}) {
-      Pose waypoint = CalibrationRay.waypoint(gx, gy, distance);
-      // The waypoint sits exactly `distance` from the goal...
-      assertEquals(distance, Math.hypot(gx - waypoint.x(), gy - waypoint.y()), 1e-6);
-      // ...and points straight back at it, which is what makes the turret's job the same at every
-      // endpoint and the recorded distance the only thing that varies.
-      assertEquals(Math.atan2(gy - waypoint.y(), gx - waypoint.x()), waypoint.heading(), 1e-9);
-    }
-  }
-
-  /**
-   * The measured shoot-window lookup that bounds every autonomous scoring cycle.
-   *
-   * <p>Clamping outside the measured range is the deliberate choice, and the opposite of what
-   * {@link org.firstinspires.ftc.teamcode.ballistics.ShotTable} does with an uncalibrated distance:
-   * a window that is too long only costs autonomous time, while one that is too short leaves balls
-   * in the robot with no indication that it happened.
-   */
-  @Test
-  public void testShotTimeTableInterpolatesAndClamps() {
-    ShotTimeTable table = ShotTimeTable.fromPoints(new double[] {950.0, 5000, 1100.0, 3000});
-    assertEquals(2, table.size());
-
-    // Exact rows.
-    assertEquals(5000, table.lookupMs(950.0));
-    assertEquals(3000, table.lookupMs(1100.0));
-
-    // Linear between them.
-    assertEquals(4000, table.lookupMs(1025.0));
-
-    // Clamped, not extrapolated: a shot fired slower than anything measured does not get faster.
-    assertEquals(5000, table.lookupMs(800.0));
-    assertEquals(3000, table.lookupMs(2000.0));
-
-    // A non-finite RPM must still yield a usable window rather than an exception, since the
-    // alternative is a scoring cycle with no bound on it at all.
-    assertEquals(5000, table.lookupMs(Double.NaN));
-  }
-
-  /** An absent or malformed table must never leave a scoring cycle with no bound on it. */
-  @Test
-  public void testShotTimeTableFallsBackWhenUnusable() {
-    assertNull(ShotTimeTable.fromPoints(new double[] {}));
-    assertNull(ShotTimeTable.fromPoints(null));
-
-    // windowMsFor never throws and never returns zero, whatever it is handed — a zero window feeds
-    // nothing, and a missing one never gives the chassis back to the next path.
-    for (double rpm : new double[] {Double.NaN, -50.0, 0.0, 1000.0, 1e9}) {
-      assertTrue("window must be positive at " + rpm, ShotTimeTable.windowMsFor(rpm) > 0);
-    }
-
-    try {
-      ShotTimeTable.fromPoints(new double[] {950.0, 5000, 1100.0});
-      org.junit.Assert.fail("an odd number of values is not rpm,window pairs");
-    } catch (IllegalStateException expected) {
-      assertTrue(expected.getMessage().contains("pairs"));
-    }
-
-    try {
-      ShotTimeTable.fromPoints(new double[] {950.0, 5000, 900.0, 3000});
-      org.junit.Assert.fail("rpms going backwards must be rejected, not silently sorted");
-    } catch (IllegalStateException expected) {
-      assertTrue(expected.getMessage().contains("strictly increase"));
-    }
-  }
-
-  /**
-   * The shipped table has to actually cover the RPM the autos actually shoot at.
-   *
-   * <p>Outside the measured range {@link ShotTimeTable} clamps, and clamping across a long gap is
-   * how a scoring cycle silently gets the wrong budget. The curve runs backwards — low-RPM shots
-   * take longer than high-RPM ones — so a fast shot clamped onto a slow row is handed seconds it
-   * does not need, and a slow shot clamped onto a fast row is cut off with balls still in the
-   * robot.
-   *
-   * <p>The RPM checked here is what {@link org.firstinspires.ftc.teamcode.ballistics.ShotTable}
-   * commands <i>right now</i> for each score pose's distance — not the RPM the shot-time table was
-   * originally measured against — since that current mapping is what autonomous will actually fire
-   * at. If a {@code shooter.shot_table} recalibration moves a score distance onto an RPM the timing
-   * table no longer covers, this is the test that catches it.
-   */
-  @Test
-  public void testConfiguredShotTimeTableCoversAutoScoreRpm() {
-    ShotTimeTable table = ShotTimeTable.fromConfig();
-    assertTrue(
-        "auto.shot_time_points is empty — autos fall back to the flat window", table != null);
-    ShotTable shotTable = ShotTable.fromConfig();
-
-    double allowedClampRpm = 40.0;
-
-    config.NormalAuto normal =
-        ConfigLoader.loadMerged(config.NormalAuto.class, "auto_poses.normal.blue", "auto");
-    config.OppositeAuto opposite =
-        ConfigLoader.loadMerged(config.OppositeAuto.class, "auto_poses.opposite.blue", "auto");
-
-    for (Object[] which : new Object[][] {{"normal", normal.score}, {"opposite", opposite.score}}) {
-      Pose score = (Pose) which[1];
-      double distance =
-          Math.hypot(Field.getBlueGoalX() - score.x(), Field.getBlueGoalY() - score.y());
-      double rpm = shotTable.lookup(distance).rpm();
-      assertTrue(
-          String.format(
-              "%s auto scores at %.0f in (%.0f rpm), more than %.0f rpm outside the measured"
-                  + " %.0f-%.0f rpm shot-time table — re-run the Shot Timing Tuner to cover it",
-              which[0], distance, rpm, allowedClampRpm, table.minRpm(), table.maxRpm()),
-          rpm >= table.minRpm() - allowedClampRpm && rpm <= table.maxRpm() + allowedClampRpm);
-    }
-  }
-
   @Test
   public void testCasablancaSymmetryAndCollisionMath() {
     Sentinel sentinel = new Sentinel(Alliance.RED);
@@ -738,23 +388,27 @@ public class MathSafetyTest {
 
     double halfWidth = config.sentinel.robot_width / 2.0;
 
+    // The shipped config protects the whole HIVE frame, so there is exactly one zone.
+    assertEquals(1, sentinel.getProtectedZones().size());
+    var zone = sentinel.getProtectedZones().get(0);
+    double midY = (zone.getMinY() + zone.getMaxY()) / 2.0;
+    double midX = (zone.getMinX() + zone.getMaxX()) / 2.0;
+
     // --- CASE 1: Depth (X-axis) Protection Check ---
-    // Place robot inside the depth hard stop boundary dynamically
-    double protectedMaxX = sentinel.getProtectedZone().getMaxX();
-    double poseX = protectedMaxX + halfWidth + (0.5 * Casablanca.depthHardStop);
+    // Place robot inside the depth hard stop boundary dynamically, driving toward the frame.
+    double poseX = zone.getMaxX() + halfWidth + (0.5 * Casablanca.depthHardStop);
     double[] outputX =
         casablanca.adjustDriveInput(
-            new Pose(poseX, 72, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, -1.0, 0.0);
+            new Pose(poseX, midY, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, -1.0, 0.0);
     // Adjusted forward (index 1) should be scaled down significantly
     assertTrue(Math.abs(outputX[1]) < 0.8);
 
     // --- CASE 2: Side (Y-axis) Protection Check ---
-    // Place robot inside the side hard stop boundary dynamically
-    double protectedMinY = sentinel.getProtectedZone().getMinY();
-    double poseY = protectedMinY - halfWidth - (0.5 * Casablanca.sideHardStop);
+    // Place robot inside the side hard stop boundary dynamically, strafing toward the frame.
+    double poseY = zone.getMinY() - halfWidth - (0.5 * Casablanca.sideHardStop);
     double[] outputY =
         casablanca.adjustDriveInput(
-            new Pose(3.0, poseY, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 1.0, 0.0, 0.0);
+            new Pose(midX, poseY, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 1.0, 0.0, 0.0);
     // Adjusted strafe (index 0) should be scaled down significantly
     assertTrue(Math.abs(outputY[0]) < 0.8);
   }
@@ -767,26 +421,27 @@ public class MathSafetyTest {
     Casablanca.enableInputSmoothing = false;
     Casablanca.enableFrictionComp = false;
     Casablanca.fieldCentric = false;
-    // The driver's face-the-goal button is an explicit request, so it must engage even with the
+    // The driver's face-the-CELL button is an explicit request, so it must engage even with the
     // automatic "hold the last heading you were left at" lock switched off in config.
     Casablanca.enableHeadingLock = false;
 
-    // Field centre, clear of both goal zones, so the rotation-safety gate cannot zero the turn.
-    Pose pose = new Pose(72, 72, 0.0);
+    // Open floor on the alliance side, clear of the HIVE frame, so the rotation-safety gate cannot
+    // zero the turn.
+    Pose pose = new Pose(20, 20, 0.0);
     com.pedropathing.math.Vector2D rest = com.pedropathing.math.Vector2D.zero();
 
     // Lock off: no turn stick means no turn, because the automatic lock is disabled.
     assertEquals(0.0, casablanca.adjustDriveInput(pose, rest, 0.0, 0.0, 0.0, 0.0)[2], 1e-9);
-    assertFalse(casablanca.isGoalHeadingLockActive());
+    assertFalse(casablanca.isTargetHeadingLockActive());
 
-    // Goal 90 deg to the robot's left. The bearing comes from the raw goal position, matching what
-    // TeleOp publishes via Turret.alignPose -- no velocity lead, so a stationary robot and a
-    // moving one at the same place get the same target.
-    double goalBearing = Turret.alignPose(pose.x(), pose.y(), 72, 100).heading();
+    // Target 90 deg to the robot's left. The bearing comes from the raw target position, matching
+    // what TeleOp publishes via Turret.alignPose -- no velocity lead, so a stationary robot and a
+    // moving one at the same place get the same heading target.
+    double goalBearing = Turret.alignPose(pose.x(), pose.y(), pose.x(), pose.y() + 28).heading();
     assertEquals(Math.PI / 2, goalBearing, 1e-6);
 
-    casablanca.setGoalHeadingLock(goalBearing, true);
-    assertTrue(casablanca.isGoalHeadingLockActive());
+    casablanca.setTargetHeadingLock(goalBearing, true);
+    assertTrue(casablanca.isTargetHeadingLockActive());
 
     // Corrects on the very first loop: unlike the latching lock, there is no wait for the robot to
     // stop turning before a target exists.
@@ -812,8 +467,8 @@ public class MathSafetyTest {
     assertTrue(casablanca.adjustDriveInput(pose, rest, 0.0, 0.0, 0.0, 0.0)[2] > 0);
 
     // Toggling the lock off hands the turn axis back to the driver.
-    casablanca.setGoalHeadingLock(goalBearing, false);
-    assertFalse(casablanca.isGoalHeadingLockActive());
+    casablanca.setTargetHeadingLock(goalBearing, false);
+    assertFalse(casablanca.isTargetHeadingLockActive());
     assertEquals(0.0, casablanca.adjustDriveInput(pose, rest, 0.0, 0.0, 0.0, 0.0)[2], 1e-9);
 
     Casablanca.enableHeadingLock = true;
@@ -838,14 +493,14 @@ public class MathSafetyTest {
 
     // Error must be 0 regardless of the robot chassis's field heading -- the turret servo never
     // moved, so its angle relative to the chassis is unaffected by the whole robot rotating.
-    Pose facingNorth = new Pose(72, 72, Math.PI / 2);
+    Pose facingNorth = new Pose(20, 20, Math.PI / 2);
     assertEquals(0.0, turret.getAimError(facingNorth), 1e-6);
     assertTrue(turret.isAimed(facingNorth));
     turret.updateTurret(facingNorth);
     Mockito.verify(mockServo).setPower(0.0);
 
     Mockito.reset(mockServo);
-    Pose facingSouth = new Pose(72, 72, -Math.PI / 2);
+    Pose facingSouth = new Pose(20, 20, -Math.PI / 2);
     assertEquals(0.0, turret.getAimError(facingSouth), 1e-6);
     assertTrue(turret.isAimed(facingSouth));
     turret.updateTurret(facingSouth);
@@ -961,28 +616,28 @@ public class MathSafetyTest {
     Casablanca.fieldCentric = false;
     Casablanca.headingLockIntentThreshold = 0.05;
 
-    // First call to initialize target heading at pose (72, 72, 0)
+    // First call to initialize target heading at pose (20, 20, 0)
     casablanca.adjustDriveInput(
-        new Pose(72, 72, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0);
+        new Pose(20, 20, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0);
 
     // Below threshold (0.0499): driver is considered "released" -> heading lock takes over and
     // corrects towards the latched target, bounded by headingLockMaxPower, not equal to raw stick.
     double[] outputBelow =
         casablanca.adjustDriveInput(
-            new Pose(72, 72, 0.01), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0499);
+            new Pose(20, 20, 0.01), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0499);
     assertTrue(Math.abs(outputBelow[2]) <= Casablanca.headingLockMaxPower + 1e-9);
     assertTrue(outputBelow[2] != 0.0499);
 
-    // Re-initialize to same target pose (72, 72, 0)
+    // Re-initialize to same target pose (20, 20, 0)
     casablanca.reset();
     casablanca.adjustDriveInput(
-        new Pose(72, 72, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0);
+        new Pose(20, 20, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0);
 
     // At/above threshold (0.0501): driver has full, unfought authority -> raw stick passes through
     // untouched by the lock (friction comp disabled in this test).
     double[] outputAbove =
         casablanca.adjustDriveInput(
-            new Pose(72, 72, 0.01), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0501);
+            new Pose(20, 20, 0.01), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0501);
     assertEquals(0.0501, outputAbove[2], 1e-9);
   }
 
@@ -999,18 +654,18 @@ public class MathSafetyTest {
 
     // Call 1: Start at heading = 0 with no stick input -> targetHeading initialized to 0
     casablanca.adjustDriveInput(
-        new Pose(72, 72, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0);
+        new Pose(20, 20, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.0);
 
     // Call 2: Driver actively steers (turn = 0.1 > threshold 0.05) to heading = Math.PI / 4 (45
     // deg)
     casablanca.adjustDriveInput(
-        new Pose(72, 72, Math.PI / 4), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.1);
+        new Pose(20, 20, Math.PI / 4), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 0.0, 0.1);
 
     // Call 3: Driver releases stick (turn = 0.0) while robot is at heading = Math.PI / 4
     // Target heading should have re-latched to Math.PI / 4, so error is 0 and turn output is 0
     double[] outputLocked =
         casablanca.adjustDriveInput(
-            new Pose(72, 72, Math.PI / 4),
+            new Pose(20, 20, Math.PI / 4),
             com.pedropathing.math.Vector2D.zero(),
             0.0,
             0.0,
@@ -1053,8 +708,11 @@ public class MathSafetyTest {
     double slowDown = Casablanca.sideSlowDown;
     double dMid = hardStop + 0.5 * (slowDown - hardStop);
 
-    // Protected zone boundary (BLUE_GOAL_ZONE Y min)
-    double protectedMinY = sentinel.getProtectedZone().getMinY();
+    // Protected zone boundary (HIVE frame Y min), approached from the audience side in the lane
+    // centred on the frame so the side protection has full lane authority.
+    var zone = sentinel.getProtectedZones().get(0);
+    double protectedMinY = zone.getMinY();
+    double laneX = (zone.getMinX() + zone.getMaxX()) / 2.0;
     // Distance from robot center to robot top edge
     double halfWidth = config.sentinel.robot_width / 2.0;
     // Set robot Y so distance to hard stop is dMid
@@ -1062,7 +720,7 @@ public class MathSafetyTest {
 
     double[] output =
         casablanca.adjustDriveInput(
-            new Pose(3.0, poseY, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 1.0, 0.0, 0.0);
+            new Pose(laneX, poseY, 0), com.pedropathing.math.Vector2D.zero(), 0.0, 1.0, 0.0, 0.0);
 
     // Dynamic expected scale: (dMid - hardStop) / (slowDown - hardStop) = 0.5
     double expectedScale = (dMid - hardStop) / (slowDown - hardStop);
@@ -1087,7 +745,7 @@ public class MathSafetyTest {
       casablanca.reset();
       double[] out =
           casablanca.adjustDriveInput(
-              new Pose(72, 72, Math.toRadians(headingDeg)),
+              new Pose(20, 20, Math.toRadians(headingDeg)),
               com.pedropathing.math.Vector2D.zero(),
               0.0,
               0.0,
@@ -1112,11 +770,11 @@ public class MathSafetyTest {
     casablanca.reset();
     double[] robotAt0 =
         casablanca.adjustDriveInput(
-            new Pose(72, 72, 0.0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 1.0, 0.0);
+            new Pose(20, 20, 0.0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 1.0, 0.0);
     casablanca.reset();
     double[] robotAt90 =
         casablanca.adjustDriveInput(
-            new Pose(72, 72, Math.PI / 2),
+            new Pose(20, 20, Math.PI / 2),
             com.pedropathing.math.Vector2D.zero(),
             0.0,
             0.0,
@@ -1142,7 +800,7 @@ public class MathSafetyTest {
       casablanca.reset();
       double[] out =
           casablanca.adjustDriveInput(
-              new Pose(72, 72, Double.NaN),
+              new Pose(20, 20, Double.NaN),
               com.pedropathing.math.Vector2D.zero(),
               0.0,
               0.5,
@@ -1158,7 +816,7 @@ public class MathSafetyTest {
     Casablanca.fieldCentric = false;
     casablanca.reset();
     casablanca.adjustDriveInput(
-        new Pose(72, 72, 0.0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 1.0, 0.0);
+        new Pose(20, 20, 0.0), com.pedropathing.math.Vector2D.zero(), 0.0, 0.0, 1.0, 0.0);
     assertFalse(casablanca.wasPoseUntrusted());
   }
 
@@ -1196,24 +854,32 @@ public class MathSafetyTest {
     Telemetry mockTelemetry = Mockito.mock(Telemetry.class);
 
     // Robot has non-zero heading (e.g. 50 degrees)
-    Pose nonZeroHeadingPose = new Pose(72, 72, Math.toRadians(50.0));
+    Pose nonZeroHeadingPose = new Pose(20, 20, Math.toRadians(50.0));
     org.firstinspires.ftc.teamcode.robot.ShotController shotController =
         new org.firstinspires.ftc.teamcode.robot.ShotController(
             mockShooter,
             turret,
             mockIntake,
             () -> nonZeroHeadingPose,
-            () -> new Pose(0, 0, 0),
+            Velocity::zero,
             null,
-            Alliance.BLUE,
+            new FieldModel(Alliance.BLUE),
+            HiveTracker.fromConfig(() -> 0L),
             mockTelemetry);
 
-    shotController.startShot(0.8, true);
-    shotController.stopShot();
+    try {
+      shotController.startShot(0.8, true);
+      assertEquals(Turret.AimMode.AIM_AT_TARGET, turret.getAimMode());
+      shotController.stopShot();
 
-    // Verify hold angle is set to 0.0 chassis-relative center, NOT 50.0 degrees
-    assertEquals(0.0, turret.getHoldAngle(), 1e-6);
-    assertEquals(Turret.AimMode.HOLD, turret.getAimMode());
+      // Verify hold angle is set to 0.0 chassis-relative center, NOT 50.0 degrees
+      assertEquals(0.0, turret.getHoldAngle(), 1e-6);
+      assertEquals(Turret.AimMode.HOLD, turret.getAimMode());
+      Mockito.verify(mockShooter).setTargetPower(0.0);
+      Mockito.verify(mockIntake).stop();
+    } finally {
+      shotController.shutdown();
+    }
   }
 
   @Test
@@ -1223,7 +889,6 @@ public class MathSafetyTest {
     // 1. Flip via config flag
     config.turret.enabled = false;
     assertFalse(turret.isEnabled());
-    assertTrue(turret.isAimed(new Pose(0, 0, 0)));
     assertTrue(turret.isTurnDone());
 
     turret.setTurretPowerRaw(0.5);
@@ -1239,6 +904,67 @@ public class MathSafetyTest {
 
     turret.setEnabled(true);
     assertTrue(turret.isEnabled());
+  }
+
+  /**
+   * With no turret the shooter is fixed to the chassis, so "aimed" can only mean the robot itself
+   * faces the CELL. A disabled turret must never wave a robot that faces away through the aim gate.
+   */
+  @Test
+  public void testDisabledTurretIsAimedOnlyWhenChassisFacesTarget() {
+    config.turret.enabled = false;
+    try {
+      turret.setTargetPoint(100.0, 0.0);
+      Pose here = new Pose(0, 0, 0);
+      double tolerance =
+          turret.calculateDynamicTolerance(100.0)
+              + config.casablanca.heading_lock.error_deadband_deg;
+      assertTrue(tolerance > 0.0, "tolerance must be a real, positive window");
+
+      // Facing it, and facing within the allowed window either side.
+      assertEquals(0.0, turret.getChassisAimErrorDeg(here), 1e-9);
+      assertTrue(turret.isAimed(here));
+      assertTrue(turret.isAimed(new Pose(0, 0, Math.toRadians(tolerance - 0.25))));
+      assertTrue(turret.isAimed(new Pose(0, 0, Math.toRadians(-(tolerance - 0.25)))));
+
+      // Just outside the window, then well off, then directly away from the target.
+      assertFalse(turret.isAimed(new Pose(0, 0, Math.toRadians(tolerance + 0.25))));
+      assertFalse(turret.isAimed(new Pose(0, 0, Math.toRadians(-(tolerance + 0.25)))));
+      assertFalse(turret.isAimed(new Pose(0, 0, Math.PI / 2)));
+      assertFalse(turret.isAimed(new Pose(0, 0, Math.PI)));
+      assertEquals(180.0, Math.abs(turret.getChassisAimErrorDeg(new Pose(0, 0, Math.PI))), 1e-9);
+
+      // The error is signed: target to the robot's left is positive.
+      turret.setTargetPoint(0.0, 100.0);
+      assertEquals(90.0, turret.getChassisAimErrorDeg(here), 1e-9);
+      assertFalse(turret.isAimed(here));
+      assertTrue(turret.isAimed(new Pose(0, 0, Math.PI / 2)));
+
+      // A lead-compensated azimuth, once the solver publishes one, outranks the raw target point...
+      turret.setTargetAzimuth(Math.PI);
+      assertEquals(180.0, Math.abs(turret.getChassisAimErrorDeg(here)), 1e-9);
+      assertFalse(turret.isAimed(new Pose(0, 0, Math.PI / 2)));
+      assertTrue(turret.isAimed(new Pose(0, 0, Math.PI)));
+      // ...and a NaN azimuth (no valid solution) falls back to the raw bearing.
+      turret.setTargetAzimuth(Double.NaN);
+      assertTrue(turret.isAimed(new Pose(0, 0, Math.PI / 2)));
+    } finally {
+      config.turret.enabled = true;
+    }
+  }
+
+  /** The enabled turret keeps judging aim from its own angle, not from the chassis heading. */
+  @Test
+  public void testEnabledTurretAimIgnoresChassisHeading() {
+    turret.setTargetPoint(100.0, 0.0);
+    setPhysicalTurretAngle(0.0);
+    turret.setTargetTurnAngle(0.0);
+    // Chassis facing directly away from the target, but the turret is already at its commanded
+    // angle: the turret, not the chassis, is what is being aimed.
+    assertTrue(turret.isAimed(new Pose(0, 0, Math.PI)));
+    // Commanded 10 degrees away from where it physically is: not aimed, whatever the heading.
+    turret.setTargetTurnAngle(10.0);
+    assertFalse(turret.isAimed(new Pose(0, 0, 0)));
   }
 
   @Test
@@ -1264,17 +990,34 @@ public class MathSafetyTest {
         new org.firstinspires.ftc.teamcode.robot.Shooter(hardwareMap);
     org.firstinspires.ftc.teamcode.robot.ShotController shotController =
         new org.firstinspires.ftc.teamcode.robot.ShotController(
-            shooter, null, null, null, null, null, Alliance.RED, null);
+            shooter,
+            null,
+            null,
+            null,
+            null,
+            null,
+            new FieldModel(Alliance.RED),
+            HiveTracker.fromConfig(() -> 0L),
+            null);
 
-    org.firstinspires.ftc.teamcode.records.ShotSolution primedSolution =
-        new org.firstinspires.ftc.teamcode.records.ShotSolution(
-            0.65, 1150.0, 220.0, 0.0, 0.4, 0.0, 65.0, true, "Valid");
+    try {
+      // A fresh controller refuses to authorize anything until a solution has been computed.
+      assertFalse(shotController.getLastSolution().isValid());
 
-    shotController.setInitialSolution(primedSolution);
+      ShotSolution primedSolution =
+          new ShotSolution(
+              0.65, 1150.0, 220.0, 0.0, 0.4, 0.0, 65.0, true, "Valid", 0, BallType.POLLEN);
 
-    assertEquals(primedSolution, shotController.getLastSolution());
-    assertEquals(0.65, shooter.getTargetHoodPosition(), 1e-6);
+      shotController.setInitialSolution(primedSolution);
 
-    shotController.shutdown();
+      assertEquals(primedSolution, shotController.getLastSolution());
+      assertEquals(0.65, shooter.getTargetHoodPosition(), 1e-6);
+
+      // A null seed is ignored rather than clobbering the primed one.
+      shotController.setInitialSolution(null);
+      assertEquals(primedSolution, shotController.getLastSolution());
+    } finally {
+      shotController.shutdown();
+    }
   }
 }

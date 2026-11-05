@@ -1,64 +1,104 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
 import com.pedropathing.math.Pose;
+import org.firstinspires.ftc.teamcode.game.FieldModel;
+import org.firstinspires.ftc.teamcode.records.HiveCell;
+import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 
 /**
- * The ray that calibration OpModes walk out along from a goal, and the legal drive box bounding it.
+ * The ray calibration OpModes walk out along from a CELL opening, so every calibration shoots along
+ * the same bearing and their results are comparable.
  *
- * <p>Shared by every calibration that needs to stand at a known distance from the goal, so they all
- * shoot along the same bearing and their results are comparable. Distances measured on one ray and
- * applied on another are only interchangeable because the shot depends on distance alone — keeping
- * one ray is what makes that assumption safe to keep making.
- *
- * <p>The ray is aimed at the corner {@code (MAX_TARGET_X, MIN_TARGET_Y)} on purpose: distance from
- * the goal grows with both +x and -y, so that corner is the farthest reachable point in the box and
- * this bearing maximises calibration range.
+ * <p>The ray leaves the opening on the side it faces, rotated {@code offAxisDeg} off its outward
+ * direction. Straight out, the opening is only ~44 in from the audience wall; a 40 degree ray
+ * reaches ~52 in while staying well inside the solver's off-axis gate. Distances are horizontal,
+ * from the robot centre to the opening centre, exactly what {@code ShotSolver} looks up.
  */
 public final class CalibrationRay {
 
-  private CalibrationRay() {}
+  /** Gap (inches) kept between the robot footprint, at any heading, and the walls. */
+  public static final double WALL_MARGIN_IN = 2.0;
 
-  /** Legal drive box for a calibration target, in Pedro Pathing field coordinates. */
-  public static final double MAX_TARGET_X = 85.0;
+  private final double targetX;
+  private final double targetY;
+  private final double bearingRad;
+  private final double fieldSize;
+  private final double wallClearance;
 
-  public static final double MIN_TARGET_Y = 11.0;
-
-  private static final double RAY_END_X = MAX_TARGET_X;
-  private static final double RAY_END_Y = MIN_TARGET_Y;
-
-  /** Unit vector pointing from the goal out along the calibration ray, as {@code {x, y}}. */
-  public static double[] unitFromGoal(double goalX, double goalY) {
-    double dx = RAY_END_X - goalX;
-    double dy = RAY_END_Y - goalY;
-    double length = Math.max(1e-6, Math.hypot(dx, dy));
-    return new double[] {dx / length, dy / length};
+  public CalibrationRay(
+      double targetX, double targetY, double bearingRad, double fieldSize, double wallClearance) {
+    this.targetX = targetX;
+    this.targetY = targetY;
+    this.bearingRad = bearingRad;
+    this.fieldSize = fieldSize;
+    this.wallClearance = wallClearance;
   }
 
   /**
-   * Distance along the ray at which it first leaves the legal drive box. Each bound contributes a
-   * limit only when the ray actually travels toward it.
-   *
-   * <p>A requested distance past this is not calibratable along this bearing and must be skipped,
-   * not clamped. Clamping x and y independently slides the target off the ray entirely: a requested
-   * 144 in became a real 124.8 in on a different bearing, and got recorded as a 144 in trial.
+   * Robot centre to wall clearance: half the footprint's diagonal (a waypoint's heading points at
+   * the CELL, so the robot is rarely square to a wall) plus {@link #WALL_MARGIN_IN}.
    */
-  public static double maxDistance(double goalX, double goalY) {
-    double[] unit = unitFromGoal(goalX, goalY);
-    double limit = Double.MAX_VALUE;
-    if (unit[0] > 1e-6) {
-      limit = Math.min(limit, (MAX_TARGET_X - goalX) / unit[0]);
-    }
-    if (unit[1] < -1e-6) {
-      limit = Math.min(limit, (MIN_TARGET_Y - goalY) / unit[1]);
-    }
-    return limit;
+  public static double wallClearanceFor(double robotWidthIn) {
+    return robotWidthIn / Math.sqrt(2.0) + WALL_MARGIN_IN;
   }
 
-  /** Pose {@code distanceInches} out along the ray, headed back at the goal. */
-  public static Pose waypoint(double goalX, double goalY, double distanceInches) {
-    double[] unit = unitFromGoal(goalX, goalY);
-    double x = goalX + distanceInches * unit[0];
-    double y = goalY + distanceInches * unit[1];
-    return new Pose(x, y, Math.atan2(goalY - y, goalX - x));
+  public double wallClearance() {
+    return wallClearance;
+  }
+
+  /** Ray out from {@code cell}'s upward opening, {@code offAxisDeg} off its outward direction. */
+  public static CalibrationRay forCell(FieldModel field, HiveCell cell, double offAxisDeg) {
+    FieldModel.Opening opening = field.upOpening(cell);
+    return new CalibrationRay(
+        opening.x(),
+        opening.y(),
+        opening.facingRad() + Math.toRadians(offAxisDeg),
+        field.size(),
+        wallClearanceFor(config.sentinel.robot_width));
+  }
+
+  public double targetX() {
+    return targetX;
+  }
+
+  public double targetY() {
+    return targetY;
+  }
+
+  /** Unit vector pointing from the opening out along the ray, as {@code {x, y}}. */
+  public double[] unit() {
+    return new double[] {Math.cos(bearingRad), Math.sin(bearingRad)};
+  }
+
+  /**
+   * Distance along the ray at which the robot centre first comes within {@link #wallClearance()} of
+   * a wall. A requested distance past this is not calibratable along this bearing and must be
+   * skipped, not clamped: clamping x and y independently slides the target off the ray and records
+   * a shot at a distance it was never taken from.
+   */
+  public double maxDistance() {
+    double[] u = unit();
+    double limit = Double.MAX_VALUE;
+    double low = wallClearance;
+    double high = fieldSize - wallClearance;
+    if (u[0] > 1e-6) {
+      limit = Math.min(limit, (high - targetX) / u[0]);
+    } else if (u[0] < -1e-6) {
+      limit = Math.min(limit, (low - targetX) / u[0]);
+    }
+    if (u[1] > 1e-6) {
+      limit = Math.min(limit, (high - targetY) / u[1]);
+    } else if (u[1] < -1e-6) {
+      limit = Math.min(limit, (low - targetY) / u[1]);
+    }
+    return Math.max(0.0, limit);
+  }
+
+  /** Pose {@code distanceInches} out along the ray, headed back at the opening. */
+  public Pose waypoint(double distanceInches) {
+    double[] u = unit();
+    double x = targetX + distanceInches * u[0];
+    double y = targetY + distanceInches * u[1];
+    return new Pose(x, y, Math.atan2(targetY - y, targetX - x));
   }
 }

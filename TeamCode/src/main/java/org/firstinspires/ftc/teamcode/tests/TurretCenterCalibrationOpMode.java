@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import android.annotation.SuppressLint;
+import androidx.annotation.Nullable;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 /**
  * Pure passive manual calibration of the turret's true mechanical center and travel limits.
@@ -31,9 +33,9 @@ public class TurretCenterCalibrationOpMode extends OpMode {
     COMPLETE
   }
 
-  private CRServo turnServo;
-  private AnalogInput turnAnalog;
-  private String hardwareError = null;
+  private @Nullable CRServo turnServo;
+  private @Nullable AnalogInput turnAnalog;
+  private @Nullable String hardwareError = null;
 
   private State state = State.SET_POSITIVE_STOP;
 
@@ -47,6 +49,7 @@ public class TurretCenterCalibrationOpMode extends OpMode {
   @Override
   public void init() {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     try {
       turnServo = hardwareMap.get(CRServo.class, "turn");
       turnServo.setPower(0);
@@ -83,9 +86,10 @@ public class TurretCenterCalibrationOpMode extends OpMode {
   @SuppressLint("DefaultLocale")
   @Override
   public void loop() {
-    if (hardwareError != null) {
+    AnalogInput analog = turnAnalog;
+    if (hardwareError != null || analog == null) {
       telemetry.addLine("=== CANNOT RUN ===");
-      telemetry.addLine(hardwareError);
+      telemetry.addLine(hardwareError != null ? hardwareError : "Missing AnalogInput 'turnanalog'");
       telemetry.update();
       return;
     }
@@ -95,7 +99,7 @@ public class TurretCenterCalibrationOpMode extends OpMode {
       turnServo.setPower(0);
     }
 
-    double voltage = turnAnalog.getVoltage();
+    double voltage = analog.getVoltage();
 
     boolean aJustPressed = gamepad1.a && !aPrev;
     aPrev = gamepad1.a;
