@@ -226,7 +226,7 @@ Intercepts drive commands and scales/repels velocity when the robot approaches i
 
 ## 8. Drivetrain & Pathing
 
-Pathing uses the **Pedro Pathing** library (`com.pedropathing:revhub:3.0.1`).
+Pathing uses the **Pedro Pathing** library (`com.pedropathing:revhub:3.0.2`).
 
 ### Motor Caching
 Use `Constants.create(hardwareMap)` from `org.firstinspires.ftc.teamcode.pedro` to build the configured follower. Pedro 3’s `Mecanum` drivetrain caches motor writes internally:

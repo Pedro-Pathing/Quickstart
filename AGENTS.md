@@ -88,7 +88,7 @@ This project is a First Tech Challenge (FTC) robot controller application writte
    - `Robot.shutdown()` stops the shot, the solver thread and the camera, and resets the Scheduler. It must be called from the owning OpMode's `stop()`; a new `Robot` is built on every init. It is idempotent.
 
 3. **Drivetrain & Pathing (Pedro Pathing)**:
-   - Pedro 3.0.1: `Follower`, `Foresight`, `Mecanum`, `PinpointLocalizer`, `com.pedropathing.math.Pose`, `com.pedropathing.api.Paths`. `pedro/Constants.java` builds them from generated `config.pedro` values via `Constants.create(hardwareMap)`; `pedro/Tuning.java` registers the AutoTune procedures.
+   - Pedro 3.0.2: `Follower`, `Foresight`, `Mecanum`, `PinpointLocalizer`, `com.pedropathing.math.Pose`, `com.pedropathing.api.Paths`. `pedro/Constants.java` builds them from generated `config.pedro` values via `Constants.create(hardwareMap)`; `pedro/Tuning.java` registers the AutoTune procedures.
    - Pedro frame used everywhere: origin at the field corner where the audience wall meets the RED alliance wall, +x toward the BLUE wall, +y away from the audience, heading 0 = +x, CCW positive. The field is `config.field.size_in` (141.5) wide; the RED side is x < size/2.
 
 4. **BIOBUZZ Game Model (`game/`)** — the season-specific layer; replace this package next season:
