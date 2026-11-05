@@ -17,4 +17,11 @@ dependencies {
 
     implementation 'com.pedropathing:revhub:3.0.2'
     implementation 'com.pedropathing:tuning:1.0.3'
+    // Pedro Pathing telemetry integration (ensure it matches your current season version)
+
+    implementation 'com.pedropathing:telemetry:1.0.0'
+    // Panels core dependency for Java / Kotlin projects
+    implementation "com.bylazar:ftcontrol:0.6.8"
+
+
 }
