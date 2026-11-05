@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import androidx.annotation.Nullable;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
@@ -13,14 +14,17 @@ import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.HeadingStepResponse;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 /** Non-relay PD search: measures the real Casablanca lock, including its slew and compensation. */
 @TeleOp(name = "TeleOp Heading Lock Autotuner", group = "Calibration")
+// Hardware is set up inside runOpMode's try block, so not every path assigns every field.
+@SuppressWarnings("NullAway.Init")
 public final class TeleopHeadingAutotuneOpMode extends LinearOpMode {
   private Robot robot;
   private GoBildaPinpointDriver pinpoint;
   private config.Casablanca.HeadingTuner settings;
-  private PIDFCoefficients best;
+  private @Nullable PIDFCoefficients best;
   private double bestScore = Double.POSITIVE_INFINITY;
   private String message = "Not started";
   private boolean abort;
@@ -28,6 +32,7 @@ public final class TeleopHeadingAutotuneOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     settings = config.casablanca.heading_tuner;
     try {
       validateSettings(settings);
@@ -119,7 +124,7 @@ public final class TeleopHeadingAutotuneOpMode extends LinearOpMode {
               settings.settle_sec,
               settings.trial_timeout_sec);
       robot.casablanca.reset();
-      robot.casablanca.setGoalHeadingLock(target, true);
+      robot.casablanca.setTargetHeadingLock(target, true);
       long previous = System.nanoTime();
       while (held()) {
         sleep(settings.sample_period_ms);
@@ -218,7 +223,7 @@ public final class TeleopHeadingAutotuneOpMode extends LinearOpMode {
   }
 
   private void stopDrive() {
-    robot.casablanca.setGoalHeadingLock(0, false);
+    robot.casablanca.setTargetHeadingLock(0, false);
     robot.follower.stop();
     robot.update();
     robot.casablanca.reset();

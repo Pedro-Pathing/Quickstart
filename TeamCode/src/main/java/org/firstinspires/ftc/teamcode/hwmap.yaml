@@ -7,6 +7,9 @@ Robot:
       3: rightBack
     Servos:
     Digital Devices:
+      # Optional intake-entry beam break for the G407 4-element cap; set
+      # config.inventory.entry_sensor_enabled: true once it is wired.
+      0: intakeBeam
     Analog Input Devices:
     I2C:
       0 (GoBILDA Pinpoint Driver): pinpoint
@@ -34,4 +37,5 @@ Robot:
       1: turnImu
       2 (9-axis IMU):
       3:
+  # Pitched up (config.vision.camera.pitch_up_deg): BIOBUZZ AprilTags are on CELL bottoms 30-60 in up.
   Webcam: Webcam 1

@@ -64,6 +64,17 @@ public class ConfigPusherMain {
       System.err.println("ERROR: Could not find config.yaml at " + localYaml.getAbsolutePath());
       System.exit(1);
     }
+    // A file the robot cannot parse would be ignored there; say so now instead.
+    try (java.io.InputStream in = new java.io.FileInputStream(localYaml)) {
+      Object parsed = new org.yaml.snakeyaml.Yaml().load(in);
+      if (!(parsed instanceof java.util.Map)) {
+        System.err.println("ERROR: config.yaml is not a YAML mapping; not pushed.");
+        System.exit(1);
+      }
+    } catch (Exception e) {
+      System.err.println("ERROR: config.yaml is not valid YAML; not pushed.\n" + e.getMessage());
+      System.exit(1);
+    }
 
     exec("adb", "-s", device, "shell", "mkdir", "-p", "/sdcard/FIRST/teamcode", "/sdcard/FIRST");
     exec("adb", "-s", device, "push", localYaml.getAbsolutePath(), "/sdcard/FIRST/teamcode/config.yaml.tmp");
@@ -72,6 +83,9 @@ public class ConfigPusherMain {
     exec("adb", "-s", device, "shell", "mv", "/sdcard/FIRST/config.yaml.tmp", "/sdcard/FIRST/config.yaml");
     System.out.println("✓ Pushed config.yaml atomically to robot (/sdcard/FIRST/teamcode/config.yaml)");
     System.out.println("  Re-init your OpMode on the robot to pick up the new values.");
+    System.out.println(
+        "  If INIT shows 'Pushed config ignored', read the reason: a key added since the last"
+            + " deploy needs a rebuild and install first.");
   }
 
   private static void resetConfig(String device) {
@@ -80,10 +94,28 @@ public class ConfigPusherMain {
     System.out.println("✓ Removed override files — robot will use bundled config on next init.");
   }
 
+  /** Runs one adb step; any failure stops the push with adb's own output, never a false ✓. */
   private static void exec(String... command) {
     try {
-      Process p = new ProcessBuilder(command).start();
-      p.waitFor();
-    } catch (Exception ignored) {}
+      Process p = new ProcessBuilder(command).redirectErrorStream(true).start();
+      String output = new String(p.getInputStream().readAllBytes()).trim();
+      int code = p.waitFor();
+      // `adb shell` reports some remote failures only in its output.
+      boolean failed =
+          code != 0
+              || output.contains("No such file")
+              || output.contains("Permission denied")
+              || output.contains("error:");
+      if (failed) {
+        System.err.println("ERROR: " + String.join(" ", command) + " failed (exit " + code + ")");
+        if (!output.isEmpty()) {
+          System.err.println(output);
+        }
+        System.exit(1);
+      }
+    } catch (Exception e) {
+      System.err.println("ERROR: could not run " + String.join(" ", command) + ": " + e.getMessage());
+      System.exit(1);
+    }
   }
 }

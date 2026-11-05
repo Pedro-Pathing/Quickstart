@@ -19,8 +19,106 @@ public final class ConfigLoader {
 
   private static Map<String, Object> config = new HashMap<>();
 
+  private static String lastLoadedSource = "";
+  private static String lastOverrideRejection = null;
+
   static {
     reload();
+  }
+
+  /** Where the active configuration came from, for OpMode telemetry. */
+  public static String loadedSource() {
+    return lastLoadedSource;
+  }
+
+  /** Why the last ADB-pushed override was ignored, or null if none was ignored. */
+  public static String overrideRejection() {
+    return lastOverrideRejection;
+  }
+
+  /**
+   * Returns why an ADB-pushed override must not be layered onto the bundled config, or null if it
+   * may. An override whose {@code meta.season} differs from (or lacks) the bundled season is a file
+   * pushed for a previous game: merging it would silently replace this season's poses, shot tables
+   * and field geometry with last season's.
+   *
+   * <p>An override is also rejected, whole, when any value it sets is not the kind of value the
+   * bundled file has there (a number written as {@code "30s"}, a quoted boolean, a section replaced
+   * by a scalar) or names a key the bundled file does not have (a typo). Merging those used to load
+   * a silent 0 for the number, throw from every OpMode's init for the boolean, and ignore the typo,
+   * so a tuning push could quietly zero the AUTO period or stop every OpMode from starting.
+   */
+  @SuppressWarnings("unchecked")
+  public static String overrideRejection(Map<String, Object> bundled, Map<String, Object> override) {
+    if (override == null) {
+      return null;
+    }
+    Object bundledSeason = seasonOf(bundled);
+    if (bundledSeason == null) {
+      return null;
+    }
+    Object overrideSeason = seasonOf(override);
+    if (overrideSeason == null) {
+      return "override has no meta.season (expected '" + bundledSeason + "')";
+    }
+    if (!bundledSeason.toString().equalsIgnoreCase(overrideSeason.toString())) {
+      return "override is for season '" + overrideSeason + "', robot code is '" + bundledSeason + "'";
+    }
+    return firstMismatch(bundled, override, "");
+  }
+
+  /** The first override value whose kind differs from the bundled one, as a reason, or null. */
+  @SuppressWarnings("unchecked")
+  private static String firstMismatch(
+      Map<String, Object> bundled, Map<String, Object> override, String path) {
+    for (Map.Entry<String, Object> entry : override.entrySet()) {
+      String key = path + entry.getKey();
+      if (!bundled.containsKey(entry.getKey())) {
+        return key + " is not a config key (typo, or from another version of the code)";
+      }
+      Object base = bundled.get(entry.getKey());
+      Object value = entry.getValue();
+      String problem = null;
+      if (base instanceof Map) {
+        problem =
+            value instanceof Map
+                ? firstMismatch((Map<String, Object>) base, (Map<String, Object>) value, key + ".")
+                : key + " must be a section, got " + describe(value);
+      } else if (base instanceof Number) {
+        problem = value instanceof Number ? null : key + " must be a number, got " + describe(value);
+      } else if (base instanceof Boolean) {
+        problem =
+            value instanceof Boolean ? null : key + " must be true or false, got " + describe(value);
+      } else if (base instanceof List || base instanceof String) {
+        // Poses are lists, or strings such as "m" (mirror the RED pose); either may replace either.
+        if (value instanceof List) {
+          for (Object element : (List<Object>) value) {
+            if (!(element instanceof Number) && !(element instanceof String)) {
+              problem = key + " must list numbers, got " + describe(element);
+              break;
+            }
+          }
+        } else if (!(value instanceof String)) {
+          problem = key + " must be a list or text, got " + describe(value);
+        }
+      }
+      if (problem != null) {
+        return problem;
+      }
+    }
+    return null;
+  }
+
+  private static String describe(Object value) {
+    return value instanceof String ? "\"" + value + "\"" : String.valueOf(value);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Object seasonOf(Map<String, Object> cfg) {
+    if (cfg == null || !(cfg.get("meta") instanceof Map)) {
+      return null;
+    }
+    return ((Map<String, Object>) cfg.get("meta")).get("season");
   }
 
   /**
@@ -66,19 +164,8 @@ public final class ConfigLoader {
     // in a static initializer -- so one stale push hard-crashes the robot app with an opaque NPE
     // before any OpMode can run. Merging means a stale or partial override degrades to bundled
     // defaults for whatever it does not mention.
-    Map<String, Object> merged = new HashMap<>();
+    Map<String, Object> merged = bundledCopy();
     Yaml yaml = new Yaml();
-
-    try (InputStream bundled = ConfigLoader.class.getResourceAsStream(CLASSPATH_RESOURCE)) {
-      if (bundled != null) {
-        Map<String, Object> base = yaml.load(bundled);
-        if (base != null) {
-          merged = base;
-        }
-      }
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to load bundled config.yaml", e);
-    }
 
     if (inputStream == null && merged.isEmpty()) {
       throw new RuntimeException("Could not find config.yaml on classpath or external storage");
@@ -86,18 +173,44 @@ public final class ConfigLoader {
 
     if (inputStream != null) {
       try (InputStream is = inputStream) {
-        Map<String, Object> override = yaml.load(is);
-        if (override != null) {
+        Map<String, Object> override = null;
+        String rejection;
+        try {
+          Object parsed = yaml.load(is);
+          if (parsed == null || parsed instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> asMap = (Map<String, Object>) parsed;
+            override = asMap;
+            rejection = overrideRejection(merged, override);
+          } else {
+            rejection = "override is not a YAML mapping";
+          }
+        } catch (RuntimeException e) {
+          // A syntax error in a pushed file must not stop every OpMode from initializing.
+          String message = String.valueOf(e.getMessage());
+          int newline = message.indexOf('\n');
+          rejection =
+              "override is not valid YAML: " + (newline < 0 ? message : message.substring(0, newline));
+        }
+        if (rejection != null) {
+          loadedSource =
+              "bundled classpath resource: " + CLASSPATH_RESOURCE + " (IGNORED " + loadedSource
+                  + ": " + rejection + ")";
+          lastOverrideRejection = rejection;
+        } else if (override != null) {
           deepMerge(merged, override);
+          lastOverrideRejection = null;
         }
       } catch (Exception e) {
         throw new RuntimeException("Failed to load config.yaml from " + loadedSource, e);
       }
     } else {
       loadedSource = "bundled classpath resource: " + CLASSPATH_RESOURCE;
+      lastOverrideRejection = null;
     }
 
     config = merged;
+    lastLoadedSource = loadedSource;
     try {
       loadDocs();
     } catch (Throwable ignored) {
@@ -107,6 +220,46 @@ public final class ConfigLoader {
     } catch (Throwable ignored) {
       System.out.println("ConfigLoader: Config loaded from " + loadedSource);
     }
+  }
+
+  /**
+   * The bundled config.yaml, parsed on first use: it is packaged with the app and cannot change
+   * while it runs, and parsing it on every reload made reloads (once per OpMode init, and around
+   * every unit test) cost more than the code they configure.
+   */
+  private static Map<String, Object> bundledTree;
+
+  /** A fresh, mutable copy of the bundled tree, so a reload never sees earlier changes. */
+  @SuppressWarnings("unchecked")
+  private static synchronized Map<String, Object> bundledCopy() {
+    if (bundledTree == null) {
+      try (InputStream bundled = ConfigLoader.class.getResourceAsStream(CLASSPATH_RESOURCE)) {
+        Map<String, Object> base = bundled == null ? null : new Yaml().load(bundled);
+        bundledTree = base == null ? new HashMap<>() : base;
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to load bundled config.yaml", e);
+      }
+    }
+    return (Map<String, Object>) deepCopy(bundledTree);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Object deepCopy(Object value) {
+    if (value instanceof Map) {
+      Map<String, Object> copy = new java.util.LinkedHashMap<>();
+      for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+        copy.put(entry.getKey(), deepCopy(entry.getValue()));
+      }
+      return copy;
+    }
+    if (value instanceof List) {
+      List<Object> copy = new java.util.ArrayList<>();
+      for (Object item : (List<Object>) value) {
+        copy.add(deepCopy(item));
+      }
+      return copy;
+    }
+    return value;
   }
 
   /**
@@ -164,10 +317,24 @@ public final class ConfigLoader {
     }
 
     if (is == null) {
-      String docsResource = CLASSPATH_RESOURCE.replace("config.yaml", "config-docs.yaml");
-      is = ConfigLoader.class.getResourceAsStream(docsResource);
+      // The bundled docs cannot change while the app runs: parse them once.
+      if (bundledDocConstraints == null) {
+        String docsResource = CLASSPATH_RESOURCE.replace("config.yaml", "config-docs.yaml");
+        parseDocs(ConfigLoader.class.getResourceAsStream(docsResource));
+        bundledDocConstraints = new HashMap<>(docConstraints);
+      } else {
+        docConstraints.putAll(bundledDocConstraints);
+      }
+      return;
     }
+    parseDocs(is);
+  }
 
+  /** Doc constraints from the bundled config-docs.yaml, once parsed. */
+  private static Map<String, DocConstraint> bundledDocConstraints;
+
+  @SuppressWarnings("unchecked")
+  private static void parseDocs(InputStream is) {
     if (is != null) {
       try (InputStream stream = is) {
         Yaml yaml = new Yaml();
@@ -520,11 +687,6 @@ public final class ConfigLoader {
   public static <T> T loadMerged(Class<T> type, String... paths) {
     try {
       T instance = type.getDeclaredConstructor().newInstance();
-      // The generator emits a separate "*Opposite*" config class whose shared fields come from the
-      // opposite_-prefixed YAML keys (e.g. opposite_launch_power). Both the normal and opposite
-      // classes use the same field names ("launchPower"), so for the opposite variant we must
-      // prefer the opposite_ key — otherwise the un-prefixed normal key shadows it.
-      boolean preferOpposite = type.getSimpleName().toLowerCase().contains("opposite");
       for (String path : paths) {
         String[] parts = path.split("\\.");
         Object current = config;
@@ -544,16 +706,7 @@ public final class ConfigLoader {
           if (field.get(instance) != null && !field.getType().isPrimitive()) continue;
           Object val = map.get(field.getName());
           if (val == null) {
-            String snakeName = toSnakeCase(field.getName());
-            String oppositeKey = "opposite_" + snakeName;
-            if (preferOpposite && map.containsKey(oppositeKey)) {
-              val = map.get(oppositeKey);
-            } else {
-              val = map.get(snakeName);
-              if (val == null) {
-                val = map.get(oppositeKey);
-              }
-            }
+            val = map.get(toSnakeCase(field.getName()));
           }
           if (val != null) {
             if (isMirrorSignal(val)) {
@@ -589,11 +742,31 @@ public final class ConfigLoader {
   }
 
   private static String toSnakeCase(String name) {
-    return name.replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase();
+    return name.replaceAll("([A-Z])([A-Z][a-z])", "$1_$2")
+        .replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT);
+  }
+
+  /** Field width used when config has no {@code field.size_in}. */
+  public static final double DEFAULT_FIELD_SIZE_IN = 141.5;
+
+  /**
+   * Maps a pose to the opposite alliance. The BIOBUZZ field is 180-degree rotationally symmetric
+   * (RED's LOADING ZONE, GARDEN and initially-upward CELL rotate onto BLUE's), not mirror
+   * symmetric, so an {@code m} pose is RED's pose rotated half a turn about the field centre.
+   */
+  public static Pose allianceTransform(Pose pose) {
+    double center = fieldSize() / 2.0;
+    return PoseFactory.radians().mirrorAroundPoint(center, center).of(pose.x(), pose.y(), pose.heading());
+  }
+
+  /** {@code field.size_in} from the active config, or {@link #DEFAULT_FIELD_SIZE_IN}. */
+  public static double fieldSize() {
+    Object size = rawLoad("field.size_in");
+    return size instanceof Number ? ((Number) size).doubleValue() : DEFAULT_FIELD_SIZE_IN;
   }
 
   private static Pose mirrorPose(Pose pose) {
-    return PoseFactory.radians().mirrorX(70.75).of(pose.x(), pose.y(), pose.heading());
+    return allianceTransform(pose);
   }
 
   private static Object coerce(Object value, Class<?> type) {

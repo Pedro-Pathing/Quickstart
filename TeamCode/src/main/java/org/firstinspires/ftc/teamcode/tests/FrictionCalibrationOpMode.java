@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode.tests;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 
 @TeleOp(name = "Friction Calibration TeleOp", group = "Calibration")
 @Configurable
@@ -40,6 +42,7 @@ public class FrictionCalibrationOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
+    org.firstinspires.ftc.teamcode.utilities.OpModeUtil.reportConfig(telemetry);
     allHubs = hardwareMap.getAll(LynxModule.class);
     for (LynxModule module : allHubs) {
       module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -77,7 +80,10 @@ public class FrictionCalibrationOpMode extends LinearOpMode {
           ksRotMoving,
           ksRotMaxOmega);
       telemetry.addLine("Update casablanca.friction.rot with Rot Static");
-      telemetry.addLine("Update casablanca.heading_lock.ks_moving with Rot Moving");
+      telemetry.addLine(
+          Double.isNaN(ksRotMoving)
+              ? "Rot Moving NOT MEASURED (ran out of lane): keep heading_lock.ks_moving"
+              : "Update casablanca.heading_lock.ks_moving with Rot Moving");
       telemetry.addData(
           "Suggested rotation_lookahead_time",
           "%.4f s (0.45 / %.2f)",
@@ -236,26 +242,40 @@ public class FrictionCalibrationOpMode extends LinearOpMode {
 
     // Command forward power and wait for translation to stabilize
     double steadyForwardPower = 0.5;
+    Pose laneStart = follower.pose();
+    // The yaw wobble straight-line driving produces on its own: a turn power is only "moving" the
+    // robot once it rotates well past this, in the direction commanded. Counting the wobble
+    // recorded the very first ramp step (0.0003) as ks_moving.
+    double wobble = 0.0;
     for (int i = 0; i < 50 && opModeIsActive() && !isStopRequested(); i++) {
       clearBulkCache();
       follower.manual(steadyForwardPower, 0.0, 0.0);
       follower.update();
+      wobble = Math.max(wobble, Math.abs(follower.velocity().omega));
       sleep(10);
     }
+    double movingThreshold = Math.max(angularVelocityThresholdRadPerSec, 2.0 * wobble);
+    // The same clear lane the drive tuners assume; the robot is still driving forward throughout.
+    double maxTravel = config.casablanca.jump_tuner.max_travel_inches;
 
     power = 0.0;
     consecutiveMovingFrames = 0;
+    ksRotMoving = Double.NaN;
 
     while (opModeIsActive() && !isStopRequested()) {
       clearBulkCache();
       follower.update();
+      if (follower.pose().distance(laneStart) > maxTravel) {
+        break; // Out of lane before the robot turned: not measured.
+      }
 
       power += 0.0003;
       follower.manual(steadyForwardPower, 0.0, power);
 
-      double currentVelocity = Math.abs(follower.velocity().omega);
+      // Positive turn power turns CCW, which is positive omega.
+      double currentVelocity = follower.velocity().omega;
 
-      if (currentVelocity > angularVelocityThresholdRadPerSec) {
+      if (currentVelocity > movingThreshold) {
         consecutiveMovingFrames++;
       } else {
         consecutiveMovingFrames = 0;
@@ -265,7 +285,8 @@ public class FrictionCalibrationOpMode extends LinearOpMode {
       telemetry.addData("Forward Power", "%.2f", steadyForwardPower);
       telemetry.addData("Current Turn Power", "%.4f", power);
       telemetry.addData("Current Angular Velocity", "%.4f rad/s", currentVelocity);
-      telemetry.addData("Threshold", "%.2f rad/s", angularVelocityThresholdRadPerSec);
+      telemetry.addData("Threshold", "%.2f rad/s (wobble %.2f)", movingThreshold, wobble);
+      telemetry.addData("Travel", "%.1f / %.1f in", follower.pose().distance(laneStart), maxTravel);
       telemetry.addData(
           "Sustained Motion Frames", "%d/%d", consecutiveMovingFrames, requiredConsecutiveFrames);
       telemetry.update();

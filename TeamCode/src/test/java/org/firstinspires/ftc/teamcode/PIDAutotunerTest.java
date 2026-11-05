@@ -1,18 +1,18 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.firstinspires.ftc.teamcode.utilities.PIDAutotuner;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PIDAutotunerTest {
 
   private PIDAutotuner autotuner;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     autotuner = new PIDAutotuner();
   }
@@ -67,7 +67,7 @@ public class PIDAutotunerTest {
 
     // Noise within 120ms should NOT count as valid oscillation crossings
     assertTrue(
-        "High frequency noise should not complete autotuner", autotuner.getCrossingCount() <= 1);
-    assertTrue("Autotuner should still be running", autotuner.isRunning());
+        autotuner.getCrossingCount() <= 1, "High frequency noise should not complete autotuner");
+    assertTrue(autotuner.isRunning(), "Autotuner should still be running");
   }
 }

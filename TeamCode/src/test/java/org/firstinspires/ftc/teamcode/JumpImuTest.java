@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -11,11 +11,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.tests.CasablancaJumpAutotuneOpMode;
 import org.firstinspires.ftc.teamcode.utilities.JumpImu;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class JumpImuTest {
-  @After
+  @AfterEach
   public void restoreConfig() {
     config.reload();
   }

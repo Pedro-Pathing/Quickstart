@@ -1,29 +1,50 @@
+# BIOBUZZ TeleOp Controls
 
+One `TeleOp` OpMode serves both alliances. Poses are configured for RED in `config.yaml` (`teleop.poses.red.*`) and rotated 180 degrees about the field centre for BLUE.
+
+## 0. INIT
+
+| Input | Action |
+| :--- | :--- |
+| **B** (either gamepad) | Select RED alliance (only when no AUTO ran before this TeleOp) |
+| **X** (either gamepad) | Select BLUE alliance (only when no AUTO ran before this TeleOp) |
+
+If an AUTO ran, TeleOp inherits its alliance, final pose, HIVE state (which CELL is up, how many TIPS) and inventory. The HIVE/inventory handoff is ignored if it is more than two minutes old, so a previous match's TIPS never carry into a new one. The Driver Station also warns if an ADB-pushed `config.yaml` was ignored because it is from another season.
 
 ## 1. Driver Controls (Gamepad 1)
 
-| Button / Input | Input Type | Trigger Condition | Primary Action & Subsystem Target | Detailed Behavior & Systems Architecture |
-| :--- | :--- | :--- | :--- | :--- |
-| **Left Stick Y** | Analog Axis | Live Value | **Chassis Forward/Backward Drive** (`follower`) | Drives chassis translation along the longitudinal axis. Value is shaped by a cubic response curve (`-driver.left_stick_y^3`) and clamped to `config.teleop.max_speed` (default `1.0`). Passed through `Casablanca.adjustDriveInput()` for friction compensation, dynamic zone speed scaling, and predictive braking (`Sentinel`). Deflecting stick beyond `\|y\| > 0.2` cancels active automated trajectories (`parkCommand`, `scoreCommand`, `drinkCommand`). |
-| **Left Stick X** | Analog Axis | Live Value | **Chassis Strafe Left/Right Drive** (`follower`) | Drives chassis translation along the lateral axis. Value is shaped by a cubic response curve (`-driver.left_stick_x^3`) and clamped to `config.teleop.max_speed`. Passed through `Casablanca.adjustDriveInput()`. Deflecting stick beyond `\|x\| > 0.2` cancels active automated trajectories. |
-| **Right Stick X** | Analog Axis | Live Value | **Chassis Rotation (Yaw)** (`follower`) | Drives chassis rotational turning. Value is shaped by a cubic response curve (`-driver.right_stick_x^3`) and clamped to `config.teleop.max_speed`. Processed by `Casablanca` heading controller (assists heading retention when stick is released). Deflecting stick beyond `\|r\| > 0.2` cancels active automated trajectories. |
-| **DPad Left** | Digital Button | Press (`onTrue`) | **Auto-Drive to Park Pose** (`parkCommand`) | Schedules `parkCommand` which commands `follower.holdPoint(profile.parkPose())` to navigate automatically to the alliance parking location using Pedro Pathing. Loaded from `config.yaml` (`teleop.poses.<alliance>.park`). Red: `(37.5, 32, 270°)`, Blue: `(105.5, 31, 270°)`. Overrides manual drive while active. Cancelled by driver stick movement or DPad Right. |
-| **Right Trigger** | Analog Trigger | Press (`> 0.5`) | **Auto-Drive to Scoring Pose** (`scoreCommand`) | Schedules `scoreCommand` which commands `follower.holdPoint(profile.scorePose())` to navigate automatically to the alliance scoring location using Pedro Pathing. Loaded from `config.yaml` (`teleop.poses.<alliance>.score`). Red: `(61, 21, 0°)`, Blue: `(81, 21, 121°)`. Overrides manual drive while active. Cancelled by driver stick movement or DPad Right. |
-| **Left Trigger** | Analog Trigger | Press (`> 0.5`) | **Auto-Drive to Drink Pose** (`drinkCommand`) | Schedules `drinkCommand` which commands `follower.holdPoint(profile.drinkPose())` to navigate automatically to the human player/substation location using Pedro Pathing. Loaded from `config.yaml` (`teleop.poses.<alliance>.drink`). Red: `(129, 60.5, 42°)`, Blue: `(12, 60.5, 140°)`. Overrides manual drive while active. Cancelled by driver stick movement or DPad Right. |
-| **DPad Right** | Digital Button | Press (`onTrue`) | **Cancel Auto-Drive / Restore Manual** | Explicitly cancels `parkCommand`, `scoreCommand`, and `drinkCommand`, immediately restoring 100% manual chassis control to the driver sticks. The cancel alone is not sufficient: `holdPoint()` leaves the `Follower` with `manualDrive=false` / `holdingPosition=true`, in which state `Follower.update()` discards the vectors written by `setTeleOpDrive()`. `teleOpDriveCommand.setStart()` calls `follower.startTeleopDrive()` when it reclaims the `Follower`, which is what actually releases the hold — the same mechanism restores control on stick deflection, trigger release, and launch-zone exit. |
+| Button / Input | Trigger | Action | Details |
+| :--- | :--- | :--- | :--- |
+| **Left Stick** | Live | Translate | Cubic response, clamped to `teleop.max_speed`, passed through `Casablanca.adjustDriveInput()` (friction compensation, HIVE-frame slow-down/repulsion, heading hold). Any deflection beyond 0.2 cancels a pose hold. |
+| **Right Stick X** | Live | Rotate | Cubic response. Releasing it holds the current heading; steering also releases the face-the-CELL lock. |
+| **X** | Press | Toggle "face the upward CELL" | Heading lock on the bearing to whichever CELL the HIVE tracker says is up; follows the robot as it translates and swaps CELL on a TIP. Translation stays manual. |
+| **Right Trigger** | Press | Hold shooting pose | Drives to and holds `shoot_a` or `shoot_b`, whichever faces the CELL that is up right now. |
+| **Left Trigger** | Press | Hold park pose | Drives to and holds `park` (partly inside the LOADING ZONE, clear of the wall). Use it when the park alert fires (see Match Cues). |
+| **DPad Left** | Press | Hold FLOWER pose | Drives to and holds `flower`, with the intake at the alliance's side-wall FLOWER retrieval opening. POLLEN may only come out of the bottom of a FLOWER (G418). |
+| **DPad Right** | Press | Cancel pose hold | Restores manual driving. Stick deflection does the same. |
 
----
+Pose holds check their direct approach against the HIVE frame and field boundary before moving. If blocked, the robot stops and `Pose assist` telemetry shows the reason. Cancel the hold, drive to a clear approach, and retry.
 
 ## 2. Operator Controls (Gamepad 2)
 
-| Button / Input | Input Type | Trigger Condition | Primary Action & Subsystem Target | Detailed Behavior & Systems Architecture |
-| :--- | :--- | :--- | :--- | :--- |
-| **Button A** | Digital Button | Press (`onTrue`) | **Start Intake** (`intakeCommand`) | Schedules `intakeCommand` to run the front/middle intake rollers at `config.teleop.intake_power` (default `1.0`) and transfer motor at `config.teleop.transfer_power` (default `0.1`). Runs continuously until cancelled by Operator B (stop intake) or Operator Left Trigger (master abort). |
-| **Button B** | Digital Button | Press (`onTrue`) | **Stop Intake** (`intakeCommand`) | Cancels `intakeCommand`, whose `setEnd` calls `intake.stop()`. Dedicated counterpart to Button A. Previously B was a duplicate of the manual-rev mapping; with rev moved to Button X, B is the only non-abort way to stop the intake. |
-| **Button Y** | Digital Button | Press & Hold (`onTrue` / `onFalse`) | **Target Aim Only** (`aimCommand`) | Gated by `sentinel.isLaunchAllowed(follower.getPose())`. While held: sets turret `AimMode` to `AIM_AT_GOAL`, continuously tracking the `ShotSolver` target azimuth. Does not touch the flywheel. On release: resets turret to `HOLD` mode at 0°. Requires `turret` only. |
-| **Right Trigger** | Analog Trigger | Press & Hold (`> 0.5`) | **Auto-Aim & Automatic Shoot** (`aimAndShootCommand`) | Gated by `sentinel.isLaunchAllowed(follower.getPose())`. On press: 1) Holds chassis position (`follower.holdPoint()`). 2) Revs flywheel to target speed (`constant_rpm`). 3) Turret enters `AIM_AT_GOAL` mode, continuously tracking `ShotSolver` target azimuth. 4) `ShotController` verifies 3 readiness gates (Flywheel Speed Hysteresis, Turret Goal Alignment, Ballistics Solver Validity). 5) When all 3 gates pass, intake automatically feeds elements into shooter. On release: Cancels command, stopping shot controller, flywheel, intake, and turret tracking. Automatically terminates if robot leaves launch zone. |
-| **Button X** | Digital Button | Press & Hold (`onTrue` / `onFalse`) | **Manual Flywheel Rev / Power Up** (`manualRevCommand`) | While held: spins the shooter flywheel to `config.teleop.manual_rev_power` (default `0.6` / 60% power) without aiming or feeding. On release: stops flywheel power. Requires `shooter` only, and is not launch-zone gated (revving is not launching). Because X (`shooter`) and Y (`turret`) require disjoint subsystems, holding **X + Y together** reproduces the old combined aim-and-pre-spin behavior that X alone used to have. |
-| **DPad Up** | Digital Button | Press (`onTrue`) | **Manual Shoot Override** (`shootManualCommand`) | Schedules `shootManualCommand`, starting `ShotController` with `startShot(constantPower, checkAlignment=false)`. Revs flywheel to target speed and feeds intake based purely on flywheel readiness (bypasses turret alignment gate). Serves as a manual fallback if turret sensors are unaligned. |
-| **DPad Down** | Digital Button | Press & Hold | **AprilTag Vision Relocalization** | On press: Resumes vision camera streaming (`robot.vision.resumeStreaming()`). While held: Processes AprilTag camera frames. If a valid AprilTag is located, updates Pedro Pathing robot pose (`follower.setPose(visionPose)`) and immediately stops streaming. Displays "Searching for Tag..." telemetry while active. On release: Stops vision streaming. |
-| **DPad Right** | Digital Button | Press (`onTrue`) | **Co-Pilot Driver Auto-Cancel** | Operator override button to cancel driver automated pose-holding commands (`parkCommand`, `scoreCommand`, `drinkCommand`). |
-| **Left Trigger** | Analog Trigger | Press (`> 0.5`) | **Master Abort / Emergency Stop** | Instantly cancels all active operator commands (`aimAndShootCommand`, `aimCommand`, `shootManualCommand`, `manualRevCommand`, `intakeCommand`), resetting flywheel, intake, and turret states to safe idle. `intakeCommand` was previously omitted, so the abort left the intake rollers running. |
+| Button / Input | Trigger | Action | Details |
+| :--- | :--- | :--- | :--- |
+| **A** | Press | Start intake | Collects at `teleop.intake_power` / `teleop.transfer_power`. Stops itself at a known count of 4 (G407), including a known full preload. An entry sensor maintains the count during collection; without one, collection below capacity makes the count unknown and the operator must stop at 4. |
+| **B** | Press | Stop intake | |
+| **DPad Right** | Hold | Eject | Runs the intake in reverse at `teleop.eject_power` to spit out a fifth element (G407) or opponent NECTAR (G408). |
+| **Right Trigger** | Hold | Aim and shoot | Holds chassis position, spins up, aims the turret at the upward CELL and feeds only when every gate passes: flywheel in band, turret aligned, a valid and current solution, HIVE settled after a TIP. The telemetry "Shot" line names the gate that is holding. |
+| **Y** | Hold | Turret aim only | Tracks the upward CELL without spinning up. |
+| **X** | Hold | Rev flywheel | `teleop.manual_rev_power`, no feed. Hold X + Y to aim and pre-spin. |
+| **DPad Up** | Press | Fixed-power shot | Constant flywheel speed, with the operator responsible for alignment. Feeding still requires flywheel readiness, a valid current shot solution, and a settled HIVE. Uncalibrated tables block feeding. Cancel with Left Trigger. |
+| **Left Trigger** | Press | Cancel everything | Shot, aim, rev, manual shot, intake and eject. |
+| **DPad Down** | Hold | Vision relocalize | Re-anchors odometry on the upward CELL opening while the HIVE is settled; requires a fresh camera frame and is rejected if the fix is more than `vision.relocalize.max_correction_in` from odometry. |
+| **Left Bumper** | Press | Record a TIP | For a TIP the camera missed: flips which CELL is up and adds one to the TIP count (and the human player's NECTAR allowance). |
+| **Back** | Press | Undo a TIP | Reverses the last flip and TIP count. |
+| **Right Bumper** | Press | Toggle POLLEN / NECTAR | Selects which shot table the solver uses. |
+| **Left Stick Button** | Press | Mark robot empty | Sets the inventory to 0 when the robot is visibly empty. |
+
+## 3. Match Cues and Telemetry
+
+- **1:00 left** — two rumble blips: NECTAR may now enter FLOWERS (G410) and the human player may enter every remaining NECTAR (G426). "NECTAR->FLOWERS OK" appears next to the clock.
+- **Park alert** — from 0:20 the robot estimates the drive from where it is to the park pose (around the HIVE). Once the time left is that drive plus 4 s (`teleop.park_alert_margin_ms`), and until the robot is PARKED: both gamepads rumble and flash red every second, the Driver Station says "park now" once, and **PARK NOW** heads the telemetry. A `Park` line shows the estimated drive and time left from 0:20. With no clear route, or a lost pose, it fires at 0:20. F310 gamepads have no rumble motors or lights: only the voice and telemetry reach the drivers. It never drives the robot.
+- **Human NECTAR allowed** — one NECTAR per TIP of this alliance's HIVE (including AUTO and partner TIPS the camera saw), all five after 1:00. The human player subtracts what they have already entered. The robot's clock starts when TeleOp is started; the field timer remains the authority.

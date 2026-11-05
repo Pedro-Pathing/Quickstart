@@ -1,20 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.firstinspires.ftc.teamcode.ballistics.BallisticsModel;
 import org.firstinspires.ftc.teamcode.records.BallisticsParameters;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class BallisticsModelTest {
 
   private BallisticsParameters params;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     params =
         new BallisticsParameters(
@@ -22,7 +22,7 @@ public class BallisticsModelTest {
             0.0012, // k drag
             0.015, // L Magnus lift
             15.0, // launch height inches
-            45.0, // goal height inches
+            59.56, // target height inches (upward CELL opening)
             386.088, // g in/s2
             15.0, // min hood deg
             65.0, // max hood deg
@@ -36,8 +36,10 @@ public class BallisticsModelTest {
             1000.0, // preferred shot rpm
             1450.0, // max shot rpm
             0.12, // v0 margin fraction
+            0.5, // flight time base sec
             0.004, // flight time sec per inch
-            10.0 // lead min speed ips
+            10.0, // lead min speed ips
+            60.0 // max off-axis deg
             );
   }
 
@@ -55,42 +57,42 @@ public class BallisticsModelTest {
             65.0, // max hood deg -> steepest
             0.85, // servo AT MIN ANGLE (numerically larger: reversed linkage)
             0.0, // servo AT MAX ANGLE
-            60.0, 30.0, 160.0, 1.0, 1000.0, 1000.0, 1450.0, 0.12, 0.004, 10.0);
+            60.0, 30.0, 160.0, 1.0, 1000.0, 1000.0, 1450.0, 0.12, 0.5, 0.004, 10.0, 60.0);
 
     assertEquals(
-        "servo at the min-angle end must map back to the min angle",
         15.0,
         BallisticsModel.servoPosToAngle(0.85, reversed),
-        1e-6);
+        1e-6,
+        "servo at the min-angle end must map back to the min angle");
     assertEquals(
-        "servo 0.0 is the steepest arc, so it must map to the max angle",
         65.0,
         BallisticsModel.servoPosToAngle(0.0, reversed),
-        1e-6);
+        1e-6,
+        "servo 0.0 is the steepest arc, so it must map to the max angle");
     assertEquals(
-        "midpoint of travel maps to the mid angle",
         40.0,
         BallisticsModel.servoPosToAngle(0.425, reversed),
-        1e-6);
+        1e-6,
+        "midpoint of travel maps to the mid angle");
 
     // Steeper must mean a NUMERICALLY SMALLER servo position on this linkage.
     assertTrue(
-        "a steeper angle must command a smaller servo position when the linkage is reversed",
         BallisticsModel.angleToServoPos(60.0, reversed)
-            < BallisticsModel.angleToServoPos(20.0, reversed));
+            < BallisticsModel.angleToServoPos(20.0, reversed),
+        "a steeper angle must command a smaller servo position when the linkage is reversed");
 
     // Round-trip through both directions.
     for (double deg : new double[] {15.0, 25.0, 40.0, 55.0, 65.0}) {
       double servo = BallisticsModel.angleToServoPos(deg, reversed);
       assertEquals(
-          "angle->servo->angle must round-trip on a reversed linkage",
           deg,
           BallisticsModel.servoPosToAngle(servo, reversed),
-          1e-6);
+          1e-6,
+          "angle->servo->angle must round-trip on a reversed linkage");
     }
 
-    assertEquals("ordered travel low", 0.0, reversed.servoTravelLow(), 1e-9);
-    assertEquals("ordered travel high", 0.85, reversed.servoTravelHigh(), 1e-9);
+    assertEquals(0.0, reversed.servoTravelLow(), 1e-9, "ordered travel low");
+    assertEquals(0.85, reversed.servoTravelHigh(), 1e-9, "ordered travel high");
   }
 
   @Test
@@ -98,27 +100,27 @@ public class BallisticsModelTest {
     BallisticsModel.TrajectoryResult result =
         BallisticsModel.integrateTrajectory(35.0, 72.0, params);
 
-    assertTrue("trajectory should reach target distance", result.reachedDistance());
-    assertTrue("flight time should be positive", result.flightTimeSec() > 0.0);
-    assertTrue("flight time should be realistic (< 2.0s)", result.flightTimeSec() < 2.0);
+    assertTrue(result.reachedDistance(), "trajectory should reach target distance");
+    assertTrue(result.flightTimeSec() > 0.0, "flight time should be positive");
+    assertTrue(result.flightTimeSec() < 2.0, "flight time should be realistic (< 2.0s)");
   }
 
   @Test
   public void testLoftedElevationSolver() {
     BallisticsModel.SolvedElevation solved = BallisticsModel.solveLoftedElevation(84.0, params);
 
-    assertNotNull("solved elevation should not be null", solved);
+    assertNotNull(solved, "solved elevation should not be null");
     assertTrue(
-        "elevation angle should be within hood limits",
         solved.elevationAngleDeg() >= params.minHoodAngleDeg()
-            && solved.elevationAngleDeg() <= params.maxHoodAngleDeg());
+            && solved.elevationAngleDeg() <= params.maxHoodAngleDeg(),
+        "elevation angle should be within hood limits");
 
     assertTrue(
-        "hood servo position should be within servo bounds",
         solved.hoodServoPosition() >= params.servoTravelLow()
-            && solved.hoodServoPosition() <= params.servoTravelHigh());
+            && solved.hoodServoPosition() <= params.servoTravelHigh(),
+        "hood servo position should be within servo bounds");
 
-    assertTrue("flight time should be positive", solved.flightTimeSec() > 0.0);
+    assertTrue(solved.flightTimeSec() > 0.0, "flight time should be positive");
   }
 
   @Test
@@ -137,15 +139,15 @@ public class BallisticsModelTest {
 
       double rpm = params.v0ToRpm(shot.exitVelocityIps());
       assertTrue(
-          "solved RPM at " + dist + " in must not fall below preferred_shot_rpm, was " + rpm,
-          rpm >= params.preferredShotRpm() - 1e-6);
+          rpm >= params.preferredShotRpm() - 1e-6,
+          "solved RPM at " + dist + " in must not fall below preferred_shot_rpm, was " + rpm);
       assertTrue(
-          "solved RPM at " + dist + " in must not exceed max_shot_rpm, was " + rpm,
-          rpm <= params.maxShotRpm() + 1e-6);
+          rpm <= params.maxShotRpm() + 1e-6,
+          "solved RPM at " + dist + " in must not exceed max_shot_rpm, was " + rpm);
       assertTrue(
-          "hood servo position must stay within bounds at " + dist + " in",
           shot.hoodServoPosition() >= params.servoTravelLow()
-              && shot.hoodServoPosition() <= params.servoTravelHigh());
+              && shot.hoodServoPosition() <= params.servoTravelHigh(),
+          "hood servo position must stay within bounds at " + dist + " in");
     }
   }
 
@@ -156,7 +158,7 @@ public class BallisticsModelTest {
   private static BallisticsParameters realisticParams() {
     return new BallisticsParameters(
         250.0, 0.0012, 0.015, 15.0, 45.0, 386.088, 15.0, 65.0, 0.0, 0.85, 60.0, 30.0, 150.0, 1.0,
-        1000.0, 1000.0, 1450.0, 0.12, 0.004, 10.0);
+        1000.0, 1000.0, 1450.0, 0.12, 0.5, 0.004, 10.0, 60.0);
   }
 
   @Test
@@ -169,10 +171,10 @@ public class BallisticsModelTest {
     for (double dist : new double[] {30.0, 48.0, 60.0, 72.0}) {
       double rpm = p.v0ToRpm(BallisticsModel.solveShot(dist, p).exitVelocityIps());
       assertEquals(
-          "hood should cover " + dist + " in at the preferred RPM, not slow the flywheel down",
           p.preferredShotRpm(),
           rpm,
-          1e-6);
+          1e-6,
+          "hood should cover " + dist + " in at the preferred RPM, not slow the flywheel down");
     }
   }
 
@@ -184,16 +186,16 @@ public class BallisticsModelTest {
     for (double dist : new double[] {30.0, 48.0, 72.0, 96.0, 120.0, 144.0}) {
       double rpm = p.v0ToRpm(BallisticsModel.solveShot(dist, p).exitVelocityIps());
       assertTrue(
-          "solved RPM must never drop below the preferred speed (was " + rpm + " at " + dist + ")",
-          rpm >= p.preferredShotRpm() - 1e-6);
-      assertTrue("solved RPM must not decrease with distance at " + dist, rpm >= previous - 1e-6);
+          rpm >= p.preferredShotRpm() - 1e-6,
+          "solved RPM must never drop below the preferred speed (was " + rpm + " at " + dist + ")");
+      assertTrue(rpm >= previous - 1e-6, "solved RPM must not decrease with distance at " + dist);
       previous = rpm;
     }
 
     double farRpm = p.v0ToRpm(BallisticsModel.solveShot(144.0, p).exitVelocityIps());
     assertTrue(
-        "a 144in target is past the hood's authority at 1000 RPM and must raise the flywheel",
-        farRpm > p.preferredShotRpm() + 1.0);
+        farRpm > p.preferredShotRpm() + 1.0,
+        "a 144in shot is past the hood's authority at 1000 RPM and must raise the flywheel");
   }
 
   @Test
@@ -205,29 +207,29 @@ public class BallisticsModelTest {
     BallisticsModel.SolvedShot shot = BallisticsModel.solveShot(96.0, p);
 
     assertTrue(
-        "96in solution should not degenerate into a lob, got " + shot.elevationAngleDeg() + " deg",
-        shot.elevationAngleDeg() < 50.0);
+        shot.elevationAngleDeg() < 50.0,
+        "96in solution should not degenerate into a lob, got " + shot.elevationAngleDeg() + " deg");
     assertTrue(
-        "96in flight time should stay well under a second, got " + shot.flightTimeSec(),
-        shot.flightTimeSec() < 0.7);
+        shot.flightTimeSec() < 0.7,
+        "96in flight time should stay well under a second, got " + shot.flightTimeSec());
   }
 
   @Test
-  public void testSolveShotReachesGoalHeightAtSolvedSpeed() {
+  public void testSolveShotReachesTargetHeightAtSolvedSpeed() {
     for (double dist : new double[] {48.0, 96.0, 144.0}) {
       BallisticsModel.SolvedShot shot = BallisticsModel.solveShot(dist, params);
-      assertTrue("shot at " + dist + " in should be feasible", shot.feasible());
+      assertTrue(shot.feasible(), "shot at " + dist + " in should be feasible");
 
       BallisticsModel.TrajectoryResult flown =
           BallisticsModel.integrateTrajectory(
               shot.elevationAngleDeg(), dist, params.withV0(shot.exitVelocityIps()));
 
-      assertTrue("solved trajectory must reach the target distance", flown.reachedDistance());
+      assertTrue(flown.reachedDistance(), "solved trajectory must reach the target distance");
       assertEquals(
-          "solved trajectory must arrive at goal height at " + dist + " in",
-          params.goalHeightInches(),
+          params.targetHeightInches(),
           flown.heightAtTargetInches(),
-          1.0);
+          1.0,
+          "solved trajectory must arrive at the CELL opening height at " + dist + " in");
     }
   }
 
@@ -237,13 +239,13 @@ public class BallisticsModelTest {
     BallisticsParameters crippled =
         new BallisticsParameters(
             360.0, 0.0012, 0.015, 15.0, 45.0, 386.088, 15.0, 65.0, 0.15, 0.85, 60.0, 30.0, 160.0,
-            1.0, 1000.0, 50.0, 60.0, 0.12, 0.004, 10.0);
+            1.0, 1000.0, 50.0, 60.0, 0.12, 0.5, 0.004, 10.0, 60.0);
 
     BallisticsModel.SolvedShot shot = BallisticsModel.solveShot(140.0, crippled);
 
-    assertFalse("unreachable target must report infeasible", shot.feasible());
+    assertFalse(shot.feasible(), "unreachable target must report infeasible");
     assertTrue(
-        "infeasible reason should name the RPM ceiling", shot.infeasibleReason().contains("RPM"));
+        shot.infeasibleReason().contains("RPM"), "infeasible reason should name the RPM ceiling");
   }
 
   @Test
@@ -255,10 +257,10 @@ public class BallisticsModelTest {
 
     BallisticsModel.FittedBallistics fitted = BallisticsModel.fitParameters(points, params);
 
-    assertNotNull("fitted parameters should not be null", fitted);
-    assertTrue("fitted v0 should be positive", fitted.v0() > 0.0);
-    assertTrue("fitted k drag should be positive", fitted.k() > 0.0);
-    assertTrue("fitted magnus L lift should be positive", fitted.magnusL() > 0.0);
+    assertNotNull(fitted, "fitted parameters should not be null");
+    assertTrue(fitted.v0() > 0.0, "fitted v0 should be positive");
+    assertTrue(fitted.k() > 0.0, "fitted k drag should be positive");
+    assertTrue(fitted.magnusL() > 0.0, "fitted magnus L lift should be positive");
   }
 
   @Test
@@ -266,7 +268,7 @@ public class BallisticsModelTest {
     BallisticsParameters trueParams =
         new BallisticsParameters(
             420.0, 0.0012, 0.045, 10.0, 30.0, 386.088, 10.0, 55.0, 0.0, 1.0, 60.0, 30.0, 160.0, 1.0,
-            1400.0, 1400.0, 2200.0, 0.15, 0.004, 10.0);
+            1400.0, 1400.0, 2200.0, 0.15, 0.5, 0.004, 10.0, 60.0);
 
     double refRpm = trueParams.v0ReferenceRpm();
     double[] distances = new double[] {48.0, 72.0, 96.0, 120.0, 144.0, 150.0};
@@ -287,10 +289,10 @@ public class BallisticsModelTest {
     BallisticsModel.FittedBallistics fitted =
         BallisticsModel.fitParametersWithRpm(variableRpmPoints, initialGuess);
 
-    assertNotNull("fitted ballistics should not be null", fitted);
+    assertNotNull(fitted, "fitted ballistics should not be null");
     assertTrue(
-        "RMS residual error should be under 0.1 inches, was " + fitted.residualRmsInches(),
-        fitted.residualRmsInches() < 0.1);
-    assertEquals("fitted v0 should recover true v0 within 1%", 420.0, fitted.v0(), 4.2);
+        fitted.residualRmsInches() < 0.1,
+        "RMS residual error should be under 0.1 inches, was " + fitted.residualRmsInches());
+    assertEquals(420.0, fitted.v0(), 4.2, "fitted v0 should recover true v0 within 1%");
   }
 }

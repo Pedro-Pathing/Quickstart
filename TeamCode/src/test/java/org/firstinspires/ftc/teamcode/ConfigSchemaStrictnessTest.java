@@ -1,14 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
 import java.io.InputStream;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -46,14 +46,14 @@ public class ConfigSchemaStrictnessTest {
 
   @Test
   public void baseline_realConfigIsValid() {
-    assertTrue("real config.yaml should validate against its schema", valid(freshConfig()));
+    assertTrue(valid(freshConfig()), "real config.yaml should validate against its schema");
   }
 
   @Test
   public void rejects_wrongType() {
     Map<String, Object> cfg = freshConfig();
     child(cfg, "shooter").put("max_rpm", "not_a_number"); // schema says number
-    assertFalse("schema must reject a string where a number is required", valid(cfg));
+    assertFalse(valid(cfg), "schema must reject a string where a number is required");
   }
 
   @Test
@@ -61,7 +61,7 @@ public class ConfigSchemaStrictnessTest {
     Map<String, Object> cfg = freshConfig();
     // shooter.max_rpm has "minimum": 0.0 in the generated schema
     child(cfg, "shooter").put("max_rpm", -5.0);
-    assertFalse("schema must reject a value below its documented minimum", valid(cfg));
+    assertFalse(valid(cfg), "schema must reject a value below its documented minimum");
   }
 
   @Test
@@ -69,28 +69,28 @@ public class ConfigSchemaStrictnessTest {
     Map<String, Object> cfg = freshConfig();
     // turret.max_power_output has "maximum": 1.0
     child(cfg, "turret").put("max_power_output", 5.0);
-    assertFalse("schema must reject a value above its documented maximum", valid(cfg));
+    assertFalse(valid(cfg), "schema must reject a value above its documented maximum");
   }
 
   @Test
   public void rejects_missingRequiredKey() {
     Map<String, Object> cfg = freshConfig();
     child(cfg, "shooter").remove("max_rpm");
-    assertFalse("schema must reject config missing a required key", valid(cfg));
+    assertFalse(valid(cfg), "schema must reject config missing a required key");
   }
 
   @Test
   public void rejects_missingRequiredSection() {
     Map<String, Object> cfg = freshConfig();
     cfg.remove("sentinel");
-    assertFalse("schema must reject config missing a whole required section", valid(cfg));
+    assertFalse(valid(cfg), "schema must reject config missing a whole required section");
   }
 
   @Test
   public void nested_typeViolationIsCaught() {
     Map<String, Object> cfg = freshConfig();
     child(child(cfg, "turret"), "pidf").put("p", "oops");
-    assertFalse("schema must recurse into nested objects and catch type errors", valid(cfg));
+    assertFalse(valid(cfg), "schema must recurse into nested objects and catch type errors");
   }
 
   @Test

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
@@ -10,7 +10,7 @@ import com.networknt.schema.SpecificationVersion;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -27,17 +27,17 @@ public class ConfigValidationTest {
         getClass()
             .getResourceAsStream(
                 "/org/firstinspires/ftc/teamcode/robot/config/generated/config-schema.json");
-    assertNotNull("Could not find config-schema.json in classpath resources", schemaStream);
+    assertNotNull(schemaStream, "Could not find config-schema.json in classpath resources");
 
     Schema schema = factory.getSchema(schemaStream);
 
     Yaml yaml = new Yaml();
     InputStream yamlStream =
         getClass().getResourceAsStream("/org/firstinspires/ftc/teamcode/robot/config/config.yaml");
-    assertNotNull("Could not find config file: config.yaml", yamlStream);
+    assertNotNull(yamlStream, "Could not find config file: config.yaml");
 
     Map<String, Object> loaded = yaml.load(yamlStream);
-    assertNotNull("Config file is empty: config.yaml", loaded);
+    assertNotNull(loaded, "Config file is empty: config.yaml");
 
     // Convert Map to JsonNode for validation
     JsonNode jsonNode = mapper.valueToTree(loaded);

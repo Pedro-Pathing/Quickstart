@@ -17,6 +17,7 @@ public class TurnAnalogTest extends OpMode {
   @Override
   public void init() {
     org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
+    org.firstinspires.ftc.teamcode.utilities.OpModeUtil.reportConfig(telemetry);
 
     try {
       turnAnalog = hardwareMap.get(AnalogInput.class, "turnanalog");
@@ -75,7 +76,18 @@ public class TurnAnalogTest extends OpMode {
         power = gamepad1.left_trigger;
         turnServo.setDirection(CRServo.Direction.REVERSE);
       }
-      turnServo.setPower(power);
+      // Never more than the turret's own limit, so watching the encoder does not slam the stops.
+      turnServo.setPower(
+          power
+              * org.firstinspires
+                  .ftc
+                  .teamcode
+                  .robot
+                  .config
+                  .generated
+                  .config
+                  .turret
+                  .max_power_output);
     }
 
     telemetry.addLine("=== ANALOG INPUT: 'turnanalog' ===");

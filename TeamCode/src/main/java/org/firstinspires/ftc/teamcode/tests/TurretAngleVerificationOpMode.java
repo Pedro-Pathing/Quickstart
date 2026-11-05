@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import android.annotation.SuppressLint;
+import androidx.annotation.Nullable;
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 @Configurable
 @TeleOp(name = "Turret Angle Verification", group = "Tuning")
@@ -29,8 +31,8 @@ public class TurretAngleVerificationOpMode extends OpMode {
   public static double targetAngle = 0.0;
 
   private Turret turret;
-  private IMU turnIMU;
-  private AnalogInput turnAnalog;
+  private @Nullable IMU turnIMU;
+  private @Nullable AnalogInput turnAnalog;
   private TelemetryManager telemetryM;
 
   private double prevTargetAngle = 0.0;
@@ -49,11 +51,12 @@ public class TurretAngleVerificationOpMode extends OpMode {
   @Override
   public void init() {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
 
     telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
     turret = new Turret(hardwareMap, telemetry);
-    turret.setGoal(100.0, 100.0);
+    turret.setTargetPoint(100.0, 100.0);
 
     // Seed Bylazar static fields from config defaults. These fields have no initializers, so at
     // class-load time (when Panels scans @Configurable classes) they all read 0 -- which is what

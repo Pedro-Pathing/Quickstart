@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import androidx.annotation.Nullable;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
@@ -7,6 +8,7 @@ import com.pedropathing.math.Vector2D;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
+import java.util.Objects;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.records.Alliance;
 import org.firstinspires.ftc.teamcode.records.SlewProfile;
@@ -19,11 +21,14 @@ import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.Casablanca;
 import org.firstinspires.ftc.teamcode.utilities.JumpDetector;
 import org.firstinspires.ftc.teamcode.utilities.JumpImu;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 import org.firstinspires.ftc.teamcode.utilities.SlewCalibrationSearch;
 import org.firstinspires.ftc.teamcode.utilities.SlewTravelBudget;
 
 /** Physical, non-PID calibration. Each A-held trial starts and stops in one direction. */
 @TeleOp(name = "Casablanca Pod Contact Tuner", group = "Calibration")
+// Hardware is set up inside runOpMode's try block, so not every path assigns every field.
+@SuppressWarnings("NullAway.Init")
 public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
   private enum Result {
     PASS,
@@ -40,6 +45,7 @@ public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
   @Override
   public void runOpMode() throws InterruptedException {
     config.reload();
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     settings = config.casablanca.jump_tuner;
     axis = Axis.valueOf(settings.trial_axis);
     try {
@@ -60,7 +66,8 @@ public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
               settings.search_factor,
               settings.candidate_count);
       telemetry.addData("Tilt sensor", imu.source());
-      telemetry.addLine("Place at configured calibration_pose; clear the lane in BOTH directions.");
+      telemetry.addData("Place at", startPose());
+      telemetry.addLine("Clear the lane in BOTH directions.");
       telemetry.addLine("Hold A per trial. X = pod lifted. Release A / B / STOP aborts.");
       telemetry.addData(
           "Maximum travel per trial (including stopping)", settings.max_travel_inches);
@@ -85,11 +92,12 @@ public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
             else {
               search.record(true);
               forward = true;
+              SlewTuning best = Objects.requireNonNull(search.best()); // record(true) just set it
               RobotLog.ii(
                   "JumpTuner",
                   "Contact-confirmed pair: increase_time=%.6f decrease_time=%.6f",
-                  search.best().increaseTime(),
-                  search.best().decreaseTime());
+                  best.increaseTime(),
+                  best.decreaseTime());
             }
           }
         }
@@ -116,11 +124,21 @@ public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
     }
   }
 
+  /**
+   * Where each trial starts. FORWARD drives along calibration_pose's heading; STRAFE starts at the
+   * same spot turned 90 degrees, so it strafes along the same clear lane instead of across it (no
+   * spot on the field has 48 in of clear floor both ways in both directions).
+   */
+  private Pose startPose() {
+    Pose p = settings.calibration_pose;
+    return axis == Axis.STRAFE ? new Pose(p.x(), p.y(), p.heading() - Math.PI / 2) : p;
+  }
+
   private Result trial(SlewTuning tuning, int direction) throws InterruptedException {
     try {
       robot.casablanca.reset();
       robot.casablanca.setSlewTuning(SlewProfile.configured().with(axis, tuning));
-      robot.follower.setPose(settings.calibration_pose);
+      robot.follower.setPose(startPose());
       double started = seconds();
       TiltReading baseline = baseline(started);
       if (baseline == null) return incomplete("Baseline interrupted or robot not stationary");
@@ -322,7 +340,7 @@ public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
     }
   }
 
-  private TiltReading baseline(double started) throws InterruptedException {
+  private @Nullable TiltReading baseline(double started) throws InterruptedException {
     hardStop();
     TiltReading previous = imu.read();
     double still = 0;
@@ -448,7 +466,7 @@ public final class CasablancaJumpAutotuneOpMode extends LinearOpMode {
     if (!search.done()) {
       telemetry.addData(
           "Next trial", axis + (forward ? " positive then stop" : " negative then stop"));
-      telemetry.addData("Reposition to", settings.calibration_pose);
+      telemetry.addData("Reposition to", startPose());
       telemetry.addLine("Release A, manually reposition, then HOLD A to run.");
     }
     if (search.best() != null) {

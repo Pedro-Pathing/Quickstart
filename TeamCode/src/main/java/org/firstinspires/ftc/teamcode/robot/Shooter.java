@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import java.util.function.LongSupplier;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.AntiWindupIntegrator;
 
@@ -21,11 +21,17 @@ public class Shooter {
   private final VoltageSensor voltageSensor;
   private final PIDController pidfController;
   private final AntiWindupIntegrator integrator = new AntiWindupIntegrator();
-  private final ElapsedTime loopTimer = new ElapsedTime();
-  private final ElapsedTime voltageTimer = new ElapsedTime();
+
+  /** Time source (ns). Injected so simulations can step the flywheel loop deterministically. */
+  private final LongSupplier nanoClock;
+
+  private long loopStartNanos;
+  private long voltageReadNanos;
 
   private double targetPower = 0.0;
   private double targetHoodPosition;
+  private double lastVelocity1 = Double.NaN;
+  private double lastVelocity2 = Double.NaN;
 
   /** Saturation direction of the previous command: +1 railed high, -1 railed low, 0 in range. */
   private int lastSaturationSign = 0;
@@ -41,6 +47,13 @@ public class Shooter {
   private double lastVoltageScale = 1.0;
 
   public Shooter(HardwareMap hardwareMap) {
+    this(hardwareMap, System::nanoTime);
+  }
+
+  Shooter(HardwareMap hardwareMap, LongSupplier nanoClock) {
+    this.nanoClock = nanoClock;
+    loopStartNanos = nanoClock.getAsLong();
+    voltageReadNanos = loopStartNanos;
     shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
     shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
     hood = hardwareMap.get(Servo.class, "hood");
@@ -64,7 +77,6 @@ public class Shooter {
     setShooterPIDFCoefficients();
 
     this.targetHoodPosition = config.shooter.ballistics.min_hood_servo_pos;
-    hood.setPosition(this.targetHoodPosition);
   }
 
   public final void setShooterPIDFCoefficients() {
@@ -82,19 +94,25 @@ public class Shooter {
     return shooter1.getVelocity();
   }
 
+  /** Requests a stop; hardware changes on the next periodic() pass. */
   public void stop() {
-    shooter1.setPower(0);
-    shooter2.setPower(0);
-    if (config.shooter.use_ftc_pid) {
-      shooter1.setVelocity(0);
-      shooter2.setVelocity(0);
-    }
+    setTargetPower(0.0);
+    invalidateVelocityCache();
+    resetControl();
+  }
+
+  private void invalidateVelocityCache() {
+    lastVelocity1 = Double.NaN;
+    lastVelocity2 = Double.NaN;
+  }
+
+  private void resetControl() {
     if (pidfController != null) {
       pidfController.reset();
     }
     integrator.reset();
     lastSaturationSign = 0;
-    loopTimer.reset();
+    loopStartNanos = nanoClock.getAsLong();
   }
 
   public void setTargetHoodPosition(double position) {
@@ -112,14 +130,21 @@ public class Shooter {
   }
 
   public static double constantPower() {
-    return config.shooter.constant_rpm / config.shooter.max_rpm;
+    return config.shooter.max_rpm > 0 ? config.shooter.constant_rpm / config.shooter.max_rpm : 0.0;
   }
 
+  /**
+   * Flywheel target as a fraction of {@code max_rpm}, clamped to [0, 1]: a tuned rpm above max_rpm
+   * would otherwise ask for a speed the wheel cannot reach, and the shot gate would wait on it
+   * forever.
+   *
+   * <p>A new target keeps the integrator. What it has learned is the feedforward's error, which
+   * hardly depends on the setpoint; clearing it on every re-solved shot speed restarted a 2 s
+   * convergence each time the robot moved. It is cleared when the flywheel stops, and the band in
+   * integral.band_ticks pauses it while the wheel moves between setpoints.
+   */
   public void setTargetPower(double power) {
-    if (Math.abs(power - this.targetPower) > 1e-6) {
-      integrator.reset();
-    }
-    this.targetPower = power;
+    this.targetPower = Double.isFinite(power) ? Math.clamp(power, 0.0, 1.0) : 0.0;
   }
 
   public double getTargetPower() {
@@ -128,19 +153,33 @@ public class Shooter {
 
   public void periodic() {
     hood.setPosition(targetHoodPosition);
+    DcMotor.RunMode mode =
+        config.shooter.use_ftc_pid
+            ? DcMotor.RunMode.RUN_USING_ENCODER
+            : DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+    if (shooter1.getMode() != mode) {
+      shooter1.setMode(mode);
+      lastVelocity1 = Double.NaN;
+    }
+    if (shooter2.getMode() != mode) {
+      shooter2.setMode(mode);
+      lastVelocity2 = Double.NaN;
+    }
     if (targetPower <= 0) {
-      stop();
+      shooter1.setPower(0);
+      shooter2.setPower(0);
+      if (config.shooter.use_ftc_pid) {
+        writeVelocity(0.0);
+      }
+      resetControl();
+      lastTargetVelocity = 0.0;
+      lastCommand = 0.0;
     } else {
       double targetVel = config.shooter.max_rpm * targetPower;
       double currentVel = Math.abs(getShooterVelocity());
 
       if (config.shooter.use_ftc_pid) {
-        if (shooter1.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-          shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-          shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-        shooter1.setVelocity(targetVel);
-        shooter2.setVelocity(targetVel);
+        writeVelocity(targetVel);
 
         lastTargetVelocity = targetVel;
         lastError = targetVel - currentVel;
@@ -149,23 +188,18 @@ public class Shooter {
         lastFeedforwardTerm = 0.0;
         lastCommand = targetPower;
       } else {
-        if (shooter1.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
-          shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-          shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        }
-
         double pidOutput = pidfController.calculate(targetVel, targetVel - currentVel);
 
         double error = targetVel - currentVel;
         double integralTerm =
             integrator.update(
                 error,
-                loopTimer.seconds(),
+                secondsSince(loopStartNanos),
                 config.shooter.pidf.i,
                 config.shooter.integral.band_ticks,
                 config.shooter.integral.max_contribution,
                 lastSaturationSign);
-        loopTimer.reset();
+        loopStartNanos = nanoClock.getAsLong();
 
         double ks = config.shooter.ks;
         double ff = (config.shooter.pidf.f * targetVel) / 32767.0;
@@ -196,16 +230,33 @@ public class Shooter {
     }
   }
 
+  /** The SDK caches power and servo positions, but every setVelocity call is a hub transaction. */
+  private void writeVelocity(double velocity) {
+    if (Double.compare(velocity, lastVelocity1) != 0) {
+      shooter1.setVelocity(velocity);
+      lastVelocity1 = velocity;
+    }
+    if (Double.compare(velocity, lastVelocity2) != 0) {
+      shooter2.setVelocity(velocity);
+      lastVelocity2 = velocity;
+    }
+  }
+
   private void refreshBusVoltage() {
-    if (lastBusVoltage > 0.0 && voltageTimer.seconds() < config.shooter.voltage_refresh_sec) {
+    if (lastBusVoltage > 0.0
+        && secondsSince(voltageReadNanos) < config.shooter.voltage_refresh_sec) {
       return;
     }
-    voltageTimer.reset();
+    voltageReadNanos = nanoClock.getAsLong();
     try {
       lastBusVoltage = voltageSensor.getVoltage();
     } catch (RuntimeException e) {
       lastBusVoltage = 0.0;
     }
+  }
+
+  private double secondsSince(long nanos) {
+    return (nanoClock.getAsLong() - nanos) * 1e-9;
   }
 
   public static double voltageCompensationScale(

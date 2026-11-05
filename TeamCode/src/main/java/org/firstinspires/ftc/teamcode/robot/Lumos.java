@@ -36,17 +36,26 @@ public class Lumos {
   }
 
   private final Servo light;
+  private Color targetColor = Color.OFF;
+  private boolean initialized;
 
   public Lumos(HardwareMap hardwareMap) {
     light = hardwareMap.get(Servo.class, "light");
-    if (light instanceof ServoImplEx lightEx) {
-      lightEx.setPwmRange(new PwmControl.PwmRange(500, 2500));
-      lightEx.setPwmEnable();
-    }
   }
 
   public void setColor(Color color) {
-    light.setPosition(color.position);
+    targetColor = color;
+  }
+
+  public void periodic() {
+    if (!initialized) {
+      if (light instanceof ServoImplEx lightEx) {
+        lightEx.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        lightEx.setPwmEnable();
+      }
+      initialized = true;
+    }
+    light.setPosition(targetColor.position);
   }
 
   public double getPosition() {

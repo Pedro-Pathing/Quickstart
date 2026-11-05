@@ -1,13 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.pedropathing.math.Pose;
 import org.firstinspires.ftc.teamcode.config.ConfigLoader;
 import org.firstinspires.ftc.teamcode.records.Alliance;
+import org.firstinspires.ftc.teamcode.records.HiveCell;
 import org.firstinspires.ftc.teamcode.records.MatchProfile;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Proves that reflection-based config binding loads non-null instances, binds Pose structures, and
@@ -40,56 +44,92 @@ public class ConfigLoaderEdgeCaseTest {
 
     @SuppressWarnings("unchecked")
     java.util.Map<String, Object> turret = (java.util.Map<String, Object>) bundled.get("turret");
-    assertNotNull("stale override must not delete unmentioned sections", turret.get("travel"));
+    assertNotNull(turret.get("travel"), "stale override must not delete unmentioned sections");
 
     @SuppressWarnings("unchecked")
     java.util.Map<String, Object> travel = (java.util.Map<String, Object>) turret.get("travel");
-    org.junit.Assert.assertEquals(-45.0, (Double) travel.get("min_angle"), 1e-9);
+    assertEquals(-45.0, (Double) travel.get("min_angle"), 1e-9);
     // ...while the value the override *did* specify still wins.
-    org.junit.Assert.assertEquals(0.12, (Double) turret.get("ks"), 1e-9);
+    assertEquals(0.12, (Double) turret.get("ks"), 1e-9);
   }
 
   @Test
-  public void loadMerged_autoPoses_bindsListPosesAndGlobals() {
-    config.NormalAuto cfg =
-        ConfigLoader.loadMerged(config.NormalAuto.class, "auto_poses.normal.blue", "auto");
-    assertNotNull("Config object should be loaded", cfg);
-    assertNotNull("Start pose should be bound", cfg.start);
+  public void loadMerged_autoPoses_bindsEveryPoseAndGlobalsForEveryRoutineAndAlliance() {
+    for (Alliance alliance : Alliance.values()) {
+      config.CellAAuto a = AutoFixtures.cellAPoses(alliance);
+      assertNotNull(a.start, "start");
+      assertNotNull(a.scoreA, "score_a");
+      assertNotNull(a.flower, "flower");
+      assertNotNull(a.scoreBCp, "score_b_cp (a snake-case key with a trailing letter pair)");
+      assertNotNull(a.scoreB, "score_b");
+      assertNotNull(a.park, "park");
+      // Shared "auto" globals are merged in after the per-routine poses.
+      assertEquals(config.auto.tip_wait_ms, a.tipWaitMs);
+      assertEquals(config.auto.balls_per_volley_count, a.ballsPerVolleyCount);
+      assertEquals(config.auto.cell_a_second_volley, a.cellASecondVolley);
+
+      config.CellBAuto b = AutoFixtures.cellBPoses(alliance);
+      assertNotNull(b.start, "start");
+      assertNotNull(b.scoreBCp, "score_b_cp");
+      assertNotNull(b.scoreB, "score_b");
+      assertNotNull(b.flower, "flower");
+      assertNotNull(b.altVia, "alt_via");
+      assertNotNull(b.altA, "alt_a");
+      assertNotNull(b.park, "park");
+      assertEquals(config.auto.park_reserve_ms, b.parkReserveMs);
+
+      config.ParkOnlyAuto park = AutoFixtures.parkOnlyPoses(alliance);
+      assertNotNull(park.start, "start");
+      assertNotNull(park.park, "park");
+    }
   }
 
   @Test
   public void loadPoseByPath_blueStart() {
     Pose p = ConfigLoader.load(Pose.class, "teleop.poses.blue.start");
-    assertNotNull("Pose should be loaded", p);
+    assertNotNull(p, "Pose should be loaded");
   }
 
   @Test
   public void loadDoubleByPath_scalar() {
-    Double v = ConfigLoader.load(Double.class, "sentinel.goals.red_goal_x");
-    assertNotNull("Scalar value should be loaded", v);
+    Double v = ConfigLoader.load(Double.class, "field.size_in");
+    assertNotNull(v, "Scalar value should be loaded");
+    assertEquals(config.field.size_in, v, 1e-12);
+    assertEquals(
+        config.sentinel.robot_width,
+        ConfigLoader.load(Double.class, "sentinel.robot_width"),
+        1e-12);
   }
 
   @Test
-  public void loadMatchProfile_blue_hasRealPoses() {
-    MatchProfile profile = config.loadMatchProfile(Alliance.BLUE);
-    assertNotNull("Blue MatchProfile should load", profile);
-    assertNotNull("Start pose should load", profile.startPose());
-    assertNotNull("Score pose should load", profile.scorePose());
+  public void loadMatchProfile_hasEveryPoseForBothAlliances() {
+    for (Alliance alliance : Alliance.values()) {
+      MatchProfile profile = config.loadMatchProfile(alliance);
+      assertNotNull(profile, alliance + " MatchProfile should load");
+      assertEquals(alliance, profile.alliance());
+      assertNotNull(profile.startPose(), "start");
+      assertNotNull(profile.parkPose(), "park");
+      assertNotNull(profile.shootAPose(), "shoot_a");
+      assertNotNull(profile.shootBPose(), "shoot_b");
+      assertNotNull(profile.flowerPose(), "flower");
+    }
   }
 
   @Test
-  public void loadMatchProfile_red_hasRealPoses() {
-    MatchProfile profile = config.loadMatchProfile(Alliance.RED);
-    assertNotNull("Red MatchProfile should load", profile);
-    assertNotNull("Start pose should load", profile.startPose());
+  public void matchProfile_shootPoseSelectsThePoseForTheCell() {
+    for (Alliance alliance : Alliance.values()) {
+      MatchProfile profile = config.loadMatchProfile(alliance);
+      assertSame(profile.shootAPose(), profile.shootPose(HiveCell.A));
+      assertSame(profile.shootBPose(), profile.shootPose(HiveCell.B));
+      assertNotEquals(profile.shootAPose().y(), profile.shootBPose().y(), 1.0);
+    }
   }
 
   @Test
-  public void matchProfile_flexibleConstructors_autoPopulateGoals() {
-    MatchProfile redProfile = new MatchProfile(Alliance.RED);
-    assertNotNull("Red profile should construct", redProfile);
-
-    MatchProfile blueProfile = new MatchProfile(Alliance.BLUE);
-    assertNotNull("Blue profile should construct", blueProfile);
+  public void matchProfile_matchesTheMatchProfileHelperOnTheConfigFacade() {
+    MatchProfile viaFacade = config.loadMatchProfile(Alliance.BLUE);
+    MatchProfile direct = MatchProfile.loadMatchProfile(Alliance.BLUE);
+    assertEquals(viaFacade.startPose().x(), direct.startPose().x(), 0.0);
+    assertEquals(viaFacade.shootBPose().y(), direct.shootBPose().y(), 0.0);
   }
 }

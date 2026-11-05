@@ -1,4 +1,69 @@
 # yaml-language-server: $schema=generated/config-schema.json
+#
+# BIOBUZZ (2026-2027) robot configuration. Field geometry is from Competition Manual TU05
+# (Section 9) and the official field CAD; every pose and zone is written in the RED alliance's
+# Pedro frame and BLUE is derived by the field's 180-degree rotational symmetry ("m" values).
+#
+# Pedro frame used throughout: origin at the field corner where the audience wall meets the RED
+# alliance wall, +x toward the BLUE alliance wall, +y away from the audience, heading 0 = +x,
+# counter-clockwise positive. The RED alliance side is x < field.size_in / 2.
+meta:
+  # ConfigLoader ignores an ADB-pushed override whose season differs (or is missing), so a
+  # DECODE config.yaml left on the Control Hub can never silently replace BIOBUZZ values.
+  season: "biobuzz"
+
+field:
+  # Inside-wall field width. The manual says "approximately 144 in"; the official CAD's inner
+  # perimeter is ~141.3 in and the team's measured DECODE mirror axis was 70.75 (141.5 field).
+  size_in: 141.5
+  hive:
+    center_to_center_in: 25.5
+    pivot_height_in: 43.95
+    up_opening_offset_in: 15.69
+    up_opening_height_in: 59.56
+    down_opening_offset_in: 21.36
+    down_opening_height_in: 38.17
+    frame_width_in: 49.46
+    frame_depth_in: 38.95
+    bottom_height_in: 30.6
+  # Zone tape from the official field CAD: the RED LOADING ZONE runs from 23.91 in past the
+  # field centre for 22.69 in along the RED wall, 11 in deep; the GARDEN is 22.69 x 2 in.
+  loading_zone:
+    start_y_in: 94.66
+    width_in: 22.69
+    depth_in: 11.0
+  garden:
+    length_in: 22.69
+    depth_in: 2.0
+  # FLOWER top-ring centre from the official field CAD.
+  flower:
+    wall_offset_in: 2.65
+    corner_offset_in: 47.36
+
+hive:
+  # A CELL whose opening centre is above this height is upward-facing. Upward openings sit at
+  # ~59.6 in and downward ones at ~38.2 in, so the midpoint leaves ~10 in of margin either way.
+  up_height_threshold_in: 48.9
+  confirm_frames_count: 3
+  settle_ms: 1500
+  max_observation_age_ms: 400
+
+match:
+  auto_ms: 30000
+  teleop_ms: 120000
+  flower_unlock_remaining_ms: 60000
+  # TELEOP time remaining at which the park alert starts watching the drive time to park.
+  final_warning_remaining_ms: 20000
+
+inventory:
+  # G407: a ROBOT may not CONTROL more than 4 SCORING ELEMENTS at a time.
+  capacity_count: 4
+  preload_count: 4
+  entry_sensor_enabled: false
+  entry_sensor_name: "intakeBeam"
+  entry_sensor_active_low: true
+  entry_debounce_ms: 40
+
 pedro:
   localization:
     x_pod_offset: 0.8827159160704124
@@ -73,6 +138,8 @@ turret:
     power_threshold: 0.12
     min_progress_deg: 0.75
     timeout_sec: 0.35
+    # A stall fault cuts power, then clears itself after this long (0 = latch until restart).
+    retry_after_sec: 1.0
   runaway:
     enabled: false
     divergence_deg: 8.0
@@ -81,12 +148,31 @@ turret:
     i: 0.008
     d: 0.0
     f: 0.0
+  # Feedforward (power per deg/s) for the turret rate the chassis motion demands: 1 / K from the
+  # Turret Plant Calibration OpMode (K = deg/s per unit power). Without it the turret lags ~10 deg
+  # behind a chassis turning at 30 deg/s. 0 disables; measure K before enabling.
+  kv: 0.0
+  # Chassis-driven turret rates below this (deg/s) are odometry noise: no feedforward.
+  ff_min_rate_dps: 3.0
+  # Turret axis position relative to the robot centre. Bearings and shot distances are measured
+  # from here; at BIOBUZZ ranges a 4 in offset is a 6-9 deg aim error.
+  pivot_forward_in: 0.0
+  pivot_left_in: 0.0
+  # Clamped I term (pidf.i is its gain). It is reset on settling, at a travel stop and whenever
+  # the loop restarts, so idle time and long slews can no longer wind it up.
+  integral:
+    band_deg: 30.0
+    limit_power: 0.08
   tolerance:
-    max_drift: 5
+    # Total lateral miss (in) allowed at the CELL opening. The opening is 20 in wide (~15 in seen
+    # 40 deg off-axis) and a NECTAR is 3.6 in, so 8 in leaves margin either side.
+    max_drift: 8
     near_cutoff: 1
     near_val: 1.5
     min_deg: 0.5
-    max_deg: 2
+    max_deg: 4
+    # Once settled, the turret is left alone until the error exceeds tolerance * exit_factor.
+    exit_factor: 1.5
   analog_encoder:
     enabled: true
     zero_voltage: 1.2650
@@ -97,25 +183,41 @@ turret:
     inverted: true
 
 vision:
-  camera_position:
-    x: -12
-    y: 9
-    z: 19.5
-  camera_orientation:
-    yaw: 0
-    pitch: -90
-    roll: 0
+  enabled: true
+  # Stream continuously so the HIVE tracker sees every TIP; false streams only while relocalizing.
+  continuous: true
+  camera_name: "Webcam 1"
+  decimation: 3
+  # Camera extrinsics in the robot frame. BIOBUZZ AprilTags are on the bottoms of CELLS 30-60 in
+  # above the TILES, so the camera must be pitched up; measure and replace these on the robot.
+  camera:
+    forward_in: 3.54
+    left_in: 4.72
+    height_in: 7.68
+    yaw_deg: 0.0
+    pitch_up_deg: 50.0
+  relocalize:
+    max_range_in: 72.0
+    max_correction_in: 18.0
 
 sentinel:
   robot_width: 18
   rotation_lookahead_time: 0.0685
-  goals:
-    size: 6
-    min_y: 69
-    red_goal_x: 133
-    red_goal_y: 135
-    blue_goal_x: 15.5
-    blue_goal_y: 135
+  # true: the whole HIVE frame base is a no-drive zone (the robot never passes under the HIVE).
+  # false: only the two 2 in foot bars are protected, for a robot built to drive under the HIVE.
+  # Such a robot must stay below field.hive.bottom_height_in and clear the A-frame legs, which
+  # lean inward from the feet toward the pivots (official CAD) and are not modelled here.
+  protect_full_hive_footprint: true
+  frame_base_width_in: 2.0
+  center_line_margin_in: 0.25
+  wall_contact_tolerance_in: 0.5
+  park_lane_margin_in: 3.0
+  route_sample_step: 0.005
+  # Conservative drive-time estimate for a park route: a trapezoidal profile from pedro.motion,
+  # this turn rate and a settle per waypoint. Used by the TeleOp park alert and the AUTO tests.
+  park_turn_rate_dps: 180.0
+  park_settle_per_waypoint_sec: 0.25
+  geometry_epsilon_in: 0.000000001
 
 casablanca:
   enable_depth_protection: true
@@ -124,11 +226,11 @@ casablanca:
     power: 0.12
     decel_safety_factor: 0.7
   depth:
-    slow_down: 15.0
-    hard_stop: 10
+    slow_down: 8.0
+    hard_stop: 2.5
   side:
-    slow_down: 4
-    hard_stop: 3
+    slow_down: 8.0
+    hard_stop: 2.5
   lane_blend_distance: 12
   friction:
     x: 0.1041
@@ -163,7 +265,9 @@ casablanca:
     settle_rate_dps: 15.0
 
   heading_tuner:
-    calibration_pose: [72.0, 72.0, 90.0]
+    # A lane beside the HIVE, 17 in clear of its frame: HIVE protection never acts, so trials can
+    # finish. (72, 72) was inside the HIVE frame and every trial aborted. TunerPoseSafetyTest.
+    calibration_pose: [20.0, 72.0, 90.0]
     step_degrees: 10.0
     maximum_sweep_degrees: 30.0
     position_drift_inches: 4.0
@@ -193,7 +297,8 @@ casablanca:
     imu_name: "imu"
     imu_logo: "RIGHT"
     imu_usb: "UP"
-    calibration_pose: [72.0, 72.0, 90.0]
+    # Same lane: +/- 48 in along y inside the walls. STRAFE trials start here turned 90 degrees.
+    calibration_pose: [20.0, 72.0, 90.0]
     trial_power: 0.5
     max_travel_inches: 48.0
     drive_distance_inches: 16.0
@@ -224,14 +329,17 @@ casablanca:
     candidate_count: 12
 
 
+
 shooter:
-  # Firmware velocity PID (motor_pidf below) oscillates on this hardware — observed the flywheel
-  # motors alternating forward/backward during a Max Vel test.
-  use_ftc_pid: true
+  # false: this code's loop (kS + kV feedforward at nominal_voltage, voltage compensation, P and a
+  # clamped I; FlywheelClosedLoopProperties checks it across calibration error, battery and lag).
+  # The firmware PIDF (motor_pidf) oscillated: its p was 150, ~68x REV's recipe for this F.
+  use_ftc_pid: false
   ks: 0.1811
   nominal_voltage: 12.0
   max_voltage_compensation: 1.4
   voltage_refresh_sec: 0.25
+  # Every *_rpm value in this section is DcMotorEx.setVelocity units (encoder ticks/second).
   max_rpm: 1500
   constant_rpm: 1000
   min_transfer_threshold: 0.97
@@ -239,81 +347,101 @@ shooter:
   feed_release_threshold: 0.80
   feed_intake_power: 1.0
   feed_transfer_power: 1.0
-  long_hood_power_threshold: 0.7
   ball_detection:
     dip_fraction: 0.09
     rebound_fraction: 0.05
     baseline_alpha: 0.03
     refractory_ms: 120
+  # p = 2 kV (loop gain 2) and i = p / 2 s (2 s integral time), integrating only inside
+  # integral.band_ticks. P alone (the old p = 0.3 kV) left any feedforward error almost
+  # undiminished, so the wheel sat outside the 0.97-1.03 feed band whenever kS or kV was off.
+  # Higher gain tolerates less sensor lag and hides ball dips; a faster integral overshoots after
+  # each ball. Chosen by sweep over kS +/-50%, kV +/-20%, 11.5-13.8 V, 0-2 loops of lag.
   pidf:
-    p: 0.0001519
-    i: 0
+    p: 0.0010125
+    i: 0.00050625
     d: 0
     f: 16.5881
+  # Only with use_ftc_pid: true. REV's recipe for this F: p = 0.1 F, i = 0.1 p.
   motor_pidf:
-    p: 150
-    i: 0
+    p: 2.204
+    i: 0.2204
     d: 0
     f: 22.04
+  # The integrator corrects feedforward error, so its clamp must cover the worst plausible error:
+  # kS 50% off plus kV 20% off at max_shot_rpm is ~0.24 power. 0.15 left the wheel just over the
+  # feed band in that corner.
   integral:
     band_ticks: 150.0
-    max_contribution: 0.15
+    max_contribution: 0.25
   ballistics:
     v0: 250.0
     k: 0.0012
     magnus_l: 0.015
     launch_height_inches: 15.0
-    goal_height_inches: 45.0
     g_inches_per_sec2: 386.088
     min_hood_angle_deg: 15.0
     max_hood_angle_deg: 65.0
     min_hood_servo_pos: 0.85
     max_hood_servo_pos: 0.0
-    max_moving_speed_ips: 60.0
-    min_valid_distance: 30.0
-    max_valid_distance: 150.0
+    # Steep lobs fly ~0.6-0.8 s, so lead grows fast with speed; start conservative.
+    max_moving_speed_ips: 20.0
+    min_valid_distance: 24.0
+    max_valid_distance: 72.0
+    max_off_axis_deg: 60.0
     lead_bias_gain: 1.0
     v0_reference_rpm: 1000.0
-    preferred_shot_rpm: 1000.0
+    preferred_shot_rpm: 800.0
     max_shot_rpm: 1450.0
     v0_margin_fraction: 0.12
     rpm_update_deadband: 25.0
-    flight_time_sec_per_inch: 0.004
+    # Lob flight time ~ base + per_inch * range; seeded from a launch model (0.63 s at 24 in,
+    # 0.80 s at 60 in). Only used to lead moving shots.
+    flight_time_base_sec: 0.51
+    flight_time_sec_per_inch: 0.0049
     lead_min_speed_ips: 10.0
   shot_table:
-    # Ballistics Callibration - August 8th, 9:28 pm
-    points: [
-        49.4, 0.0000, 1000.0,
-        71.0, 0.0000, 1038.0,
-        96.2, 0.8500, 1193.0,
-        113.3, 0.6722, 1232.0,
-        124.1, 0.8245, 1293.0,
-        136.2, 0.7139, 1382.0
+    # PLACEHOLDER rows seeded from a launch model for the CELL opening (59.6 in up), not
+    # measured. While calibrated is false the automatic feed gate refuses to fire; run the
+    # Ballistics Calibration OpMode for each SCORING ELEMENT, paste its rows, then set true.
+    calibrated: false
+    # distance_in, hood_servo, flywheel ticks/s
+    pollen_points: [
+        24.0, 0.0000, 800.0,
+        36.0, 0.0000, 840.0,
+        48.0, 0.0500, 880.0,
+        60.0, 0.1000, 925.0,
+        72.0, 0.1500, 970.0
+      ]
+    nectar_points: [
+        24.0, 0.0000, 880.0,
+        36.0, 0.0000, 925.0,
+        48.0, 0.0500, 970.0,
+        60.0, 0.1000, 1020.0,
+        72.0, 0.1500, 1070.0
       ]
 
 auto:
+  # distance_in, shoot_window_ms pairs written by the Shot Timing Tuner. PLACEHOLDER.
   shot_time_points: [
-      953.3, 1028,
-      981.0, 2056,
-      1048.3, 1181,
-      1131.1, 1911,
-      1256.7, 4209,
-      1373.9, 4014
+      24.0, 2200,
+      72.0, 3000
     ]
-  balls_per_shot_count: 3
-  drink_wait_ms: 1200
-  shoot_wait_ms: 1300
-  launch_power: 0.71
+  shoot_wait_ms: 2500
+  balls_per_volley_count: 4
+  tip_wait_ms: 2500
+  collect_dwell_ms: 1200
+  # Park deadline: AUTO stops the routine and parks once the time left is no more than the estimated
+  # drive to park (stopping from the current speed, then the route around the HIVE) plus
+  # park_margin_ms, and never later than park_reserve_ms before the end. Re-estimated every
+  # park_update_ms. The estimate is deliberately slow (strafe top speed, a settle per corner).
+  park_margin_ms: 2500
+  park_reserve_ms: 3000
+  park_update_ms: 250
   transfer_power: 0.12
-  opposite_drink_wait_ms: 1250
-  opposite_shoot_wait_ms: 2450
-  opposite_launch_power: 0.86
-  opposite_transfer_power: 0.12
-  endgame:
-    period_ms: 30000
-    evacuate_ms: 3000
-    freeze_ms: 1000
-    exit_clearance: 2.0
+  cell_a_collect_flower: true
+  cell_a_second_volley: true
+  cell_b_collect_flower: true
 
 teleop:
   max_speed: 1
@@ -322,66 +450,67 @@ teleop:
   intake_power: 1.0
   transfer_power: 0.1
   manual_rev_power: 0.6
+  eject_power: -0.6
+  rumble_ms: 600
+  # Park alert, from match.final_warning_remaining_ms on: once the time left is no more than the
+  # estimated drive to the park pose plus this margin, rumble, speak and flash until parked.
+  park_alert_margin_ms: 4000
+  park_alert_update_ms: 250
+  park_alert_repeat_ms: 1000
   poses:
     red:
-      start: [87, 8, 91]
-      score: [61, 21, 0]
-      drink: [129, 60.5, 42]
-      park: [37.5, 32, 270]
+      start: [58.0, 9.0, 90]
+      park: [16.0, 99.0, 90]
+      shoot_a: [58.0, 27.0, 90]
+      shoot_b: [58.0, 114.0, 270]
+      flower: [16.0, 47.36, 180]
     blue:
-      start: [57, 8, 90]
-      score: [81, 21, 121]
-      drink: [12, 60.5, 140]
-      park: [105.5, 31, 270]
+      start: m
+      park: m
+      shoot_a: m
+      shoot_b: m
+      flower: m
 
+# Autonomous routines. CELL A is the alliance's CELL that starts upward-facing (RED audience
+# CELL, BLUE rear CELL); CELL B is the other CELL of the same HIVE. Blue poses are the 180-degree
+# rotation of red about the field centre.
 auto_poses:
-  normal:
-    blue:
-      start: [27, 128, 135]
-      score: [56, 80, 127]
-      final_score: [57, 104, 144]
-      drink_cp: [45, 72, 140]
-      drink_end: [10, 60, 144]
-      pickup1_cp: [41, 84, 180]
-      pickup1_end: [18, 84, 180]
-      pickup2_cp: [56, 55, 180]
-      pickup2_end: [12, 59, 180]
-      pickup3_cp: [56, 25, 180]
-      pickup3_end: [11, 36, 180]
+  cell_a:
     red:
-      start: [117, 128, 45]
-      score: [88, 80, 50]
-      final_score: [87, 104, 39]
-      drink_cp: [96, 72, 40]
-      drink_end: [130, 60.5, 40]
-      pickup1_cp: [100, 84, 0]
-      pickup1_end: [123, 84, 0]
-      pickup2_cp: [84, 55, 0]
-      pickup2_end: [130, 60, 0]
-      pickup3_cp: [88, 25, 0]
-      pickup3_end: [130, 36, 0]
-  opposite:
+      start: [58.0, 9.0, 90]
+      score_a: [58.0, 27.0, 90]
+      flower: [16.0, 47.36, 180]
+      score_b_cp: [16.0, 100.0, 0]
+      score_b: [36.0, 106.0, 318.36]
+      park: [16.0, 99.0, 90]
     blue:
-      start: [57, 8, 90]
-      score: [59, 20, 111]
-      drink_cp: [50, 50, 140]
-      drink_end: [13, 60.5, 140]
-      pickup2_cp: [60, 68, 180]
-      pickup2_end: [12, 58, 180]
-      pickup3_cp: [60, 40, 180]
-      pickup3_end: [12, 36, 180]
-      pickup4_cp: [50, 20, 190]
-      pickup4_end: [12, 10, 190]
-      park: [40, 20, 111]
+      start: m
+      score_a: m
+      flower: m
+      score_b_cp: m
+      score_b: m
+      park: m
+  cell_b:
     red:
-      start: [87, 8, 90]
-      score: [85, 20, 70]
-      drink_cp: [90, 50, 40]
-      drink_end: [130, 60.5, 40]
-      pickup2_cp: [84, 68, 0]
-      pickup2_end: [130, 60, 0]
-      pickup3_cp: [84, 40, 0]
-      pickup3_end: [130, 36, 0]
-      pickup4_cp: [94, 20, 350]
-      pickup4_end: [131, 13, 350]
-      park: [103, 20, 70]
+      start: [30.0, 132.5, 270]
+      score_b_cp: [30.0, 114.0, 0]
+      score_b: [58.0, 114.0, 270]
+      flower: [47.36, 125.5, 90]
+      alt_via: [30.0, 104.0, 0]
+      alt_a: [32.0, 33.0, 40.31]
+      park: [16.0, 119.5, 270]
+    blue:
+      start: m
+      score_b_cp: m
+      score_b: m
+      flower: m
+      alt_via: m
+      alt_a: m
+      park: m
+  park_only:
+    red:
+      start: [9.0, 75.0, 0]
+      park: [16.0, 99.0, 0]
+    blue:
+      start: m
+      park: m

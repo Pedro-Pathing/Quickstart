@@ -16,8 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.records.Alliance;
+import org.firstinspires.ftc.teamcode.records.BallType;
+import org.firstinspires.ftc.teamcode.records.HiveCell;
 import org.firstinspires.ftc.teamcode.records.MatchProfile;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.utilities.CalibrationRay;
 import org.firstinspires.ftc.teamcode.utilities.DrawingUtil;
 import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
@@ -28,8 +31,8 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
 
   /**
    * One accepted shot: exactly the three numbers the robot commands, plus provenance. No hood angle
-   * — the ring's launch angle is not observable on this robot and every attempt to infer it from
-   * goal-height shots was unidentifiable, so nothing downstream depends on it any more.
+   * — the ball's launch angle is not observable on this robot and inferring it from shots that
+   * merely entered the opening is unidentifiable, so nothing downstream depends on it.
    */
   public record CalibrationPoint(
       double distanceInches, double hoodServoPos, double rpm, String verdict, long timestampMs) {}
@@ -46,22 +49,27 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
   private final List<CalibrationPoint> trials = new ArrayList<>();
   private boolean flywheelRevOn = false;
   private boolean xPressed = false;
+  private boolean shotHeld = false;
 
-  // Starting pose (72, 72, 0) in Pedro Pathing coordinates
-  private static final Pose START_POSE = new Pose(72, 72, 0);
+  /**
+   * Calibration distances (inches, robot centre to the RED CELL A opening centre). The ray is
+   * {@link #RAY_OFF_AXIS_DEG} off the opening's outward direction so it reaches ~52 in before the
+   * audience wall; longer endpoints are skipped automatically.
+   */
+  private static final double[] CALIBRATION_DISTANCES = new double[] {24.0, 30.0, 36.0, 42.0, 48.0};
 
-  // Target calibration distances (inches) from the Blue Goal. The top end is 138 rather than the
-  // 142.1 in ceiling CalibrationRay imposes, so the far endpoint keeps ~2 in of margin on both
-  // bounds — moveToWaypoint only settles to within 0.8 in and the ceiling sits exactly on the
-  // corner of the legal box.
-  private static final double[] CALIBRATION_DISTANCES =
-      new double[] {48.0, 72.0, 96.0, 114.0, 126.0, 138.0};
+  /** Ray angle off the CELL opening's outward direction, toward the RED alliance wall. */
+  private static final double RAY_OFF_AXIS_DEG = -40.0;
+
+  private BallType ballType = BallType.POLLEN;
+  private CalibrationRay ray;
 
   private final List<Double> skippedDistances = new ArrayList<>();
 
   @Override
   public void runOpMode() throws InterruptedException {
     org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
+    org.firstinspires.ftc.teamcode.utilities.OpModeUtil.reportConfig(telemetry);
 
     field = PanelsField.INSTANCE.getField();
     if (field != null) {
@@ -74,26 +82,36 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
       module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
     }
 
-    // Always calibrate playing Blue Goal derived from config/Field
+    // Always calibrate against RED's CELL A (its audience-side CELL), which must be upward-facing.
     MatchProfile profile =
-        org.firstinspires.ftc.teamcode.robot.config.generated.config.loadMatchProfile(
-            Alliance.BLUE);
+        org.firstinspires.ftc.teamcode.robot.config.generated.config.loadMatchProfile(Alliance.RED);
     robot = new Robot(hardwareMap, telemetry, profile);
-    robot.follower.setPose(START_POSE);
+    robot.follower.setPose(profile.shootAPose());
+    ray = CalibrationRay.forCell(robot.field, HiveCell.A, RAY_OFF_AXIS_DEG);
 
-    double blueGoalX = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalX();
-    double blueGoalY = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalY();
+    boolean bumperPrev = false;
+    while (!isStarted() && !isStopRequested()) {
+      boolean bumper = gamepad1.right_bumper;
+      if (bumper && !bumperPrev) {
+        ballType = ballType.toggled();
+      }
+      bumperPrev = bumper;
 
-    telemetry.addLine("Ballistics Human-in-the-Loop Calibration (Blue Alliance)");
-    telemetry.addLine("Starting Pose: (72, 72, 0°)");
-    telemetry.addData("Target Blue Goal", "(%.1f, %.1f)", blueGoalX, blueGoalY);
-    telemetry.addLine("--------------------------------------------------");
-    telemetry.addLine("Workflow per Distance Endpoint:");
-    telemetry.addLine("  1. Confirmation Prompt prints Coords (X, Y, Heading)");
-    telemetry.addLine("  2. Press A to CONFIRM move | Press B to SKIP");
-    telemetry.addLine("  3. Autonomous move or manual drive to waypoint");
-    telemetry.addLine("  4. D-Pad UP (LONG) / DOWN (SHORT) / A (ACCEPT)");
-    telemetry.update();
+      telemetry.addLine("Ballistics Human-in-the-Loop Calibration (RED CELL A)");
+      telemetry.addLine("Place the robot at teleop.poses.red.shoot_a; RED's audience CELL UP.");
+      telemetry.addData("Target CELL opening", "(%.1f, %.1f)", ray.targetX(), ray.targetY());
+      telemetry.addData("Ball type (right bumper)", ballType);
+      telemetry.addData("Longest distance on ray", "%.1f in", ray.maxDistance());
+      telemetry.addLine("--------------------------------------------------");
+      telemetry.addLine("Workflow per Distance Endpoint:");
+      telemetry.addLine("  1. Confirmation Prompt prints Coords (X, Y, Heading)");
+      telemetry.addLine("  2. Press A to CONFIRM move | Press B to SKIP");
+      telemetry.addLine("  3. Autonomous move or manual drive to waypoint");
+      telemetry.addLine("  4. D-Pad UP (LONG) / DOWN (SHORT) / A (ACCEPT)");
+      telemetry.update();
+      sleep(20);
+    }
+    robot.shotController.setBallType(ballType);
 
     waitForStart();
 
@@ -101,16 +119,14 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
       for (double distance : CALIBRATION_DISTANCES) {
         if (!opModeIsActive()) break;
 
-        double gx = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalX();
-        double gy = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalY();
-
         // A distance past where the ray leaves the legal box is simply not calibratable along this
         // bearing, so skip it rather than shoot it anyway. The previous code clamped X and Y
         // independently, which silently slid the target OFF the ray: a requested 144 in became
-        // (49.9, 15.0), an actual 124.8 in from the goal on a different bearing, and got logged as
+        // (49.9, 15.0), an actual 124.8 in from the target on a different bearing, and got logged
+        // as
         // a 144 in trial. That is a corrupt calibration point, and it is also why long endpoints
         // looked like the robot "gave up" partway.
-        double maxOnRayDistance = CalibrationRay.maxDistance(gx, gy);
+        double maxOnRayDistance = ray.maxDistance();
         if (distance > maxOnRayDistance) {
           skippedDistances.add(distance);
           telemetry.clearAll();
@@ -118,14 +134,29 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
           telemetry.addData("Requested distance", "%.1f in", distance);
           telemetry.addData("Max along this ray", "%.1f in", maxOnRayDistance);
           telemetry.addLine("The ray leaves the legal drive box before this distance.");
-          telemetry.addLine("Widen RAY_END_X/RAY_END_Y or the bounds to calibrate this far.");
+          telemetry.addLine("Increase RAY_OFF_AXIS_DEG to calibrate this far.");
           telemetry.update();
           sleep(1500);
           continue;
         }
 
-        Pose targetPose = CalibrationRay.waypoint(gx, gy, distance);
+        // Put the turret axis (not the robot centre) on the ray at this distance.
+        Pose targetPose = Turret.robotPoseForPivot(ray.waypoint(distance));
         double targetHeadingDeg = Math.toDegrees(targetPose.heading());
+
+        // The follower drives straight there on its own: refuse an endpoint whose drive or final
+        // footprint would touch the HIVE frame or a wall (a measured pivot offset can move it).
+        java.util.Optional<String> unsafe = driveProblem(robot.follower.pose(), targetPose);
+        if (unsafe.isPresent()) {
+          skippedDistances.add(distance);
+          telemetry.clearAll();
+          telemetry.addLine("SKIPPING UNSAFE ENDPOINT");
+          telemetry.addData("Requested distance", "%.1f in", distance);
+          telemetry.addData("Drive there", unsafe.get());
+          telemetry.update();
+          sleep(1500);
+          continue;
+        }
 
         // --- STEP 1: DRIVER CONFIRMATION PROMPT ---
         boolean confirmed = promptDriverConfirmation(distance, targetPose, targetHeadingDeg);
@@ -173,8 +204,8 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
         }
         telemetry.addData("UNREACHABLE, never shot", "%s in", skipped);
       }
-      telemetry.addLine("Paste into config.yaml at shooter.shot_table.points");
-      telemetry.addLine("Full copy saved to /sdcard/FIRST/teamcode/shot_table.yaml");
+      telemetry.addLine("Replace shooter.shot_table." + pointsKey() + " in config.yaml");
+      telemetry.addLine("Full copy saved to /sdcard/FIRST/teamcode/" + tableFileName());
       telemetry.update();
 
       // Idle until the driver stops the OpMode. The telemetry is re-sent with a running counter
@@ -196,7 +227,7 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
               String.format("  %.1f, %.4f, %.0f", p.distanceInches(), p.hoodServoPos(), p.rpm()));
         }
         telemetry.addLine("========================================");
-        telemetry.addLine("Saved to /sdcard/FIRST/teamcode/shot_table.yaml");
+        telemetry.addLine("Saved to /sdcard/FIRST/teamcode/" + tableFileName());
         telemetry.addData(
             "DONE — safe to stop", "idle %ds", (System.currentTimeMillis() - idleStartMs) / 1000);
         telemetry.update();
@@ -254,6 +285,22 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
     return confirmed;
   }
 
+  /** Why driving straight from {@code from} to {@code to} is unsafe, or empty if it is clear. */
+  private java.util.Optional<String> driveProblem(Pose from, Pose to) {
+    List<Pose> samples = new ArrayList<>();
+    int steps = Math.max(2, (int) Math.ceil(from.distance(to)));
+    double turn = AngleUnit.normalizeRadians(to.heading() - from.heading());
+    for (int i = 0; i <= steps; i++) {
+      double t = (double) i / steps;
+      samples.add(
+          new Pose(
+              from.x() + t * (to.x() - from.x()),
+              from.y() + t * (to.y() - from.y()),
+              from.heading() + t * turn));
+    }
+    return robot.sentinel.routeProblem(samples, false);
+  }
+
   private void moveToWaypoint(Pose targetPose) {
     robot.follower.hold(targetPose);
 
@@ -283,9 +330,9 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
           Math.toDegrees(
               Math.abs(AngleUnit.normalizeRadians(targetPose.heading() - currentPose.heading())));
 
-      double gx = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalX();
-      double gy = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalY();
-      double actualDist = Math.hypot(gy - currentPose.y(), gx - currentPose.x());
+      // Measured from the turret axis, exactly like ShotSolver's lookup distance.
+      Pose pivot = Turret.pivotPose(currentPose);
+      double actualDist = Math.hypot(ray.targetY() - pivot.y(), ray.targetX() - pivot.x());
 
       telemetry.addData(
           "Moving to Target",
@@ -301,7 +348,7 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
           Math.toDegrees(currentPose.heading()));
       telemetry.addData("Pos Error (in)", "%.2f", distError);
       telemetry.addData("Heading Error (deg)", "%.1f°", angleErrorDeg);
-      telemetry.addData("Actual Distance to Goal", "%.2f in", actualDist);
+      telemetry.addData("Actual Distance to CELL", "%.2f in", actualDist);
       telemetry.update();
 
       if ((distError < 0.8 && angleErrorDeg < 1.5)
@@ -329,7 +376,7 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
     String seedSource;
     try {
       org.firstinspires.ftc.teamcode.ballistics.ShotTable.Shot seed =
-          org.firstinspires.ftc.teamcode.ballistics.ShotTable.fromConfig()
+          org.firstinspires.ftc.teamcode.ballistics.ShotTable.fromConfig(ballType)
               .lookup(targetDistanceInches);
       testPos = seed.hoodServoPosition();
       pinnedRpm = seed.rpm();
@@ -474,10 +521,25 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
       // TeleOp & Calibration Shooting Controls. Alignment is still checked (turret aims/gates
       // normally), but useSolvedRpm is forced false: ShotController's own async solver reacts to
       // the robot's live pose, and would otherwise fight pinnedPower with its own answer for
-      // whatever the actual distance to goal is right now, defeating the point of pinning this
+      // whatever the actual distance to the CELL is right now, defeating the point of pinning this
       // endpoint's calibration shot to a fixed, known RPM.
-      if (gamepad1.right_trigger > 0.3) {
+      boolean shotPressed = gamepad1.right_trigger > 0.3;
+      if (shotHeld && !shotPressed) {
+        // Release the shot so the controller stops owning the intake (right bumper) and the
+        // flywheel; keep the flywheel spinning if the rev toggle is on.
+        robot.shotController.stopShot();
+        if (flywheelRevOn) {
+          robot.shooter.setTargetPower(pinnedPower);
+        }
+      }
+      // Start once per press: restarting every loop reset the feed latch and the ball detector, so
+      // feeding behaved differently from the TeleOp shot this table is for.
+      if (shotPressed && !shotHeld) {
         robot.shotController.startShot(pinnedPower, true, false, false);
+      }
+      shotHeld = shotPressed;
+      if (shotPressed) {
+        // The running shot owns the intake until RT is released.
       } else if (gamepad1.right_bumper) {
         robot.intake.run(
             org.firstinspires.ftc.teamcode.robot.config.generated.config.teleop.intake_power,
@@ -497,9 +559,9 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
       robot.update();
       drawVisuals();
 
-      double gx = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalX();
-      double gy = org.firstinspires.ftc.teamcode.records.Field.getBlueGoalY();
-      double actualDist = Math.hypot(gy - currentPose.y(), gx - currentPose.x());
+      // Measured from the turret axis, exactly like ShotSolver's lookup distance.
+      Pose pivot = Turret.pivotPose(currentPose);
+      double actualDist = Math.hypot(ray.targetY() - pivot.y(), ray.targetX() - pivot.x());
 
       // Flywheel gate diagnostics
       double flywheelVelocity = Math.abs(robot.shotController.getFlywheelVelocity());
@@ -521,7 +583,7 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
       String gateStatus = flywheelGateMet ? "PASS" : "FAIL (not feeding)";
 
       telemetry.addData("Target Distance (in)", targetDistanceInches);
-      telemetry.addData("Actual Distance to Goal", "%.2f in", actualDist);
+      telemetry.addData("Actual Distance to CELL", "%.2f in", actualDist);
       telemetry.addData(
           "Current Robot Pose",
           "(%.1f, %.1f, %.1f°)",
@@ -652,8 +714,9 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
 
   private void drawVisuals() {
     if (field != null) {
-      DrawingUtil.drawCasablancaZones(field, robot.sentinel);
-      OpModeUtil.drawRobot(field, robot.follower, robot.turret, 0.0, 144.0);
+      DrawingUtil.drawFieldZones(field, robot.sentinel);
+      OpModeUtil.drawRobot(
+          field, robot.follower, robot.turret, robot.field.target(HiveCell.A, robot.hive.epoch()));
     }
   }
 
@@ -676,12 +739,24 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
     saveTrialsToFile(buildTableYaml(accepted));
   }
 
-  /** Renders the accepted shots as a paste-ready shooter.shot_table.points block. */
+  private String pointsKey() {
+    return ballType == BallType.NECTAR ? "nectar_points" : "pollen_points";
+  }
+
+  private String tableFileName() {
+    return ballType == BallType.NECTAR ? "shot_table_nectar.yaml" : "shot_table_pollen.yaml";
+  }
+
+  /**
+   * Renders the accepted shots as the one entry to replace, shooter.shot_table.*_points, without a
+   * shot_table: header: pasting a whole shot_table block under shooter: made a duplicate key, and
+   * the last one won, dropping calibrated and the other ball's table.
+   */
   private String buildTableYaml(List<CalibrationPoint> accepted) {
     StringBuilder sb = new StringBuilder();
-    sb.append("  shot_table:\n");
-    sb.append("    # distance_in, hood_servo, flywheel_rpm\n");
-    sb.append("    points: [\n");
+    sb.append("    # distance_in, hood_servo, flywheel ticks/s; set calibrated: true once both\n");
+    sb.append("    # SCORING ELEMENTS have real rows\n");
+    sb.append("    ").append(pointsKey()).append(": [\n");
     for (int i = 0; i < accepted.size(); i++) {
       CalibrationPoint p = accepted.get(i);
       sb.append(
@@ -705,9 +780,13 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
     if (!dir.exists()) {
       dir.mkdirs();
     }
-    try (FileWriter writer = new FileWriter(new File(dir, "shot_table.yaml"), false)) {
+    String fileName = tableFileName();
+    try (FileWriter writer = new FileWriter(new File(dir, fileName), false)) {
       writer.write("# Generated by Ballistics Calibration\n");
-      writer.write("# Paste the block below into config.yaml under shooter:\n\n");
+      writer.write(
+          "# Replace shooter.shot_table."
+              + pointsKey()
+              + " in config.yaml with the entry below\n\n");
       writer.write(tableYaml);
       writer.write("\n# --- every trial this run ---\n");
       for (CalibrationPoint p : trials) {

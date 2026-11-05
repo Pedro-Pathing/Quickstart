@@ -1,0 +1,29 @@
+package org.firstinspires.ftc.robotcore.external.navigation;
+
+/**
+ * Trusted contract for the FTC SDK's AngleUnit (RobotCore 12.0.0), written from its bytecode:
+ *
+ *   if (|d| > 720) d = signum(d) * (|d| - floor(|d| / 360) * 360);
+ *   while (d >= 180) d -= 360;
+ *   while (d < -180) d += 360;
+ *   return d;
+ *
+ * Only -540 <= d < 540 and NaN are specified; there at most one loop iteration runs. Beyond that it can
+ * fail to return at all (e.g. -7.66e86, whose reduction is too large for 360-degree steps to
+ * change), so TurretLaw.wrap reduces with Math.IEEEremainder before calling it.
+ */
+public enum AngleUnit {
+  DEGREES(0), RADIANS(1);
+
+  /*@ public normal_behavior
+    @   requires Double.isFinite(degrees) && -540 <= degrees && degrees < 540;
+    @   ensures -180 <= \result && \result < 180;
+    @   ensures (-180 <= degrees && degrees < 180) ==> \result == degrees;
+    @   ensures 180 <= degrees ==> \result == degrees - 360.0;
+    @   ensures degrees < -180 ==> \result == degrees + 360.0;
+    @ also public normal_behavior
+    @   requires Double.isNaN(degrees);
+    @   ensures Double.isNaN(\result);
+    @*/
+  public static /*@ pure @*/ double normalizeDegrees(double degrees);
+}

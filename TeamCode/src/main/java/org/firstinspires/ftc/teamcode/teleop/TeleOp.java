@@ -4,59 +4,71 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
+import org.firstinspires.ftc.teamcode.records.CellTarget;
 import org.firstinspires.ftc.teamcode.robot.Shooter;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.Casablanca;
 
+/**
+ * BIOBUZZ TeleOp. Controls are listed in teleop_controls.md; in short:
+ *
+ * <p>Driver: sticks drive; X toggles facing the upward CELL; right trigger holds the shooting pose
+ * for whichever CELL is up; left trigger holds the LOADING ZONE park pose; dpad left holds the
+ * side-wall FLOWER pickup pose; dpad right or any stick cancels a hold.
+ *
+ * <p>Operator: A intake, B stop intake, dpad right (hold) eject, right trigger (hold)
+ * aim-and-shoot, Y (hold) turret aim, X (hold) rev, dpad up fixed-power shot, left trigger cancels
+ * everything, dpad down (hold) vision relocalize, left bumper records a TIP the camera missed, back
+ * undoes one, right bumper toggles POLLEN/NECTAR shot tables, left stick button marks the robot
+ * empty.
+ */
 @Configurable
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "!")
+// Commands are assigned by buildCommands(), which TeleOpBase.init() calls.
+@SuppressWarnings("NullAway.Init")
 public class TeleOp extends TeleOpBase {
 
   private Command parkCommand;
-  private Command scoreCommand;
-  private Command drinkCommand;
+  private Command shootPoseCommand;
+  private Command flowerPoseCommand;
   private Command intakeCommand;
+  private Command ejectCommand;
   private Command aimAndShootCommand;
   private Command aimCommand;
   private Command shootManualCommand;
   private Command manualRevCommand;
 
-  /** Latched state of the driver's face-the-goal heading lock; toggled by driver X. */
-  private boolean goalHeadingLockEngaged = false;
+  /** Latched state of the driver's face-the-upward-CELL heading lock; toggled by driver X. */
+  private boolean cellHeadingLockEngaged = false;
 
   @Override
   protected void buildCommands() {
     parkCommand =
-        Command.build().setStart(() -> follower.hold(profile.parkPose())).requiring(follower);
+        Command.build().setStart(() -> holdPoseIfClear(profile.parkPose())).requiring(follower);
 
-    scoreCommand =
+    // Resolved when the command starts, so it always goes to the CELL that is up right now.
+    shootPoseCommand =
         Command.build()
-            .setStart(
-                () -> {
-                  follower.hold(profile.scorePose());
-                })
+            .setStart(() -> holdPoseIfClear(profile.shootPose(hive.upCell())))
             .requiring(follower);
 
-    drinkCommand =
-        Command.build().setStart(() -> follower.hold(profile.drinkPose())).requiring(follower);
+    flowerPoseCommand =
+        Command.build().setStart(() -> holdPoseIfClear(profile.flowerPose())).requiring(follower);
 
     intakeCommand =
-        Command.build()
-            .setStart(() -> intake.run(config.teleop.intake_power, config.teleop.transfer_power))
-            .setEnd(interrupted -> intake.stop())
-            .requiring(intake);
+        intake.runIntakeCommand(config.teleop.intake_power, config.teleop.transfer_power);
 
-    // Built by ShotController so autonomous fires the exact same shot; see
-    // ShotController#aimAndShootCommand.
-    aimAndShootCommand = shotController.aimAndShootCommand(follower, sentinel);
+    ejectCommand = intake.ejectCommand(config.teleop.eject_power);
 
-    // Turret only, no flywheel. Aim (operator Y) and rev (operator X) are deliberately separate
-    // commands over disjoint subsystems so holding both composes into aim-and-spin-up instead of
-    // one overriding the other.
+    // Built by ShotController so autonomous volleys fire the exact same shot.
+    aimAndShootCommand = shotController.aimAndShootCommand(follower);
+
+    // Turret only, no flywheel. Aim (operator Y) and rev (operator X) are separate commands over
+    // disjoint subsystems so holding both composes into aim-and-spin-up.
     aimCommand =
         Command.build()
-            .setStart(() -> turret.setAimMode(Turret.AimMode.AIM_AT_GOAL))
+            .setStart(() -> turret.setAimMode(Turret.AimMode.AIM_AT_TARGET))
             .setEnd(
                 interrupted -> {
                   turret.setHoldAngle(0.0);
@@ -70,8 +82,7 @@ public class TeleOp extends TeleOpBase {
             .setEnd(interrupted -> shotController.stopShot())
             .requiring(shooter, intake);
 
-    // Flywheel only, no turret and no intake — intake ownership stays with intakeCommand so this
-    // does not write to a subsystem it never required.
+    // Flywheel only: intake ownership stays with intakeCommand.
     manualRevCommand =
         Command.build()
             .setStart(() -> shooter.setTargetPower(config.teleop.manual_rev_power))
@@ -82,17 +93,18 @@ public class TeleOp extends TeleOpBase {
   @Override
   protected boolean hasActiveDriveOverride() {
     return Scheduler.isScheduled(parkCommand)
-        || Scheduler.isScheduled(scoreCommand)
-        || Scheduler.isScheduled(drinkCommand)
+        || Scheduler.isScheduled(shootPoseCommand)
+        || Scheduler.isScheduled(flowerPoseCommand)
         || Scheduler.isScheduled(aimAndShootCommand);
   }
 
   @Override
   protected void onLoop() {
-    boolean launchAllowed = sentinel.isLaunchAllowed(follower.pose());
+    handleOperator();
+    handleDriver();
+  }
 
-    // A starts the intake, B stops it. B used to be a second copy of the rev button, which left no
-    // dedicated way to stop the intake once rev moved onto its own button.
+  private void handleOperator() {
     if (operatorA.onTrue()) {
       intakeCommand.schedule();
     }
@@ -100,16 +112,22 @@ public class TeleOp extends TeleOpBase {
       intakeCommand.cancel();
     }
 
-    if (operatorRightTrigger.onTrue() && launchAllowed) {
+    // Hold to spit out a fifth SCORING ELEMENT (G407) or opponent NECTAR (G408).
+    if (operatorDpadRight.onTrue()) {
+      ejectCommand.schedule();
+    }
+    if (operatorDpadRight.onFalse()) {
+      ejectCommand.cancel();
+    }
+
+    if (operatorRightTrigger.onTrue()) {
       aimAndShootCommand.schedule();
     }
     if (operatorRightTrigger.onFalse()) {
       aimAndShootCommand.cancel();
     }
 
-    // Y aims (turret), X revs (flywheel). Both are hold-to-run; holding both gives the old
-    // combined aim-and-spin-up behavior that X alone used to have.
-    if (operatorY.onTrue() && launchAllowed) {
+    if (operatorY.onTrue()) {
       aimCommand.schedule();
     }
     if (operatorY.onFalse()) {
@@ -133,55 +151,66 @@ public class TeleOp extends TeleOpBase {
       shootManualCommand.cancel();
       manualRevCommand.cancel();
       intakeCommand.cancel();
+      ejectCommand.cancel();
     }
 
-    if (driverDpadLeft.onTrue()) {
+    // HIVE bookkeeping the camera may have missed. Each press changes the tracker's epoch, which
+    // invalidates any shot solved against the previous upward CELL.
+    if (operatorLeftBumper.onTrue()) {
+      hive.recordTip();
+    }
+    if (operatorBack.onTrue()) {
+      hive.undoTip();
+    }
+
+    if (operatorRightBumper.onTrue()) {
+      shotController.setBallType(shotController.getBallType().toggled());
+    }
+
+    if (operatorLeftStick.onTrue()) {
+      intake.inventory().set(0);
+    }
+  }
+
+  private void handleDriver() {
+    if (driverLeftTrigger.onTrue()) {
       parkCommand.schedule();
     }
     if (driverRightTrigger.onTrue()) {
-      scoreCommand.schedule();
+      shootPoseCommand.schedule();
     }
-    if (driverLeftTrigger.onTrue()) {
-      drinkCommand.schedule();
+    if (driverDpadLeft.onTrue()) {
+      flowerPoseCommand.schedule();
     }
 
-    // Driver X toggles the heading lock between facing the goal continuously and its default of
-    // holding whatever heading the turn stick was last released at. While engaged it owns the turn
-    // axis (translation is untouched); pressing X again or steering releases it, and the telemetry
-    // line in TeleOpBase reports which mode is live.
-    //
-    // The target is republished every loop rather than latched once, so the bearing tracks the
-    // robot as the driver translates. Deliberately the raw goal bearing, not ShotController's
-    // lead-compensated azimuth: the lead offset is proportional to robot velocity, so folding it
-    // in would make the chassis chase its own motion — the lock turns the robot, the turn adds
-    // velocity, the target moves again.
+    // Driver X toggles a heading lock that keeps the chassis facing the upward CELL while the
+    // driver translates. Republished every loop so the bearing follows the robot and flips to the
+    // other CELL on a TIP. Deliberately the raw bearing, not the lead-compensated azimuth: lead is
+    // proportional to robot velocity, so the lock would chase its own motion.
     if (driverX.onTrue()) {
-      goalHeadingLockEngaged = !goalHeadingLockEngaged;
+      cellHeadingLockEngaged = !cellHeadingLockEngaged;
     }
 
     // Steering releases the lock, so a latched mode can never leave the driver unable to turn.
-    // Checked after the toggle above so reaching for the stick in the same loop as the press wins.
-    // Reuses the configured "is the driver steering at all" threshold that the automatic heading
-    // lock already unlatches on, rather than a second hand-picked deadband — the stick has to feel
-    // the same in both modes. Deliberately turn-only: strafing while facing the goal is the point.
     if (Math.abs(driver.right_stick_x) > Casablanca.headingLockIntentThreshold) {
-      goalHeadingLockEngaged = false;
+      cellHeadingLockEngaged = false;
     }
 
     Pose pose = follower.pose();
-    casablanca.setGoalHeadingLock(
-        Turret.alignPose(pose.x(), pose.y(), profile.goalX(), profile.goalY()).heading(),
-        goalHeadingLockEngaged);
+    CellTarget target = shotController.currentTarget();
+    casablanca.setTargetHeadingLock(
+        Turret.alignPose(pose.x(), pose.y(), target.x(), target.y()).heading(),
+        cellHeadingLockEngaged);
 
     boolean driverStickDeflected =
         Math.abs(driver.left_stick_y) > 0.2
             || Math.abs(driver.left_stick_x) > 0.2
             || Math.abs(driver.right_stick_x) > 0.2;
 
-    if (driverDpadRight.onTrue() || operatorDpadRight.onTrue() || driverStickDeflected) {
+    if (driverDpadRight.onTrue() || driverStickDeflected) {
       parkCommand.cancel();
-      scoreCommand.cancel();
-      drinkCommand.cancel();
+      shootPoseCommand.cancel();
+      flowerPoseCommand.cancel();
     }
   }
 }

@@ -1,6 +1,6 @@
 # Pedro 3 migration notes
 
-This branch merges Pedro Pathing QuickStart v3.0.1 with the team's existing `decode` code. It preserves both histories, so future QuickStart updates can be merged from `upstream`. The repository is named for BIOBUZZ, but the copied alliance goal geometry, autonomous poses, shot tables, and robot hardware configuration are still from the DECODE season. Update those before using this code for a BIOBUZZ match.
+This branch merges Pedro Pathing QuickStart v3.0.1 with the team's existing `decode` code. It preserves both histories, so future QuickStart updates can be merged from `upstream`. The DECODE game code has since been replaced for BIOBUZZ; see `BIOBUZZ-SEASON.md`.
 
 ## What changed
 
@@ -23,6 +23,6 @@ This branch merges Pedro Pathing QuickStart v3.0.1 with the team's existing `dec
 1. Build and deploy the app on the robot with FTC SDK 12. Confirm drivetrain motor directions and Pinpoint X/Y signs and offsets before driving full speed.
 2. Open Pedro AutoTune at `http://192.168.43.1:10158` while connected to the Robot Controller. Run the Mecanum and Pinpoint procedures, then Foresight. Enter measured Pedro values in `robot/config/config.yaml` and descriptions in `config-docs.yaml`, then run `./gradlew verifyBuild` and rebuild or use `./gradlew pushConfig`.
 3. Check field-centric TeleOp direction, the goal-zone safety limiter, heading lock, AprilTag pose corrections, turret aim, and each autonomous route at low speed. Paths may complete and hold differently under Foresight; review end constraints and shot timing on the actual field.
-4. Replace the DECODE goal geometry, alliance starting poses, shot tables, and autonomous paths for the BIOBUZZ season before match use.
+4. BIOBUZZ geometry, poses, routines and placeholder shot tables are in place; see `BIOBUZZ-SEASON.md` for the BIOBUZZ bring-up checklist.
 
 `./gradlew verifyBuild` passes locally. Physical robot behavior, AutoTune results, and AprilTag camera calibration have not been validated on hardware.

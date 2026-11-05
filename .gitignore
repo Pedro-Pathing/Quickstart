@@ -83,3 +83,6 @@ lint/tmp/
 # Node / JS
 node_modules/
 bun.lock
+
+# jqwik replays failing samples from this local database
+.jqwik-database

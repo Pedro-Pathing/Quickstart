@@ -439,7 +439,6 @@ public class ConfigGeneratorMain {
     sb.append("import com.pedropathing.math.Pose;\n");
     sb.append("import org.firstinspires.ftc.teamcode.config.ConfigLoader;\n");
     sb.append("import org.firstinspires.ftc.teamcode.records.Alliance;\n");
-    sb.append("import org.firstinspires.ftc.teamcode.records.Field;\n");
     sb.append("import org.firstinspires.ftc.teamcode.records.MatchProfile;\n\n");
 
 
@@ -531,15 +530,8 @@ public class ConfigGeneratorMain {
           String className = toClassName(category) + "Auto";
           Map<String, Object> poseCategoryMap = (Map<String, Object>) categoryEntry.getValue();
 
-          Map<String, Object> categoryGlobal = new LinkedHashMap<>();
-          String prefix = category + "_";
-          for (Map.Entry<String, Object> e : Objects.requireNonNull(autoGlobal).entrySet()) {
-            if (e.getKey().startsWith(prefix)) {
-              categoryGlobal.put(e.getKey().substring(prefix.length()), e.getValue());
-            } else {
-              categoryGlobal.put(e.getKey(), e.getValue());
-            }
-          }
+          // Preserve YAML key names so loadMerged can bind every generated field.
+          Map<String, Object> categoryGlobal = new LinkedHashMap<>(Objects.requireNonNull(autoGlobal));
           emitAllianceClass(sb, className, poseCategoryMap, categoryGlobal, docs, configData);
         }
       }

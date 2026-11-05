@@ -9,6 +9,8 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.robot.config.generated.config;
+import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
 @Autonomous(name = "Forward Left Return Test", group = "Tests")
 public class ForwardLeftReturnTest extends OpMode {
@@ -29,6 +31,8 @@ public class ForwardLeftReturnTest extends OpMode {
 
   @Override
   public void init() {
+    config.reload(); // pick up a pushConfig on re-init
+    OpModeUtil.reportConfig(telemetry); // a rejected push or broken tuning, at INIT
     follower = Constants.create(hardwareMap);
     follower.setPose(startPose);
 

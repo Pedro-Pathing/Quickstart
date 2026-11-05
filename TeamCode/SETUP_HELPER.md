@@ -93,39 +93,19 @@ Before opening a PR, run the full local verification pass (formatting, compile, 
 
 ---
 
-## 6. Managing AI Governance Rules
+## 6. Managing AI Assistant Rules
 
-AI assistant behavior (Claude, Antigravity, Copilot, Codex) is governed by rules in `.ai-rulez/`. These rules are compiled into several generated files (`AGENTS.md`, `CLAUDE.md`, etc.) that the tools read automatically.
+AI assistant behavior (Claude Code, Codex, GitHub Copilot, Antigravity) is governed by [`AGENTS.md`](../AGENTS.md) at the repository root. Every one of these tools reads it directly, so it is the single file to edit; there is no generation step.
 
 **When to update rules:**
 - You've changed a coding convention that AI assistants should follow.
 - You've added a new subsystem or pattern that AI assistants should be aware of.
 - A rule is producing incorrect AI behavior.
 
-**Workflow:**
-
-1. Edit the source files under `.ai-rulez/`:
-   - **Rules** (coding standards): `.ai-rulez/rules/code-quality.md`
-   - **Context** (architecture docs): `.ai-rulez/context/architecture.md`
-   - **Config** (presets & metadata): `.ai-rulez/config.toml`
-
-2. Regenerate the output files:
-   ```bash
-   npx ai-rulez@latest generate
-   ```
-
-3. Validate the configuration:
-   ```bash
-   npx ai-rulez@latest validate
-   ```
-
-4. Commit only the `.ai-rulez/` source changes:
-   ```bash
-   git add .ai-rulez/
-   git commit -m "chore: update AI governance rules"
-   ```
-
-**Do not edit `AGENTS.md`, `CLAUDE.md`, or `GEMINI.md` directly** — they are auto-generated and will be overwritten on the next `generate` run. They're also gitignored: every contributor (and every AI assistant session) regenerates them locally from `.ai-rulez/` rather than pulling committed copies, so there's nothing to commit or keep in sync beyond the `.ai-rulez/` source itself.
+**Layout:**
+- `AGENTS.md`: coding conventions and architecture. Edit and commit it like any other file.
+- `CLAUDE.md` and `GEMINI.md`: one-line `@AGENTS.md` imports, so older Claude Code versions and Gemini-based tools load the same rules. Keep them as bare imports: anything added there reaches only one tool.
+- `.agents/skills/`: shared skills (Codex, Antigravity). `.claude/skills` and `.github/skills` are symlinks to it for Claude Code and Copilot. On Windows, enable symlinks (`git config core.symlinks true` with Developer Mode on) or those two paths check out as plain text files.
 
 ---
 

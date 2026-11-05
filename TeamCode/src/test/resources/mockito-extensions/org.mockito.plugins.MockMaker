@@ -1,0 +1,3 @@
+# Subclass mocks: no Java agent attach or class retransformation at the first mock, which cost
+# every test JVM ~0.7 s. Mocking a final class or a static method needs the default inline maker.
+mock-maker-subclass

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
+import androidx.annotation.Nullable;
+import java.util.Objects;
 import org.firstinspires.ftc.teamcode.records.SlewTuning;
 
 /** Tests both signs on one axis; removes each unnecessary limit before refining necessary ones. */
@@ -16,7 +18,8 @@ public final class SlewCalibrationSearch {
 
   private final double min, max, factor;
   private final int budget;
-  private SlewTuning candidate, best;
+  private SlewTuning candidate;
+  private @Nullable SlewTuning best;
   private Stage stage = Stage.BASELINE;
   private int count;
 
@@ -50,10 +53,10 @@ public final class SlewCalibrationSearch {
     switch (stage) {
       case BASELINE -> {
         if (passed) {
-          if (best.increaseTime() == 0) tryFreeDecrease();
+          if (accepted().increaseTime() == 0) tryFreeDecrease();
           else {
             stage = Stage.FREE_INCREASE;
-            candidate = new SlewTuning(0, best.decreaseTime());
+            candidate = new SlewTuning(0, accepted().decreaseTime());
           }
         } else if (candidate.increaseTime() >= max && candidate.decreaseTime() >= max)
           stage = Stage.FAILED;
@@ -83,38 +86,46 @@ public final class SlewCalibrationSearch {
     }
   }
 
+  /** The best passing candidate; every stage after BASELINE passed has recorded one. */
+  private SlewTuning accepted() {
+    return Objects.requireNonNull(best, "no passing candidate recorded yet");
+  }
+
   private void refineIncrease() {
-    if (best.increaseTime() <= min) {
+    SlewTuning b = accepted();
+    if (b.increaseTime() <= min) {
       tryFreeDecrease();
       return;
     }
     stage = Stage.INCREASE;
-    candidate = new SlewTuning(Math.max(min, best.increaseTime() / factor), best.decreaseTime());
+    candidate = new SlewTuning(Math.max(min, b.increaseTime() / factor), b.decreaseTime());
   }
 
   private void tryFreeDecrease() {
-    if (best.decreaseTime() == 0) {
+    SlewTuning b = accepted();
+    if (b.decreaseTime() == 0) {
       stage = Stage.COMPLETE;
       return;
     }
     stage = Stage.FREE_DECREASE;
-    candidate = new SlewTuning(best.increaseTime(), 0);
+    candidate = new SlewTuning(b.increaseTime(), 0);
   }
 
   private void refineDecrease() {
-    if (best.decreaseTime() <= min) {
+    SlewTuning b = accepted();
+    if (b.decreaseTime() <= min) {
       stage = Stage.COMPLETE;
       return;
     }
     stage = Stage.DECREASE;
-    candidate = new SlewTuning(best.increaseTime(), Math.max(min, best.decreaseTime() / factor));
+    candidate = new SlewTuning(b.increaseTime(), Math.max(min, b.decreaseTime() / factor));
   }
 
   public SlewTuning candidate() {
     return candidate;
   }
 
-  public SlewTuning best() {
+  public @Nullable SlewTuning best() {
     return best;
   }
 

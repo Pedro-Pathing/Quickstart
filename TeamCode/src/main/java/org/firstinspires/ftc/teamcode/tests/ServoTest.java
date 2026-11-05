@@ -12,6 +12,7 @@ public class ServoTest extends OpMode {
   @Override
   public void init() {
     org.firstinspires.ftc.teamcode.robot.config.generated.config.reload();
+    org.firstinspires.ftc.teamcode.utilities.OpModeUtil.reportConfig(telemetry);
     turnServo = hardwareMap.get(CRServo.class, "turn");
     telemetry.addData("Status", "Initialized - Use gamepad1 triggers to control servo");
     telemetry.addData("Left Trigger", "Reverse");
@@ -31,7 +32,11 @@ public class ServoTest extends OpMode {
       turnServo.setDirection(CRServo.Direction.REVERSE);
     }
 
-    turnServo.setPower(power);
+    // Never more than the turret's own limit: a wiring check should not slam the travel stops at
+    // full power.
+    turnServo.setPower(
+        power
+            * org.firstinspires.ftc.teamcode.robot.config.generated.config.turret.max_power_output);
 
     telemetry.addData("Servo Power", String.format("%.2f", power));
     telemetry.addData(

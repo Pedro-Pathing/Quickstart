@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.firstinspires.ftc.teamcode.robot.Shooter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers {@link Shooter#voltageCompensationScale}. The flywheel's kS/kV feedforward is fit in a
@@ -33,7 +33,7 @@ public class FlywheelVoltageCompensationTest {
   public void testSagIsScaledUp() {
     // A 10.8 V pack delivers 90% of the modelled output, so the command must rise by 1/0.9.
     assertEquals(12.0 / 10.8, scale(10.8), EPS);
-    assertTrue("sag must increase the command", scale(11.0) > 1.0);
+    assertTrue(scale(11.0) > 1.0, "sag must increase the command");
   }
 
   @Test
@@ -41,7 +41,7 @@ public class FlywheelVoltageCompensationTest {
     // Above nominal the correction has to cut the command, or a fresh battery overshoots the
     // setpoint and the arm window's upper bound blocks feeding from the other side.
     assertEquals(12.0 / 13.2, scale(13.2), EPS);
-    assertTrue("over-voltage must reduce the command", scale(13.2) < 1.0);
+    assertTrue(scale(13.2) < 1.0, "over-voltage must reduce the command");
   }
 
   @Test
