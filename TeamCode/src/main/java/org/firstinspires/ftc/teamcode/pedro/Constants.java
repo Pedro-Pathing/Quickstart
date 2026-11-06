@@ -60,7 +60,10 @@ public class Constants {
      * the Pinpoint tuner (Tuning.pinpointTuner) on the robot and copy its results in.
      */
     private static final PinpointConfig ROBOT_LOCALIZER = new PinpointConfig(c -> {
-        // TODO: the Pinpoint's name in the robot configuration, if it isn't the default (c.name)
+        // The Pinpoint's name in the robot configuration. Pedro has no default for it (reading it
+        // unset throws, which disables Drive), so it must be set. TODO: check it matches the robot's
+        // configuration; "pinpoint" is the name the Pinpoint tuner suggests.
+        c.name.set("pinpoint");
         // TODO: pod type (goBILDA_4_BAR_POD or goBILDA_SWINGARM_POD), or c.ticksPerUnit for custom pods
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         // TODO: pod offsets from the robot's centre of rotation (inches), from the tuner

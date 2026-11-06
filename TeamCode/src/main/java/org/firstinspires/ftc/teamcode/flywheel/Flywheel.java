@@ -24,7 +24,7 @@ import java.util.function.LongSupplier;
  * Ready (healthy flywheel): the filtered RPM must stay within readyTolerancePercent of the target
  * for readyHoldMs without a break. Merely passing through the window, e.g. overshooting on the way
  * up, doesn't count, because the wheel isn't settled and a ball fed then would leave at the wrong
- * speed. Leaving the window, or changing the target, restarts the hold.
+ * speed. Leaving the window, or the target moving by more than the tolerance, restarts the hold.
  *
  * Each flywheel starts with the DEFAULT_ gains below; use the setters to give it its own tuned values.
  *
@@ -402,15 +402,18 @@ public class Flywheel {
     }
 
     /**
-     * Times how long the filtered RPM has been continuously within tolerance of the target. A new
-     * target restarts the hold, as the wheel has to settle on that one.
+     * Times how long the filtered RPM has been continuously within tolerance of the target. A target
+     * that moves further than the tolerance from the one the hold started on restarts the hold, as
+     * the wheel has to settle on the new speed. Smaller moves don't: in TeleOp and the autos the
+     * target follows the camera's distance and changes a little on almost every loop, and
+     * restarting on each of those would keep the flywheel from ever being ready.
      */
     private void updateReadyHold() {
-        boolean inWindow = targetRPM > 0
-                && Math.abs(targetRPM - filteredRPM) <= targetRPM * readyTolerancePercent / 100;
+        double band = targetRPM * readyTolerancePercent / 100;
+        boolean inWindow = targetRPM > 0 && Math.abs(targetRPM - filteredRPM) <= band;
         if (!inWindow) {
             inReadyWindow = false;
-        } else if (!inReadyWindow || targetRPM != readyWindowTarget) {
+        } else if (!inReadyWindow || Math.abs(targetRPM - readyWindowTarget) > band) {
             inReadyWindow = true;
             readyWindowTarget = targetRPM;
             readyTimer.reset();

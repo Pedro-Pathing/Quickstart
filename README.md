@@ -66,11 +66,11 @@ Each name below must match the robot configuration exactly. Most parts check for
 | `MotorA` | DC motor | Kiwi wheel A, the rear wheel that drives left and right. Reversed in `pedro/Constants.java` | Drive is disabled |
 | `MotorB` | DC motor | Kiwi wheel B, front left. Reversed | Drive is disabled |
 | `MotorC` | DC motor | Kiwi wheel C, front right. Reversed | Drive is disabled |
-| Pinpoint (name set by Pedro's `PinpointConfig`) | GoBilda Pinpoint odometry computer (Pedro `PinpointLocalizer`) | Localizer for the Pedro follower. The Pinpoint tuner suggests the name `pinpoint` | Drive is disabled |
+| `pinpoint` | GoBilda Pinpoint odometry computer (Pedro `PinpointLocalizer`) | Localizer for the Pedro follower. Set as `c.name` in the ROBOT set in `pedro/Constants.java`: check it matches your configuration | Drive is disabled |
 | `PollenFlywheel` | DC motor (`DcMotorEx`) | Pollen launcher, direction reversed. Speed comes from the encoder | Pollen launcher is disabled: reads 0 RPM and is never ready |
 | `NectarFlywheel` | DC motor (`DcMotorEx`) | Nectar launcher, direction forward | Nectar launcher is disabled, as above |
-| `pollenGate` | Servo | Pollen feed gate. Open for `Gates.feedMs` per ball | Pollen gate is disabled and never opens |
-| `nectarGate` | Servo | Nectar feed gate | Nectar gate is disabled and never opens |
+| `pollenGate` | Servo | Pollen feed gate. Open for `Gates.feedMs` per ball, at `Gates.pollenOpenPosition` / `pollenClosedPosition` | Pollen gate is disabled and never opens |
+| `nectarGate` | Servo | Nectar feed gate, at `Gates.nectarOpenPosition` / `nectarClosedPosition` | Nectar gate is disabled and never opens |
 | `intake` | DC motor (`DcMotorEx`) | Intake roller, direction forward, power 1.0. The code notes this is a placeholder until the intake is built. A CR servo on a motor port also works | Intake is disabled and never reports a pickup |
 | `limelight` | Limelight 3A (`Limelight3A`) | Vision. Pipeline 0 is AprilTags and pipeline 1 is the floor pipeline | Vision is disabled: no tags are seen, and the flywheels use the default speed |
 | `cameraTilt` | Servo | Swings the Limelight between shooting and intake pitch | Camera stays at the shooting pitch and FLOOR mode is unavailable |
@@ -78,7 +78,7 @@ Each name below must match the robot configuration exactly. Most parts check for
 
 The hub is found with `hardwareMap.getAll(LynxModule.class)` for bulk reads, so it has no name to configure.
 
-Tuners ask for some names at run time, with these defaults: `Launcher` (Fly Me To The Wheel and Flywheel Tuner, set in Panels), `motorA`, `motorB` and `motorC` (Kiwi Tuner), `imu` (the IMU tuners), `pinpoint` (Pinpoint Tuner) and `otos` (OTOS Tuner).
+Tuners ask for some names at run time, with these defaults: `PollenFlywheel` (Fly Me To The Wheel) and `Launcher` (Flywheel Tuner), both set in Panels, `motorA`, `motorB` and `motorC` (Kiwi Tuner), `imu` (the IMU tuners), `pinpoint` (Pinpoint Tuner) and `otos` (OTOS Tuner).
 
 ## Controls
 
@@ -108,7 +108,7 @@ Gamepad 1 is the driver and gamepad 2 the gunner.
 INIT:
 
 - D-pad left / right on either gamepad picks red or blue. If an auto has run since the app started, its alliance is used.
-- The start pose is the one the last auto saved (`MatchState`). If no auto has run, the default pose is used. A driver can reject the saved pose at INIT. The default is to use it.
+- The start pose is the one the last auto saved (`MatchState`). If no auto has run, the default pose is used. Triangle on either gamepad switches between the saved pose and the default; telemetry shows how old the saved pose is. With no press the saved pose is used, however old.
 - The flywheels idle at `idleRPM` unless a launch, Fire All or aim is active.
 
 ### More Than Driving Test

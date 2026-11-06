@@ -108,15 +108,34 @@ public class FlywheelTest {
     }
 
     @Test
-    public void aNewTargetRestartsTheHold() {
+    public void aTargetDriftingWithinTheToleranceKeepsTheHold() {
         loops(12, TARGET);
         assertTrue(flywheel.isReady());
 
-        // Measured speed sits inside the window of both targets, but the new target starts a new hold
+        // The distance-based target changes a little every loop; that mustn't restart the hold
+        for (int i = 0; i < 20; i++) {
+            nanos.addAndGet(STEP_NANOS);
+            setRPM(TARGET);
+            flywheel.runToRPM(TARGET * (1 + 0.01 * Math.sin(i)));
+            assertTrue("not ready on loop " + i, flywheel.isReady());
+        }
+    }
+
+    @Test
+    public void aTargetMovingBeyondTheToleranceRestartsTheHold() {
+        loops(12, 3045);  // inside the 2% window round 3000
+        assertTrue(flywheel.isReady());
+
+        // 3090 is 3% above where the hold started; 3045 is inside its window, but it's a new speed to settle on
         nanos.addAndGet(STEP_NANOS);
-        setRPM(TARGET);
-        flywheel.runToRPM(TARGET * 1.01);
+        setRPM(3045);
+        flywheel.runToRPM(3090);
         assertFalse(flywheel.isReady());
+        for (int i = 0; i < 8; i++) {
+            nanos.addAndGet(STEP_NANOS);
+            flywheel.runToRPM(3090);
+        }
+        assertTrue(flywheel.isReady());
     }
 
     @Test
