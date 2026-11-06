@@ -10,7 +10,7 @@ public class ShooterConstants {
     public static double TICKS_PER_REV = 28;
     public static double MAX_RPM = 6000;
 
-    public static PIDFCoefficients FLYWHEEL_PIDF_COEFFICIENTS = new PIDFCoefficients(1, 0, 0, 0.00085);
+    public static PIDFCoefficients FLYWHEEL_PIDF_COEFFICIENTS = new PIDFCoefficients(0.01, 0, 0, 0.00052);
     public static double SHOOTER_TOLERANCE_RPM = 40;
     public static double IDLE_POWER = 0.3;
 

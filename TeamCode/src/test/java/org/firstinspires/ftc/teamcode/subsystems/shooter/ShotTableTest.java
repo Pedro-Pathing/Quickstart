@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.turret;
+package org.firstinspires.ftc.teamcode.subsystems.shooter;
 
 import static org.junit.Assert.assertEquals;
 
@@ -12,7 +12,7 @@ public class ShotTableTest {
         table.record(24.04, 1000);
         table.record(48, 1200);
         assertEquals("SHOOTER_DIST_IN = {24.0, 48.0, 72.0};", table.distanceLine());
-        assertEquals("SHOOTER_VEL = {1000, 1200, 1400};", table.velocityLine());
+        assertEquals("SHOOTER_RPM = {1000, 1200, 1400};", table.velocityLine());
     }
 
     @Test
@@ -21,7 +21,7 @@ public class ShotTableTest {
         table.record(48, 1200);
         table.record(50, 1250);
         assertEquals(1, table.size());
-        assertEquals("SHOOTER_VEL = {1250};", table.velocityLine());
+        assertEquals("SHOOTER_RPM = {1250};", table.velocityLine());
     }
 
     @Test

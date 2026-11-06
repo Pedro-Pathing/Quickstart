@@ -9,10 +9,11 @@ public class TurretTest {
     private static final double EPS = 0.0001;
 
     @Test
-    public void rawToAngleUsesGearRatioAndDirection() {
-        assertEquals(0, Turret.rawToAngle(157.5, 157.5, 1.25, false), EPS);
-        assertEquals(Math.toRadians(90), Turret.rawToAngle(157.5 + 112.5, 157.5, 1.25, false), EPS);
-        assertEquals(Math.toRadians(-90), Turret.rawToAngle(157.5 + 112.5, 157.5, 1.25, true), EPS);
+    public void ticksToAngleUsesGearRatioAndDirection() {
+        assertEquals(0, Turret.ticksToAngle(0, 8192, 1, false), EPS);
+        assertEquals(Math.toRadians(90), Turret.ticksToAngle(2048, 8192, 1, false), EPS);
+        assertEquals(Math.toRadians(-90), Turret.ticksToAngle(2048, 8192, 1, true), EPS);
+        assertEquals(Math.toRadians(45), Turret.ticksToAngle(2048, 8192, 2, false), EPS);
     }
 
     @Test
