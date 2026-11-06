@@ -485,6 +485,7 @@ public class FlywheelTuner extends OpMode {
     private void showShot() {
         telemetryM.addData("ready", ready ? 1 : 0);
         telemetry.addData("Shot test", "target %.0f RPM", shotRPM);
+        telemetry.addData("Flywheel.isReady()", "%s (needs %.0f ms in the window)", flywheel.isReady() ? "YES" : "no", flywheel.getReadyHoldMs());
         telemetry.addData("Ready to shoot", inDip ? "NO - recovering" : (ready ? "YES" : "not yet"));
         telemetry.addData("Shots detected", shots);
         if (shots > 0) {
