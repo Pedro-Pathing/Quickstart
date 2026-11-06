@@ -31,6 +31,8 @@ import org.firstinspires.ftc.teamcode.vision.HiveAim;
 import org.firstinspires.ftc.teamcode.vision.HiveTarget;
 import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
 
+import java.util.function.Supplier;
+
 /**
  * An Autonomous that keeps playing until stopped, for exercising the sim with four robots and no
  * drivers (the multiplayer server's stress test). Each alliance station's OpMode subclasses it with
@@ -47,6 +49,16 @@ import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
  * both flywheels are at speed, or until shootTimeoutMs: a feed with nothing of that kind stored does
  * nothing. Every drive has a timeout, so a robot pushed off its path by another carries on with the
  * next step.
+ *
+ * Each drive's path is built when its step starts, from the robot's actual pose to the planned end
+ * pose, not from the pose the previous step was meant to finish at. The robot is rarely exactly
+ * there: it ends the FLOWER push-in past flowerPose(), a drive that hit driveTimeoutMs stops short,
+ * and another robot may have shoved it, so a path planned from the old pose would start with a jump.
+ * The heading still turns steadily to the end's where it did before, and stays tangent where it was
+ * tangent. The shots hold the planned shootingSpot() on purpose.
+ *
+ * These are for the sim only (their Driver Station names start with SIM) and must not be run in a
+ * match.
  *
  * Starts follow G304: touching the perimeter wall, on our own side, clear of the LOADING ZONE and the
  * FLOWERS. Pedro field frame, inches: +x towards blue, +y away from the audience. The robot's back
@@ -108,18 +120,18 @@ public abstract class LoopingAuto extends LinearOpMode {
 
     public Command autoRoutine() {
         return sequential(
-                drive(Paths.line(startPose(), shootingSpot()).linear(startPose(), shootingSpot())),
+                driveLinearTo(shootingSpot()),
                 waitMs(waitsForPartner() ? partnerDelayMs : 0),
                 shoot(),
                 instant(intake::run),
                 collectFlower(),
-                drive(Paths.line(flowerPose(), shootingSpot()).linear(flowerPose(), shootingSpot())),
+                driveLinearTo(shootingSpot()),
                 instant(intake::stop),
                 shoot(),
                 Groups.loop(sequential(
                         instant(intake::run),
-                        drive(collectingPath()),
-                        drive(returnPath()),
+                        drive(this::collectingPath),
+                        drive(this::returnPath),
                         instant(intake::stop),
                         shoot(),
                         instant(() -> loops++)
@@ -133,10 +145,10 @@ public abstract class LoopingAuto extends LinearOpMode {
         Pose in = along(flowerPose(), flowerPushInches);
         Pose out = along(flowerPose(), -flowerBackOffInches);
         return sequential(
-                drive(Paths.line(shootingSpot(), approach).linear(shootingSpot(), approach)),
-                race(follow(follower, Paths.line(approach, in).linear(approach, in)), waitMs(flowerPushMs)),
-                race(follow(follower, Paths.line(in, out).linear(in, out)), waitMs(flowerBackOffMs)),
-                race(follow(follower, Paths.line(out, in).linear(out, in)), waitMs(flowerPushMs))
+                driveLinearTo(approach),
+                push(in, flowerPushMs),
+                push(out, flowerBackOffMs),
+                push(in, flowerPushMs)
         );
     }
 
@@ -146,11 +158,38 @@ public abstract class LoopingAuto extends LinearOpMode {
                 pose.y() + inches * Math.sin(pose.heading()), pose.heading());
     }
 
-    private Command drive(Path path) {
+    /** Drives a straight line from where the robot is to end, the heading turning steadily to end's. */
+    private Command driveLinearTo(Pose end) {
+        return drive(() -> lineFromHere(end));
+    }
+
+    /** A timed straight push or back-off from where the robot is to end. */
+    private Command push(Pose end, double ms) {
+        return race(followFromHere(() -> lineFromHere(end)), waitMs(ms));
+    }
+
+    /** A drive step: the path is built when the step starts. */
+    private Command drive(Supplier<Path> pathFromHere) {
         return sequential(
                 instant(() -> aiming = false),
-                race(follow(follower, path), waitMs(driveTimeoutMs))
+                race(followFromHere(pathFromHere), waitMs(driveTimeoutMs))
         );
+    }
+
+    /**
+     * Follows the path built when this command starts, not when the routine is built: the routine
+     * is built before anything moves, and by the time a step runs the robot is somewhere other than
+     * the pose planned for it (past the FLOWER after the push-in, short of a spot when a drive
+     * timed out, or shoved by another robot). The supplier reads follower.pose() for the start.
+     */
+    private Command followFromHere(Supplier<Path> pathFromHere) {
+        return lazy(() -> follow(follower, pathFromHere.get()));
+    }
+
+    /** A straight line from the robot's pose to end, the heading turning steadily to end's. */
+    private Path lineFromHere(Pose end) {
+        Pose from = follower.pose();
+        return Paths.line(from, end).linear(from, end);
     }
 
     private Command shoot() {
@@ -167,20 +206,18 @@ public abstract class LoopingAuto extends LinearOpMode {
         );
     }
 
-    /** From the shooting spot through the collecting loop, the intake leading. */
+    /** From where the robot is through the collecting loop, the intake leading. */
     private Path collectingPath() {
         Pose[] loop = collectingLoop();
         Pose[] points = new Pose[loop.length + 1];
-        points[0] = shootingSpot();
+        points[0] = follower.pose();
         System.arraycopy(loop, 0, points, 1, loop.length);
         return Paths.through(points).tangent();
     }
 
-    /** From the end of the collecting loop back to the shooting spot. */
+    /** From where the robot is back to the shooting spot. */
     private Path returnPath() {
-        Pose[] loop = collectingLoop();
-        Pose last = loop[loop.length - 1];
-        return Paths.line(last, shootingSpot()).tangent();
+        return Paths.line(follower.pose(), shootingSpot()).tangent();
     }
 
     @Override

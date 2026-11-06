@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.vision.Alliance;
  * the blue audience-side quarter: towards the audience wall short of its FLOWER, then up through the blue LOADING
  * ZONE (its NECTAR), shooting at the audience-side CELL.
  */
-@Autonomous(name = "Blue 2 Looping Auto", group = "Autonomous")
+@Autonomous(name = "SIM Blue 2 Looping Auto", group = "Sim")
 public class Blue2LoopingAuto extends LoopingAuto {
 
     @Override

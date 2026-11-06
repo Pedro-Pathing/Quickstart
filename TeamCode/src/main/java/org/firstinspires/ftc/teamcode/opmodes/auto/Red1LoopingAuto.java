@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.vision.Alliance;
  * red audience-side quarter: along the audience wall through the red GARDEN, then up the red wall short of its
  * FLOWER, shooting at the audience-side CELL.
  */
-@Autonomous(name = "Red 1 Looping Auto", group = "Autonomous")
+@Autonomous(name = "SIM Red 1 Looping Auto", group = "Sim")
 public class Red1LoopingAuto extends LoopingAuto {
 
     @Override
