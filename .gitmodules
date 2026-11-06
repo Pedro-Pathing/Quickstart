@@ -4,3 +4,6 @@
 [submodule "pedro-repo"]
 	path = pedro-repo
 	url = https://github.com/Pedro-Pathing/PedroPathing.git
+[submodule "panels-repo"]
+	path = panels-repo
+	url = https://github.com/ftcontrol/ftcontrol-panels.git

@@ -1,0 +1,1126 @@
+<!doctype html>
+<!-- Source of index.html. Edit this file, then run: python3 doc/guide/build.py -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIOBUZZ Robot Guide</title>
+<style>
+:root{--bg:#fbf8f1;--panel:#fff;--panel2:#f6f1e5;--ink:#1d1b16;--ink2:#4c473c;--mute:#857e70;--line:#e6dfcf;--honey:#f2a900;--honeyD:#9a6a00;--honeyL:#fff3cf;--char:#2a2418;
+--red:#c2412d;--redL:#fbeae6;--grn:#2f8a57;--grnL:#e6f4ec;--blu:#2d6fb0;--bluL:#e7f0f9;--pur:#7a4bb0;--purL:#f1eaf9;--gry:#6f6a60;--gryL:#eeece7;--teal:#1f8a8a;--tealL:#e3f4f4;--amb:#c77700;--ambL:#fdf0dc;
+--code:#f1ece0;--codeInk:#5a3d00;--pre:#2a2418;--preInk:#f6eedb;--shadow:0 1px 2px rgba(40,30,10,.06),0 4px 14px rgba(40,30,10,.05);--fieldBg:#f4efe2;--tile:#e9e1cd;--allyR:#c2412d;--allyB:#2d6fb0}
+:root[data-theme=dark]{--bg:#16140f;--panel:#1f1c16;--panel2:#26221a;--ink:#f1ead9;--ink2:#cfc5ae;--mute:#8f8672;--line:#38322540;--line:#3a3427;--honeyL:#3a2e10;--honeyD:#f2b733;--char:#0f0d09;
+--redL:#3a1d17;--grnL:#16301f;--bluL:#16263a;--purL:#2a1d3a;--gryL:#2b2822;--tealL:#123030;--ambL:#3a2a10;--code:#2c271d;--codeInk:#ffd98a;--pre:#0f0d09;--fieldBg:#22201a;--tile:#2f2a20;--shadow:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#16140f;--panel:#1f1c16;--panel2:#26221a;--ink:#f1ead9;--ink2:#cfc5ae;--mute:#8f8672;--line:#3a3427;--honeyL:#3a2e10;--honeyD:#f2b733;--char:#0f0d09;--redL:#3a1d17;--grnL:#16301f;--bluL:#16263a;--purL:#2a1d3a;--gryL:#2b2822;--tealL:#123030;--ambL:#3a2a10;--code:#2c271d;--codeInk:#ffd98a;--pre:#0f0d09;--fieldBg:#22201a;--tile:#2f2a20;--shadow:none}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 "Avenir Next","Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+a{color:var(--blu);text-decoration:none}a:hover{text-decoration:underline}
+code,.mono{font:12.5px/1.4 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+code{background:var(--code);color:var(--codeInk);padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
+pre{position:relative;background:var(--pre);color:var(--preInk);padding:12px 14px;border-radius:8px;overflow:auto;font:12.5px/1.5 "SF Mono",ui-monospace,Menlo,monospace;margin:8px 0 12px}
+pre .c{color:#a99d80}
+button,select,input,textarea{font:inherit;color:inherit}
+kbd{display:inline-block;min-width:22px;text-align:center;font:700 11.5px/1 "Avenir Next",system-ui,sans-serif;padding:4px 6px 3px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:var(--panel);color:var(--ink);white-space:nowrap;cursor:default}
+kbd.on{border-color:var(--honey)}
+/* layout */
+.top{position:sticky;top:0;z-index:30;height:54px;display:flex;align-items:center;gap:12px;padding:0 18px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.2px;white-space:nowrap}
+.hex{width:22px;height:22px;background:var(--honey);clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)}
+.srch{flex:1;max-width:520px;margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 10px;color:var(--mute);cursor:text}
+.srch span{flex:1}
+.tbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+.tbtn:hover{border-color:var(--honey)}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1400px;margin:0 auto}
+nav.side{position:sticky;top:54px;height:calc(100vh - 54px);overflow:auto;padding:16px 10px 30px 18px;border-right:1px solid var(--line)}
+nav.side a{display:flex;align-items:center;gap:8px;color:var(--ink2);padding:4px 8px;border-radius:6px;font-size:13.5px}
+nav.side a:hover{background:var(--panel2);text-decoration:none}
+nav.side a.on{background:var(--honeyL);color:var(--ink);font-weight:650}
+nav.side a .no{width:18px;font-weight:800;color:var(--honeyD);font-size:12px}
+nav.side .sub a{padding-left:34px;font-size:12.5px}
+nav.side .prog{margin:14px 8px 4px;font-size:12px;color:var(--mute)}
+.bar{height:6px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:var(--honey);width:0;transition:width .3s}
+main{padding:22px 34px 120px;min-width:0}
+section{max-width:1060px;margin:0 auto 14px;padding-top:8px}
+section>h1{display:flex;align-items:center;gap:12px;font-size:26px;letter-spacing:-.4px;margin:26px 0 6px}
+section>h1 .n{display:inline-grid;place-items:center;width:36px;height:36px;background:var(--honey);color:#2a2418;font-size:17px;font-weight:800;clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);flex:none}
+section>h1 .lnk{margin-left:auto;font-size:12px;font-weight:600;color:var(--mute);opacity:0;cursor:pointer}
+section>h1:hover .lnk{opacity:1}
+.lead{color:var(--ink2);font-size:15px;margin:0 0 14px;max-width:820px}
+h2{font-size:18px;margin:26px 0 8px;letter-spacing:-.2px}h3{font-size:15px;margin:18px 0 6px;color:var(--honeyD)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.pad{padding:14px 16px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:fixed;left:0;top:54px;z-index:25;width:280px;background:var(--bg);transform:translateX(-100%);transition:transform .2s}nav.side.open{transform:none}main{padding:16px}.g2,.g3,.g4{grid-template-columns:1fr}#menuBtn{display:inline-block!important}}
+#menuBtn{display:none}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th{text-align:left;font-size:12px;color:var(--mute);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel2)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.tbl{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.tag{display:inline-block;font:800 10px/1 "Avenir Next",system-ui,sans-serif;letter-spacing:.5px;text-transform:uppercase;padding:4px 7px 3px;border-radius:10px;white-space:nowrap;border:1px solid transparent}
+.tM{background:var(--redL);color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,transparent)}.tH{background:var(--ambL);color:var(--amb);border-color:color-mix(in srgb,var(--amb) 35%,transparent)}
+.tT{background:var(--grnL);color:var(--grn);border-color:color-mix(in srgb,var(--grn) 35%,transparent)}.tP{background:var(--bluL);color:var(--blu);border-color:color-mix(in srgb,var(--blu) 35%,transparent)}
+.tS{background:var(--purL);color:var(--pur);border-color:color-mix(in srgb,var(--pur) 35%,transparent)}.tF{background:var(--gryL);color:var(--gry);border-color:color-mix(in srgb,var(--gry) 35%,transparent)}.tI{background:var(--tealL);color:var(--teal);border-color:color-mix(in srgb,var(--teal) 35%,transparent)}
+.pill{display:inline-block;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);white-space:nowrap}
+.call{display:flex;gap:10px;padding:11px 14px;border-radius:10px;margin:10px 0;background:var(--bluL);border-left:4px solid var(--blu)}
+.call.warn{background:var(--redL);border-color:var(--red)}.call.ok{background:var(--grnL);border-color:var(--grn)}.call.tip{background:var(--honeyL);border-color:var(--honey)}
+.call>b:first-child{flex:none}
+/* config key chips */
+x-k{display:inline}
+.ck{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;cursor:pointer;border-radius:5px;background:var(--code);padding:0 5px;font:12.5px/1.6 "SF Mono",ui-monospace,Menlo,monospace;color:var(--codeInk);overflow-wrap:anywhere}
+.ck:hover{outline:1.5px solid var(--honey);text-decoration:none}
+.ck .cv{color:var(--mute);font-size:11.5px;white-space:nowrap}
+.ck.bad .cv{color:var(--red);font-weight:700}
+/* copy */
+.copy{position:absolute;top:7px;right:7px;font:600 11px system-ui,sans-serif;background:#ffffff1a;color:#f6eedb;border:1px solid #ffffff33;border-radius:6px;padding:3px 8px;cursor:pointer;opacity:.7}
+.copy:hover{opacity:1}.copy.done{background:var(--grn);border-color:var(--grn);opacity:1}
+.cmd{display:flex;align-items:center;gap:8px;background:var(--pre);color:var(--preInk);border-radius:8px;padding:8px 10px 8px 12px;font:12.5px "SF Mono",ui-monospace,Menlo,monospace;margin:6px 0}
+.cmd span{flex:1;overflow-wrap:anywhere}.cmd .copy{position:static}
+/* hero */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:10px}
+@media(max-width:1100px){.hero{grid-template-columns:1fr}}
+.heroL{align-self:start;position:relative;overflow:hidden;border-radius:16px;padding:26px 26px 22px;background:#2a2418;color:#fff7e0}
+.heroL::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z M28 64 L28 97' fill='none' stroke='%23f2a900' stroke-opacity='.14' stroke-width='1.3'/%3E%3C/svg%3E");opacity:.9}
+.heroL>*{position:relative}.heroL .k{font:800 11px system-ui,sans-serif;letter-spacing:2.5px;color:var(--honey);text-transform:uppercase}
+.heroL h1{font-size:40px;line-height:1;margin:8px 0 10px;letter-spacing:-1px}.heroL h1 span{color:var(--honey)}
+.heroL p{color:#e9dfc6;margin:0 0 16px}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quick a{display:block;background:#ffffff12;border:1px solid #ffffff22;border-radius:10px;padding:9px 11px;color:#fff7e0}
+.quick a b{display:block;color:#ffd166}.quick a small{color:#cfc4a8}.quick a:hover{background:#ffffff22;text-decoration:none}
+.checks .ck2{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.checks .ck2:last-child{border:0}
+.dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px}.dot.r{background:var(--red)}.dot.a{background:var(--honey)}.dot.g{background:var(--grn)}
+.meta{font-size:12px;color:var(--mute)}
+/* tiles */
+.tile{padding:12px 14px}.tile b{display:block;margin-bottom:2px}.tile p{margin:0;color:var(--ink2);font-size:13px}
+/* stepper */
+.stage{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:10px 14px;cursor:pointer}
+.stage .num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--panel2);font-weight:800;color:var(--honeyD);border:2px solid var(--line)}
+.stage.done .num{background:var(--grn);color:#fff;border-color:var(--grn)}
+.stage .t{font-weight:700}.stage .d{color:var(--ink2);font-size:13px}
+.stagewrap{border-bottom:1px solid var(--line)}.stagewrap:last-child{border:0}
+.stagebody{display:none;padding:0 14px 14px 68px}.stagewrap.open .stagebody{display:block}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:650;cursor:pointer;user-select:none;white-space:nowrap}
+.chk input{width:17px;height:17px;accent-color:var(--grn)}
+/* procedures */
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.fbtn{border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer}
+.fbtn.on{background:var(--char);color:#fff7e0;border-color:var(--char)}
+:root[data-theme=dark] .fbtn.on{background:var(--honey);color:#2a2418;border-color:var(--honey)}
+details.proc{margin:10px 0;overflow:hidden}
+details.proc>summary{list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;cursor:pointer;background:linear-gradient(90deg,var(--honeyL),transparent)}
+details.proc>summary::-webkit-details-marker{display:none}
+details.proc>summary .nm{font-weight:800;font-size:15.5px}
+details.proc>summary .grp{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--honeyD);text-transform:uppercase}
+details.proc>summary .sp{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+details.proc>summary::after{content:"▸";color:var(--mute);transition:transform .15s}
+details.proc[open]>summary::after{transform:rotate(90deg)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 12px;overflow:auto}
+.tabs button{border:0;background:none;padding:9px 12px;cursor:pointer;color:var(--mute);font-weight:650;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-color:var(--honey)}
+.tabp{display:none;padding:12px 16px 16px}.tabp.on{display:block}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:26px 1fr;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+ol.steps li:last-child{border:0}
+ol.steps li input{margin-top:3px;width:16px;height:16px;accent-color:var(--grn)}
+ol.steps li.done span{color:var(--mute);text-decoration:line-through;text-decoration-color:var(--mute)}
+.why{color:var(--ink2);margin:0 0 10px}
+.ctlrow{display:grid;grid-template-columns:170px 1fr;gap:6px 12px;align-items:baseline}
+/* gamepad */
+.padwrap{display:grid;grid-template-columns:minmax(300px,520px) 1fr;gap:16px;align-items:start}
+@media(max-width:1100px){.padwrap{grid-template-columns:1fr}}
+svg.pad{width:100%;height:auto;display:block}
+svg.pad .body{fill:var(--panel2);stroke:var(--line);stroke-width:2}
+svg.pad [data-b]{cursor:pointer}
+svg.pad [data-b] .s{fill:var(--panel);stroke:var(--mute);stroke-width:1.5;transition:fill .12s}
+svg.pad [data-b] text{font:700 11px system-ui,sans-serif;fill:var(--mute);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.pad [data-b].act .s{fill:var(--honeyL);stroke:var(--honey);stroke-width:2.2}
+svg.pad [data-b].act text{fill:var(--ink)}
+svg.pad [data-b].hl .s{fill:var(--honey)!important}
+svg.pad [data-b].hl text{fill:#2a2418!important}
+.maplist .mi{display:grid;grid-template-columns:70px 1fr;gap:8px;padding:6px 8px;border-radius:7px;cursor:default}
+.maplist .mi:hover,.maplist .mi.hl{background:var(--honeyL)}
+.maplist .mi small{display:block;color:var(--mute)}
+/* field */
+.fieldwrap{display:grid;grid-template-columns:minmax(320px,600px) 1fr;gap:16px;align-items:start}
+@media(max-width:1100px){.fieldwrap{grid-template-columns:1fr}}
+svg.field{width:100%;height:auto;background:var(--fieldBg);border-radius:10px;border:1px solid var(--line);display:block;cursor:crosshair}
+svg.field text{font-family:system-ui,sans-serif;paint-order:stroke;stroke:var(--fieldBg);stroke-width:3px;stroke-linejoin:round}
+svg.field .pose:hover polygon{fill-opacity:.4}
+.lay label{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:13.5px;cursor:pointer}
+.lay input{accent-color:var(--honey)}
+.tip{position:fixed;z-index:60;pointer-events:none;background:var(--char);color:#fff7e0;padding:7px 10px;border-radius:8px;font-size:12.5px;max-width:320px;box-shadow:0 4px 18px rgba(0,0,0,.25);display:none}
+.tip code{background:#ffffff1a;color:#ffd98a}
+.coord{font:12.5px "SF Mono",ui-monospace,Menlo,monospace}
+/* config explorer */
+.cfgbar{position:sticky;top:54px;z-index:5;background:var(--bg);padding:8px 0 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.inp{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 10px;min-width:0}
+.inp:focus,.srch:focus-within{outline:2px solid var(--honey);outline-offset:-1px}
+.cgroup>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 14px;font-weight:800;background:var(--panel2);border-bottom:1px solid var(--line)}
+.cgroup>summary::-webkit-details-marker{display:none}
+.cgroup>summary .meta{font-weight:500}
+.cgroup{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel);margin:8px 0}
+.krow{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(0,1.2fr) 100px minmax(0,3fr);gap:10px;padding:7px 14px;border-bottom:1px solid var(--line);align-items:baseline;cursor:pointer}
+.krow:hover{background:var(--panel2)}
+.krow .p{font:12.5px "SF Mono",ui-monospace,Menlo,monospace;overflow-wrap:anywhere}.krow .p i{color:var(--mute);font-style:normal}
+.krow .v{font:12.5px "SF Mono",ui-monospace,Menlo,monospace;overflow-wrap:anywhere;color:var(--ink2)}
+.krow .ds{color:var(--ink2);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.krow.open .ds{-webkit-line-clamp:unset}
+.kmore{display:none;grid-column:1/-1;background:var(--panel2);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:4px}
+.krow.open .kmore{display:block}
+.krow.flash{animation:fl 1.6s ease}@keyframes fl{0%,40%{background:var(--honeyL)}100%{background:transparent}}
+@media(max-width:900px){.krow{grid-template-columns:1fr 1fr}.krow .ds{grid-column:1/-1}}
+/* modal search */
+.modal{position:fixed;inset:0;z-index:80;background:rgba(20,15,5,.45);display:none;align-items:flex-start;justify-content:center;padding-top:10vh}
+.modal.open{display:flex}
+.mbox{width:min(680px,94vw);background:var(--panel);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;border:1px solid var(--line)}
+.mbox input{width:100%;border:0;border-bottom:1px solid var(--line);padding:16px 18px;font-size:17px;background:transparent;outline:none}
+.res{max-height:60vh;overflow:auto;padding:6px}
+.res a{display:grid;grid-template-columns:86px 1fr;gap:10px;padding:8px 12px;border-radius:8px;color:var(--ink)}
+.res a.on,.res a:hover{background:var(--honeyL);text-decoration:none}
+.res a .kd{font-size:11px;font-weight:800;color:var(--honeyD);text-transform:uppercase;letter-spacing:.5px;padding-top:2px}
+.res a small{display:block;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res mark{background:var(--honey);color:#2a2418;border-radius:3px}
+.mfoot{padding:8px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);display:flex;gap:14px}
+/* tools */
+.tool label.f{display:block;font-size:12px;font-weight:700;color:var(--mute);margin:8px 0 3px}
+.tool .row{display:flex;gap:8px;flex-wrap:wrap}.tool .row>*{flex:1;min-width:70px}
+.out{background:var(--panel2);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px}
+.issue{display:flex;gap:7px;margin:3px 0}.issue.e{color:var(--red)}.issue.w{color:var(--amb)}.issue.k{color:var(--grn)}
+textarea.inp{width:100%;min-height:90px;font:12.5px "SF Mono",ui-monospace,Menlo,monospace}
+svg.chart{width:100%;height:auto;background:var(--panel2);border-radius:8px}
+svg.chart text{font:10px system-ui,sans-serif;fill:var(--mute)}
+/* test log */
+.res3 button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px;font-weight:700}
+.res3 button.pass.on{background:var(--grn);color:#fff;border-color:var(--grn)}.res3 button.fail.on{background:var(--red);color:#fff;border-color:var(--red)}
+.note{width:100%;border:1px solid transparent;background:transparent;border-radius:6px;padding:3px 6px}
+.note:hover,.note:focus{border-color:var(--line);background:var(--panel)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--char);color:#fff7e0;padding:9px 16px;border-radius:10px;z-index:90;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+@media print{.top,nav.side,.copy,.filters,.cfgbar{display:none!important}.wrap{display:block}main{padding:0}details{open:true}}
+</style></head>
+<body>
+<header class="top">
+ <button class="tbtn" id="menuBtn" aria-label="Menu">☰</button>
+ <a class="brand" href="#home" style="color:inherit"><span class="hex"></span>BIOBUZZ Robot Guide</a>
+ <div class="srch" id="openSearch" role="button" tabindex="0"><span>Search procedures, config keys, buttons, fixes…</span><kbd>⌘K</kbd></div>
+ <a class="tbtn" href="BIOBUZZ-Robot-Master-Guide.pdf" title="Printable PDF (static snapshot)">PDF</a>
+ <button class="tbtn" id="themeBtn" title="Toggle dark mode">◐</button>
+</header>
+<div class="wrap">
+<nav class="side" id="side"></nav>
+<main id="main">
+
+<!-- ======================= HOME ======================= -->
+<section id="home">
+ <div class="hero">
+  <div class="heroL">
+   <div class="k">FTC 2026-27 · BIOBUZZ presented by RTX</div>
+   <h1>Robot <span>Master Guide</span></h1>
+   <p>From a fresh clone to a tuned, verified robot, for someone who can deploy code but is new to robotics. Every value on this page comes straight from the robot's <code style="background:#ffffff1a;color:#ffd98a">config.yaml</code>. Rebuild the page and it stays current.</p>
+   <div class="quick">
+    <a href="#bringup"><b>I'm new here</b><small>Follow the 12-step bring-up</small></a>
+    <a href="#procedures"><b>I'm tuning something</b><small>Step-by-step procedure cards</small></a>
+    <a href="#config"><b>What does this key do?</b><small>All config keys, searchable</small></a>
+    <a href="#match"><b>It's match day</b><small>Checklist, autos, controls</small></a>
+   </div>
+  </div>
+  <div class="card pad">
+   <div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:16px">Live robot status</b><span class="meta" id="statusMeta"></span></div>
+   <div class="meta" style="margin:2px 0 6px">Computed from the config this page was built from. Each line updates when the value changes.</div>
+   <div class="checks" id="checks"></div>
+  </div>
+ </div>
+</section>
+
+<!-- ======================= START ======================= -->
+<section id="start">
+ <h1><span class="n">1</span>Read this first</h1>
+ <p class="lead">Almost none of this robot's behavior is hard-coded in Java. It comes from one YAML file. Making the robot work takes three steps: <b>install the app</b>, <b>run the calibration OpModes</b> on the real robot (each one prints numbers), and <b>paste those numbers into the config</b>. Then you verify.</p>
+ <div class="grid g2">
+  <div class="call ok"><b>✓</b><div><b>The golden rules</b><ol style="margin:4px 0 0;padding-left:18px">
+   <li>Never edit <code>config.java</code> or <code>config-schema.json</code>. Both are generated.</li>
+   <li>Numbers go in <code>config.yaml</code>, descriptions and limits in <code>config-docs.yaml</code>. Then run <code>./gradlew verifyBuild</code>.</li>
+   <li>Write poses for <b>RED</b> only. BLUE is the letter <code>m</code> (RED rotated 180° about the field centre). Try it on the <a href="#field">field map</a>.</li>
+   <li>Never bypass <code>Sentinel</code> or <code>Casablanca</code>. They keep the robot off the HIVE frame (G417).</li>
+   <li>Test slowly. Anything that spins goes on blocks first.</li></ol></div></div>
+  <div class="call tip"><b>i</b><div><b>Getting around</b><ul style="margin:4px 0 0;padding-left:18px">
+   <li><kbd>⌘K</kbd> or <kbd>/</kbd> searches everything, including all config keys and every gamepad button.</li>
+   <li>Click any <span class="ck">config.key <span class="cv">= value</span></span> chip to jump to that key in the explorer.</li>
+   <li>Checkboxes (bring-up, steps, tests, match checklist) are remembered in this browser.</li>
+   <li>Headings have a link icon: hover a title to copy a deep link to it.</li></ul></div></div>
+ </div>
+ <h2>The mental model</h2>
+ <div class="grid g3" id="model"></div>
+</section>
+
+<!-- ======================= GLOSSARY ======================= -->
+<section id="vocab">
+ <h1><span class="n">2</span>Vocabulary</h1>
+ <input class="inp" id="glossQ" placeholder="Filter terms…" style="width:280px;margin-bottom:10px">
+ <div class="grid g2" id="gloss"></div>
+</section>
+
+<!-- ======================= HARDWARE ======================= -->
+<section id="hardware">
+ <h1><span class="n">3</span>Hardware map and ports</h1>
+ <p class="lead">Create the Robot Configuration on the Driver Station with <b>exactly</b> these names (they are case-sensitive). This diagram is drawn from <code>teamcode/hwmap.yaml</code>. Hover a port for what it does. A wrong name makes the OpMode stop at INIT with "device not found".</p>
+ <div class="grid g2" id="hubs"></div>
+ <div class="tbl" style="margin-top:12px"><table><thead><tr><th style="width:160px">Name</th><th style="width:170px">Type</th><th>Purpose / notes</th></tr></thead><tbody id="hwtable"></tbody></table></div>
+ <div class="call"><b>i</b><div><b>Switch, no turret:</b> set <x-k>turret.enabled</x-k> to false. <code>turn</code> and <code>turnanalog</code> become optional, and the shot gate checks chassis heading instead of turret alignment.</div></div>
+</section>
+
+<!-- ======================= DEPLOY ======================= -->
+<section id="deploy">
+ <h1><span class="n">4</span>Getting code onto the robot</h1>
+ <div class="grid g2">
+  <div class="card pad"><h3 style="margin-top:0">1 · One-time setup</h3>
+   <ol style="padding-left:18px;margin:0"><li>Install <b>Android Studio</b> and <b>JDK 21</b> (the build targets Java 21).</li>
+   <li>Open the repo root (the folder containing <code>gradlew</code>). The robot code is the <code>TeamCode</code> module.</li>
+   <li>Make sure <code>adb</code> exists: <code>$ANDROID_HOME</code>, <code>$ANDROID_SDK_ROOT</code> or <code>~/Library/Android/sdk/platform-tools</code>.</li>
+   <li><i>Proofs (optional):</i> <code>brew install elan-init</code>. The first <code>verifyBuild</code> then downloads OpenJML and about 5 GB of Mathlib once.</li>
+   <li><i>This page:</i> <code>pip install pyyaml</code>, then <code>python3 doc/guide/build.py</code>.</li></ol></div>
+  <div class="card pad"><h3 style="margin-top:0">2 · Connect to the Control Hub</h3>
+   <p style="margin:0">Join the robot's Wi-Fi. The hub is at <code>192.168.43.1:5555</code>.</p>
+   <div class="cmd" data-c="./gradlew connectAdb"><span>./gradlew connectAdb</span></div>
+   <div class="cmd" data-c="adb devices"><span>adb devices</span></div>
+   <p style="margin:6px 0 0;font-size:13px"><b>USB:</b> use an <b>A-to-C</b> cable. A C-to-C cable from a MacBook didn't work because the hub took the host role. <b>"No route to host"</b> on macOS: allow your terminal under <i>System Settings › Privacy &amp; Security › Local Network</i>.</p></div>
+  <div class="card pad"><h3 style="margin-top:0">3 · Verify, then install</h3>
+   <div class="cmd" data-c="./gradlew verifyBuild"><span>./gradlew verifyBuild</span></div>
+   <p style="margin:4px 0;font-size:13px">This formats, compiles, runs every unit test, checks alliance symmetry and runs the proofs (<a href="#verify">details</a>). Then in Android Studio pick <b>TeamCode</b>, choose the hub, and press ▶ Run. From the command line:</p>
+   <div class="cmd" data-c="./gradlew :TeamCode:installDebug"><span>./gradlew :TeamCode:installDebug</span></div>
+   <p class="meta" style="margin:4px 0 0">Gradle silent for over a minute? The daemon is frozen. Add <code>--no-daemon</code>.</p></div>
+  <div class="card pad"><h3 style="margin-top:0">4 · The tuning loop (no rebuild)</h3>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;margin-bottom:6px"><span class="pill">edit config.yaml</span>→<span class="pill">pushConfig</span>→<span class="pill">stop + re-INIT</span>→<span class="pill">test</span>→<span class="pill" style="background:var(--grnL)">lock in</span></div>
+   <div class="cmd" data-c="./gradlew pushConfig"><span>./gradlew pushConfig</span></div>
+   <p style="margin:4px 0;font-size:13px">First it runs <code>checkPushConfig</code> (route safety, <code>ConfigSanity</code>, match windows, under ½ s), then copies the file to <code>/sdcard/FIRST/teamcode/config.yaml</code>. It is ignored unless <code>meta.season</code> = <code>"biobuzz"</code>. A plain <code>adb push</code> skips the check, and <b>the robot never re-checks routes itself</b>.</p>
+   <div class="cmd" data-c="./gradlew resetConfig"><span>./gradlew resetConfig</span><span class="c" style="flex:0;color:#a99d80">back to the bundled config</span></div>
+   <p class="meta" style="margin:4px 0 0"><b>Lock in</b> before competition: final values in the repo, <code>verifyBuild</code>, reinstall, <code>resetConfig</code>.</p></div>
+ </div>
+ <h2>Getting calibration files off the robot</h2>
+ <p>Calibration OpModes write to <code>/sdcard/FIRST/teamcode/</code>, and each file is overwritten on the next run. Pull it first.</p>
+ <pre data-copy>adb pull /sdcard/FIRST/teamcode/shot_table_pollen.yaml calibration-data/
+adb pull /sdcard/FIRST/teamcode/shot_time_table.yaml   calibration-data/
+adb pull /sdcard/FIRST/teamcode/shot_timing_log.csv    calibration-data/
+adb pull /sdcard/FIRST/teamcode/shooter_characterization.json calibration-data/</pre>
+</section>
+
+<!-- ======================= BRING-UP ======================= -->
+<section id="bringup">
+ <h1><span class="n">5</span>The bring-up order</h1>
+ <p class="lead">Each stage depends on the ones before it. Click a stage to expand it, and tick it off when its "done when" holds. Progress is saved in this browser and shown in the sidebar.</p>
+ <div class="card" id="stages"></div>
+ <div style="margin-top:8px;display:flex;gap:8px"><button class="tbtn" id="resetStages">Reset progress</button></div>
+</section>
+
+<!-- ======================= PROCEDURES ======================= -->
+<section id="procedures">
+ <h1><span class="n">6</span>Tuning procedures</h1>
+ <p class="lead">One card per OpMode. <b>Steps</b> can be ticked off as you go. <b>Controls</b> lights up the gamepad. <b>Writes</b> shows the keys it sets, with their current values. Every calibration OpMode reloads config at INIT, so after each <code>pushConfig</code>, stop and re-INIT.</p>
+ <div class="call tip"><b>!</b><div><b>Before every session:</b> charged battery (note its voltage), robot on blocks for anything that spins, clear floor, and a second person on the power switch. Many tuners expose live-editable fields in the <b>Panels</b> dashboard (bylazar Panels).</div></div>
+ <div class="filters" id="procFilters"></div>
+ <div style="display:flex;gap:8px;margin-bottom:6px"><button class="tbtn" id="expandAll">Expand all</button><button class="tbtn" id="collapseAll">Collapse all</button></div>
+ <div id="procs"></div>
+ <h2 id="sanity-tests">Sanity tests <span class="meta">(DS group: Test)</span></h2>
+ <div class="tbl"><table><thead><tr><th style="width:200px">OpMode</th><th style="width:220px">Controls</th><th>What to check</th></tr></thead><tbody id="sanity"></tbody></table></div>
+ <p class="meta">Full Max Velocity Test, Shooter Autotune and AtanAlignTest are <code>@Disabled</code> and don't appear on the DS.</p>
+</section>
+
+<!-- ======================= GAMEPADS ======================= -->
+<section id="gamepads">
+ <h1><span class="n">7</span>Gamepad explorer</h1>
+ <p class="lead">Pick a mode: TeleOp driver, TeleOp operator, or any tuning OpMode. The buttons it uses light up. Hover a button or a row to see what it does.</p>
+ <div class="filters" id="padModes"></div>
+ <div class="padwrap"><div class="card pad"><svg class="pad" id="padSvg" viewBox="0 0 520 300"></svg><div class="meta" id="padNote" style="margin-top:6px"></div></div>
+ <div class="card pad maplist" id="padList"></div></div>
+</section>
+
+<!-- ======================= FIELD ======================= -->
+<section id="field">
+ <h1><span class="n">8</span>Interactive field map</h1>
+ <p class="lead">Drawn from <x-k>field.size_in</x-k>, <code>field.hive.*</code>, the zones and every configured pose (squares are <x-k>sentinel.robot_width</x-k>). Hover a pose for its config path. Click anywhere to read the RED and BLUE coordinates and copy them as a pose. Audience wall at the bottom, RED wall on the left.</p>
+ <div class="fieldwrap"><div><svg class="field" id="fieldSvg"></svg><div class="coord meta" id="fieldCoord" style="margin-top:6px">Move over the field…</div><div id="fieldPick" style="margin-top:6px;font-size:13px">Click the field to pick a point.</div></div>
+ <div class="card pad lay" id="fieldLayers"></div></div>
+</section>
+
+<!-- ======================= VERIFY ======================= -->
+<section id="verify">
+ <h1><span class="n">9</span>Verification</h1>
+ <h2>What <code>./gradlew verifyBuild</code> checks</h2>
+ <div class="tbl"><table><tbody id="vsteps"></tbody></table></div>
+ <h2>What should I run after a change?</h2>
+ <div class="grid g2"><div class="card pad" id="changeOpts"></div><div class="card pad" id="changeOut"></div></div>
+ <h2>On-robot acceptance tests</h2>
+ <p>The tests prove the logic. These prove the machine. Results, notes and battery voltage are saved in this browser. <b>Copy as Markdown</b> to paste them into an issue or notebook.</p>
+ <div class="tbl"><table><thead><tr><th style="width:30px">#</th><th>Test</th><th style="width:220px">Pass when</th><th style="width:110px">Result</th><th style="width:200px">Notes / volts</th></tr></thead><tbody id="atests"></tbody></table></div>
+ <div style="margin-top:8px;display:flex;gap:8px"><button class="tbtn" id="copyTests">Copy as Markdown</button><button class="tbtn" id="resetTests">Clear results</button></div>
+</section>
+
+<!-- ======================= MATCH ======================= -->
+<section id="match">
+ <h1><span class="n">10</span>Match day</h1>
+ <div class="grid g2">
+  <div class="card pad"><div style="display:flex;align-items:center"><h3 style="margin:0">Pre-match checklist</h3><button class="tbtn" id="resetMatch" style="margin-left:auto">Next match ↺</button></div><div id="matchList" style="margin-top:8px"></div></div>
+  <div class="card pad"><h3 style="margin:0 0 6px">Pick your autonomous</h3>
+   <label class="meta">Our robot</label><select class="inp" id="autoUs" style="width:100%"></select>
+   <label class="meta" style="display:block;margin-top:6px">Partner robot</label><select class="inp" id="autoThem" style="width:100%"></select>
+   <div class="out" id="autoAdvice"></div></div>
+ </div>
+ <h2>TeleOp cues</h2>
+ <div class="grid g3" id="cues"></div>
+ <p>Full controls: <a href="#gamepads" data-mode="driver" class="padjump">driver</a> · <a href="#gamepads" data-mode="operator" class="padjump">operator</a> · <a href="#gamepads" data-mode="init" class="padjump">INIT</a>.</p>
+</section>
+
+<!-- ======================= CONFIG ======================= -->
+<section id="config">
+ <h1><span class="n">11</span>Config explorer</h1>
+ <p class="lead">Every key in <code id="cfgPath"></code>, with the value in this build, its description and limits from <code>config-docs.yaml</code>, the engineers' YAML comments, and a status. Click a row for details. <code>m</code> poses show their computed BLUE value.</p>
+ <div class="cfgbar"><input class="inp" id="cfgQ" placeholder="Filter keys, values or descriptions…" style="flex:1;min-width:220px"><button class="tbtn" id="cfgClear" title="Clear all filters">Clear</button>
+  <select class="inp" id="cfgSec"><option value="">All sections</option></select>
+  <span id="cfgChips" style="display:flex;gap:4px;flex-wrap:wrap"></span><span class="meta" id="cfgCount"></span></div>
+ <div id="cfgList"></div>
+ <h2 id="switches">Every on/off switch</h2>
+ <div class="tbl"><table><thead><tr><th style="width:36%">Switch</th><th style="width:70px">Now</th><th>Flip it when…</th></tr></thead><tbody id="switchRows"></tbody></table></div>
+</section>
+
+<!-- ======================= TOOLS ======================= -->
+<section id="tools">
+ <h1><span class="n">12</span>Calculators and checkers</h1>
+ <p class="lead">These use the current config, so a check run here gives the same answer the robot would.</p>
+ <div class="grid g2">
+  <div class="card pad tool" id="tShot"><b>Shot table checker</b><div class="meta">Paste Ballistics Calibration's rows (or the whole printed entry).</div><textarea class="inp" id="shotIn"></textarea><div id="shotOut"></div></div>
+  <div class="card pad tool" id="tTime"><b>Shot window checker</b><div class="meta">Paste Shot Timing Tuner's <code>shot_time_points</code>.</div><textarea class="inp" id="timeIn"></textarea><div id="timeOut"></div></div>
+  <div class="card pad tool"><b>BLUE mirror</b><div class="meta">What <code>m</code> resolves to: a 180° rotation about the field centre.</div>
+   <div class="row"><div><label class="f">RED x</label><input class="inp" id="mx" type="number" step="any" value="58"></div><div><label class="f">RED y</label><input class="inp" id="my" type="number" step="any" value="9"></div><div><label class="f">heading °</label><input class="inp" id="mh" type="number" step="any" value="90"></div></div><div class="out mono" id="mOut"></div></div>
+  <div class="card pad tool"><b>Turret gains from Plant Calibration</b><div class="meta">p = 1/(K·τ), kv = 1/K, i = d = f = 0.</div>
+   <div class="row"><div><label class="f">K (deg/s per power)</label><input class="inp" id="tk" type="number" step="any" value="100"></div><div><label class="f">τ (s)</label><input class="inp" id="tt" type="number" step="any" value="0.2"></div></div><div class="out mono" id="tOut"></div></div>
+  <div class="card pad tool"><b>Turret aim tolerance vs distance</b><div class="meta">From <code>turret.tolerance.*</code>: asin((max_drift/2)/d), clamped.</div><svg class="chart" id="tolChart" viewBox="0 0 420 170"></svg></div>
+  <div class="card pad tool"><b>Flywheel units</b><div class="meta">The <code>*_rpm</code> keys are ticks/s. Power = ticks/s ÷ <code>max_rpm</code>.</div>
+   <div class="row"><div><label class="f">ticks/s</label><input class="inp" id="ft" type="number" step="any" value="1000"></div><div><label class="f">power</label><input class="inp" id="fp" type="number" step="any"></div></div><div class="out" id="fOut"></div></div>
+ </div>
+</section>
+
+<!-- ======================= TROUBLE ======================= -->
+<section id="trouble">
+ <h1><span class="n">13</span>Troubleshooting</h1>
+ <div class="cfgbar" style="position:static"><input class="inp" id="trQ" placeholder="Describe the symptom…" style="flex:1"><span id="trChips" style="display:flex;gap:4px;flex-wrap:wrap"></span></div>
+ <div class="tbl"><table><thead><tr><th style="width:90px">Area</th><th style="width:30%">Symptom</th><th>Cause and fix</th></tr></thead><tbody id="trRows"></tbody></table></div>
+</section>
+
+<!-- ======================= GAPS ======================= -->
+<section id="gaps">
+ <h1><span class="n">14</span>Known gaps and further reading</h1>
+ <div class="grid g2"><div class="card pad"><ul id="gapList" style="margin:0;padding-left:18px"></ul></div>
+ <div class="card pad"><table><tbody>
+  <tr><td><code>AGENTS.md</code></td><td>Coding standards and architecture rules.</td></tr>
+  <tr><td><code>BIOBUZZ-SEASON.md</code></td><td>Rules mapped to code, field geometry.</td></tr>
+  <tr><td><code>teleop_controls.md</code></td><td>The authoritative TeleOp controls.</td></tr>
+  <tr><td><code>MIGRATION-PEDRO3.md</code></td><td>Pedro 3 decisions, AutoTune.</td></tr>
+  <tr><td><code>doc/guide/README.md</code></td><td>How this page and the PDF are built.</td></tr>
+ </tbody></table>
+ <div class="call ok"><b>✓</b><div><b>Done means</b>: every <span class="tag tM">Measure</span> and <span class="tag tH">Placeholder</span> in the explorer is replaced, the live status is all green, <code>verifyBuild</code> passes, the final config is in the APK (after <code>resetConfig</code>), and all acceptance tests pass.</div></div></div></div>
+ <p class="meta" id="buildMeta" style="margin-top:20px"></p>
+</section>
+</main></div>
+
+<div class="modal" id="modal"><div class="mbox"><input id="q" placeholder="Search…" autocomplete="off"><div class="res" id="res"></div><div class="mfoot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div></div></div>
+<div class="tip" id="tip"></div><div class="toast" id="toast"></div>
+
+<script>
+const D = /*__GUIDE_DATA__*/null;
+/* ---------------------------------------------------------------- helpers */
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const CFG = D.config, SIZE = +CFG.field.size_in, C = SIZE / 2;
+const KEYS = Object.fromEntries(D.keys.map(k => [k.path, k]));
+function get(path) { return path.split(".").reduce((o, p) => (o && typeof o === "object") ? o[p] : undefined, CFG); }
+function num(v) { return typeof v === "number" ? (Math.abs(v) >= 1e-3 || v === 0 ? +v.toPrecision(6) + "" : v.toExponential(2)) : v; }
+function fmt(v, long) {
+  if (Array.isArray(v)) { const s = v.map(num).join(", "); return (!long && s.length > 46) ? `[${v.length} values]` : `[${s}]`; }
+  if (typeof v === "string") return v === "m" ? "m" : `"${v}"`;
+  if (v === null || v === undefined) return "—";
+  return String(num(v));
+}
+const store = { k: "biobuzz-guide-v1", d: null,
+  load() { if (this.d) return this.d; try { this.d = JSON.parse(localStorage.getItem(this.k)) || {}; } catch { this.d = {}; } return this.d; },
+  get(n, f) { const v = this.load()[n]; return v === undefined ? f : v; },
+  set(n, v) { this.load()[n] = v; try { localStorage.setItem(this.k, JSON.stringify(this.d)); } catch {} } };
+function goto(id) { const el = document.getElementById(id); if (!el) return; history.replaceState(null, "", "#" + id); el.scrollIntoView({behavior: "smooth", block: "start"}); }
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 1500); }
+async function copy(text, btn) {
+  try { await navigator.clipboard.writeText(text); } catch { const ta = document.createElement("textarea"); ta.value = text; document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  if (btn) { btn.textContent = "Copied"; btn.classList.add("done"); setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("done"); }, 1200); } else toast("Copied");
+}
+const ST = { M: "Measure", H: "Placeholder", T: "Tuned", P: "Policy", S: "Switch", F: "Field", I: "Model only" };
+const STD = { M: "Calibrate this on your own robot.", H: "An invented stand-in. Replace it.", T: "Measured or chosen by simulation. Leave it.", P: "A safety, feel or strategy choice.", S: "Turns a feature on or off.", F: "Game geometry. Don't change it.", I: "Used by the flight model and displays only, not by live aim." };
+const tag = s => `<span class="tag t${s}" title="${esc(STD[s])}">${ST[s]}</span>`;
+function kchip(path, opts = {}) {
+  const k = KEYS[path]; const v = k ? (k.value === "m" && k.mirror ? `m → [${k.mirror.join(", ")}]` : fmt(k.value)) : (get(path) !== undefined ? fmt(get(path)) : "");
+  return `<a class="ck${opts.bad ? " bad" : ""}" data-k="${esc(path)}" title="Open in config explorer">${esc(path)}${v !== "" ? `<span class="cv">= ${esc(v)}</span>` : ""}</a>`;
+}
+/* ------------------------------------------------------------ content data */
+const MODEL = [
+ ["Drivetrain + odometry","4 mecanum wheels. A goBILDA Pinpoint with two odometry pods tracks the robot's position, and Pedro Pathing follows paths using it."],
+ ["Intake","Two motors (front and middle rollers) pull POLLEN in and pass it to the shooter. It caps itself at 4 elements only if a beam break is fitted."],
+ ["Shooter","Two motors drive one flywheel, and a hood servo sets the launch angle. A measured shot table maps distance to (hood, flywheel speed)."],
+ ["Turret","A continuous-rotation servo swings the shooter about ±"+Math.abs(get("turret.travel.max_angle"))+"°. An analog pot reads the angle. It aims at the upward CELL on its own."],
+ ["Vision","A webcam reads the AprilTags under each CELL. Their height tells it which CELL faces up, and so whether the HIVE has TIPPED."],
+ ["Safety","Sentinel knows the no-go zones (JTS polygons). Casablanca slows and pushes back driver input near them, and holds heading."],
+ ["Shot controller","Feeds a ball only when every gate passes: flywheel in band, turret aligned, solution valid and current, HIVE settled."],
+ ["Config","One YAML file holds every constant. pushConfig hot-deploys it over ADB in seconds."],
+ ["Proofs + tests","JVM tests simulate turret and flywheel physics and check every auto route. OpenJML and Lean prove the turret and feed logic."]];
+const GLOSS = [
+ ["POLLEN","2.8 in yellow balls. This robot's only game piece."],["NECTAR","3.6 in alliance-colored balls. This robot can't handle them."],
+ ["SCORING ELEMENT","Either kind of ball."],["HIVE","The pivoting scoring structure. There is one per alliance, near the field centre."],
+ ["CELL A / B","A HIVE's two openings. You may only launch into the one facing up. A starts up (RED: audience side, BLUE: rear)."],
+ ["TIP","Enough elements tip the HIVE (20 pts), which turns the other CELL up. Launching while it swings is not allowed."],
+ ["FLOWER","Wall-mounted POLLEN dispenser. This robot has no FLOWER mechanism."],["LOADING ZONE","Taped zone on the alliance wall. Ending AUTO partly inside it, off the wall, scores PARK (and LEAVE)."],
+ ["G402 / G407 / G417","Rules the code enforces: stay on your side in AUTO, at most 4 elements, upward CELL only and no ramming the HIVE."],
+ ["AUTO / TELEOP","30 s autonomous, then 120 s driven."],["OpMode","A program picked on the Driver Station. Groups: Tuning, Calibration, Test."],
+ ["Control Hub / DS","The robot's computer, and the phone plus gamepads that run OpModes and show telemetry."],
+ ["Telemetry","Text the robot prints on the DS while an OpMode runs. Calibration results appear there."],
+ ["Panels","bylazar's web dashboard. Some tuners draw the field there and expose live-editable fields."],
+ ["Pose","[x in, y in, heading °] on the field."],["Pedro frame","Origin at the audience/RED-wall corner. +x toward BLUE, +y away from the audience. Heading 0 = +x, counter-clockwise positive."],
+ ["P, I, D","Feedback gains. P pushes in proportion to the error, I removes a steady offset, D damps. Too much P makes it oscillate."],
+ ["kS, kV","Feedforward: kS breaks static friction, kV is power per unit of speed. Applied before any error appears."],
+ ["Ticks/s (\"rpm\")","Every *_rpm key in shooter is really encoder ticks per second."],
+ ["Slew limit","A cap on how fast drive power may change, so the odometry pods stay on the floor."],["m","A BLUE value meaning \"RED rotated 180° about the field centre\"."],
+ ["Integrator plant","A system where power sets speed, not position, like a CR servo turret. Relay autotuning gives meaningless gains on one."],
+ ["Feed gate","A condition that must hold before a ball is fed. The TeleOp \"Shot\" line names the one blocking."]];
+const STAGES = [
+ ["Build + install","verifyBuild green, the hardware names match, and every OpMode appears on the DS.",["#deploy","#hardware"]],
+ ["Sanity tests","Every motor, servo and sensor responds and moves the right way.",["#sanity-tests"]],
+ ["Pedro AutoTune","Motor directions, Pinpoint, Foresight. Forward Left Return ends where it started.",["pedro"]],
+ ["Driver feel + safety","Friction, pod contact and heading lock tuned. Casablanca stops short of the HIVE.",["friction","podcontact","headinglock","casatest"]],
+ ["Turret","Center, plant, verification. It reaches and holds an angle without hunting.",["turret-center","turret-plant","turret-verify"]],
+ ["Flywheel + hood","Characterized. Speed holds and recovers after a ball. The hood ends are known.",["characterize","velocity","hood"]],
+ ["Measure the robot","Camera mount, turret pivot, robot width and release height entered.",["measure"]],
+ ["Shot table","Ballistics Calibration done and calibrated: true. Balls drop in at every row.",["ballistics"]],
+ ["Shot windows","Shot Timing Tuner rows pasted into auto.shot_time_points.",["timing"]],
+ ["Vision","The HIVE readout flips when tipped by hand. Relocalize snaps the pose correctly.",["vision"]],
+ ["Poses + autos","Start poses checked, and every AUTO driven slowly on a real field.",["startpose"]],
+ ["Verify + rehearse","verifyBuild with final values, reinstall, resetConfig, acceptance tests pass, two clean full matches.",["#verify","#match"]]];
+
+/* Gamepad schemes. Button ids: lt rt lb rb du dd dl dr a b x y ls rs l3 r3 back start */
+const PADS = {
+ driver:{n:"TeleOp · driver",g:"Gamepad 1",note:"Sticks pass through Casablanca. A pose hold checks its path against the HIVE frame and walls first. If blocked, see the \"Pose assist\" line.",m:{
+  ls:["Translate","Cubic response, capped by teleop.max_speed. Deflecting past 0.2 cancels a pose hold."],rs:["Rotate","Releasing it holds the current heading."],
+  x:["Face the upward CELL","Toggles a heading lock on the bearing to the up CELL. It follows TIPS."],rt:["Hold shooting pose","Drives to and holds shoot_a or shoot_b, whichever faces the CELL that is up."],
+  lt:["Hold park pose","Drives to and holds park. Use it when the park alert fires."],dl:["FLOWER pose (off)","Disabled while teleop.flower_hold_enabled is false."],dr:["Cancel pose hold","Back to manual driving."]}},
+ operator:{n:"TeleOp · operator",g:"Gamepad 2",note:"Feeding only happens when every gate passes. The telemetry \"Shot\" line names the gate holding it.",m:{
+  a:["Start intake","Stops itself at a known count of 4 (G407)."],b:["Stop intake",""],dr:["Eject (hold)","Reverse at teleop.eject_power: a 5th element or opponent NECTAR."],
+  rt:["Aim and shoot (hold)","Holds chassis position, spins up, aims the turret, feeds when ready."],y:["Turret aim only (hold)","Tracks the upward CELL without spinning up."],
+  x:["Rev flywheel (hold)","teleop.manual_rev_power, no feed. X+Y = pre-spin and aim."],du:["Fixed-speed shot","At shooter.constant_rpm. Still gated, and blocked while uncalibrated. LT cancels."],
+  lt:["Cancel everything","Shot, aim, rev, intake, eject."],dd:["Vision relocalize (hold)","Re-anchors on the upward CELL while the HIVE is settled."],
+  lb:["Record a TIP","For a TIP the camera missed. Flips the CELL and adds a TIP."],back:["Undo a TIP",""],rb:["POLLEN / NECTAR","No effect while NECTAR is disabled."],l3:["Mark robot empty","Inventory = 0."]}},
+ init:{n:"TeleOp · INIT",g:"Either gamepad",note:"Only when no AUTO ran before this TeleOp. Otherwise it inherits the AUTO's alliance.",m:{b:["Select RED",""],x:["Select BLUE",""]}},
+ ballistics:{n:"Ballistics Calibration",g:"Gamepad 1",note:"RB picks POLLEN/NECTAR during INIT (NECTAR is disabled). A also confirms each endpoint before the robot drives there.",m:{
+  ls:["Drive","Through Casablanca."],rs:["Turn",""],rt:["Aim + shoot","At the pinned speed."],rb:["Manual intake / feed",""],lb:["Stop intake + shot",""],lt:["Stop intake + shot",""],
+  x:["Toggle flywheel rev",""],du:["Hood coarse +0.05",""],dd:["Hood coarse −0.05",""],dr:["Hood fine +0.005",""],dl:["Hood fine −0.005",""],
+  l3:["Speed −50 ticks/s",""],r3:["Speed +50 ticks/s",""],y:["Reset hood + speed to seed",""],a:["Confirm move / ACCEPT shot",""],b:["Skip endpoint",""]}},
+ timing:{n:"Shot Timing Tuner",g:"Gamepad 1",note:"The robot does not drive. Its pose is faked to each distance. Wait for READY before firing.",m:{
+  rt:["Fire the volley",""],lt:["Stop everything",""],x:["Intake on/off","Load the balls."],a:["Accept",""],b:["Skip",""],du:["Expected balls +1",""],dd:["Expected balls −1",""],
+  r3:["Dip trigger +0.5%",""],l3:["Dip trigger −0.5%",""]}},
+ turretverify:{n:"Turret Angle Verification",g:"Gamepad 1",note:"Targets are clamped to the travel limits.",m:{
+  du:["Target +5°",""],dd:["Target −5°",""],dl:["Target +15°",""],dr:["Target −15°",""],y:["Target 0°",""],x:["Target +30°",""],b:["Target −30°",""],
+  a:["Zero IMU reference","Also sets target 0°."],lt:["Kill power / idle",""],rb:["Clear safety fault",""]}},
+ turretcenter:{n:"Turret Center Calibration",g:"Gamepad 1",note:"Servo unpowered: move the turret by hand.",m:{a:["Capture","Positive stop, negative stop, then rough centre."],b:["Start over",""]}},
+ turretplant:{n:"Turret Plant Calibration",g:"Gamepad 1",note:"Press START and the turret moves on its own.",m:{b:["Abort",""]}},
+ hood:{n:"Hood Tuner",g:"Gamepad 1",note:"",m:{du:["+0.01",""],dd:["−0.01",""],dr:["+0.001",""],dl:["−0.001",""],a:["Go to min_hood_servo_pos","Flattest arc."],b:["Go to max_hood_servo_pos","Steepest arc."]}},
+ characterize:{n:"Shooter Characterization",g:"Gamepad 1",note:"Press START, then A. Takes about 30 s.",m:{a:["Start the run",""]}},
+ friction:{n:"Friction Calibration TeleOp",g:"Gamepad 1",note:"Open carpet, plenty of room.",m:{a:["Forward test → kS X",""],b:["Strafe test → kS Y",""],x:["Rotation test","Static, moving, max ω."]}},
+ podcontact:{n:"Casablanca Pod Contact Tuner",g:"Gamepad 1",note:"There is no automatic return. Reposition by hand between trials.",m:{a:["Hold = run trial","Keep holding through the stop. Releasing aborts."],x:["Pod lifted","Mark that you saw a pod lift."],b:["Abort",""]}},
+ headinglock:{n:"TeleOp Heading Lock Autotuner",g:"Gamepad 1",note:"",m:{a:["Hold = run search","Releasing aborts."],b:["Abort",""]}},
+ startpose:{n:"Start Pose Finder",g:"Gamepad 1",note:"The D-pad selects during INIT. The sticks drive slowly, robot-centric.",m:{dl:["RED (INIT)",""],dr:["BLUE (INIT)",""],du:["CELL A routine (INIT)",""],dd:["CELL B routine (INIT)",""],ls:["Drive (slow)",""],rs:["Turn (slow)",""],a:["Re-zero odometry here","Confirms the robot sits at the start pose."]}},
+ casatest:{n:"Casablanca Test",g:"Gamepad 1",note:"Drives as BLUE. The rawDirectDrive and fieldcentric toggles are in Panels.",m:{ls:["Drive","Through Casablanca."],rs:["Turn",""]}},
+ servotest:{n:"Servo Test",g:"Gamepad 1",note:"",m:{rt:["Turret forward",""],lt:["Turret reverse",""]}},
+ analog:{n:"Turn Analog Test",g:"Gamepad 1",note:"",m:{rt:["Servo forward",""],lt:["Servo reverse",""],a:["Reset min/max",""]}},
+ manualturret:{n:"Manual Turret Turn Tester",g:"Gamepad 1",note:"turn_degrees is editable in Panels.",m:{dd:["Zero here","Only while centred."],dr:["Go to turn_degrees",""]}},
+ maxvel:{n:"Shooter Max Velocity Test",g:"Gamepad 1",note:"",m:{x:["Stop",""],a:["Restart",""],y:["Reset stats",""]}}};
+const BTN = {lt:"LT",rt:"RT",lb:"LB",rb:"RB",du:"D↑",dd:"D↓",dl:"D←",dr:"D→",a:"A",b:"B",x:"X",y:"Y",ls:"L stick",rs:"R stick",l3:"L3",r3:"R3",back:"Back",start:"Start"};
+
+/* Procedures */
+const P = [
+{id:"pedro",t:"Pedro AutoTune",ds:"Browser page on the hub",area:"Drive",pills:["4+ ft clear","wheels on floor"],
+ why:"Pedro needs the motor directions, the odometry pod setup, and a model of how the chassis speeds up and stops. The current pedro.* values were carried over from last season, and some are marked provisional.",
+ steps:["Connect a laptop to the robot's Wi-Fi and open <code>http://192.168.43.1:10158</code>.",
+  "<b>Mecanum Tuner</b> spins each drive motor in turn, and you enter whether it went forward or reversed. This sets the motor directions.",
+  "<b>Pinpoint Tuner</b>: pick the pod type, push the robot <b>exactly 48 in forward</b> (encoder scale), then push it forward and then left (pod directions).",
+  "<b>Foresight Tuner</b> drives itself (48 in by default, and at least 15 in for braking) to measure heading kP, braking, top speeds and natural deceleration.",
+  "<b>Tests</b>: Hold, Line, Curve, Interpolation, Localization, Odometry, Driving, Pose. Start with Localization and Line.",
+  "Copy the numbers into <code>pedro:</code> and <code>pushConfig</code>. Each procedure reloads config, so no restart is needed.",
+  "Run <b>Forward Left Return Test</b> (Autonomous, group Tests): from where it stands, 20 in forward, 10 in left, back. It must end where it started.",
+  "Push the robot by hand at heading 0. Forward raises x, left raises y, counter-clockwise raises heading."],
+ writes:["pedro.localization.x_pod_offset","pedro.localization.y_pod_offset","pedro.heading.pid.p","pedro.translation.forward.small_error_pid.p","pedro.translation.strafe.small_error_pid.p","pedro.braking.forward.linear","pedro.motion.max_forward_velocity","pedro.motion.max_strafe_velocity"],
+ pit:["max_forward_velocity is flagged \"unusually low, recheck on robot\".","After any chassis change redo all of this, then the Casablanca tuners, which reuse pedro.braking."]},
+{id:"friction",t:"Friction Calibration TeleOp",ds:"Calibration",area:"Drive",pills:["open carpet","~4 ft clear"],pad:"friction",
+ why:"Ramps power until the robot really moves (over 1 in/s, or 0.05 rad/s, for 5 loops). That gives the static-friction power on each axis, which Casablanca adds so small stick inputs aren't swallowed.",
+ steps:["Place the robot on open carpet with room in every direction.","Press START, then <kbd>A</kbd> (forward), <kbd>B</kbd> (strafe), <kbd>X</kbd> (rotation), one at a time.","Copy the results as shown in Writes. If Rot Moving says NOT MEASURED, keep the old ks_moving."],
+ writes:["casablanca.friction.x","casablanca.friction.y","casablanca.friction.rot","casablanca.heading_lock.ks_moving","sentinel.rotation_lookahead_time"],
+ out:"casablanca.friction.x   ← X\ncasablanca.friction.y   ← Y\ncasablanca.friction.rot ← Rot Static\ncasablanca.heading_lock.ks_moving ← Rot Moving\nsentinel.rotation_lookahead_time  ← \"Suggested rotation_lookahead_time\" (0.45 / max ω)",
+ pit:["The thresholds (velocityThresholdInchesPerSec etc.) are editable in Panels."]},
+{id:"podcontact",t:"Casablanca Pod Contact Tuner",ds:"Calibration",area:"Drive",pills:["one axis per run","48 in lane"],pad:"podcontact",
+ why:"The odometry pods ride on spring mounts. Hard acceleration or braking can lift one off the floor and corrupt the position. This finds the gentlest slew limits that keep both pods down.",
+ steps:["Set <x-k>casablanca.jump_tuner.trial_axis</x-k> (FORWARD, STRAFE or TURN), push, INIT.","Place the robot at <x-k>casablanca.jump_tuner.calibration_pose</x-k> (a lane beside the HIVE). STRAFE trials start there turned 90°.",
+  "<b>Hold <kbd>A</kbd></b> for each trial: baseline, accelerate, hold, stop, settle. Keep holding through the stop.","Press <kbd>X</kbd> if you saw a pod lift. Releasing A or pressing B aborts at once.","Reposition by hand between trials. Repeat until it gives a recommendation, then do the next axis."],
+ writes:["casablanca.smoothing.forward.increase_time","casablanca.smoothing.forward.decrease_time","casablanca.smoothing.strafe.increase_time","casablanca.smoothing.turn.increase_time"],
+ pit:["It aborts on more than "+get("casablanca.jump_tuner.emergency_tilt_deg")+"° of tilt, a stale IMU, a stall, or drift. All limits are in casablanca.jump_tuner.*.","Tilt comes from the Pinpoint, or the IMU named casablanca.jump_tuner.imu_name as a fallback."]},
+{id:"headinglock",t:"TeleOp Heading Lock Autotuner",ds:"Calibration",area:"Drive",pills:["turns in place"],pad:"headinglock",
+ why:"Finds the P and D that make \"release the turn stick and hold heading\" settle fastest without overshoot, by stepping the heading in both directions for every candidate.",
+ steps:["Place the robot at <x-k>casablanca.heading_tuner.calibration_pose</x-k> with room to turn.","Press START, then <b>hold <kbd>A</kbd></b> for the whole search: ±"+get("casablanca.heading_tuner.step_degrees")+"° steps, P from "+get("casablanca.heading_tuner.p_min")+" to "+get("casablanca.heading_tuner.p_max")+" ("+get("casablanca.heading_tuner.p_count")+" values), D from "+get("casablanca.heading_tuner.d_min")+" to "+get("casablanca.heading_tuner.d_max")+" ("+get("casablanca.heading_tuner.d_count")+" values).","Copy the winning p and d (i stays 0)."],
+ writes:["casablanca.heading_lock.pid.p","casablanca.heading_lock.pid.d"],
+ pit:["heading_tolerance_degrees must be at least heading_lock.error_deadband_deg, or it refuses to start."]},
+{id:"casatest",t:"Casablanca Test",ds:"Test · verify",area:"Drive",pills:["drives as BLUE","Panels field"],pad:"casatest",
+ why:"Normal TeleOp driving through Casablanca (cubic sticks, slow-down, repulsion, heading lock), with live telemetry, to prove the HIVE protection.",
+ steps:["It drives as <b>BLUE</b> and starts at the BLUE image of the tuner pose, <b><span id='casaPose'></span></b>. Place the robot there.","Drive at the HIVE frame from the front, side and diagonals at full speed.","It must start slowing at <x-k>casablanca.depth.slow_down</x-k>, cut power toward the frame at <x-k>casablanca.depth.hard_stop</x-k>, and never touch."],
+ writes:["casablanca.depth.slow_down","casablanca.depth.hard_stop","casablanca.side.slow_down","casablanca.side.hard_stop"],
+ pit:["Creeps in: raise hard_stop, check sentinel.robot_width and pedro.braking.","Feels sluggish: lower slow_down. Keep depth and side equal."]},
+{id:"turret-center",t:"Turret Center Calibration",ds:"Tuning",area:"Turret",pills:["servo unpowered","by hand"],pad:"turretcenter",
+ why:"Finds the potentiometer voltages at both hard stops and works out the centre, the travel limits and the voltage range.",
+ steps:["Turn the turret <b>by hand</b> to the positive hard stop and press <kbd>A</kbd>.","Turn it to the negative hard stop and press <kbd>A</kbd>.","Turn it to <i>roughly</i> the middle and press <kbd>A</kbd>. This only picks which arc of the pot the turret travels. The exact centre comes from the stops.","Paste the printed block. <kbd>B</kbd> starts over."],
+ writes:["turret.travel.min_angle","turret.travel.max_angle","turret.analog_encoder.zero_voltage","turret.analog_encoder.degrees_per_volt","turret.analog_encoder.min_voltage","turret.analog_encoder.max_voltage","turret.analog_encoder.full_scale_voltage"],
+ pit:["Travel = half the measured span minus limitSafetyMarginDeg (3°, in Panels).","degrees_per_volt is only re-derived if you set knownTotalTravelDeg in Panels."]},
+{id:"turret-plant",t:"Turret Plant Calibration",ds:"Tuning",area:"Turret",pills:["turret moves itself"],pad:"turretplant",
+ why:"A CR servo is an integrator: power sets speed, not position, so relay autotuning gives nonsense. This measures the breakaway power in each direction (kS) and the speed per unit of power (K), then picks p = 1/(K·τ) for τ = desiredTimeConstantSec (0.20 s, in Panels).",
+ steps:["Press START. The turret ramps power on its own within its travel limits, up to <x-k>turret.max_power_output</x-k>. <kbd>B</kbd> aborts at any time.","If it says <b>CONTROL LOOP IS INVERTED</b>, flip <x-k>turret.servo_direction_inverted</x-k> and re-run before any closed-loop OpMode.","Paste the block (i, d and f stay 0). Check it with the <a href='#tools'>gain calculator</a>.","Run <code>python3 TeamCode/verification/TurretProof/conditions.py</code>. It must exit 0."],
+ writes:["turret.ks_positive","turret.ks_negative","turret.kv","turret.pidf.p","turret.pidf.i","turret.pidf.d","turret.pidf.f"],
+ out:"turret:\n  ks_positive: …\n  ks_negative: …\n  kv: …            # 1/K, turns on chassis feedforward\n  pidf: { p: …, i: 0, d: 0, f: 0 }",
+ pit:["The convergence proof assumes i = d = f = 0. A non-zero value takes the tuning outside the proof.","Lopsided kS (one direction much larger) means the servo neutral is off centre. Re-centre it with a servo programmer and re-run."]},
+{id:"turret-verify",t:"Turret Angle Verification",ds:"Tuning",area:"Turret",pills:["needs turnImu"],pad:"turretverify",
+ why:"Compares the encoder angle with an independent IMU on the turret (turnImu). After each move they should agree within about 1°. A steady scale error means degrees_per_volt is off.",
+ steps:["Press <kbd>A</kbd> to zero the IMU with the turret centred.","Step the targets (D-pad, X/Y/B) and compare the encoder and IMU angles.","If there's a stall fault, find the binding, then <kbd>RB</kbd> clears it."],
+ writes:["turret.orientation.logo","turret.orientation.usb"],pit:["INIT warns if a pushed zero_voltage puts the pot's wrap point inside the travel."]},
+{id:"characterize",t:"Shooter Characterization",ds:"Calibration",area:"Shooter",pills:["~30 s","flywheel clear","battery under load"],pad:"characterize",
+ why:"Holds a staircase of open-loop powers, waits for the wheel to settle at each, and least-squares fits power = kV·speed + kS (each point corrected to nominal_voltage). Then a 0.40→0.85 power step fits the wheel time constant and the sensor delay for the recovery kick.",
+ steps:["Robot on blocks, flywheel clear of balls. Press START, then <kbd>A</kbd>.","Check the RMS and worst-case fit error on screen.","Paste the block under <code>shooter:</code>. Paste <code>kick:</code> only if the step test passed. A copy is saved as <code>shooter_characterization.json</code>.","Set <x-k>shooter.nominal_voltage</x-k> to the voltage seen under load during the run."],
+ writes:["shooter.ks","shooter.pidf.p","shooter.pidf.i","shooter.pidf.d","shooter.pidf.f","shooter.kick.wheel_tau_sec","shooter.kick.sensor_lag_sec","shooter.nominal_voltage"],
+ out:"shooter:\n  ks: …\n  pidf: { p: …, i: …, d: 0, f: … }   # p = 2·kV, i = p / 2 s\n  kick:                              # only if the step test passed\n    wheel_tau_sec: …\n    sensor_lag_sec: …",
+ pit:["If shooter.use_ftc_pid is true, the screen warns that these values are ignored.","p = 2·kV and i = p/2 s were chosen by simulation sweep. FlywheelClosedLoopProperties checks them."]},
+{id:"velocity",t:"Shooter Velocity Tuner",ds:"Tuning",area:"Shooter",pills:["Panels"],
+ why:"Runs the real Shooter controller at targetRPM (it starts at constant_rpm, editable in Panels). It shows speed, error, and the feedforward, P and I terms.",
+ steps:["Set a target in Panels and watch spin-up.","Hand-feed a ball and watch the dip and recovery."],writes:["shooter.constant_rpm","shooter.max_rpm"],pit:[]},
+{id:"hood",t:"Hood Tuner",ds:"Tuning",area:"Shooter",pills:[],pad:"hood",
+ why:"Finds the servo positions at the hood's physical ends. The linkage is reversed: the flattest arc (min_hood_servo_pos) is numerically larger than the steepest (max_hood_servo_pos). That is correct.",
+ steps:["Walk the servo to each physical end with the D-pad, without straining the linkage.","Copy those values into the two keys. <kbd>A</kbd> and <kbd>B</kbd> jump to the configured ends to check them."],
+ writes:["shooter.ballistics.min_hood_servo_pos","shooter.ballistics.max_hood_servo_pos","shooter.ballistics.min_hood_angle_deg","shooter.ballistics.max_hood_angle_deg"],pit:["The hood angle keys only feed displays. Measure them with a protractor anyway."]},
+{id:"measure",t:"Measure the robot",ds:"Tape measure + protractor",area:"Vision",pills:["no OpMode"],
+ why:"Some values can only come from a tape measure, and the safety zones, aim and vision all depend on them.",
+ steps:["<x-k>sentinel.robot_width</x-k>: the outer width. The robot is modelled as a square, and every safety zone depends on it.","<x-k>turret.pivot_forward_in</x-k> and <x-k>turret.pivot_left_in</x-k>: the turret axis from the robot centre. A 4 in error is a 6-9° aim error.","<code>vision.camera.*</code>: lens forward/left of centre, height above the floor, yaw, pitch up (see Vision).","<x-k>shooter.ballistics.launch_height_inches</x-k>: ball release height (flight model only)."],
+ writes:["sentinel.robot_width","turret.pivot_forward_in","turret.pivot_left_in","vision.camera.forward_in","vision.camera.left_in","vision.camera.height_in","vision.camera.yaw_deg","vision.camera.pitch_up_deg"],pit:[]},
+{id:"ballistics",t:"Ballistics Calibration",ds:"Calibration",area:"Shooter",pills:["real field + HIVE","RED CELL A up","lots of POLLEN"],pad:"ballistics",
+ why:"Builds the shot table: for each distance, the hood position and flywheel speed that drop a ball into the CELL. Until this runs and calibrated is true, the robot never feeds.",
+ steps:["Finish odometry, turret and flywheel first, and measure the turret pivot (endpoints put the <i>turret axis</i> on the ray).",
+  "Place the robot at <x-k>teleop.poses.red.shoot_a</x-k> with RED's audience CELL (A) <b>up</b>. Leave the ball type on POLLEN.",
+  "It walks the endpoints <b>24, 30, 36, 42, 48 in</b> along a ray 40° off the opening axis (toward the RED wall). Unreachable (past about 52 in) or unsafe endpoints are skipped automatically.",
+  "For each endpoint it shows the target pose. <kbd>A</kbd> confirms and the robot drives there. <kbd>B</kbd> skips it.",
+  "Load balls and shoot with <kbd>RT</kbd>. Adjust the hood (D-pad) and speed (stick clicks) until shots drop in <i>consistently</i>, then <kbd>A</kbd> to accept. It records the actual distance from the turret axis.",
+  "Progress is saved after each endpoint to <code>/sdcard/FIRST/teamcode/shot_table_pollen.yaml</code>. <a href='#deploy'>Pull it</a> before re-running.",
+  "Paste the rows into the <a href='#tools'>shot table checker</a>, then replace <b>only</b> <code>pollen_points</code> (a whole <code>shot_table:</code> block makes a duplicate key).",
+  "Set <x-k>shooter.shot_table.calibrated</x-k> to true and push."],
+ writes:["shooter.shot_table.pollen_points","shooter.shot_table.calibrated","shooter.ballistics.preferred_shot_rpm","shooter.ballistics.min_valid_distance","shooter.ballistics.max_valid_distance"],
+ out:"    pollen_points: [\n        24.3, 0.0000, 805,      # distance_in, hood_servo, ticks/s\n        …\n      ]\n    calibrated: true",
+ pit:["Range: a shot is valid only inside the table's distances AND inside min/max_valid_distance. A 24-48 in table means no shots from 50 in.","Speed clamp: at runtime the table speed is clamped into preferred_shot_rpm..max_shot_rpm. Rows below preferred_shot_rpm go hot unless you lower it.","calibration-data/ holds last season's tables (up to 124 in). Never paste them."]},
+{id:"timing",t:"Shot Timing Tuner",ds:"Calibration",area:"Shooter",pills:["robot does NOT drive","fires real balls","needs calibrated table"],pad:"timing",
+ why:"For each distance, measures how long a whole volley of auto.balls_per_volley_count balls takes, counting balls from the flywheel speed dips. AUTO uses these windows as its jam safety net.",
+ steps:["The pose is faked to each distance on the Ballistics Calibration ray (clamped into your table). The turret still slews.","Load the balls (<kbd>X</kbd> runs the intake), wait for <b>READY</b>, then <kbd>RT</kbd> fires.","Check that every ball was counted. If not, adjust the dip trigger with the stick clicks. <kbd>A</kbd> accepts, <kbd>B</kbd> skips.","Paste the result into the <a href='#tools'>window checker</a>, then under <code>auto:</code>."],
+ writes:["auto.shot_time_points","shooter.ball_detection.dip_fraction","auto.balls_per_volley_count"],
+ out:"auto:\n  shot_time_points: [ 24.3, 2350, … ]   # distance_in, window_ms\n# also shot_timing_log.csv (per-loop trace)",
+ pit:["dip_fraction must sit between a real ball's dip (12-26% measured) and the deepest non-ball dip (5.4%)."]},
+{id:"vision",t:"Vision and HIVE tracking",ds:"TeleOp + tape",area:"Vision",pills:["real HIVE"],
+ why:"The camera tells the robot which CELL is up, and lets it re-anchor odometry on the up CELL. Both depend on knowing exactly where the camera is.",
+ steps:["Mount the webcam tilted up toward the CELLS. Their tags are 30-60 in high.","Measure the <code>vision.camera.*</code> values (see Writes).","Check <x-k>vision.camera_name</x-k> matches the DS configuration.","In TeleOp, tip the HIVE by hand. The HIVE line must flip after <x-k>hive.confirm_frames_count</x-k> agreeing frames.","With the HIVE settled and within <x-k>vision.relocalize.max_range_in</x-k>, hold <kbd>G2 D↓</kbd>. The pose snaps to the truth (it is rejected past <x-k>vision.relocalize.max_correction_in</x-k>)."],
+ writes:["vision.camera.forward_in","vision.camera.left_in","vision.camera.height_in","vision.camera.yaw_deg","vision.camera.pitch_up_deg","vision.camera_name"],
+ pit:["No working camera: set vision.enabled to false and record TIPS with G2 LB."]},
+{id:"startpose",t:"Start Pose Finder + routes",ds:"Calibration",area:"Field",pills:["real field"],pad:"startpose",
+ why:"Gets the robot physically onto each configured start pose and checks it is legal, before you drive the autos.",
+ steps:["In INIT: D-pad left/right picks the alliance, up/down picks the CELL A or CELL B routine.","Put the robot's <b>centre on the tile seam two tiles from the audience wall and two from the RED wall</b>, facing +x. Odometry starts at (<span id='seam'></span>, 0°).",
+  "START, then drive slowly following \"Move ±x, ±y\" until the distance is about 0.","Check it's legal (touching the wall, on your side, not in the LOADING ZONE, not touching a FLOWER), then <kbd>A</kbd> re-zeros there.",
+  "Drive every AUTO slowly on a real field. Adjust RED poses only (use the <a href='#field'>field map</a>). BLUE follows through m. <code>AutoRouteSafetyTest</code> checks every path at build and push time."],
+ writes:["auto_poses.cell_a.red.start","auto_poses.cell_b.red.start","auto_poses.park_only.red.start","teleop.poses.red.park"],pit:["score_b_cp and alt_via are a path control point and a waypoint. Move them to bend a path away from the HIVE."]}];
+const PROC = Object.fromEntries(P.map(p => [p.id, p]));
+const SANITY = [
+ ["Servo Test","servotest","The turret servo turns both ways. Power is scaled by turret.max_power_output, so it never slams the stops."],
+ ["Turn Analog Test","analog","The turnanalog voltage changes smoothly with the turret: raw volts and observed min/max, inside 0-3.3 V, no jumps."],
+ ["Manual Turret Turn Tester","manualturret","Closed-loop turning works. Zero it while centred. If it moves away from its target, flip turret.servo_direction_inverted."],
+ ["Shooter Max Velocity Test","maxvel","The two flywheel motors spin opposite ways (shooter FORWARD, shooter2 REVERSE). Peak speed and time to 95%, using the SDK default PID. Sanity-check shooter.max_rpm."],
+ ["Lumos Test",null,"The RGB light turns red (a wiring check only. The match code doesn't use the light)."],
+ ["Clock Test",null,"Shows the hub's date and time at INIT, to check the clock that stamps files."]];
+const CUES = [["1:00 left","Two rumble blips, and \"NECTAR→FLOWERS OK\" by the clock (G410/G426)."],
+ ["Park alert","From "+(get("match.final_warning_remaining_ms")/1000)+" s left it estimates the drive to park. At drive + "+(get("teleop.park_alert_margin_ms")/1000)+" s: rumble, red flash, \"park now\", PARK NOW, until parked. It never drives the robot: driver LT."],
+ ["Human NECTAR","One per TIP of your HIVE, and all five after 1:00. The field timer is the authority."],
+ ["\"Shot\" line","Names the gate blocking a feed."],["\"Pose assist\"","Why a pose hold refused to move."],["F310 gamepads","No rumble or light. Only the voice and telemetry reach the drivers."]];
+const MATCH = ["Charged battery. Hub and DS connected.","INIT shows no config warning (ignored override, shot-table error, uncalibrated).","Autos agreed with your partner, and the right alliance's OpMode picked.",
+ "Robot on its start pose: touching the wall, wholly on your side, not in the LOADING ZONE, not touching a FLOWER.","Exactly "+get("inventory.preload_count")+" POLLEN loaded.","INIT, then START. Don't touch the robot in between.",
+ "TeleOp started within 2 minutes of AUTO (so it inherits the state). Without an AUTO, press B (RED) or X (BLUE) during INIT."];
+const AUTOS = {A:["A: tip first","4 POLLEN into CELL A (the field TIPS at that point), around the HIVE to CELL B, fires leftovers if B is up, parks low."],
+ B:["B: second CELL","Waits at CELL B for the partner's TIP, fires the pre-load, parks high. Falls back to CELL A if B never comes up."],
+ P:["Park Only","LEAVE + PARK."],N:["No robot / no auto",""]};
+const ATESTS = [["Forward Left Return Test","Back within ~1 in"],["Full speed at the HIVE frame (front, side, diagonal)","Stops short, never touches"],["Release the turn stick after turning","Holds heading, no hunting"],
+ ["±20° steps in Turret Angle Verification","<1 s settle, encoder ≈ IMU"],["G2 RT at each shot-table distance","≥4/5 into the up CELL, every row"],["4-ball volley","All counted, speed recovers, no jam"],
+ ["Aim while driving under "+get("shooter.ballistics.max_moving_speed_ips")+" in/s","Tracks. Refused above the limit."],["Tip the HIVE by hand mid-shot","Feeding stops, target flips, "+get("hive.settle_ms")/1000+" s lockout"],
+ ["Intake a 5th ball","Stops at 4 (or the operator does)"],["Each AUTO from its start","Parked inside 30 s, no HIVE contact"],["TeleOp to 0:20 left","Park alert fires"],["AUTO then TeleOp","State inherited (<2 min)"],["Low battery (~11.5 V)","Still reaches the feed band"]];
+const VSTEPS = [["generateConfig","Rebuilds the typed config. Fails on a value outside min/max or a key without a description."],["spotlessApply","Auto-formats the Java."],
+ ["testDebugUnitTest","Every JUnit/jqwik test. <b>AutoRouteSafetyTest</b> checks every auto path for both alliances: HIVE frame, centre line, walls, LEAVE/PARK. <b>TurretClosedLoopProperties</b> runs the real turret against a simulated plant with random gain, stiction, lag and noise. <b>FlywheelClosedLoopProperties</b> runs the real shooter against a simulated wheel: kS ±30%, kV ±10%, 11.5-13.8 V, lag, ball hits. Plus Sentinel/Casablanca symmetry, the HIVE tracker, clock, inventory, solver, config loader, season guard and TunerPoseSafetyTest."],
+ ["checkConfigKeys","Fails if a red_* key lacks its blue_* twin."],["verifyTurret","OpenJML proves the turret law, the feed gate (G417, solution currency), the HIVE tracker transitions, anti-windup and the inventory. -PexactDoubles gives bit-exact IEEE-754 proofs (minutes)."],
+ ["verifyTurretLean","Lean 4: from settled or approaching a still target, the turret ends settled and aimed, for any plant in the stated box."]];
+const CHANGES = [["A config number while tuning",["./gradlew pushConfig","(then stop and re-INIT the OpMode)"]],["Turret gains (pidf, ks_*, kv)",["python3 TeamCode/verification/TurretProof/conditions.py","./gradlew verifyBuild"]],
+ ["Flywheel kS/kV/gains/kick/voltage",["./gradlew verifyBuild","(FlywheelClosedLoopProperties must pass)"]],["Route poses, field geometry, robot_width",["./gradlew verifyBuild","(AutoRouteSafetyTest: mandatory)"]],
+ ["Added a config key",["(add desc/min/max in config-docs.yaml)","./gradlew generateConfig","./gradlew verifyBuild"]],["Any Java",["./gradlew verifyBuild"]],
+ ["Ready for competition",["./gradlew verifyBuild","./gradlew :TeamCode:installDebug","./gradlew resetConfig"]],["The config (refresh this page)",["python3 doc/guide/build.py"]]];
+const FLIP = {"shooter.shot_table.calibrated":"Ballistics Calibration rows are pasted. Nothing feeds until it's true.","shooter.shot_table.nectar_enabled":"A NECTAR mechanism exists and nectar_points is calibrated.",
+ "shooter.use_ftc_pid":"You deliberately want the hub firmware PIDF. Not recommended.","inventory.entry_sensor_enabled":"A beam break named intakeBeam is wired.","inventory.entry_sensor_active_low":"The ball count rises when the beam is clear.",
+ "turret.enabled":"The robot has no turret.","turret.servo_direction_inverted":"The turret drives away from its target (Plant Calibration says INVERTED).","turret.analog_encoder.inverted":"The measured angle moves opposite the real turret. Never use it to fix the servo direction.",
+ "turret.analog_encoder.enabled":"Never on this robot. Aiming needs the encoder.","turret.stall.enabled":"Never, outside a bench test.","turret.runaway.enabled":"You're debugging turret direction (true = safer).",
+ "vision.enabled":"No camera is fitted. Record TIPS by hand.","vision.continuous":"CPU is short and you only relocalize. You will miss TIPS.","sentinel.protect_full_hive_footprint":"The robot is built to drive under the HIVE.",
+ "casablanca.enable_depth_protection":"Never in a match. Debugging only, together with side.","casablanca.enable_side_protection":"Never in a match. Debugging only, together with depth.",
+ "casablanca.smoothing.teleop_enabled":"Comparing feel without the slew limiter.","casablanca.smoothing.auto_enabled":"Pods lift during autonomous paths.","casablanca.heading_lock.enabled":"Drivers prefer free rotation.",
+ "auto.cell_a_collect_flower":"A FLOWER pickup exists.","auto.cell_a_second_volley":"The drive around the HIVE costs more than the leftovers are worth.","auto.cell_b_collect_flower":"A FLOWER pickup exists.",
+ "teleop.flower_hold_enabled":"A FLOWER pickup exists.","teleop.field_centric":"Drivers want field-relative sticks (also set field_centric_offset_deg)."};
+const TROUBLE = [
+ ["Shooting","Never feeds a ball","shooter.shot_table.calibrated is false, or a gate is failing. The TeleOp \"Shot\" line names it. Check the distance is inside the table, speed is under max_moving_speed_ips, and the robot is within max_off_axis_deg of the opening axis."],
+ ["Shooting","Wheel sits just under target","Feedforward is off. Re-run Shooter Characterization on a loaded battery, and check nominal_voltage."],
+ ["Shooting","Overshoot after each ball","The I term is too strong. Lower pidf.i or integral.max_contribution, or enable the kick."],
+ ["Shooting","Balls not counted / counted twice","Adjust ball_detection.dip_fraction (in Shot Timing Tuner, with the stick clicks)."],
+ ["Shooting","Short shots go hot","Table speeds below preferred_shot_rpm are clamped up. Lower preferred_shot_rpm."],
+ ["Shooting","Intake stutters while feeding","Lower shooter.feed_release_threshold (keep it below min_transfer_threshold)."],
+ ["Shooting","Misses consistently to one side","Turret pivot offset, odometry drift (relocalize with G2 D↓), or pod offsets."],
+ ["Turret","Drives away from the target","Flip turret.servo_direction_inverted. Enable turret.runaway while debugging."],
+ ["Turret","Hunts or buzzes","Lower pidf.p, set d to 0, raise tolerance.exit_factor, re-run Plant Calibration."],
+ ["Turret","Creeps at zero power","Servo neutral is off. Re-centre it with a servo programmer, then re-measure kS."],
+ ["Turret","Lags a turning robot","turret.kv is 0. Set it to 1/K from Plant Calibration."],
+ ["Turret","Stall faults","Binding, or stall.power_threshold / min_progress_deg too tight for the encoder noise."],
+ ["Drive","Odometry drifts or jumps","A pod is lifting (Pod Contact Tuner), or the pod offsets or directions are wrong (Pinpoint Tuner)."],
+ ["Drive","Robot reaches the HIVE","sentinel.robot_width, pedro.braking or casablanca hard_stop is wrong. Re-run Casablanca Test."],
+ ["Drive","Pose hold refuses to move","See \"Pose assist\". The direct path hits the HIVE or a wall, so drive to a clear approach first."],
+ ["Vision","HIVE never flips","Camera mount values, name, tilt, vision.enabled. Record TIPS with G2 LB meanwhile."],
+ ["Vision","Relocalize rejected","HIVE not settled, no fresh frame, beyond max_range_in, or a jump over max_correction_in."],
+ ["Deploy","Pushed config seems ignored","Re-INIT. Read the DS banner (season mismatch). Check that pushConfig succeeded."],
+ ["Deploy","pushConfig fails","Read the failing test: route safety, ConfigSanity or match window."],
+ ["Deploy","Build fails: red_ without blue_","Add the other alliance's key."],["Deploy","Build rejects a value","Outside min/max in config-docs.yaml, or the key has no description."],
+ ["Deploy","adb devices is empty","Use an A-to-C cable, allow Local Network for your terminal on macOS, join the robot Wi-Fi."],
+ ["Deploy","Gradle prints nothing","Frozen daemon. Use --no-daemon."],["Deploy","Max Velocity Test acts oddly after a firmware-PID run","motor_pidf persists on the hub. Power-cycle it."],
+ ["Intake","Intake passes 4 balls","No entry sensor. Wire one and set inventory.entry_sensor_enabled, or the operator presses G2 B."]];
+const GAPS = ["<b>No FLOWER mechanism.</b> The flower switches are off, so each auto fires only its pre-loads.","<b>No NECTAR mechanism.</b> Every shot uses the POLLEN table.","<b>No color sensor.</b> The operator ejects opponent NECTAR (G408).",
+ "<b>Continuous feeding</b> while every gate passes. A TIP mid-volley stops further feeding, but balls in the air can't be recalled.","<b>Hood settling isn't measured.</b> The servo readback is the command. A clamped speed isn't re-validated against the table.",
+ "<b>Moving shots</b> use first-order lead only.","<b>Hood range.</b> A launch-model estimate wants a 64-78° lob, and the hood tops out at "+get("shooter.ballistics.max_hood_angle_deg")+"°.","<b>Calibration reach.</b> Both shot calibrations stop at 48 in.",
+ "<b>Proof scope.</b> The proofs cover the logic for a stated plant model. The acceptance tests check that the hardware matches.","<b>Unused hardware.</b> The gate servo in hwmap.yaml isn't driven by any code."];
+const HW = {leftFront:["DC motor","Mecanum drive. Directions are set by Pedro's Mecanum Tuner."],rightFront:["DC motor","Mecanum drive."],leftBack:["DC motor","Mecanum drive."],rightBack:["DC motor","Mecanum drive."],
+ pinpoint:["goBILDA Pinpoint","Odometry computer, and the preferred tilt sensor for the Pod Contact Tuner."],intakeBeam:["Digital channel","Optional intake-entry beam break (G407). Also set inventory.entry_sensor_enabled."],
+ intakeFront:["DC motor","Intake front roller."],intakeMid:["DC motor","Intake middle roller."],shooter:["DC motor + encoder","Flywheel, FORWARD. Speed is read from this encoder."],shooter2:["DC motor + encoder","Flywheel, REVERSE (same wheel, other side)."],
+ hood:["Servo","Launch angle."],turn:["CR servo","Turret rotation."],gate:["Servo","Listed in hwmap.yaml, but no code uses it."],turnanalog:["Analog input","Turret potentiometer."],
+ turnImu:["IMU","Turret Angle Verification ground truth only (turret.orientation.*)."],"Webcam 1":["Webcam (USB)","AprilTag camera, pitched up. Must match vision.camera_name."],
+ light:["Servo (goBILDA RGB)","Lumos Test only. Optional."],imu:["IMU (fallback)","Pod Contact Tuner tilt, if the Pinpoint lacks pitch/roll."]};
+
+/* --------------------------------------------------------------- render */
+function renderNav() {
+  const items = [["home","","Home"],["start","1","Read this first"],["vocab","2","Vocabulary"],["hardware","3","Hardware map"],["deploy","4","Deploy + tuning loop"],["bringup","5","Bring-up order"],
+   ["procedures","6","Tuning procedures"],["gamepads","7","Gamepad explorer"],["field","8","Field map"],["verify","9","Verification"],["match","10","Match day"],["config","11","Config explorer"],
+   ["tools","12","Calculators"],["trouble","13","Troubleshooting"],["gaps","14","Gaps + reading"]];
+  $("#side").innerHTML = items.map(([id, n, t]) => `<a href="#${id}" data-sec="${id}"><span class="no">${n}</span>${t}</a>` + (id === "procedures" ? `<div class="sub">${P.map(p => `<a href="#p-${p.id}">${esc(p.t)}</a>`).join("")}</div>` : "")).join("") +
+   `<div class="prog">Bring-up <span id="progTxt"></span><div class="bar"><i id="progBar"></i></div></div><div class="prog" style="margin-top:14px">Built ${esc(D.built)} · <code>${esc(D.rev)}</code></div>`;
+}
+function renderChecks() {
+  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const cam = ["forward_in","left_in","height_in","yaw_deg","pitch_up_deg"].map(k => get("vision.camera." + k));
+  const pid = get("turret.pidf");
+  const ksp = get("turret.ks_positive"), ksn = get("turret.ks_negative");
+  const rows = [
+   [get("shooter.shot_table.calibrated") === true ? (eq(get("shooter.shot_table.pollen_points"), [24,0,800,36,0,840,48,0.05,880,60,0.1,925,72,0.15,970]) ? ["r","Marked calibrated, but the POLLEN rows are still the placeholders"] : ["g","Shot table calibrated"]) : ["r","Shot table uncalibrated: no ball will ever feed"], "ballistics", "shooter.shot_table.calibrated"],
+   [eq(get("auto.shot_time_points"), [24,2200,72,3000]) ? ["r","Auto shot windows are the placeholders"] : ["g","Auto shot windows measured"], "timing", "auto.shot_time_points"],
+   [eq(cam, [3.54,4.72,7.68,0,50]) ? ["r","Camera mount still has the unmeasured defaults"] : ["g","Camera mount values changed from the defaults"], "vision", "vision.camera.forward_in"],
+   [get("pedro.motion.max_forward_velocity") === 79.9698860197901 ? ["a","Pedro values carried over from last season (provisional)"] : ["g","Pedro values re-tuned"], "pedro", "pedro.motion.max_forward_velocity"],
+   [get("turret.kv") === 0 ? ["a","Turret chassis feedforward off (kv = 0)"] : ["g","Turret feedforward on"], "turret-plant", "turret.kv"],
+   [(get("turret.pivot_forward_in") === 0 && get("turret.pivot_left_in") === 0) ? ["a","Turret pivot offset not measured (0, 0)"] : ["g","Turret pivot offset set"], "measure", "turret.pivot_forward_in"],
+   [(pid.i || pid.d || pid.f) ? ["a",`Turret pidf has i/d/f ≠ 0: outside the convergence proof`] : ["g","Turret gains inside the proof's form (i = d = f = 0)"], "turret-plant", "turret.pidf.i"],
+   [(Math.max(ksp, ksn) / Math.max(1e-6, Math.min(ksp, ksn)) > 5) ? ["a",`Turret kS lopsided (${ksp} / ${ksn}): servo neutral off centre`] : ["g","Turret kS balanced"], "turret-plant", "turret.ks_negative"],
+   [get("shooter.kick.wheel_tau_sec") === 0 ? ["a","Flywheel recovery kick off"] : ["g","Recovery kick configured"], "characterize", "shooter.kick.wheel_tau_sec"],
+   [get("inventory.entry_sensor_enabled") ? ["g","Ball-count sensor enabled"] : ["a","No ball-count sensor: the operator stops the intake at 4"], "measure", "inventory.entry_sensor_enabled"],
+   [get("shooter.use_ftc_pid") ? ["a","Flywheel uses the firmware PIDF (not the tested loop)"] : ["g","Flywheel uses the tested software loop"], "characterize", "shooter.use_ftc_pid"],
+   [(get("casablanca.enable_depth_protection") && get("casablanca.enable_side_protection")) ? ["g","HIVE protection on (both axes)"] : ["r","HIVE protection disabled on an axis"], "casatest", "casablanca.enable_depth_protection"],
+   [get("vision.enabled") ? ["g","Vision enabled"] : ["a","Vision disabled: TIPS must be recorded by hand"], "vision", "vision.enabled"]];
+  const order = {r:0,a:1,g:2}; rows.sort((a, b) => order[a[0][0]] - order[b[0][0]]);
+  const cnt = {r:0,a:0,g:0}; rows.forEach(r => cnt[r[0][0]]++);
+  $("#statusMeta").textContent = `${cnt.r} red · ${cnt.a} amber · ${cnt.g} green`;
+  $("#checks").innerHTML = rows.map(([[s, t], proc, key]) => `<div class="ck2"><span class="dot ${s}"></span><div style="flex:1"><div>${esc(t)}</div><div style="margin-top:2px">${kchip(key, {bad: s === "r"})} · <a href="#p-${proc}">how to fix</a></div></div></div>`).join("");
+}
+function renderStatic() {
+  $("#model").innerHTML = MODEL.map(([t, p]) => `<div class="card tile"><b>${esc(t)}</b><p>${esc(p)}</p></div>`).join("");
+  const g = () => { const q = $("#glossQ").value.toLowerCase(); $("#gloss").innerHTML = GLOSS.filter(x => (x[0] + x[1]).toLowerCase().includes(q)).map(([t, d]) => `<div class="card tile" id="g-${esc(t)}"><b>${esc(t)}</b><p>${esc(d)}</p></div>`).join(""); };
+  $("#glossQ").oninput = g; g();
+  // hubs
+  const hubs = D.hwmap.Robot; let hw = "";
+  for (const [hub, groups] of Object.entries(hubs)) {
+    if (typeof groups !== "object" || hub === "Webcam") continue;
+    hw += `<div class="card pad"><b>${esc(hub)}</b>`;
+    for (const [grp, ports] of Object.entries(groups)) {
+      hw += `<div class="meta" style="margin:8px 0 3px">${esc(grp)}</div><div style="display:flex;gap:5px;flex-wrap:wrap">`;
+      const entries = ports && typeof ports === "object" ? Object.entries(ports) : [];
+      if (!entries.length) hw += `<span class="pill" style="opacity:.5">none</span>`;
+      for (const [port, name] of entries) hw += `<span class="pill hwp" data-hw="${esc(name || "")}" style="${name ? "border-color:var(--honey);background:var(--honeyL);color:var(--ink)" : "opacity:.45"}">${esc(String(port).split(" ")[0])}: ${esc(name || "—")}</span>`;
+      hw += `</div>`;
+    }
+    hw += `</div>`;
+  }
+  $("#hubs").innerHTML = hw;
+  $("#hwtable").innerHTML = Object.entries(HW).map(([n, [t, d]]) => `<tr><td><code>${esc(n)}</code></td><td>${esc(t)}</td><td>${esc(d)}</td></tr>`).join("");
+  $$(".hwp").forEach(el => { const h = HW[el.dataset.hw]; if (h) tipOn(el, () => `<b>${esc(el.dataset.hw)}</b> · ${esc(h[0])}<br>${esc(h[1])}`); });
+  $("#cues").innerHTML = CUES.map(([t, d]) => `<div class="card tile"><b>${esc(t)}</b><p>${esc(d)}</p></div>`).join("");
+  $("#gapList").innerHTML = GAPS.map(g => `<li style="margin:4px 0">${g}</li>`).join("");
+  $("#vsteps").innerHTML = VSTEPS.map(([s, d]) => `<tr><td style="width:170px"><code>${esc(s)}</code></td><td>${d}</td></tr>`).join("");
+  $("#sanity").innerHTML = SANITY.map(([n, pad, d]) => `<tr><td><b>${esc(n)}</b></td><td>${pad ? Object.entries(PADS[pad].m).map(([b, [l]]) => `<kbd>${BTN[b]}</kbd> ${esc(l)}`).join(" · ") + ` <a href="#gamepads" class="padjump" data-mode="${pad}">▸ pad</a>` : "none"}</td><td>${esc(d)}</td></tr>`).join("");
+  $("#cfgPath").textContent = D.configPath;
+  $("#buildMeta").innerHTML = `Built ${esc(D.built)} from <code>${esc(D.configPath)}</code> at commit <code>${esc(D.rev)}</code> · ${D.keys.length} config keys. Rebuild with <code>python3 doc/guide/build.py</code>.`;
+}
+function titleOf(el) { if (!el) return ""; const h = el.matches("h1,h2") ? el : el.querySelector("h1,h2"); if (!h) return ""; return [...h.childNodes].filter(n => !(n.classList && (n.classList.contains("n") || n.classList.contains("lnk") || n.classList.contains("meta")))).map(n => n.textContent).join("").trim(); }
+function renderStages() {
+  const done = store.get("stages", {});
+  $("#stages").innerHTML = STAGES.map(([t, d, links], i) => {
+    const lk = links.map(l => l.startsWith("#") ? `<a class="tbtn" href="${l}">${esc(titleOf($(l)) || l)}</a>` : `<a class="tbtn" href="#p-${l}">${esc(PROC[l].t)}</a>`).join(" ");
+    return `<div class="stagewrap" data-i="${i}"><div class="stage${done[i] ? " done" : ""}"><span class="num">${done[i] ? "✓" : i}</span><div><div class="t">${esc(t)}</div><div class="d">Done when: ${esc(d)}</div></div><label class="chk" onclick="event.stopPropagation()"><input type="checkbox" ${done[i] ? "checked" : ""}> done</label></div><div class="stagebody"><div style="display:flex;gap:6px;flex-wrap:wrap">${lk}</div></div></div>`;
+  }).join("");
+  $$("#stages .stagewrap").forEach(w => {
+    w.querySelector(".stage").onclick = () => w.classList.toggle("open");
+    w.querySelector("input").onchange = e => { const d = store.get("stages", {}); d[w.dataset.i] = e.target.checked; store.set("stages", d); renderStages(); };
+  });
+  const n = Object.values(done).filter(Boolean).length;
+  $("#progTxt").textContent = `${n}/${STAGES.length}`; $("#progBar").style.width = (100 * n / STAGES.length) + "%";
+}
+function renderProcs() {
+  const areas = ["All", ...new Set(P.map(p => p.area))]; let cur = "All";
+  $("#procFilters").innerHTML = areas.map(a => `<button class="fbtn${a === cur ? " on" : ""}" data-a="${a}">${a}</button>`).join("");
+  $$("#procFilters .fbtn").forEach(b => b.onclick = () => { cur = b.dataset.a; $$("#procFilters .fbtn").forEach(x => x.classList.toggle("on", x === b)); $$("details.proc").forEach(d => d.classList.toggle("hidden", cur !== "All" && d.dataset.area !== cur)); });
+  const sd = store.get("steps", {});
+  $("#procs").innerHTML = P.map(p => {
+    const tabs = [["Steps", `<p class="why">${esc(p.why)}</p><ol class="steps">${p.steps.map((s, i) => `<li class="${sd[p.id + i] ? "done" : ""}"><input type="checkbox" data-s="${p.id + i}" ${sd[p.id + i] ? "checked" : ""}><span>${s}</span></li>`).join("")}</ol><button class="tbtn" data-reset="${p.id}" style="margin-top:8px;font-size:12px">Clear ticks</button>`]];
+    if (p.pad) tabs.push(["Controls", `<div class="ctlrow">${Object.entries(PADS[p.pad].m).map(([b, [l, d]]) => `<div><kbd class="on">${BTN[b]}</kbd></div><div><b>${esc(l)}</b>${d ? ` <span class="meta">${esc(d)}</span>` : ""}</div>`).join("")}</div><p class="meta">${esc(PADS[p.pad].note)}</p><a class="tbtn padjump" href="#gamepads" data-mode="${p.pad}">Show on the controller ▸</a>`]);
+    tabs.push(["Writes", `<p class="meta" style="margin-top:0">The keys this sets, with their values in this build. Click one to open it.</p><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">${p.writes.map(k => kchip(k)).join("")}</div>` + (p.out ? `<h3>Paste block</h3><pre data-copy>${esc(p.out)}</pre>` : "")]);
+    if (p.pit.length) tabs.push(["Pitfalls", `<ul style="margin:0;padding-left:18px">${p.pit.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`]);
+    return `<details class="proc card" id="p-${p.id}" data-area="${p.area}"><summary><span class="nm">${esc(p.t)}</span><span class="grp">${esc(p.ds)}</span><span class="sp">${p.pills.map(x => `<span class="pill">${esc(x)}</span>`).join("")}</span></summary>
+     <div class="tabs">${tabs.map(([n], i) => `<button class="${i ? "" : "on"}" data-t="${i}">${n}</button>`).join("")}</div>${tabs.map(([, h], i) => `<div class="tabp${i ? "" : " on"}">${h}</div>`).join("")}</details>`;
+  }).join("");
+  $$("details.proc").forEach(d => {
+    $$(".tabs button", d).forEach(b => b.onclick = () => { $$(".tabs button", d).forEach(x => x.classList.toggle("on", x === b)); $$(".tabp", d).forEach((x, i) => x.classList.toggle("on", i == b.dataset.t)); });
+    $$("input[data-s]", d).forEach(c => c.onchange = () => { const s = store.get("steps", {}); s[c.dataset.s] = c.checked; store.set("steps", s); c.closest("li").classList.toggle("done", c.checked); });
+    $$("[data-reset]", d).forEach(b => b.onclick = () => { const s = store.get("steps", {}); $$("input[data-s]", d).forEach(c => { c.checked = false; delete s[c.dataset.s]; c.closest("li").classList.remove("done"); }); store.set("steps", s); });
+  });
+  $("#expandAll").onclick = () => $$("details.proc:not(.hidden)").forEach(d => d.open = true);
+  $("#collapseAll").onclick = () => $$("details.proc").forEach(d => d.open = false);
+  const cp = mirror([...get("casablanca.heading_tuner.calibration_pose")]);
+  $("#casaPose").textContent = `(${cp[0]}, ${cp[1]}, ${cp[2]}°)`;
+  $("#seam").textContent = `${(SIZE / 3).toFixed(2)}, ${(SIZE / 3).toFixed(2)}`;
+}
+/* gamepad */
+function padSvg() {
+  const sh = (id, el, lab, lx, ly) => `<g data-b="${id}">${el.replace("<", '<').replace(/^<(\w+)/, '<$1 class="s"')}<text x="${lx}" y="${ly}">${lab}</text></g>`;
+  return `<path class="body" d="M120 70 Q260 40 400 70 Q470 80 490 160 Q510 250 460 280 Q420 300 380 250 L330 205 L190 205 L140 250 Q100 300 60 280 Q10 250 30 160 Q50 80 120 70 Z"/>
+  ${sh("lt", `<rect x="85" y="8" width="70" height="24" rx="10"/>`, "LT", 120, 20)}${sh("rt", `<rect x="365" y="8" width="70" height="24" rx="10"/>`, "RT", 400, 20)}
+  ${sh("lb", `<rect x="80" y="40" width="80" height="20" rx="8"/>`, "LB", 120, 50)}${sh("rb", `<rect x="360" y="40" width="80" height="20" rx="8"/>`, "RB", 400, 50)}
+  ${sh("du", `<rect x="108" y="108" width="24" height="26" rx="4"/>`, "↑", 120, 121)}${sh("dd", `<rect x="108" y="158" width="24" height="26" rx="4"/>`, "↓", 120, 171)}
+  ${sh("dl", `<rect x="82" y="134" width="26" height="24" rx="4"/>`, "←", 95, 146)}${sh("dr", `<rect x="132" y="134" width="26" height="24" rx="4"/>`, "→", 145, 146)}
+  ${sh("y", `<circle cx="400" cy="112" r="15"/>`, "Y", 400, 112)}${sh("a", `<circle cx="400" cy="178" r="15"/>`, "A", 400, 178)}
+  ${sh("x", `<circle cx="367" cy="145" r="15"/>`, "X", 367, 145)}${sh("b", `<circle cx="433" cy="145" r="15"/>`, "B", 433, 145)}
+  ${sh("back", `<rect x="215" y="100" width="36" height="16" rx="8"/>`, "Back", 233, 108)}${sh("start", `<rect x="270" y="100" width="36" height="16" rx="8"/>`, "Start", 288, 108)}
+  ${sh("ls", `<circle cx="195" cy="185" r="27"/>`, "L stick", 195, 185)}${sh("rs", `<circle cx="325" cy="185" r="27"/>`, "R stick", 325, 185)}
+  ${sh("l3", `<rect x="176" y="222" width="38" height="17" rx="8"/>`, "L3", 195, 230)}${sh("r3", `<rect x="306" y="222" width="38" height="17" rx="8"/>`, "R3", 325, 230)}`;
+}
+let padMode = "driver";
+function renderPads() {
+  $("#padSvg").innerHTML = padSvg();
+  const groups = [["TeleOp", ["driver","operator","init"]], ["Calibration / test", Object.keys(PADS).filter(k => !["driver","operator","init"].includes(k))]];
+  $("#padModes").innerHTML = groups.map(([g, ks]) => ks.map(k => `<button class="fbtn" data-m="${k}">${esc(PADS[k].n)}</button>`).join("")).join('<span style="width:10px"></span>');
+  $$("#padModes .fbtn").forEach(b => b.onclick = () => setPad(b.dataset.m));
+  $$("#padSvg [data-b]").forEach(g => {
+    g.onmouseenter = () => { const m = PADS[padMode].m[g.dataset.b]; hl(g.dataset.b, true); if (m) showTip(g, `<b>${BTN[g.dataset.b]}</b> · ${esc(m[0])}${m[1] ? "<br>" + esc(m[1]) : ""}`); };
+    g.onmouseleave = () => { hl(g.dataset.b, false); hideTip(); };
+  });
+  setPad(padMode);
+}
+function hl(b, on) { $$(`#padSvg [data-b="${b}"]`).forEach(g => g.classList.toggle("hl", on)); $$(`#padList .mi[data-b="${b}"]`).forEach(x => x.classList.toggle("hl", on)); }
+function setPad(m) {
+  padMode = m; const s = PADS[m];
+  $$("#padModes .fbtn").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+  $$("#padSvg [data-b]").forEach(g => g.classList.toggle("act", !!s.m[g.dataset.b]));
+  $("#padList").innerHTML = `<div style="font-weight:800;margin-bottom:6px">${esc(s.n)} <span class="meta">· ${esc(s.g)}</span></div>` + Object.entries(s.m).map(([b, [l, d]]) => `<div class="mi" data-b="${b}"><div><kbd class="on">${BTN[b]}</kbd></div><div><b>${esc(l)}</b>${d ? `<small>${esc(d)}</small>` : ""}</div></div>`).join("");
+  $$("#padList .mi").forEach(x => { x.onmouseenter = () => hl(x.dataset.b, true); x.onmouseleave = () => hl(x.dataset.b, false); });
+  $("#padNote").textContent = s.note || "";
+}
+/* field */
+function mirror([x, y, h]) { return [+(SIZE - x).toFixed(3), +(SIZE - y).toFixed(3), +(((h ?? 0) + 180) % 360).toFixed(3)]; }
+const layers = Object.assign({grid:1,zones:1,hive:1,teleop:1,cell_a:1,cell_b:0,park_only:0,shot:0,red:1,blue:0,shotCell:"RA"}, store.get("layers2", {}));
+function renderField() {
+  const S = 4, W = SIZE * S, X = x => x * S, Y = y => (SIZE - y) * S;
+  const fh = CFG.field.hive, lz = CFG.field.loading_zone, gd = CFG.field.garden, fl = CFG.field.flower, rw = +get("sentinel.robot_width");
+  const red = p => p, blu = p => mirror(p);
+  const out = [];
+  const rect = (x0, y0, x1, y1, a) => `<rect x="${X(Math.min(x0, x1))}" y="${Y(Math.max(y0, y1))}" width="${Math.abs(x1 - x0) * S}" height="${Math.abs(y1 - y0) * S}" ${a}/>`;
+  if (layers.grid) for (let i = 1; i < 6; i++) { const t = SIZE * i / 6; out.push(`<line x1="${X(t)}" y1="0" x2="${X(t)}" y2="${W}" stroke="var(--tile)" stroke-width="1.5"/><line x1="0" y1="${Y(t)}" x2="${W}" y2="${Y(t)}" stroke="var(--tile)" stroke-width="1.5"/>`); }
+  out.push(rect(0, 0, C, SIZE, `fill="var(--allyR)" opacity=".05"`), rect(C, 0, SIZE, SIZE, `fill="var(--allyB)" opacity=".05"`));
+  out.push(`<line x1="${X(C)}" y1="0" x2="${X(C)}" y2="${W}" stroke="var(--mute)" stroke-dasharray="6 5" opacity=".6"/>`);
+  out.push(`<text x="${X(C)}" y="${W - 6}" text-anchor="middle" font-size="11" fill="var(--mute)">AUDIENCE</text><text x="8" y="${Y(C)}" font-size="11" fill="var(--allyR)" transform="rotate(-90 12 ${Y(C)})" text-anchor="middle">RED WALL</text><text x="${W - 8}" y="${Y(C)}" font-size="11" fill="var(--allyB)" transform="rotate(90 ${W - 12} ${Y(C)})" text-anchor="middle">BLUE WALL</text>`);
+  const sides = [["red", red, "var(--allyR)"], ["blue", blu, "var(--allyB)"]].filter(([n]) => layers[n]);
+  if (layers.zones) for (const [n, tf, col] of sides) {
+    const zr = (x0, y0, x1, y1) => { const a = tf([x0, y0, 0]), b = tf([x1, y1, 0]); return rect(a[0], a[1], b[0], b[1], `fill="${col}" opacity=".18" stroke="${col}" stroke-width="1.2"`); };
+    out.push(zr(0, lz.start_y_in, lz.depth_in, lz.start_y_in + lz.width_in), zr(0, 0, gd.length_in, gd.depth_in));
+    const lp = tf([lz.depth_in / 2, lz.start_y_in + lz.width_in / 2, 0]); out.push(`<text x="${X(lp[0])}" y="${Y(lp[1])}" font-size="9" fill="${col}" text-anchor="middle" transform="rotate(-90 ${X(lp[0])} ${Y(lp[1])})">LOADING ZONE</text>`);
+    for (const f of [[fl.wall_offset_in, fl.corner_offset_in], [fl.corner_offset_in, SIZE - fl.wall_offset_in]]) { const p = tf([f[0], f[1], 0]); out.push(`<circle data-tip="${n.toUpperCase()} FLOWER (${p[0].toFixed(1)}, ${p[1].toFixed(1)})" cx="${X(p[0])}" cy="${Y(p[1])}" r="7" fill="none" stroke="${col}" stroke-width="2"/>`); }
+  }
+  if (layers.hive) {
+    out.push(rect(C - fh.frame_width_in / 2, C - fh.frame_depth_in / 2, C + fh.frame_width_in / 2, C + fh.frame_depth_in / 2, `fill="var(--mute)" opacity=".16" stroke="var(--mute)" stroke-width="1.5" data-tip="HIVE frame footprint (protected zone, G417)"`));
+    for (const [n, tf, col] of [["RED", red, "var(--allyR)"], ["BLUE", blu, "var(--allyB)"]]) {
+      const pv = tf([C - fh.center_to_center_in / 2, C, 0]);
+      out.push(`<circle cx="${X(pv[0])}" cy="${Y(pv[1])}" r="5" fill="${col}" data-tip="${n} HIVE pivot (${pv[0]}, ${pv[1]}), ${fh.pivot_height_in} in up"/>`);
+      for (const [cell, dy, dir] of [["A", -fh.up_opening_offset_in, -90], ["B", fh.up_opening_offset_in, 90]]) {
+        const o = tf([C - fh.center_to_center_in / 2, C + dy, dir]);
+        const rad = o[2] * Math.PI / 180, ex = o[0] + Math.cos(rad) * 8, ey = o[1] + Math.sin(rad) * 8;
+        out.push(`<g data-tip="${n} CELL ${cell} opening when up: (${o[0].toFixed(2)}, ${o[1].toFixed(2)}), ${fh.up_opening_height_in} in high, facing ${o[2]}°"><circle cx="${X(o[0])}" cy="${Y(o[1])}" r="6" fill="var(--honey)" stroke="${col}" stroke-width="2"/><line x1="${X(o[0])}" y1="${Y(o[1])}" x2="${X(ex)}" y2="${Y(ey)}" stroke="${col}" stroke-width="2.5" marker-end="url(#ar)"/><text x="${X(o[0]) + 9}" y="${Y(o[1]) + 4}" font-size="10" font-weight="700" fill="${col}">${cell}</text></g>`);
+      }
+    }
+  }
+  if (layers.shot) {
+    let lo = +get("shooter.ballistics.min_valid_distance"), hi = +get("shooter.ballistics.max_valid_distance");
+    const pts = get("shooter.shot_table.pollen_points"); if (Array.isArray(pts) && pts.length >= 3) { lo = Math.max(lo, pts[0]); hi = Math.min(hi, pts[pts.length - 3]); }
+    const off = +get("shooter.ballistics.max_off_axis_deg");
+    const sc = layers.shotCell || "RA";
+    for (const [n, tf, col] of [["RED", red, "var(--allyR)"], ["BLUE", blu, "var(--allyB)"]].filter(([n]) => n[0] === sc[0])) for (const [dy, dir] of [[-fh.up_opening_offset_in, -90], [fh.up_opening_offset_in, 90]].filter(([, d]) => (d < 0 ? "A" : "B") === sc[1])) {
+      const o = tf([C - fh.center_to_center_in / 2, C + dy, dir]); const a0 = (o[2] - off) * Math.PI / 180, a1 = (o[2] + off) * Math.PI / 180;
+      const P2 = (r, a) => `${X(o[0] + r * Math.cos(a))} ${Y(o[1] + r * Math.sin(a))}`;
+      out.push(`<path d="M ${P2(lo, a0)} L ${P2(hi, a0)} A ${hi * S} ${hi * S} 0 0 0 ${P2(hi, a1)} L ${P2(lo, a1)} A ${lo * S} ${lo * S} 0 0 1 ${P2(lo, a0)} Z" fill="var(--honey)" fill-opacity=".16" stroke="var(--honeyD)" stroke-width="1.5" stroke-dasharray="5 4" data-tip="Valid shot zone for ${n} CELL ${dir < 0 ? "A" : "B"} when it is up: ${lo}-${hi} in from the opening (table ∩ min/max_valid_distance), within ${off}° of the opening axis. Measured from the turret pivot."/>`);
+    }
+  }
+  const groups = {teleop: ["teleop.poses", "TeleOp", ["start","park","shoot_a","shoot_b","flower"]], cell_a: ["auto_poses.cell_a", "Auto A", ["start","score_a","flower","score_b_cp","score_b","park"]], cell_b: ["auto_poses.cell_b", "Auto B", ["start","score_b_cp","score_b","flower","alt_via","alt_a","park"]], park_only: ["auto_poses.park_only", "Park only", ["start","park"]]};
+  const gcol = {teleop: "#2f8a57", cell_a: "#c77700", cell_b: "#7a4bb0", park_only: "#1f8a8a"};
+  for (const [g, [base, label, names]] of Object.entries(groups)) if (layers[g]) for (const [ally, , col] of sides) {
+    const seq = [];
+    names.forEach((nm, i) => {
+      const pth = `${base}.${ally}.${nm}`, raw = get(pth), redP = get(`${base}.red.${nm}`); if (!Array.isArray(redP)) return;
+      const p = raw === "m" || ally === "blue" ? (Array.isArray(raw) ? raw : mirror(redP)) : raw; const [x, y, h] = p; const rad = h * Math.PI / 180;
+      const cp = nm.endsWith("_cp"); seq.push([x, y]);
+      const corners = [[-1,-1],[1,-1],[1,1],[-1,1]].map(([a, b]) => { const dx = a * rw / 2, dy = b * rw / 2; return `${X(x + dx * Math.cos(rad) - dy * Math.sin(rad))},${Y(y + dx * Math.sin(rad) + dy * Math.cos(rad))}`; }).join(" ");
+      const tipTxt = `<b>${label} · ${ally.toUpperCase()} · ${nm}</b><br><code>${pth}</code><br>[${x}, ${y}, ${h}°]${raw === "m" ? " (m: mirror of RED)" : ""}${cp ? "<br>Bezier control point, not a stop" : ""}`;
+      out.push(`<g class="pose" data-tipx="${esc(tipTxt)}" data-k="${pth}" style="cursor:pointer">${cp ? `<circle cx="${X(x)}" cy="${Y(y)}" r="5" fill="none" stroke="${gcol[g]}" stroke-dasharray="2 2" stroke-width="2"/>` : `<polygon points="${corners}" fill="${gcol[g]}" fill-opacity=".16" stroke="${gcol[g]}" stroke-width="1.6"/><line x1="${X(x)}" y1="${Y(y)}" x2="${X(x + Math.cos(rad) * rw * .62)}" y2="${Y(y + Math.sin(rad) * rw * .62)}" stroke="${gcol[g]}" stroke-width="2.4" marker-end="url(#ar)"/>`}<text x="${X(x)}" y="${Y(y) - (cp ? 8 : rw * S / 2 + 4)}" font-size="10" font-weight="800" text-anchor="middle" fill="${gcol[g]}">${g === "teleop" ? nm.replace("shoot_", "shoot ") : (i + 1)}</text></g>`);
+    });
+    if (g !== "teleop" && seq.length > 1) out.unshift(`<polyline points="${seq.map(([x, y]) => `${X(x)},${Y(y)}`).join(" ")}" fill="none" stroke="${gcol[g]}" stroke-width="1.3" stroke-dasharray="3 4" opacity=".7"/>`);
+  }
+  $("#fieldSvg").setAttribute("viewBox", `0 0 ${W} ${W}`);
+  $("#fieldSvg").innerHTML = `<defs><marker id="ar" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker></defs>` + out.join("") + `<g id="cursor"></g>`;
+  $$("#fieldSvg [data-tip]").forEach(el => tipOn(el, () => esc(el.dataset.tip)));
+  $$("#fieldSvg .pose").forEach(el => { tipOn(el, () => el.dataset.tipx); el.onclick = e => { e.stopPropagation(); openKey(el.dataset.k); }; });
+}
+function fieldEvents() {
+  const svg = $("#fieldSvg");
+  const pt = e => { const r = svg.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * SIZE, y = SIZE - (e.clientY - r.top) / r.height * SIZE; return [+x.toFixed(1), +y.toFixed(1)]; };
+  svg.onmousemove = e => { const [x, y] = pt(e); const m = mirror([x, y, 0]); $("#fieldCoord").innerHTML = `RED [${x}, ${y}] · BLUE image [${m[0]}, ${m[1]}] · ${x < C ? "RED" : "BLUE"} side`; };
+  svg.onclick = e => { const [x, y] = pt(e); const S = 4;
+    $("#cursor").innerHTML = `<circle cx="${x * S}" cy="${(SIZE - y) * S}" r="6" fill="none" stroke="var(--ink)" stroke-width="2"/><line x1="${x * S - 10}" y1="${(SIZE - y) * S}" x2="${x * S + 10}" y2="${(SIZE - y) * S}" stroke="var(--ink)"/><line x1="${x * S}" y1="${(SIZE - y) * S - 10}" x2="${x * S}" y2="${(SIZE - y) * S + 10}" stroke="var(--ink)"/>`;
+    $("#fieldPick").innerHTML = `<b>Picked RED [${x}, ${y}]</b> · copy as a pose with heading ` + [0, 90, 180, 270].map(h => `<button class="tbtn" data-h="${h}" style="padding:1px 8px;font-size:12px">${h}°</button>`).join(" ") + ` <span class="meta">BLUE image: [${mirror([x, y, 0]).slice(0, 2).join(", ")}]</span>`;
+    $$("#fieldPick [data-h]").forEach(b => b.onclick = () => copy(`[${x}, ${y}, ${b.dataset.h}]`)); };
+  const L = [["Field",[["grid","Tile grid"],["zones","Loading zone, garden, flowers"],["hive","HIVE frame, pivots, CELL openings"],["shot","Valid shot zone for:"]]],["Alliance",[["red","RED"],["blue","BLUE (m mirrors)"]]],["Poses",[["teleop","TeleOp poses"],["cell_a","Auto A: tip first"],["cell_b","Auto B: second CELL"],["park_only","Park only"]]]];
+  const shotBtns = `<div style="display:flex;gap:4px;margin:2px 0 4px 22px">${["RA","RB","BA","BB"].map(c => `<button class="fbtn${layers.shotCell === c ? " on" : ""}" data-sc="${c}" style="padding:1px 8px;font-size:12px">${c[0] === "R" ? "RED" : "BLUE"} ${c[1]}</button>`).join("")}</div>`;
+  $("#fieldLayers").innerHTML = L.map(([g, it]) => `<div class="meta" style="font-weight:800;margin:6px 0 2px">${g}</div>` + it.map(([k, l]) => `<label><input type="checkbox" data-l="${k}" ${layers[k] ? "checked" : ""}>${l}</label>` + (k === "shot" ? shotBtns : "")).join("")).join("") +
+   `<p class="meta" style="margin-top:10px">Numbers are the waypoint order. Dashed lines connect the waypoints in order; they are <i>not</i> the real path curves, which AutoRouteSafetyTest checks. Click a pose to open its key. Click empty field to copy a pose.</p>`;
+  $$("#fieldLayers [data-sc]").forEach(b => b.onclick = () => { layers.shotCell = b.dataset.sc; layers.shot = 1; store.set("layers2", layers); fieldEvents(); renderField(); });
+  $$("#fieldLayers input").forEach(i => i.onchange = () => { layers[i.dataset.l] = i.checked ? 1 : 0; store.set("layers2", layers); renderField(); });
+}
+/* config explorer */
+const cfgState = { q: "", sec: "", st: new Set() };
+function renderCfgChrome() {
+  $("#cfgSec").innerHTML += Object.keys(CFG).map(s => `<option>${esc(s)}</option>`).join("");
+  $("#cfgChips").innerHTML = Object.keys(ST).map(s => `<button class="fbtn" data-st="${s}" style="padding:2px 8px">${tag(s)}</button>`).join("");
+  $$("#cfgChips .fbtn").forEach(b => b.onclick = () => { const s = b.dataset.st; cfgState.st.has(s) ? cfgState.st.delete(s) : cfgState.st.add(s); b.classList.toggle("on"); renderCfg(); });
+  $("#cfgQ").oninput = e => { cfgState.q = e.target.value; renderCfg(); };
+  $("#cfgSec").onchange = e => { cfgState.sec = e.target.value; renderCfg(); };
+  $("#cfgClear").onclick = () => { cfgState.q = ""; cfgState.sec = ""; cfgState.st.clear(); $("#cfgQ").value = ""; $("#cfgSec").value = ""; $$("#cfgChips .fbtn").forEach(b => b.classList.remove("on")); renderCfg(); };
+}
+function ancestorNotes(path) { const parts = path.split("."), out = []; for (let i = 1; i < parts.length; i++) { const p = parts.slice(0, i).join("."); if (D.comments[p]) out.push([p, D.comments[p]]); } return out; }
+function renderCfg(openPath) {
+  const q = cfgState.q.trim().toLowerCase();
+  const list = D.keys.filter(k => (!cfgState.sec || k.path.split(".")[0] === cfgState.sec) && (!cfgState.st.size || cfgState.st.has(k.status)) &&
+    (!q || (k.path + " " + fmt(k.value, true) + " " + k.desc + " " + k.note).toLowerCase().includes(q)));
+  $("#cfgCount").textContent = `${list.length} of ${D.keys.length}`;
+  const by = {}; list.forEach(k => (by[k.path.split(".")[0]] ||= []).push(k));
+  const open = q || cfgState.st.size || cfgState.sec || openPath;
+  $("#cfgList").innerHTML = Object.entries(by).map(([sec, ks]) => `<details class="cgroup" ${open || ks.length < 12 ? "open" : ""}><summary>${esc(sec)} <span class="meta">${ks.length} keys${D.sections[sec] ? " · " + esc(D.sections[sec].slice(0, 120)) + (D.sections[sec].length > 120 ? "…" : "") : ""}</span></summary>${ks.map(k => {
+    const parts = k.path.split("."), v = k.value === "m" && k.mirror ? `m → [${k.mirror.join(", ")}]` : fmt(k.value, true);
+    const lim = (k.min !== null && k.min !== undefined) || (k.max !== null && k.max !== undefined) ? `<div><b>Limits:</b> ${k.min ?? "−∞"} … ${k.max ?? "∞"}</div>` : "";
+    const anc = ancestorNotes(k.path).map(([p, n]) => `<div><b>Comment on <code>${esc(p)}</code>:</b> ${esc(n)}</div>`).join("");
+    return `<div class="krow" data-path="${esc(k.path)}"><div class="p"><i>${esc(parts.slice(1, -1).join("."))}${parts.length > 2 ? "." : ""}</i>${esc(parts[parts.length - 1])}</div><div class="v">${esc(v)}</div><div>${tag(k.status)}</div><div class="ds">${esc(k.desc || k.parentDesc || k.note || "")}</div>
+     <div class="kmore"><div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><code>${esc(k.path)}</code><button class="tbtn cpath" style="padding:2px 8px;font-size:12px">Copy path</button><button class="tbtn cyaml" style="padding:2px 8px;font-size:12px">Copy YAML</button></div>
+     ${k.desc ? `<div>${esc(k.desc)}</div>` : ""}${k.parentDesc ? `<div>${esc(k.parentDesc)}</div>` : ""}${k.note ? `<div><b>YAML comment:</b> ${esc(k.note)}</div>` : ""}${anc}${lim}
+     <div><b>Status:</b> ${ST[k.status]}: ${esc(STD[k.status])}</div>${k.by && PROC[k.by] ? `<div><b>Set by:</b> <a href="#p-${k.by}">${esc(PROC[k.by].t)}</a></div>` : ""}${Array.isArray(k.value) && k.value.length > 3 ? `<div class="mono" style="margin-top:4px;overflow-wrap:anywhere">${esc(fmt(k.value, true))}</div>` : ""}</div></div>`;
+  }).join("")}</details>`).join("") || `<p class="meta">No keys match.</p>`;
+  $$("#cfgList .krow").forEach(r => {
+    r.onclick = e => { if (e.target.closest("button,a")) return; r.classList.toggle("open"); };
+    $(".cpath", r).onclick = () => copy(r.dataset.path);
+    $(".cyaml", r).onclick = () => { const k = KEYS[r.dataset.path], parts = k.path.split("."); copy(parts.map((p, i) => "  ".repeat(i) + p + ":" + (i === parts.length - 1 ? " " + (Array.isArray(k.value) ? "[" + k.value.join(", ") + "]" : k.value) : "")).join("\n")); };
+  });
+  if (openPath) { const r = $(`#cfgList .krow[data-path="${CSS.escape(openPath)}"]`); if (r) r.classList.add("open", "flash"); }
+}
+function openKey(path) {
+  cfgState.q = path; cfgState.sec = ""; cfgState.st.clear(); $("#cfgQ").value = path; $("#cfgSec").value = ""; $$("#cfgChips .fbtn").forEach(b => b.classList.remove("on"));
+  renderCfg(path); history.replaceState(null, "", "#key=" + encodeURIComponent(path));
+  requestAnimationFrame(() => { const r = $(`#cfgList .krow[data-path="${CSS.escape(path)}"]`); (r || $("#config")).scrollIntoView({block: "center", behavior: "smooth"}); });
+}
+function renderSwitches() {
+  const sw = D.keys.filter(k => k.status === "S").map(k => [k.path, k.value]);
+  sw.push(["shooter.kick.wheel_tau_sec", get("shooter.kick.wheel_tau_sec")], ["turret.kv", get("turret.kv")]);
+  FLIP["shooter.kick.wheel_tau_sec"] = "0 = off. Paste Shooter Characterization's step-test value to turn the recovery kick on.";
+  FLIP["turret.kv"] = "0 = off. Paste 1/K from Turret Plant Calibration to turn on chassis feedforward.";
+  $("#switchRows").innerHTML = sw.map(([p, v]) => `<tr><td>${kchip(p)}</td><td><code>${esc(fmt(v))}</code></td><td>${esc(FLIP[p] || KEYS[p]?.desc || "")}</td></tr>`).join("");
+}
+/* tools */
+function issue(kind, t) { return `<div class="issue ${kind}">${kind === "e" ? "✕" : kind === "w" ? "!" : "✓"} <span>${t}</span></div>`; }
+function nums(s) { return (s.replace(/#.*$/gm, "").match(/-?\d+(?:\.\d+)?(?:e-?\d+)?/gi) || []).map(Number); }
+function chart(pts, ys, opt) {
+  const W = 420, H = 150, pad = 30, xs = pts.map(p => p[0]); const x0 = Math.min(...xs), x1 = Math.max(...xs) || 1;
+  let o = `<svg class="chart" viewBox="0 0 ${W} ${H + 20}">`;
+  ys.forEach(([i, col, lab], j) => { const v = pts.map(p => p[i]); const y0 = Math.min(...v), y1 = Math.max(...v); const sx = x => pad + (x - x0) / ((x1 - x0) || 1) * (W - 2 * pad), sy = y => H - 10 - (y - y0) / ((y1 - y0) || 1) * (H - 30);
+    o += `<polyline fill="none" stroke="${col}" stroke-width="2" points="${pts.map(p => `${sx(p[0])},${sy(p[i])}`).join(" ")}"/>` + pts.map(p => `<circle cx="${sx(p[0])}" cy="${sy(p[i])}" r="3" fill="${col}"><title>${p[0]} in → ${p[i]}</title></circle>`).join("") + `<text x="${pad + j * 150}" y="${H + 14}" style="fill:${col}">● ${lab} (${num(y0)}–${num(y1)})</text>`; });
+  pts.forEach(p => { o += ""; });
+  return o + `<text x="${pad}" y="12">${x0} in</text><text x="${W - pad}" y="12" text-anchor="end">${x1} in</text></svg>`;
+}
+function renderTools() {
+  const b = CFG.shooter.ballistics, maxRpm = +get("shooter.max_rpm");
+  const shotIn = $("#shotIn"); shotIn.value = (get("shooter.shot_table.pollen_points") || []).reduce((a, v, i) => a + v + (i % 3 === 2 ? ",\n" : ", "), "").replace(/,\s*$/, "");
+  const shot = () => {
+    const n = nums(shotIn.value), out = []; if (n.length % 3) out.push(issue("e", `${n.length} numbers isn't a multiple of 3 (distance, hood, speed)`));
+    const rows = []; for (let i = 0; i + 2 < n.length; i += 3) rows.push([n[i], n[i + 1], n[i + 2]]);
+    const lo = Math.min(b.min_hood_servo_pos, b.max_hood_servo_pos), hi = Math.max(b.min_hood_servo_pos, b.max_hood_servo_pos);
+    rows.forEach((r, i) => { if (i && r[0] <= rows[i - 1][0]) out.push(issue("e", `Row ${i + 1}: distance ${r[0]} doesn't increase`));
+      if (r[1] < lo || r[1] > hi) out.push(issue("e", `Row ${i + 1}: hood ${r[1]} is outside the servo range ${lo}–${hi}`));
+      if (r[2] < b.preferred_shot_rpm) out.push(issue("w", `Row ${i + 1}: ${r[2]} ticks/s is below preferred_shot_rpm (${b.preferred_shot_rpm}). It will be clamped up at runtime, so lower preferred_shot_rpm.`));
+      if (r[2] > b.max_shot_rpm) out.push(issue("w", `Row ${i + 1}: ${r[2]} is above max_shot_rpm (${b.max_shot_rpm}) and will be clamped down`));
+      if (r[2] > maxRpm) out.push(issue("e", `Row ${i + 1}: ${r[2]} is above shooter.max_rpm (${maxRpm})`)); });
+    if (rows.length < 2) out.push(issue("e", "Need at least 2 rows to interpolate"));
+    if (JSON.stringify(rows.flat()) === JSON.stringify([24,0,800,36,0,840,48,0.05,880,60,0.1,925,72,0.15,970])) out.push(issue("w", "These are the placeholder rows from the launch model, not measurements"));
+    if (rows.length) { const d0 = Math.max(rows[0][0], b.min_valid_distance), d1 = Math.min(rows[rows.length - 1][0], b.max_valid_distance); out.push(issue(d1 > d0 ? "k" : "e", `The robot will shoot from ${d0}–${d1} in (table ∩ min/max_valid_distance ${b.min_valid_distance}–${b.max_valid_distance})`)); }
+    const ok = !out.some(x => x.includes('issue e'));
+    const yaml = "    pollen_points: [\n" + rows.map(r => `        ${r[0].toFixed(1)}, ${r[1].toFixed(4)}, ${Math.round(r[2])}`).join(",\n") + "\n      ]";
+    $("#shotOut").innerHTML = `<div class="out">${out.join("") || issue("k", "No problems")}${ok ? issue("k", "Ready to paste. Then set calibrated: true.") : ""}</div>${rows.length > 1 ? chart(rows, [[1, "#c77700", "hood servo"], [2, "#2d6fb0", "ticks/s"]]) : ""}<pre data-copy>${esc(yaml)}</pre>`;
+    addCopy($("#shotOut"));
+  }; shotIn.oninput = shot; shot();
+  const timeIn = $("#timeIn"); timeIn.value = (get("auto.shot_time_points") || []).reduce((a, v, i) => a + v + (i % 2 ? ",\n" : ", "), "").replace(/,\s*$/, "");
+  const tm = () => { const n = nums(timeIn.value), out = [], rows = []; if (n.length % 2) out.push(issue("e", "Odd number of values: need distance, window_ms pairs"));
+    for (let i = 0; i + 1 < n.length; i += 2) rows.push([n[i], n[i + 1]]);
+    rows.forEach((r, i) => { if (i && r[0] <= rows[i - 1][0]) out.push(issue("e", `Row ${i + 1}: distance doesn't increase`)); if (r[1] < 500 || r[1] > 10000) out.push(issue("w", `Row ${i + 1}: ${r[1]} ms looks implausible for a ${get("auto.balls_per_volley_count")}-ball volley`)); });
+    if (JSON.stringify(rows.flat()) === "[24,2200,72,3000]") out.push(issue("w", "These are the placeholder rows. Run the Shot Timing Tuner."));
+    const tot = rows.length ? Math.max(...rows.map(r => r[1])) : 0; if (tot) out.push(issue("k", `Longest window ${tot} ms. AUTO is ${get("match.auto_ms") / 1000} s and the park reserve is ${get("auto.park_reserve_ms")} ms`));
+    $("#timeOut").innerHTML = `<div class="out">${out.join("")}</div><pre data-copy>${esc("  shot_time_points: [\n" + rows.map(r => `      ${r[0]}, ${Math.round(r[1])}`).join(",\n") + "\n    ]")}</pre>`; addCopy($("#timeOut")); };
+  timeIn.oninput = tm; tm();
+  const mm = () => { const r = mirror([+$("#mx").value, +$("#my").value, +$("#mh").value]); $("#mOut").innerHTML = `BLUE = [${r.join(", ")}] · ${+$("#mx").value < C ? "RED" : "BLUE"} side input`; };
+  ["mx","my","mh"].forEach(i => $("#" + i).oninput = mm); mm();
+  const tg = () => { const K = +$("#tk").value, t = +$("#tt").value; $("#tOut").innerHTML = K > 0 && t > 0 ? `turret.kv: ${(1 / K).toPrecision(4)}\nturret.pidf: { p: ${(1 / (K * t)).toPrecision(4)}, i: 0, d: 0, f: 0 }`.replace(/\n/g, "<br>") + `<br><span class="meta">Now: kv ${get("turret.kv")}, p ${get("turret.pidf.p")}. Run conditions.py after changing these.</span>` : "Enter K and τ"; };
+  ["tk","tt"].forEach(i => $("#" + i).oninput = tg); tg();
+  const fu = src => { if (src === "t") $("#fp").value = (+$("#ft").value / maxRpm).toFixed(4); else $("#ft").value = Math.round(+$("#fp").value * maxRpm);
+    const t = +$("#ft").value; $("#fOut").innerHTML = `${t} ticks/s = power ${(t / maxRpm).toFixed(3)} (max_rpm ${maxRpm}). Feed arms at ${Math.round(t * get("shooter.min_transfer_threshold"))}–${Math.round(t * get("shooter.max_velocity_threshold"))} ticks/s and releases below ${Math.round(t * get("shooter.feed_release_threshold"))}.`; };
+  $("#ft").oninput = () => fu("t"); $("#fp").oninput = () => fu("p"); fu("t");
+  // tolerance chart
+  const tl = CFG.turret.tolerance, ptsT = [];
+  for (let d = 12; d <= 96; d += 2) { let deg = d <= tl.near_cutoff ? tl.near_val : Math.asin(Math.min(1, (tl.max_drift / 2) / d)) * 180 / Math.PI; deg = Math.min(tl.max_deg, Math.max(tl.min_deg, deg)); ptsT.push([d, +deg.toFixed(2), +(deg * tl.exit_factor).toFixed(2)]); }
+  $("#tolChart").outerHTML = chart(ptsT, [[1, "#2f8a57", "settle tolerance °"], [2, "#c2412d", "unsettle at ° (× exit_factor)"]]);
+}
+/* verify + match */
+function renderVerify() {
+  const sel = store.get("changes", {});
+  $("#changeOpts").innerHTML = `<b>I changed…</b>` + CHANGES.map(([t], i) => `<label class="chk" style="display:flex;margin:6px 0;font-weight:500"><input type="checkbox" data-c="${i}" ${sel[i] ? "checked" : ""}>${esc(t)}</label>`).join("");
+  const upd = () => { const cmds = []; CHANGES.forEach(([, c], i) => { if ($(`[data-c="${i}"]`).checked) c.forEach(x => cmds.includes(x) || cmds.push(x)); });
+    $("#changeOut").innerHTML = `<b>Run, in order</b>` + (cmds.length ? cmds.map(c => c.startsWith("(") ? `<div class="meta">${esc(c)}</div>` : `<div class="cmd" data-c="${esc(c)}"><span>${esc(c)}</span></div>`).join("") : `<p class="meta">Tick what you changed.</p>`); addCopy($("#changeOut")); };
+  $$("#changeOpts input").forEach(i => i.onchange = () => { sel[i.dataset.c] = i.checked; store.set("changes", sel); upd(); }); upd();
+  const res = store.get("tests", {});
+  $("#atests").innerHTML = ATESTS.map(([t, p], i) => `<tr><td>${i + 1}</td><td>${esc(t)}</td><td>${esc(p)}</td><td class="res3"><button class="pass ${res[i]?.r === "p" ? "on" : ""}" data-i="${i}" data-r="p">Pass</button> <button class="fail ${res[i]?.r === "f" ? "on" : ""}" data-i="${i}" data-r="f">Fail</button></td><td><input class="note" data-i="${i}" value="${esc(res[i]?.n || "")}" placeholder="12.6 V, notes…"></td></tr>`).join("");
+  $$("#atests .res3 button").forEach(b => b.onclick = () => { const r = store.get("tests", {}); const i = b.dataset.i; r[i] = r[i] || {}; r[i].r = r[i].r === b.dataset.r ? "" : b.dataset.r; r[i].at = new Date().toISOString().slice(0, 16).replace("T", " "); store.set("tests", r); renderVerify(); });
+  $$("#atests .note").forEach(n => n.oninput = () => { const r = store.get("tests", {}); (r[n.dataset.i] ||= {}).n = n.value; store.set("tests", r); });
+  $("#copyTests").onclick = () => { const r = store.get("tests", {}); copy(`| # | Test | Result | When | Notes |\n|---|---|---|---|---|\n` + ATESTS.map(([t], i) => `| ${i + 1} | ${t} | ${{p: "✅ pass", f: "❌ fail"}[r[i]?.r] || "—"} | ${r[i]?.at || ""} | ${r[i]?.n || ""} |`).join("\n")); };
+  $("#resetTests").onclick = () => { if (confirm("Clear all test results?")) { store.set("tests", {}); renderVerify(); } };
+}
+function renderMatch() {
+  const st = store.get("match", {});
+  $("#matchList").innerHTML = MATCH.map((t, i) => `<label class="chk" style="display:flex;align-items:flex-start;margin:7px 0;font-weight:500;white-space:normal"><input type="checkbox" data-m="${i}" ${st[i] ? "checked" : ""} style="margin-top:2px">${esc(t)}</label>`).join("");
+  $$("#matchList input").forEach(i => i.onchange = () => { const s = store.get("match", {}); s[i.dataset.m] = i.checked; store.set("match", s); });
+  $("#resetMatch").onclick = () => { store.set("match", {}); renderMatch(); toast("Checklist reset"); };
+  const opts = Object.entries(AUTOS).map(([k, [n]]) => `<option value="${k}">${n}</option>`).join("");
+  $("#autoUs").innerHTML = opts; $("#autoThem").innerHTML = opts; $("#autoUs").value = store.get("autoUs", "A"); $("#autoThem").value = store.get("autoThem", "B");
+  const adv = () => { const u = $("#autoUs").value, t = $("#autoThem").value; store.set("autoUs", u); store.set("autoThem", t); let a = "";
+    if (u === "N") a = "Pick an auto for our robot.";
+    else if (u === t && u !== "P") a = `⚠ Both robots running <b>${AUTOS[u][0]}</b> start on the same wall and fight over the same CELL. Pick complementary routines: one A, one B.`;
+    else if (u === "B" && t !== "A") a = `⚠ <b>B: second CELL</b> waits for the partner's TIP of CELL A. Without an A partner it waits, then falls back to CELL A itself.`;
+    else if (u === "A" && t === "B" || u === "B" && t === "A") a = `✓ Complementary: A tips CELL A, then B fires into CELL B. Both park for the SWARM bonus.`;
+    else a = `✓ OK. Parks for LEAVE + PARK.`;
+    const s = {A: "auto_poses.cell_a.red.start", B: "auto_poses.cell_b.red.start", P: "auto_poses.park_only.red.start"}[u];
+    $("#autoAdvice").innerHTML = a + (s ? `<div style="margin-top:6px">${esc(AUTOS[u][1])}</div><div style="margin-top:6px">RED start ${kchip(s)} · BLUE ${kchip(s.replace(".red.", ".blue."))}</div>` : ""); };
+  $("#autoUs").onchange = adv; $("#autoThem").onchange = adv; adv();
+}
+function renderTrouble() {
+  const areas = ["All", ...new Set(TROUBLE.map(t => t[0]))]; let cur = "All";
+  $("#trChips").innerHTML = areas.map(a => `<button class="fbtn${a === "All" ? " on" : ""}" data-a="${a}">${a}</button>`).join("");
+  const draw = () => { const q = $("#trQ").value.toLowerCase().split(/\s+/).filter(Boolean);
+    $("#trRows").innerHTML = TROUBLE.filter(t => (cur === "All" || t[0] === cur) && q.every(w => t.join(" ").toLowerCase().includes(w))).map(([a, s, f]) => `<tr><td><span class="pill">${a}</span></td><td><b>${esc(s)}</b></td><td>${linkKeys(esc(f))}</td></tr>`).join("") || `<tr><td colspan="3" class="meta">Nothing matches. Try fewer words, or search everything with ⌘K.</td></tr>`; bindChips($("#trRows")); };
+  $$("#trChips .fbtn").forEach(b => b.onclick = () => { cur = b.dataset.a; $$("#trChips .fbtn").forEach(x => x.classList.toggle("on", x === b)); draw(); });
+  $("#trQ").oninput = draw; draw();
+}
+function linkKeys(html) { // turn dotted config paths in text into chips
+  return html.replace(/\b([a-z_]+(?:\.[a-z0-9_*]+)+)\b/g, m => { const full = KEYS[m] ? m : D.keys.find(k => k.path.endsWith("." + m))?.path; return full ? kchip(full) : m; });
+}
+/* ------------------------------------------------------------ interactions */
+const tip = $("#tip");
+function showTip(el, html, ev) { tip.innerHTML = html; tip.style.display = "block"; const r = el.getBoundingClientRect(); let x = (ev ? ev.clientX : r.left + r.width / 2) + 14, y = (ev ? ev.clientY : r.top) + 14; tip.style.left = Math.min(x, innerWidth - tip.offsetWidth - 10) + "px"; tip.style.top = Math.min(y, innerHeight - tip.offsetHeight - 10) + "px"; }
+function hideTip() { tip.style.display = "none"; }
+function tipOn(el, html) { el.addEventListener("mousemove", e => showTip(el, html(), e)); el.addEventListener("mouseleave", hideTip); }
+function addCopy(root = document) {
+  $$("pre[data-copy]", root).forEach(p => { if (p.querySelector(".copy")) return; const b = document.createElement("button"); b.className = "copy"; b.textContent = "Copy"; b.onclick = () => copy(p.innerText.replace(/\n?Copy(ed)?$/, ""), b); p.append(b); });
+  $$(".cmd[data-c]", root).forEach(c => { if (c.querySelector(".copy")) return; const b = document.createElement("button"); b.className = "copy"; b.textContent = "Copy"; b.onclick = () => copy(c.dataset.c, b); c.append(b); });
+}
+function bindChips(root = document) { $$(".ck[data-k]", root).forEach(c => { if (c._b) return; c._b = 1; c.onclick = e => { e.preventDefault(); e.stopPropagation(); openKey(c.dataset.k); }; const k = KEYS[c.dataset.k]; if (k?.desc) c.title = k.desc; }); }
+function expandXK(root = document) { $$("x-k", root).forEach(x => { x.outerHTML = kchip(x.textContent.trim()); }); }
+function headingLinks() {
+  $$("section>h1").forEach(h => { const s = h.closest("section"); const a = document.createElement("span"); a.className = "lnk"; a.textContent = "🔗 copy link"; a.onclick = () => copy(location.href.split("#")[0] + "#" + s.id); h.append(a); });
+}
+function scrollSpy() {
+  const links = Object.fromEntries($$("nav.side a[data-sec]").map(a => [a.dataset.sec, a]));
+  const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { $$("nav.side a.on").forEach(x => x.classList.remove("on")); links[e.target.id]?.classList.add("on"); } }), {rootMargin: "-45% 0px -50% 0px"});
+  $$("main section").forEach(s => obs.observe(s));
+}
+/* search */
+let IDX = [], sel = 0, hits = [];
+function buildIndex() {
+  IDX = [];
+  $$("main section").forEach(s => { const t = s.querySelector("h1")?.childNodes; const title = s.querySelector("h1") ? [...s.querySelector("h1").childNodes].filter(n => !n.classList?.contains("n") && !n.classList?.contains("lnk")).map(n => n.textContent).join("").trim() : "Home";
+    IDX.push({k: "Section", t: title, d: (s.querySelector(".lead")?.textContent || "").slice(0, 140), go: () => goto(s.id)}); });
+  P.forEach(p => IDX.push({k: "Procedure", t: p.t, d: p.why, x: p.steps.join(" ").replace(/<[^>]+>/g, "") + " " + p.writes.join(" "), go: () => { const d = $("#p-" + p.id); d.open = true; goto("p-" + p.id); }}));
+  for (const [m, s] of Object.entries(PADS)) for (const [b, [l, d]] of Object.entries(s.m)) IDX.push({k: "Button", t: `${BTN[b]} · ${l}`, d: `${s.n}${d ? " · " + d : ""}`, go: () => { setPad(m); goto("gamepads"); setTimeout(() => hl(b, true), 400); setTimeout(() => hl(b, false), 2200); }});
+  D.keys.forEach(k => IDX.push({k: "Config", t: k.path, d: `${fmt(k.value)} · ${k.desc || k.note}`, go: () => openKey(k.path)}));
+  TROUBLE.forEach(([a, s, f]) => IDX.push({k: "Fix", t: s, d: f, go: () => { $("#trQ").value = s.split(" ").slice(0, 3).join(" "); $("#trQ").dispatchEvent(new Event("input")); goto("trouble"); }}));
+  GLOSS.forEach(([t, d]) => IDX.push({k: "Term", t, d, go: () => { $("#glossQ").value = t; $("#glossQ").dispatchEvent(new Event("input")); goto("vocab"); }}));
+  STAGES.forEach(([t, d], i) => IDX.push({k: "Stage", t: `Stage ${i}: ${t}`, d, go: () => { goto("bringup"); $$("#stages .stagewrap")[i].classList.add("open"); }}));
+}
+function mark(s, ws) { let h = esc(s); ws.forEach(w => { if (w.length > 1) h = h.replace(new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<mark>$1</mark>"); }); return h; }
+function search(q) {
+  const ws = q.toLowerCase().split(/\s+/).filter(Boolean);
+  hits = !ws.length ? IDX.filter(i => i.k === "Section") : IDX.map(i => { const t = i.t.toLowerCase(), all = (i.t + " " + i.d + " " + (i.x || "")).toLowerCase(); if (!ws.every(w => all.includes(w))) return null;
+    let s = ws.reduce((a, w) => a + (t.includes(w) ? 10 : 1) + (t.startsWith(w) ? 5 : 0), 0) + ({Section: 4, Procedure: 3, Button: 1, Fix: 2, Term: 2, Stage: 1, Config: 0}[i.k] || 0); return [s, i]; }).filter(Boolean).sort((a, b) => b[0] - a[0]).slice(0, 40).map(x => x[1]);
+  sel = 0;
+  $("#res").innerHTML = hits.map((h, i) => `<a href="#" data-i="${i}" class="${i ? "" : "on"}"><span class="kd">${h.k}</span><span>${mark(h.t, ws)}<small>${mark(h.d.slice(0, 160), ws)}</small></span></a>`).join("") || `<div class="meta" style="padding:14px">No results.</div>`;
+  $$("#res a").forEach(a => { a.onclick = e => { e.preventDefault(); go(+a.dataset.i); }; a.onmousemove = () => { sel = +a.dataset.i; hlRes(); }; });
+}
+function hlRes() { $$("#res a").forEach((a, i) => a.classList.toggle("on", i === sel)); $$("#res a")[sel]?.scrollIntoView({block: "nearest"}); }
+function go(i) { const h = hits[i]; if (!h) return; closeSearch(); h.go(); }
+function openSearch() { $("#modal").classList.add("open"); $("#q").value = ""; search(""); setTimeout(() => $("#q").focus(), 10); }
+function closeSearch() { $("#modal").classList.remove("open"); }
+/* ------------------------------------------------------------------ boot */
+function theme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+theme(store.get("theme", ""));
+$("#themeBtn").onclick = () => { const dark = matchMedia("(prefers-color-scheme: dark)").matches; const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light"); const nx = cur === "dark" ? "light" : "dark"; theme(nx); store.set("theme", nx); };
+$("#menuBtn").onclick = () => $("#side").classList.toggle("open");
+renderNav(); renderChecks(); renderStatic(); renderStages(); renderProcs(); renderPads(); renderField(); fieldEvents();
+renderCfgChrome(); renderCfg(); renderSwitches(); renderTools(); renderVerify(); renderMatch(); renderTrouble();
+expandXK(); bindChips(); addCopy(); headingLinks(); scrollSpy(); buildIndex();
+document.addEventListener("click", e => { const j = e.target.closest(".padjump"); if (j) { setPad(j.dataset.mode); } if (e.target.closest("nav.side a")) $("#side").classList.remove("open"); });
+$("#openSearch").onclick = openSearch; $("#openSearch").onkeydown = e => { if (e.key === "Enter") openSearch(); };
+$("#modal").onclick = e => { if (e.target.id === "modal") closeSearch(); };
+$("#q").oninput = e => search(e.target.value);
+$("#q").onkeydown = e => { if (e.key === "ArrowDown") { sel = Math.min(hits.length - 1, sel + 1); hlRes(); e.preventDefault(); } else if (e.key === "ArrowUp") { sel = Math.max(0, sel - 1); hlRes(); e.preventDefault(); } else if (e.key === "Enter") go(sel); else if (e.key === "Escape") closeSearch(); };
+document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openSearch(); } else if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); } else if (e.key === "Escape") closeSearch(); });
+// deep links: #p-<id> opens the card, #key=<path> opens a config key
+function route() { const h = decodeURIComponent(location.hash.slice(1)); if (h.startsWith("p-")) { const d = document.getElementById(h); if (d) d.open = true; } else if (h.startsWith("key=")) openKey(h.slice(4)); }
+addEventListener("hashchange", route); route();
+{ const h = decodeURIComponent(location.hash.slice(1)); const el = h && !h.startsWith("key=") && document.getElementById(h); if (el) setTimeout(() => el.scrollIntoView({behavior: "instant", block: "start"}), 0); }
+</script>
+</body></html>

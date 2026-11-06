@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>BIOBUZZ Robot Master Guide</title>
+<style>
+:root{
+  --ink:#1d1b16; --ink2:#4a463d; --mute:#7b7568; --line:#e4ded0; --paper:#fffdf8; --tint:#faf6ec;
+  --honey:#f2a900; --honeyD:#9a6a00; --honeyL:#fff3cf; --char:#2a2418;
+  --red:#c2412d; --redL:#fbeae6; --grn:#2f8a57; --grnL:#e6f4ec; --blu:#2d6fb0; --bluL:#e7f0f9;
+  --pur:#7a4bb0; --purL:#f1eaf9; --gry:#6f6a60; --teal:#1f8a8a; --tealL:#e3f4f4; --amb:#c77700; --ambL:#fdf0dc;
+}
+@page{ size:Letter; margin:0.62in 0.6in 0.68in 0.6in;
+  @bottom-left{ content:"BIOBUZZ Robot Master Guide"; font:600 7.5pt "Avenir Next",Helvetica,sans-serif; color:#a59d8c; }
+  @bottom-right{ content:counter(page); font:700 8pt "Avenir Next",Helvetica,sans-serif; color:#9a6a00; } }
+@page cover{ margin:0; @bottom-left{content:none} @bottom-right{content:none} }
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+body{margin:0; font:8.9pt/1.38 "Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif; color:var(--ink)}
+a{color:var(--blu); text-decoration:none}
+a.k, a code{color:var(--blu)}
+b,strong{font-weight:650}
+p{margin:3pt 0 5pt}
+ul,ol{margin:2pt 0 6pt; padding-left:15pt} li{margin:1.5pt 0}
+code,.k{font:500 7.9pt/1.3 "SF Mono",Menlo,Consolas,monospace; background:#f3efe4; color:#5a3d00; padding:0.5pt 2.5pt; border-radius:2.5pt; white-space:nowrap}
+td code{white-space:normal; overflow-wrap:anywhere}
+pre{font:500 7.7pt/1.38 "SF Mono",Menlo,monospace; background:var(--char); color:#f6eedb; padding:6pt 9pt; margin:4pt 0 7pt; border-radius:4pt; white-space:pre-wrap; break-inside:avoid}
+pre .c{color:#b9ad8f} pre .y{color:#ffd166}
+kbd{display:inline-block; font:700 7.2pt/1 "Avenir Next",Helvetica,sans-serif; padding:2pt 4pt 1.6pt; border:0.7pt solid #b8ae98; border-bottom-width:1.6pt; border-radius:3pt; background:#fff; color:var(--char); white-space:nowrap; vertical-align:1pt}
+kbd.g1{border-color:#2d6fb0; color:#1e4f80} kbd.g2{border-color:#c2412d; color:#8f2c1d}
+
+/* ---------- chapter headers ---------- */
+h1{break-before:page; margin:0 0 9pt; padding:0 0 7pt; border-bottom:2pt solid var(--honey); font-size:19pt; line-height:1.1; letter-spacing:-0.2pt; color:var(--char); display:flex; align-items:flex-end; gap:9pt}
+h1 .n{display:inline-flex; align-items:center; justify-content:center; width:28pt; height:28pt; background:var(--honey); color:var(--char); font-size:15pt; font-weight:800; clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)}
+h1 .t{flex:1} h1 .n::before{content:attr(data-n)}
+a.up{display:block; width:fit-content; margin:-31pt 0 18pt auto; position:relative; font-size:7.5pt; font-weight:600; color:var(--mute)}
+h2{font-size:11.5pt; margin:11pt 0 3pt; color:var(--char); break-after:avoid; display:flex; align-items:baseline; gap:6pt}
+h2 .s{font-size:8pt; font-weight:600; color:var(--mute); margin-left:auto}
+h3{font-size:9.8pt; margin:9pt 0 2pt; color:var(--honeyD); break-after:avoid}
+.lead{font-size:9.6pt; color:var(--ink2); margin:0 0 8pt}
+
+/* ---------- tables ---------- */
+table{border-collapse:separate; border-spacing:0; width:100%; table-layout:fixed; margin:3pt 0 7pt; font-size:7.9pt; line-height:1.32}
+th{background:var(--char); color:#fff7e0; text-align:left; padding:3.5pt 5pt; font-weight:650; font-size:7.8pt; letter-spacing:0.1pt}
+th:first-child{border-top-left-radius:3pt} th:last-child{border-top-right-radius:3pt}
+td{padding:3pt 5pt; vertical-align:top; border-bottom:0.5pt solid var(--line)}
+tr{break-inside:avoid}
+tbody tr:nth-child(even) td{background:var(--tint)}
+td.v{font:500 7.7pt "SF Mono",Menlo,monospace; color:#3e3a30; overflow-wrap:anywhere}
+td.key code{background:none; padding:0; color:#5a3d00; font-weight:600}
+thead{display:table-header-group}
+table.cfg th:nth-child(1){width:30%} table.cfg th:nth-child(2){width:15%} table.cfg th:nth-child(4){width:12.5%} table.cfg td:nth-child(4),table.cfg th:nth-child(4){text-align:right}
+
+/* ---------- chips ---------- */
+.tag{display:inline-block; font:750 6.4pt/1 "Avenir Next",Helvetica,sans-serif; letter-spacing:0.35pt; padding:2.2pt 4pt 1.8pt; border-radius:8pt; white-space:nowrap; text-transform:uppercase}
+.M{background:var(--redL); color:var(--red); border:0.6pt solid #eab3a8}
+.T{background:var(--grnL); color:var(--grn); border:0.6pt solid #a9d6bc}
+.P{background:var(--bluL); color:var(--blu); border:0.6pt solid #b1cbe6}
+.S{background:var(--purL); color:var(--pur); border:0.6pt solid #cdb8e6}
+.F{background:#eeece7; color:var(--gry); border:0.6pt solid #d3cfc5}
+.H{background:var(--ambL); color:var(--amb); border:0.6pt solid #efcb93}
+.I{background:var(--tealL); color:var(--teal); border:0.6pt solid #a8d8d8}
+
+/* ---------- callouts ---------- */
+.call{display:flex; gap:7pt; padding:6pt 9pt; margin:6pt 0 8pt; border-radius:4pt; break-inside:avoid; background:var(--bluL); border-left:3pt solid var(--blu)}
+.call .ic{flex:none; width:13pt; height:13pt; border-radius:50%; background:var(--blu); color:#fff; font:800 8.5pt/13pt "Avenir Next",sans-serif; text-align:center; margin-top:1pt}
+.call > div:last-child{flex:1}
+.call.warn{background:var(--redL); border-color:var(--red)} .call.warn .ic{background:var(--red)}
+.call.ok{background:var(--grnL); border-color:var(--grn)} .call.ok .ic{background:var(--grn)}
+.call.tip{background:var(--honeyL); border-color:var(--honey)} .call.tip .ic{background:var(--honeyD)}
+.call b:first-child{color:var(--char)}
+.call ul,.call ol{margin-bottom:1pt}
+
+/* ---------- procedure cards ---------- */
+.card{border:0.7pt solid var(--line); border-radius:5pt; margin:7pt 0 9pt; overflow:hidden; background:#fff; break-inside:avoid-page}
+.card.long{break-inside:auto}
+.card .hd{background:linear-gradient(90deg,var(--honeyL),#fffaf0); padding:5pt 9pt 4.5pt; border-bottom:0.7pt solid var(--line); display:flex; align-items:center; gap:7pt; flex-wrap:wrap}
+.card .hd .nm{font-weight:800; font-size:10.4pt; color:var(--char)}
+.card .hd .grp{font-size:7pt; font-weight:700; color:var(--honeyD); text-transform:uppercase; letter-spacing:0.4pt}
+.card .hd .meta{margin-left:auto; display:flex; gap:4pt; flex-wrap:wrap}
+.pill{font:650 6.8pt/1 "Avenir Next",sans-serif; padding:2.5pt 5pt; border-radius:8pt; background:#fff; border:0.6pt solid #e2cfa0; color:#6b5520; white-space:nowrap}
+.card .bd{padding:5pt 9pt 6pt; display:grid; grid-template-columns:1.35fr 1fr; gap:4pt 12pt}
+.card .bd.one{grid-template-columns:1fr}
+.card .bd .full{grid-column:1/-1}
+.card .lbl{font:750 6.8pt "Avenir Next",sans-serif; color:var(--mute); text-transform:uppercase; letter-spacing:0.5pt; margin:2pt 0 1pt}
+.card ol{padding-left:13pt; margin:0 0 3pt}
+.card .ctl{margin:0; padding:0; list-style:none} .card .ctl li{margin:1.6pt 0}
+.out{background:var(--char); color:#f6eedb; border-radius:3.5pt; padding:4pt 7pt; font:500 7.4pt/1.4 "SF Mono",Menlo,monospace}
+.out a{color:#ffd166}
+.out .c{color:#b9ad8f}
+
+/* ---------- misc layout ---------- */
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:0 14pt}
+.cols3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:5pt}
+.tile{border:0.7pt solid var(--line); border-radius:5pt; padding:4pt 7pt; background:#fff; break-inside:avoid}
+.tile .h4{margin:0 0 2pt; font-weight:700; font-size:9pt; color:var(--char)}
+.tile p{margin:0; font-size:7.7pt; color:var(--ink2)}
+.small{font-size:7.8pt; color:var(--mute)}
+.legend{display:flex; flex-wrap:wrap; gap:4pt 10pt; font-size:7.8pt; color:var(--ink2); margin:3pt 0 8pt}
+.nobreak{break-inside:avoid}
+.pb{break-before:page}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid; grid-template-columns:repeat(4,1fr); gap:6pt; margin:6pt 0 10pt}
+.st{position:relative; border-radius:5pt; padding:5pt 7pt 6pt; background:#fff; border:0.7pt solid var(--line); break-inside:avoid}
+.st .no{position:absolute; top:-1pt; right:5pt; font:800 15pt "Avenir Next",sans-serif; color:#f0e3c0}
+.st .h4{margin:0 0 1pt; font-weight:700; font-size:8.8pt; color:var(--char); position:relative}
+.st p{margin:0; font-size:7.5pt; color:var(--ink2); position:relative}
+.st .go{display:block; margin-top:2pt; font-size:7pt; font-weight:700}
+.st.c1{border-top:3pt solid #b9a46d} .st.c2{border-top:3pt solid var(--blu)} .st.c3{border-top:3pt solid var(--pur)} .st.c4{border-top:3pt solid var(--red)} .st.c5{border-top:3pt solid var(--honey)} .st.c6{border-top:3pt solid var(--teal)} .st.c7{border-top:3pt solid var(--grn)}
+
+/* ---------- flow ---------- */
+.flow{display:flex; align-items:stretch; gap:0; margin:6pt 0 8pt}
+.flow .f{flex:1; background:#fff; border:0.7pt solid var(--line); border-radius:4pt; padding:4pt 6pt; font-size:7.6pt; text-align:center}
+.flow .f b{display:block; font-size:8.2pt; color:var(--char)}
+.flow .ar{flex:none; width:13pt; display:flex; align-items:center; justify-content:center; color:var(--honeyD); font-weight:800; font-size:11pt}
+
+/* ---------- cover ---------- */
+.cover{page:cover; height:100vh; position:relative; overflow:hidden; background:var(--char); color:#fff7e0}
+.cover svg.hex{position:absolute; inset:0; width:100%; height:100%}
+.cover .in{position:absolute; left:0.75in; right:0.75in; top:1.55in}
+.cover .kick{font:800 9pt "Avenir Next",sans-serif; letter-spacing:2.5pt; color:var(--honey); text-transform:uppercase}
+.cover .ct{font-weight:800; display:block; font-size:44pt; line-height:0.98; letter-spacing:-1pt; color:#fff; margin:8pt 0 12pt; padding:0}
+.cover .ct .hl{color:var(--honey)} .gap{font-size:0}
+.cover .sub{font-size:12.5pt; line-height:1.45; color:#e9dfc6; max-width:5.6in}
+.cover .glance{margin-top:30pt; background:rgba(255,253,248,0.97); color:var(--ink); border-radius:7pt; padding:11pt 14pt; max-width:6.9in}
+.cover .glance .h3{font-weight:700; margin:0 0 5pt; color:var(--char); font-size:10.5pt}
+.cover .glance .g{display:grid; grid-template-columns:1fr 1fr; gap:3pt 16pt; font-size:8.3pt}
+.cover .glance .g div{display:flex; gap:5pt; align-items:baseline}
+.dot{flex:none; width:6.5pt; height:6.5pt; border-radius:50%; display:inline-block; transform:translateY(0.5pt)}
+.dot.r{background:var(--red)} .dot.a{background:var(--honey)} .dot.g{background:var(--grn)}
+.cover .meta{position:absolute; left:0.75in; right:0.75in; bottom:0.6in; font-size:7.8pt; color:#bfb398; line-height:1.5}
+.cover .meta code{background:rgba(255,255,255,0.08); color:#f6e3ae; white-space:normal; overflow-wrap:anywhere}
+
+/* ---------- toc ---------- */
+.toc{columns:2; column-gap:18pt; margin-top:4pt}
+.toc .ch{break-inside:avoid; margin:0 0 8pt}
+.toc a.c{display:flex; align-items:baseline; gap:5pt; font-weight:750; font-size:10pt; color:var(--char); border-bottom:0.6pt solid var(--line); padding-bottom:2pt}
+.toc a.c .no{color:var(--honeyD); width:14pt}
+.toc a.c .pg, .toc a.s .pg{margin-left:auto; font-weight:700; color:var(--honeyD); font-size:8pt}
+.toc a.s{display:flex; gap:5pt; font-size:8.2pt; color:var(--ink2); padding:1.3pt 0 1.3pt 19pt}
+.toc a.s .pg{color:var(--mute); font-weight:600}
+
+/* ---------- gamepads ---------- */
+.pad{border-radius:6pt; padding:7pt 9pt; break-inside:avoid}
+.pad.g1{background:var(--bluL); border:0.7pt solid #b1cbe6} .pad.g2{background:var(--redL); border:0.7pt solid #eab3a8}
+.pad h3{margin:0 0 4pt; color:var(--char)}
+.pad table{margin:0; font-size:8pt} .pad td{border-bottom:0.5pt solid rgba(0,0,0,0.07); background:transparent !important}
+.pad td:first-child{width:28%; white-space:nowrap}
+</style></head><body>
+
+<!-- ================================ COVER ================================ -->
+<section class="cover">
+<svg class="hex" viewBox="0 0 816 1056" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+ <defs>
+  <pattern id="hp" width="56" height="97" patternUnits="userSpaceOnUse" patternTransform="scale(1.1)">
+   <path d="M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z M28 64 L28 97" fill="none" stroke="#f2a900" stroke-opacity="0.13" stroke-width="1.3"/>
+  </pattern>
+  <linearGradient id="fade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2418" stop-opacity="0.15"/><stop offset="0.7" stop-color="#2a2418" stop-opacity="0.92"/></linearGradient>
+ </defs>
+ <rect width="816" height="1056" fill="url(#hp)"/>
+ <rect width="816" height="1056" fill="url(#fade)"/>
+ <g fill="#f2a900">
+  <path d="M676 70 L716 93 L716 139 L676 162 L636 139 L636 93 Z" opacity="0.95"/>
+  <path d="M726 157 L756 174 L756 208 L726 225 L696 208 L696 174 Z" opacity="0.55"/>
+  <path d="M630 170 L652 183 L652 208 L630 221 L608 208 L608 183 Z" opacity="0.35"/>
+ </g>
+</svg>
+<div class="in">
+ <div class="kick">FTC 2026-27 · BIOBUZZ presented by RTX</div>
+ <div class="ct">Robot<br><span class="hl">Master Guide</span></div>
+ <div class="sub">Takes you from a fresh clone to a tuned, verified robot. Written for someone who can deploy code but is new to robotics. It covers every tuning procedure, every switch and constant in <code style="background:rgba(255,255,255,.1);color:#ffd166">config.yaml</code>, and every driver control.</div>
+ <div class="glance">
+  <div class="h3">Status at a glance (repo snapshot, 2026-11-05)</div>
+  <div class="g">
+   <div><span class="dot r"></span><span><b>Shot table uncalibrated</b>: the robot will not feed a ball (<a href="#p-ballistics">§7.6</a>)</span></div>
+   <div><span class="dot r"></span><span><b>Camera mount</b> not measured (<a href="#p-vision">§7.8</a>)</span></div>
+   <div><span class="dot r"></span><span><b>Auto shot windows</b> are placeholders (<a href="#p-timing">§7.7</a>)</span></div>
+   <div><span class="dot a"></span><span><b>Drivetrain (Pedro)</b> values are provisional (<a href="#p-pedro">§7.2</a>)</span></div>
+   <div><span class="dot a"></span><span><b>Turret</b> feedforward off, pivot offset unmeasured (<a href="#p-turret">§7.4</a>)</span></div>
+   <div><span class="dot a"></span><span><b>Flywheel recovery kick</b> off (<a href="#p-shooter">§7.5</a>)</span></div>
+   <div><span class="dot a"></span><span><b>No ball-count sensor</b>: the operator stops intake at 4 (<a href="#c-inventory">§10.3</a>)</span></div>
+   <div><span class="dot g"></span><span><b>Safety, routes, logic</b> covered by tests and proofs (<a href="#s-verify">§8</a>)</span></div>
+  </div>
+ </div>
+</div>
+<div class="meta">Repository <b>biobuzz</b> · FTC SDK 12 · Pedro Pathing 3.0.2 · Java 21 · Gradle<br>
+Numbers quoted are from <code>TeamCode/<wbr>src/<wbr>main/<wbr>java/<wbr>org/<wbr>firstinspires/<wbr>ftc/<wbr>teamcode/<wbr>robot/<wbr>config/<wbr>config.<wbr>yaml</code> on 2026-11-05. If that file has changed, it wins over this guide.<br>
+Every <span style="color:#ffd166">yellow or blue link</span> in this PDF is clickable, and the PDF has a bookmark outline.</div>
+</section>
+
+<!-- ================================ TOC ================================ -->
+<h1 id="toc" style="break-before:auto"><span class="n" data-n="≡"></span><span class="t">Contents</span></h1>
+<div class="toc">
+ <div class="ch"><a class="c" href="#s-first"><span class="no">1</span>Read this first<span class="pg" data-for="s-first"></span></a>
+  <a class="s" href="#s-model">The five-minute mental model<span class="pg" data-for="s-model"></span></a></div>
+ <div class="ch"><a class="c" href="#s-vocab"><span class="no">2</span>Vocabulary<span class="pg" data-for="s-vocab"></span></a></div>
+ <div class="ch"><a class="c" href="#s-hw"><span class="no">3</span>Hardware map and ports<span class="pg" data-for="s-hw"></span></a></div>
+ <div class="ch"><a class="c" href="#s-deploy"><span class="no">4</span>Getting code onto the robot<span class="pg" data-for="s-deploy"></span></a>
+  <a class="s" href="#d-setup">4.1 One-time setup<span class="pg" data-for="d-setup"></span></a>
+  <a class="s" href="#d-connect">4.2 Connect to the Control Hub<span class="pg" data-for="d-connect"></span></a>
+  <a class="s" href="#d-build">4.3 Build and install<span class="pg" data-for="d-build"></span></a>
+  <a class="s" href="#d-push">4.4 Hot-push config, the tuning loop<span class="pg" data-for="d-push"></span></a>
+  <a class="s" href="#d-files">4.5 Getting files off the robot<span class="pg" data-for="d-files"></span></a></div>
+ <div class="ch"><a class="c" href="#s-config"><span class="no">5</span>How configuration works<span class="pg" data-for="s-config"></span></a></div>
+ <div class="ch"><a class="c" href="#s-order"><span class="no">6</span>The bring-up order<span class="pg" data-for="s-order"></span></a>
+  <a class="s" href="#o-map">What each tuner writes<span class="pg" data-for="o-map"></span></a></div>
+ <div class="ch"><a class="c" href="#s-tune"><span class="no">7</span>Tuning procedures<span class="pg" data-for="s-tune"></span></a>
+  <a class="s" href="#p-sanity">7.1 Sanity tests<span class="pg" data-for="p-sanity"></span></a>
+  <a class="s" href="#p-pedro">7.2 Drivetrain (Pedro AutoTune)<span class="pg" data-for="p-pedro"></span></a>
+  <a class="s" href="#p-casa">7.3 Driver feel and safety<span class="pg" data-for="p-casa"></span></a>
+  <a class="s" href="#p-turret">7.4 Turret<span class="pg" data-for="p-turret"></span></a>
+  <a class="s" href="#p-shooter">7.5 Flywheel and hood<span class="pg" data-for="p-shooter"></span></a>
+  <a class="s" href="#p-ballistics">7.6 Shot table<span class="pg" data-for="p-ballistics"></span></a>
+  <a class="s" href="#p-timing">7.7 Autonomous shot windows<span class="pg" data-for="p-timing"></span></a>
+  <a class="s" href="#p-vision">7.8 Vision and HIVE tracking<span class="pg" data-for="p-vision"></span></a>
+  <a class="s" href="#p-poses">7.9 Poses and routes<span class="pg" data-for="p-poses"></span></a></div>
+ <div class="ch"><a class="c" href="#s-verify"><span class="no">8</span>Verification<span class="pg" data-for="s-verify"></span></a>
+  <a class="s" href="#v-auto">8.1 <code>verifyBuild</code><span class="pg" data-for="v-auto"></span></a>
+  <a class="s" href="#v-when">8.2 What to run after a change<span class="pg" data-for="v-when"></span></a>
+  <a class="s" href="#v-robot">8.3 On-robot acceptance tests<span class="pg" data-for="v-robot"></span></a></div>
+ <div class="ch"><a class="c" href="#s-match"><span class="no">9</span>Match day<span class="pg" data-for="s-match"></span></a>
+  <a class="s" href="#m-check">9.1 Pre-match checklist<span class="pg" data-for="m-check"></span></a>
+  <a class="s" href="#m-auto">9.2 Autonomous routines<span class="pg" data-for="m-auto"></span></a>
+  <a class="s" href="#m-pads">9.3 Gamepad cheat sheet<span class="pg" data-for="m-pads"></span></a></div>
+ <div class="ch"><a class="c" href="#s-ref"><span class="no">10</span>Config reference<span class="pg" data-for="s-ref"></span></a>
+  <a class="s" href="#c-pedro">10.1 pedro<span class="pg" data-for="c-pedro"></span></a>
+  <a class="s" href="#c-field">10.2 field · hive · match<span class="pg" data-for="c-field"></span></a>
+  <a class="s" href="#c-inventory">10.3 inventory<span class="pg" data-for="c-inventory"></span></a>
+  <a class="s" href="#c-turret">10.4 turret<span class="pg" data-for="c-turret"></span></a>
+  <a class="s" href="#c-vision">10.5 vision<span class="pg" data-for="c-vision"></span></a>
+  <a class="s" href="#c-sentinel">10.6 sentinel<span class="pg" data-for="c-sentinel"></span></a>
+  <a class="s" href="#c-casa">10.7 casablanca<span class="pg" data-for="c-casa"></span></a>
+  <a class="s" href="#c-shooter">10.8 shooter<span class="pg" data-for="c-shooter"></span></a>
+  <a class="s" href="#c-auto">10.9 auto<span class="pg" data-for="c-auto"></span></a>
+  <a class="s" href="#c-teleop">10.10 teleop and poses<span class="pg" data-for="c-teleop"></span></a>
+  <a class="s" href="#c-switches">10.11 Every switch in one table<span class="pg" data-for="c-switches"></span></a></div>
+ <div class="ch"><a class="c" href="#s-trouble"><span class="no">11</span>Troubleshooting<span class="pg" data-for="s-trouble"></span></a></div>
+ <div class="ch"><a class="c" href="#s-gaps"><span class="no">12</span>Known gaps and further reading<span class="pg" data-for="s-gaps"></span></a></div>
+</div>
+
+<!-- ================================ 1 ================================ -->
+<h1 id="s-first"><span class="n" data-n="1"></span><span class="t">Read this first</span></h1><a class="up" href="#toc">↑ contents</a>
+<p class="lead">This repository is a complete robot program, and almost none of the robot's behavior is hard-coded in Java. It comes from one YAML file. Making the robot work takes three steps: <b>install the app</b>, <b>run the calibration OpModes</b> on the real robot (each one prints numbers), and <b>paste those numbers into <code>config.<wbr>yaml</code></b>. Then you run the automated checks and the on-robot acceptance tests.</p>
+
+<div class="call warn"><div class="ic">!</div><div><b>As of this snapshot the robot is safe but will not score.</b> These values still have to be replaced:
+<ul>
+<li><a href="#c-shooter"><code>shooter.<wbr>shot_<wbr>table.<wbr>calibrated: false</code></a>. The shot rows are invented, and <b>no ball is ever fed</b> (not in AUTO, TeleOp, or the D-pad Up fixed shot) until you run <a href="#p-ballistics">Ballistics Calibration</a> and set this to <code>true</code>.</li>
+<li><a href="#c-auto"><code>auto.<wbr>shot_<wbr>time_<wbr>points</code></a> has 2 placeholder rows. Run <a href="#p-timing">Shot Timing Tuner</a>.</li>
+<li><a href="#c-vision"><code>vision.<wbr>camera.<wbr>*</code></a> is unmeasured, so HIVE tracking and relocalization will be wrong until it is measured.</li>
+<li><a href="#c-pedro"><code>pedro.<wbr>*</code></a> is carried over from last season. The migration notes call the gains, feedforward and braking <i>provisional</i>, and <code>max_<wbr>forward_<wbr>velocity</code> is flagged "recheck on robot".</li>
+<li><code>turret.<wbr>kv: 0</code> (no chassis feedforward), <code>turret.<wbr>pivot_<wbr>*_<wbr>in: 0</code> (unmeasured), <code>shooter.<wbr>kick.<wbr>wheel_<wbr>tau_<wbr>sec: 0</code> (recovery kick off), <code>inventory.<wbr>entry_<wbr>sensor_<wbr>enabled: false</code> (no ball counter).</li>
+</ul></div></div>
+
+<div class="cols">
+<div class="call ok"><div class="ic">✓</div><div><b>The golden rules</b>
+<ol>
+<li>Never edit <code>config.<wbr>java</code> or <code>config-schema.<wbr>json</code>. Both are generated.</li>
+<li>Numbers go in <code>config.<wbr>yaml</code>, descriptions in <code>config-docs.<wbr>yaml</code>. Then run <code>./<wbr>gradlew verifyBuild</code>.</li>
+<li>Write poses for <b>RED</b> only. BLUE is the letter <code>m</code> (RED rotated 180° about the field centre).</li>
+<li>Never bypass <code>Sentinel</code>/<code>Casablanca</code>. They keep the robot off the HIVE frame (ramming it is a foul, G417).</li>
+<li>Test slowly. Anything that spins goes on blocks first.</li>
+</ol></div></div>
+<div class="call tip"><div class="ic">i</div><div><b>How to use this PDF</b>
+<ul>
+<li>New to the robot: read §1–6, then follow §6 in order.</li>
+<li>Tuning one subsystem: jump to its card in §7. Every card lists the buttons and exactly which keys to paste.</li>
+<li>Looking up a constant: §10. Every key has a status chip saying whether <i>you</i> must measure it.</li>
+<li>At competition: §9 has the checklist and both gamepads.</li>
+</ul></div></div>
+</div>
+
+<h2 id="s-model">The five-minute mental model</h2>
+<div class="cols3">
+<div class="tile"><div class="h4">Drivetrain + odometry</div><p>4 mecanum wheels. A goBILDA <b>Pinpoint</b> with two odometry pods tracks where the robot is. <b>Pedro Pathing</b> follows paths using that position.</p></div>
+<div class="tile"><div class="h4">Intake</div><p>Two motors (front and middle rollers) pull POLLEN in and pass it to the shooter. It caps itself at 4 elements only if a beam break is fitted.</p></div>
+<div class="tile"><div class="h4">Shooter</div><p>Two motors drive one flywheel, and a <b>hood</b> servo sets the launch angle. A measured <b>shot table</b> maps distance to (hood, flywheel speed).</p></div>
+<div class="tile"><div class="h4">Turret</div><p>A continuous-rotation servo swings the shooter about ±26°. An analog potentiometer reads the angle. It aims at the upward CELL on its own.</p></div>
+<div class="tile"><div class="h4">Vision</div><p>A webcam reads AprilTags under each CELL. Their height tells it which CELL faces up, and so whether the HIVE has TIPPED.</p></div>
+<div class="tile"><div class="h4">Safety layer</div><p><b>Sentinel</b> knows the no-go zones (JTS polygons). <b>Casablanca</b> slows and pushes back driver input near them, and holds heading.</p></div>
+<div class="tile"><div class="h4">Shot controller</div><p>Feeds a ball only when <i>every gate</i> passes: flywheel in band, turret aligned, solution valid <i>and current</i>, HIVE settled.</p></div>
+<div class="tile"><div class="h4">Config</div><p>One YAML file holds every constant. It can be hot-pushed over ADB in seconds without rebuilding the app.</p></div>
+<div class="tile"><div class="h4">Proofs + tests</div><p>JVM tests simulate turret and flywheel physics and check every auto route. OpenJML and Lean proofs cover the turret and feed logic.</p></div>
+</div>
+
+<!-- ================================ 2 ================================ -->
+<h1 id="s-vocab"><span class="n" data-n="2"></span><span class="t">Vocabulary</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="cols">
+<div>
+<h3>The game</h3>
+<table><thead><tr><th style="width:30%">Term</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><b>POLLEN</b></td><td>2.8 in yellow balls. This robot's only game piece.</td></tr>
+<tr><td><b>NECTAR</b></td><td>3.6 in alliance-colored balls. This robot cannot handle them.</td></tr>
+<tr><td><b>SCORING ELEMENT</b></td><td>Either kind of ball.</td></tr>
+<tr><td><b>HIVE</b></td><td>The pivoting scoring structure. There is one per alliance, near the field centre.</td></tr>
+<tr><td><b>CELL A / B</b></td><td>The two openings of a HIVE. You may only launch into the one facing <i>up</i>. <b>A</b> starts up (RED: the audience-side CELL. BLUE: the rear CELL).</td></tr>
+<tr><td><b>TIP</b></td><td>Enough elements tip the HIVE (20 pts), which turns the other CELL upward. Launching while it swings is not allowed.</td></tr>
+<tr><td><b>FLOWER</b></td><td>Wall-mounted POLLEN dispenser. This robot has no FLOWER mechanism.</td></tr>
+<tr><td><b>LOADING ZONE</b></td><td>Taped zone on the alliance wall. Ending AUTO partly inside it, off the wall, scores PARK (and LEAVE).</td></tr>
+<tr><td><b>G402, G407, G417…</b></td><td>Manual rule numbers the code enforces: G402 stay on your side in AUTO, G407 at most 4 elements, G417 upward CELL only and no ramming the HIVE.</td></tr>
+<tr><td><b>AUTO / TELEOP</b></td><td>30 s autonomous, then 120 s driven.</td></tr>
+</tbody></table>
+</div>
+<div>
+<h3>The robot</h3>
+<table><thead><tr><th style="width:30%">Term</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><b>OpMode</b></td><td>A program picked on the Driver Station. Groups: <i>Tuning</i>, <i>Calibration</i>, <i>Test</i>.</td></tr>
+<tr><td><b>Control Hub / DS</b></td><td>The robot's computer, and the phone plus gamepads that run OpModes and show <b>telemetry</b> (on-screen text).</td></tr>
+<tr><td><b>Panels</b></td><td>A web dashboard (bylazar Panels). Some tuners draw the field on it and expose live-editable fields there.</td></tr>
+<tr><td><b>Pose</b></td><td><code>[x in, y in, heading °]</code> on the field.</td></tr>
+<tr><td><b>Pedro frame</b></td><td>Origin at the audience-wall/RED-wall corner. +x toward BLUE, +y away from the audience. Heading 0 = +x, counter-clockwise positive. The field is 141.5 in, centre (70.75, 70.75).</td></tr>
+<tr><td><b>P, I, D</b></td><td>Feedback gains. P pushes in proportion to the error, I removes a steady offset, D damps. Too much P makes it oscillate.</td></tr>
+<tr><td><b>kS, kV (feedforward)</b></td><td>Power applied <i>before</i> any error appears. kS breaks static friction, kV is power per unit of speed.</td></tr>
+<tr><td><b>Ticks/s ("rpm")</b></td><td>Every <code>*_<wbr>rpm</code> key in <code>shooter</code> is really encoder ticks per second.</td></tr>
+<tr><td><b>Slew limit</b></td><td>A cap on how fast drive power may change, so the odometry pods stay on the floor.</td></tr>
+<tr><td><b><code>m</code></b></td><td>A BLUE value meaning "RED rotated 180° about the centre".</td></tr>
+</tbody></table>
+</div></div>
+
+<!-- ================================ 3 ================================ -->
+<h1 id="s-hw"><span class="n" data-n="3"></span><span class="t">Hardware map and ports</span></h1><a class="up" href="#toc">↑ contents</a>
+<p>Create the Robot Configuration on the Driver Station with <b>exactly</b> these names (they are case-sensitive). The ports come from <code>TeamCode/.../<wbr>teamcode/<wbr>hwmap.<wbr>yaml</code>. A wrong name makes the OpMode stop at INIT with "device not found".</p>
+<table><thead><tr><th style="width:15%">Hub · port</th><th style="width:16%">Name</th><th style="width:19%">Type</th><th>Purpose / notes</th></tr></thead><tbody>
+<tr><td>Control · motor 0–3</td><td><code>leftFront</code> <code>rightFront</code> <code>leftBack</code> <code>rightBack</code></td><td>DC motor</td><td>Mecanum drive, in that port order. Directions are set and confirmed by Pedro's Mecanum Tuner (<a href="#p-pedro">§7.2</a>).</td></tr>
+<tr><td>Control · I²C 0</td><td><code>pinpoint</code></td><td>goBILDA Pinpoint Driver</td><td>Odometry computer. It is also the preferred tilt sensor for the Pod Contact Tuner.</td></tr>
+<tr><td>Control · digital 0</td><td><code>intakeBeam</code></td><td>Digital channel</td><td><i>Optional</i> intake-entry beam break that counts balls (G407). Also set <a href="#c-inventory"><code>inventory.<wbr>entry_<wbr>sensor_<wbr>enabled: true</code></a>.</td></tr>
+<tr><td>Expansion · motor 0, 1</td><td><code>intakeFront</code> <code>intakeMid</code></td><td>DC motor</td><td>Intake rollers.</td></tr>
+<tr><td>Expansion · motor 2, 3</td><td><code>shooter2</code> <code>shooter</code></td><td>DC motor + encoder</td><td>One flywheel driven from both sides: <code>shooter</code> runs FORWARD and <code>shooter2</code> REVERSE. Speed is read from the encoder.</td></tr>
+<tr><td>Expansion · servo 3</td><td><code>hood</code></td><td>Servo</td><td>Launch angle.</td></tr>
+<tr><td>Expansion · servo 4</td><td><code>turn</code></td><td>CR servo</td><td>Turret rotation.</td></tr>
+<tr><td>Expansion · servo 5</td><td><code>gate</code></td><td>Servo</td><td>Listed in <code>hwmap.<wbr>yaml</code>, but <b>no current code uses it</b>.</td></tr>
+<tr><td>Expansion · analog 0</td><td><code>turnanalog</code></td><td>Analog input</td><td>Turret potentiometer (absolute angle).</td></tr>
+<tr><td>Expansion · I²C 1</td><td><code>turnImu</code></td><td>IMU</td><td>Only for <a href="#p-turret">Turret Angle Verification</a>, as ground truth. Its mounting is <code>turret.<wbr>orientation.<wbr>logo/<wbr>usb</code>.</td></tr>
+<tr><td>USB</td><td><code>Webcam 1</code></td><td>Webcam</td><td>AprilTag camera, <b>pitched up</b> toward the CELLS. The name must match <code>vision.<wbr>camera_<wbr>name</code>.</td></tr>
+<tr><td>(any servo port)</td><td><code>light</code></td><td>Servo (goBILDA RGB)</td><td>Used only by <i>Lumos Test</i>. The match code does not drive it, so it is optional.</td></tr>
+<tr><td>(fallback)</td><td><code>imu</code></td><td>IMU</td><td>Tilt fallback for the Pod Contact Tuner when the Pinpoint firmware lacks pitch/roll (<code>casablanca.<wbr>jump_<wbr>tuner.<wbr>imu_<wbr>name</code>).</td></tr>
+</tbody></table>
+<div class="call"><div class="ic">i</div><div><b>Switch: no turret.</b> If the final robot has no turret, set <a href="#c-turret"><code>turret.<wbr>enabled: false</code></a>. <code>turn</code> and <code>turnanalog</code> become optional, and the shot gate checks chassis heading instead of turret alignment.</div></div>
+
+<!-- ================================ 4 ================================ -->
+<h1 id="s-deploy"><span class="n" data-n="4"></span><span class="t">Getting code onto the robot</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="cols">
+<div>
+<h2 id="d-setup">4.1 One-time setup</h2>
+<ol>
+<li>Install <b>Android Studio</b> and a <b>JDK 21</b> (the build targets Java 21).</li>
+<li>Open the repo root (the folder containing <code>gradlew</code>) and let Gradle sync. The robot code is the <code>TeamCode</code> module.</li>
+<li>Make sure <code>adb</code> exists. The build looks in <code>$ANDROID_<wbr>HOME</code>, <code>$ANDROID_<wbr>SDK_<wbr>ROOT</code>, then <code>~/<wbr>Library/<wbr>Android/<wbr>sdk/<wbr>platform-tools</code>.</li>
+<li><i>Optional (proofs):</i> install Lean with <code>brew install elan-init</code>. The first <code>verifyBuild</code> then runs <code>setupOpenJml</code> and <code>setupLean</code>, which download OpenJML and about 5 GB of Mathlib once.</li>
+</ol>
+
+<h2 id="d-connect">4.2 Connect to the Control Hub</h2>
+<p><b>Wi-Fi (default).</b> Join the robot's Wi-Fi. The hub is at <code>192.<wbr>168.<wbr>43.<wbr>1:5555</code>.</p>
+<pre>./gradlew connectAdb
+./gradlew connectAdb -PadbAddress=192.168.43.1:5555  <span class="c"># explicit</span>
+adb devices          <span class="c"># lists the hub</span></pre>
+<p><b>USB.</b> Use a <b>USB-A to USB-C</b> cable (REV's standard). On this team's MacBook a C-to-C cable never came up, because the hub took the host role. Use an A-to-C cable or a C-to-A adapter.</p>
+<div class="call warn"><div class="ic">!</div><div><b>macOS:</b> "No route to host" while you are on the robot Wi-Fi usually means macOS is blocking local-network access for your terminal. Allow it in <i>System Settings › Privacy &amp; Security › Local Network</i>.</div></div>
+</div>
+<div>
+<h2 id="d-build">4.3 Build and install</h2>
+<ol>
+<li>Prove the code is healthy, no robot needed:
+<pre>./gradlew verifyBuild</pre>
+This formats, compiles, runs every unit test, checks <code>red_<wbr>*</code>/<code>blue_<wbr>*</code> symmetry and runs the proofs. It must pass (<a href="#v-auto">§8.1</a>).</li>
+<li>Install: in Android Studio pick the <b>TeamCode</b> run configuration, choose the hub as the device, and press ▶ Run. The CLI equivalent is the standard Android task <code>./<wbr>gradlew :TeamCode:installDebug</code>.</li>
+<li>On the DS you should see <i>TeleOp</i>, the six autos (<i>Red/Blue A: tip first</i>, <i>Red/Blue B: second CELL</i>, <i>Red/Blue Park Only</i>) and the tuning OpModes.</li>
+</ol>
+<div class="call tip"><div class="ic">i</div><div><b>Gradle prints nothing for over a minute?</b> The daemon is probably frozen (<code>ps</code> shows state <code>T</code>). Re-run with <code>./<wbr>gradlew --no-daemon &lt;task&gt;</code>.</div></div>
+</div></div>
+
+<h2 id="d-push">4.4 Hot-push config: the tuning loop</h2>
+<p>While tuning, you change numbers dozens of times. Push the config file instead of rebuilding the app:</p>
+<div class="flow">
+ <div class="f"><b>Edit</b><code>config.<wbr>yaml</code></div><div class="ar">›</div>
+ <div class="f"><b>Push</b><code>./<wbr>gradlew pushConfig</code></div><div class="ar">›</div>
+ <div class="f"><b>Re-INIT</b>stop, then INIT the OpMode again</div><div class="ar">›</div>
+ <div class="f"><b>Test</b>watch telemetry</div><div class="ar">›</div>
+ <div class="f" style="background:var(--grnL)"><b>Lock in</b>commit, <code>verifyBuild</code>, reinstall, <code>resetConfig</code></div>
+</div>
+<table><thead><tr><th style="width:24%">Command</th><th>What it does</th></tr></thead><tbody>
+<tr><td><code>./<wbr>gradlew pushConfig</code></td><td>First runs <code>checkPushConfig</code> (autonomous-route safety, the shipped-config <code>ConfigSanity</code> check and match windows, under ½ s), then copies the file to <code>/<wbr>sdcard/<wbr>FIRST/<wbr>teamcode/<wbr>config.<wbr>yaml</code> over ADB. A value-only change recompiles nothing. <b>Re-INIT the OpMode to load it.</b></td></tr>
+<tr><td><code>./<wbr>gradlew resetConfig</code></td><td>Deletes that override file, so the robot reverts to the config bundled in the APK.</td></tr>
+<tr><td><code>./<wbr>gradlew generateConfig</code></td><td>Regenerates <code>config.<wbr>java</code> and <code>config-schema.<wbr>json</code> after you add a key. <code>verifyBuild</code> runs it too.</td></tr>
+</tbody></table>
+<div class="call warn"><div class="ic">!</div><div>The robot uses a pushed file only if its <code>meta.<wbr>season</code> is <code>"biobuzz"</code>. Otherwise the DS shows why it was ignored. A plain <code>adb push</code> skips the safety check, and <b>the robot never re-checks autonomous routes itself</b>. Before competition, copy the final values into the repo, run <code>verifyBuild</code>, reinstall, then <code>resetConfig</code>, so there is exactly one source of truth.</div></div>
+
+<h2 id="d-files">4.5 Getting files off the robot</h2>
+<p>Calibration OpModes write their results to <code>/<wbr>sdcard/<wbr>FIRST/<wbr>teamcode/</code> on the hub. Pull them into <code>calibration-data/</code> to keep a record. Each file is overwritten on the next run, so pull it before re-running.</p>
+<pre>adb pull /sdcard/FIRST/teamcode/shot_table_pollen.yaml calibration-data/
+adb pull /sdcard/FIRST/teamcode/shot_time_table.yaml   calibration-data/
+adb pull /sdcard/FIRST/teamcode/shot_timing_log.csv    calibration-data/
+adb pull /sdcard/FIRST/teamcode/shooter_characterization.json calibration-data/</pre>
+
+<!-- ================================ 5 ================================ -->
+<h1 id="s-config" style="break-before:auto; margin-top:14pt"><span class="n" data-n="5"></span><span class="t">How configuration works</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="cols">
+<div>
+<ul>
+<li><b>One file</b>, <code>robot/<wbr>config/<wbr>config.<wbr>yaml</code>, holds every tunable. <code>config-docs.<wbr>yaml</code> holds each key's description and its <code>min</code>/<code>max</code>, keyed by the leaf name (e.g. <code>kv</code>).</li>
+<li>Java reads values through a generated typed class, for example <code>config.<wbr>turret.<wbr>pidf.<wbr>p</code>. No numbers are hard-coded.</li>
+<li><b>Adding a key:</b> add it to the YAML, add a <code>desc</code> (and <code>min</code>/<code>max</code>) to the docs file, then run <code>generateConfig</code>. A value outside min/max fails the build.</li>
+<li><b>Alliances:</b> a <code>red_<wbr>*</code> key without a <code>blue_<wbr>*</code> twin fails <code>checkConfigKeys</code>. Poses are RED plus <code>m</code>. If BLUE measures differently, replace that <code>m</code> with explicit numbers.</li>
+<li><b>Season tag</b> <code>meta.<wbr>season: "biobuzz"</code> stays fixed for the whole season. It makes the robot ignore a leftover pushed config from another game.</li>
+<li><b>At INIT</b>, every tuning OpMode shows config problems on the DS: a rejected push, a broken shot table, a bad encoder range, and so on. Read the top of the telemetry.</li>
+</ul>
+</div>
+<div>
+<h3>Status chips used in §10</h3>
+<table><tbody>
+<tr><td style="width:27%"><span class="tag M">Measure</span></td><td>You must calibrate this on <i>your</i> physical robot.</td></tr>
+<tr><td><span class="tag H">Placeholder</span></td><td>An invented stand-in that must be replaced before it means anything.</td></tr>
+<tr><td><span class="tag T">Tuned</span></td><td>Already measured or chosen by simulation. Leave it unless the hardware changes.</td></tr>
+<tr><td><span class="tag P">Policy</span></td><td>A safety, feel or strategy choice. Change it deliberately.</td></tr>
+<tr><td><span class="tag S">Switch</span></td><td>A boolean that turns a feature on or off. All of them are listed in <a href="#c-switches">§10.11</a>.</td></tr>
+<tr><td><span class="tag F">Field</span></td><td>Game geometry from the manual or CAD. Do not change it.</td></tr>
+<tr><td><span class="tag I">Model only</span></td><td>Read by the physics model and calibration display only. It does not change where a live shot goes.</td></tr>
+</tbody></table>
+<pre><span class="c"># the shape of a pose (RED), and its BLUE mirror</span>
+teleop:
+  poses:
+    red:
+      start: [58.0, 9.0, 90]   <span class="c"># x, y, heading</span>
+    blue:
+      start: <span class="y">m</span>    <span class="c"># [83.5, 132.5, 270]</span></pre>
+</div></div>
+
+<!-- ================================ 6 ================================ -->
+<h1 id="s-order"><span class="n" data-n="6"></span><span class="t">The bring-up order</span></h1><a class="up" href="#toc">↑ contents</a>
+<p class="lead">Each stage depends on the ones before it: the turret can't be tuned on a robot that doesn't know where it is, and the shot table can't be calibrated with a flywheel that doesn't hold speed. Work left to right, top to bottom.</p>
+<div class="pipe">
+ <div class="st c1"><span class="no">0</span><div class="h4">Build + install</div><p><code>verifyBuild</code> green. The hardware names match. Every OpMode appears on the DS.</p><a class="go" href="#s-deploy">§3–4 ›</a></div>
+ <div class="st c1"><span class="no">1</span><div class="h4">Sanity tests</div><p>Each motor, servo and sensor responds and moves the right way.</p><a class="go" href="#p-sanity">§7.1 ›</a></div>
+ <div class="st c2"><span class="no">2</span><div class="h4">Pedro AutoTune</div><p>Motor directions, Pinpoint, Foresight. The robot drives out and returns to its start.</p><a class="go" href="#p-pedro">§7.2 ›</a></div>
+ <div class="st c2"><span class="no">3</span><div class="h4">Driver feel + safety</div><p>Friction, pod contact, heading lock. Casablanca stops the robot short of the HIVE.</p><a class="go" href="#p-casa">§7.3 ›</a></div>
+ <div class="st c3"><span class="no">4</span><div class="h4">Turret</div><p>Center, plant, verification. It reaches and holds an angle without hunting.</p><a class="go" href="#p-turret">§7.4 ›</a></div>
+ <div class="st c4"><span class="no">5</span><div class="h4">Flywheel + hood</div><p>Characterize the wheel and find the hood's ends. Speed holds and recovers after a ball.</p><a class="go" href="#p-shooter">§7.5 ›</a></div>
+ <div class="st c5"><span class="no">6</span><div class="h4">Shot table</div><p>Ballistics Calibration, then <code>calibrated: true</code>. Balls drop in from 24–48 in.</p><a class="go" href="#p-ballistics">§7.6 ›</a></div>
+ <div class="st c5"><span class="no">7</span><div class="h4">Shot windows</div><p>Shot Timing Tuner fills <code>auto.<wbr>shot_<wbr>time_<wbr>points</code>.</p><a class="go" href="#p-timing">§7.7 ›</a></div>
+ <div class="st c6"><span class="no">8</span><div class="h4">Vision</div><p>Measure the camera mount. The HIVE readout flips when the HIVE is tipped by hand.</p><a class="go" href="#p-vision">§7.8 ›</a></div>
+ <div class="st c6"><span class="no">9</span><div class="h4">Poses + autos</div><p>Start Pose Finder, then every AUTO at low speed on a real field.</p><a class="go" href="#p-poses">§7.9 ›</a></div>
+ <div class="st c7"><span class="no">10</span><div class="h4">Verify + lock in</div><p>Final values in the repo, <code>verifyBuild</code>, reinstall, <code>resetConfig</code>.</p><a class="go" href="#s-verify">§8 ›</a></div>
+ <div class="st c7"><span class="no">11</span><div class="h4">Rehearse</div><p>Pass the acceptance tests, then two clean full matches using the checklist.</p><a class="go" href="#s-match">§9 ›</a></div>
+</div>
+
+<h2 id="o-map">What each tuner writes</h2>
+<table><thead><tr><th style="width:27%">OpMode (DS group)</th><th>Writes these keys</th><th style="width:9%">Card</th></tr></thead><tbody>
+<tr><td>Pedro AutoTune (web page)</td><td><code>pedro.<wbr>*</code>: motor directions, pod offsets, heading P, braking, max speeds, decelerations</td><td><a href="#p-pedro">7.2</a></td></tr>
+<tr><td>Friction Calibration TeleOp (Calibration)</td><td><code>casablanca.<wbr>friction.<wbr>x/<wbr>y/<wbr>rot</code>, <code>casablanca.<wbr>heading_<wbr>lock.<wbr>ks_<wbr>moving</code>, <code>sentinel.<wbr>rotation_<wbr>lookahead_<wbr>time</code></td><td><a href="#p-casa">7.3</a></td></tr>
+<tr><td>Casablanca Pod Contact Tuner (Calibration)</td><td><code>casablanca.<wbr>smoothing.<wbr>&lt;axis&gt;.<wbr>increase_<wbr>time / decrease_<wbr>time</code></td><td><a href="#p-casa">7.3</a></td></tr>
+<tr><td>TeleOp Heading Lock Autotuner (Calibration)</td><td><code>casablanca.<wbr>heading_<wbr>lock.<wbr>pid.<wbr>p / d</code></td><td><a href="#p-casa">7.3</a></td></tr>
+<tr><td>Turret Center Calibration (Tuning)</td><td><code>turret.<wbr>travel.<wbr>*</code>, <code>turret.<wbr>analog_<wbr>encoder.<wbr>*</code></td><td><a href="#p-turret">7.4</a></td></tr>
+<tr><td>Turret Plant Calibration (Tuning)</td><td><code>turret.<wbr>ks_<wbr>positive/<wbr>ks_<wbr>negative</code>, <code>turret.<wbr>kv</code>, <code>turret.<wbr>pidf</code> (p, with i = d = f = 0)</td><td><a href="#p-turret">7.4</a></td></tr>
+<tr><td>Shooter Characterization (Calibration)</td><td><code>shooter.<wbr>ks</code>, <code>shooter.<wbr>pidf.<wbr>p/<wbr>i/<wbr>d/<wbr>f</code>, <code>shooter.<wbr>kick.<wbr>wheel_<wbr>tau_<wbr>sec/<wbr>sensor_<wbr>lag_<wbr>sec</code></td><td><a href="#p-shooter">7.5</a></td></tr>
+<tr><td>Hood Tuner (Tuning)</td><td><code>shooter.<wbr>ballistics.<wbr>min_<wbr>hood_<wbr>servo_<wbr>pos / max_<wbr>hood_<wbr>servo_<wbr>pos</code> (you read them off the screen)</td><td><a href="#p-shooter">7.5</a></td></tr>
+<tr><td>Ballistics Calibration (Calibration)</td><td><code>shooter.<wbr>shot_<wbr>table.<wbr>pollen_<wbr>points</code>, then set <code>calibrated: true</code></td><td><a href="#p-ballistics">7.6</a></td></tr>
+<tr><td>Shot Timing Tuner (Calibration)</td><td><code>auto.<wbr>shot_<wbr>time_<wbr>points</code></td><td><a href="#p-timing">7.7</a></td></tr>
+<tr><td>Tape measure and protractor</td><td><code>vision.<wbr>camera.<wbr>*</code>, <code>turret.<wbr>pivot_<wbr>*_<wbr>in</code>, <code>sentinel.<wbr>robot_<wbr>width</code>, <code>shooter.<wbr>ballistics.<wbr>launch_<wbr>height_<wbr>inches</code></td><td><a href="#p-vision">7.8</a></td></tr>
+<tr><td>Start Pose Finder (Calibration)</td><td>Nothing. It checks that each configured start pose is physically right.</td><td><a href="#p-poses">7.9</a></td></tr>
+</tbody></table>
+
+<!-- ================================ 7 ================================ -->
+<h1 id="s-tune"><span class="n" data-n="7"></span><span class="t">Tuning procedures</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="call tip"><div class="ic">i</div><div><b>Before every session:</b> a charged battery (note its voltage), the robot on blocks for anything that spins, clear floor around it, and a second person on the power switch. Every calibration OpMode reloads config at INIT and reports problems there, so after each <code>pushConfig</code>, stop and re-INIT. Many tuners also have live-editable fields in the <b>Panels</b> dashboard. Those are noted as <span class="pill">Panels</span>.</div></div>
+
+<h2 id="p-sanity">7.1 Sanity tests <span class="s">DS group: Test</span></h2>
+<table><thead><tr><th style="width:24%">OpMode</th><th style="width:28%">Controls</th><th>What to check</th></tr></thead><tbody>
+<tr><td><b>Servo Test</b></td><td><kbd class="g1">RT</kbd> forward · <kbd class="g1">LT</kbd> reverse</td><td>The turret servo turns both ways. Power is scaled by <code>turret.<wbr>max_<wbr>power_<wbr>output</code>, so it never slams the stops.</td></tr>
+<tr><td><b>Turn Analog Test</b></td><td><kbd class="g1">RT</kbd>/<kbd class="g1">LT</kbd> move servo · <kbd class="g1">A</kbd> reset min/max</td><td>The <code>turnanalog</code> voltage changes smoothly as the turret moves. It shows the raw volts and the observed min/max, which should stay inside 0–3.3 V with no jumps.</td></tr>
+<tr><td><b>Manual Turret Turn Tester</b></td><td><kbd class="g1">D↓</kbd> zero here · <kbd class="g1">D→</kbd> go to <code>turn_<wbr>degrees</code> <span class="pill">Panels</span></td><td>Closed-loop turning works. Zero it while centred. It refuses to drive if zeroing off-centre would put a stop out of reach. If the turret moves <i>away</i> from its target, flip <code>turret.<wbr>servo_<wbr>direction_<wbr>inverted</code>.</td></tr>
+<tr><td><b>Shooter Max Velocity Test</b></td><td><kbd class="g1">X</kbd> stop · <kbd class="g1">A</kbd> restart · <kbd class="g1">Y</kbd> reset stats</td><td>Both flywheel motors spin <i>opposite</i> ways (they drive one wheel from both sides). It shows peak speed and time to 95% of target, using the SDK default velocity PID. Sanity-check <code>shooter.<wbr>max_<wbr>rpm</code> (1500).</td></tr>
+<tr><td><b>Lumos Test</b></td><td>none</td><td>The RGB light turns red (a wiring check only).</td></tr>
+<tr><td><b>Clock Test</b></td><td>none</td><td>Shows the Control Hub's date and time at INIT, to check the hub clock that stamps files and logs.</td></tr>
+</tbody></table>
+<p class="small"><i>Full Max Velocity Test</i>, <i>Shooter Autotune</i> and <i>AtanAlignTest</i> are <code>@Disabled</code> leftovers and do not appear on the DS.</p>
+
+<h2 id="p-pedro">7.2 Drivetrain: Pedro AutoTune <span class="s">writes <a href="#c-pedro">pedro.*</a></span></h2>
+<div class="card"><div class="hd"><span class="nm">Pedro AutoTune procedures</span><span class="grp">browser page on the hub</span><span class="meta"><span class="pill">needs 4+ ft clear</span><span class="pill">wheels on floor</span></span></div>
+<div class="bd">
+<div><div class="lbl">Steps</div><ol>
+<li>Connect a laptop to the robot's Wi-Fi and open <code>http://<wbr>192.<wbr>168.<wbr>43.<wbr>1:10158</code>.</li>
+<li><b>Mecanum Tuner</b> spins each drive motor in turn, and you enter whether it went forward or reversed. This sets the motor directions.</li>
+<li><b>Pinpoint Tuner</b>: pick the pod type, then <b>push the robot forward exactly 48 in</b> (encoder scale), then push it forward and then left (pod directions).</li>
+<li><b>Foresight Tuner</b>: drives itself (48 in by default, and at least 15 in for braking) to measure heading kP, braking coefficients, top speeds and natural deceleration.</li>
+<li><b>Tests</b>: Hold, Line, Curve, Interpolation, Localization, Odometry, Driving, Pose. Run Localization and Line first.</li>
+<li>Copy the reported numbers into <code>config.<wbr>yaml</code> under <code>pedro:</code> (<a href="#c-pedro">§10.1</a>), then <code>pushConfig</code>. Each procedure reloads config, so no restart is needed.</li>
+</ol></div>
+<div><div class="lbl">Then verify</div><ul>
+<li><b>Forward Left Return Test</b> (Autonomous, group Tests): from where it stands, it drives 20 in forward, 10 in left, then back. It should end where it started. The DS shows the live pose.</li>
+<li>Push the robot by hand at heading 0. Forward must raise x, left must raise y, and turning counter-clockwise must raise the heading.</li>
+</ul>
+<div class="lbl">Watch out</div><ul>
+<li><code>max_<wbr>forward_<wbr>velocity: 79.<wbr>97</code> is flagged in the file as unusually low.</li>
+<li>After a chassis change, redo all four procedures, then <a href="#p-casa">§7.3</a>, because Casablanca reuses <code>pedro.<wbr>braking</code>.</li>
+</ul></div>
+</div></div>
+
+<h2 id="p-casa">7.3 Driver feel and safety (Casablanca) <span class="s">writes <a href="#c-casa">casablanca.*</a></span></h2>
+<div class="card"><div class="hd"><span class="nm">Friction Calibration TeleOp</span><span class="grp">Calibration</span><span class="meta"><span class="pill">open carpet</span><span class="pill">~4 ft clear</span><span class="pill">Panels thresholds</span></span></div>
+<div class="bd">
+<div><div class="lbl">What it does</div><p>It slowly ramps power until the robot actually moves (above 1 in/s, or 0.05 rad/s for rotation, held for 5 loops). That gives the static-friction power on each axis. The rotation test also measures friction while already moving and the top rotation rate.</p></div>
+<div><div class="lbl">Controls</div><ul class="ctl"><li><kbd class="g1">A</kbd> forward test → kS X</li><li><kbd class="g1">B</kbd> strafe test → kS Y</li><li><kbd class="g1">X</kbd> rotation test → static, moving, max ω</li></ul></div>
+<div class="full out">casablanca.friction.x ← X · .y ← Y · .rot ← Rot Static<br>casablanca.heading_lock.ks_moving ← Rot Moving <span class="c">(keep the old value if it says NOT MEASURED)</span><br>sentinel.rotation_lookahead_time ← "Suggested rotation_lookahead_time" (0.45 / max ω)</div>
+</div></div>
+
+<div class="card"><div class="hd"><span class="nm">Casablanca Pod Contact Tuner</span><span class="grp">Calibration</span><span class="meta"><span class="pill">one axis per run</span><span class="pill">48 in lane both ways</span></span></div>
+<div class="bd">
+<div><div class="lbl">Why</div><p>The odometry pods ride on small spring mounts. Hard acceleration or braking can lift a pod off the floor and corrupt the robot's position. This finds the gentlest power slew limits that keep both pods in contact.</p>
+<div class="lbl">Steps</div><ol>
+<li>Set <code>casablanca.<wbr>jump_<wbr>tuner.<wbr>trial_<wbr>axis</code> to <code>FORWARD</code>, <code>STRAFE</code> or <code>TURN</code>, then push and INIT.</li>
+<li>Place the robot at <code>jump_<wbr>tuner.<wbr>calibration_<wbr>pose</code> = <b>[20, 72, 90]</b>, a lane beside the HIVE. STRAFE trials start there turned 90°.</li>
+<li><b>Hold <kbd class="g1">A</kbd></b> for each trial: baseline, accelerate, hold, stop, settle. There is no automatic return, so reposition by hand between trials.</li>
+<li>Repeat until it shows a recommendation. Do the other axes the same way.</li>
+</ol></div>
+<div><div class="lbl">Controls</div><ul class="ctl"><li><kbd class="g1">A</kbd> hold = run trial (keep holding through the stop)</li><li><kbd class="g1">X</kbd> mark "pod lifted" (you saw it lift)</li><li>release <kbd class="g1">A</kbd> / <kbd class="g1">B</kbd> / STOP = abort now</li></ul>
+<div class="lbl">Output</div><div class="out">casablanca.smoothing.&lt;axis&gt;.increase_time<br>casablanca.smoothing.&lt;axis&gt;.decrease_time</div>
+<p class="small">It aborts on more than 10° of tilt, a stale IMU, a stall, or drift. All limits are in <code>casablanca.<wbr>jump_<wbr>tuner.<wbr>*</code>.</p></div>
+</div></div>
+
+<div class="card"><div class="hd"><span class="nm">TeleOp Heading Lock Autotuner</span><span class="grp">Calibration</span><span class="meta"><span class="pill">turns in place</span></span></div>
+<div class="bd">
+<div><div class="lbl">Steps</div><ol>
+<li>Place the robot at <code>heading_<wbr>tuner.<wbr>calibration_<wbr>pose</code> = <b>[20, 72, 90]</b> with room to turn.</li>
+<li>Press START, then <b>hold <kbd class="g1">A</kbd></b> for the whole search. It steps the heading ±10° for every (P, D) pair: P from 1 to 10 in 4 steps, D from 0 to 0.9 in 4 steps.</li>
+<li>It keeps the pair with the best <i>worst-case</i> settling time that passes in both directions.</li>
+</ol></div>
+<div><div class="lbl">Controls</div><ul class="ctl"><li><kbd class="g1">A</kbd> hold = search · release <kbd class="g1">A</kbd> or press <kbd class="g1">B</kbd> = abort</li></ul>
+<div class="lbl">Output</div><div class="out">casablanca.heading_lock.pid.p ← p<br>casablanca.heading_lock.pid.d ← d   <span class="c">(i stays 0)</span></div>
+<p class="small"><code>heading_<wbr>tolerance_<wbr>degrees</code> must be at least <code>heading_<wbr>lock.<wbr>error_<wbr>deadband_<wbr>deg</code>, or it refuses to start.</p></div>
+</div></div>
+
+<div class="card"><div class="hd"><span class="nm">Casablanca Test</span><span class="grp">Test · verify</span><span class="meta"><span class="pill">drives as BLUE</span><span class="pill">Panels field view</span></span></div>
+<div class="bd">
+<div><p>This is normal TeleOp driving through Casablanca (cubic sticks, slow-down, repulsion, heading lock), with live telemetry. <b>It drives as BLUE</b> and starts at the BLUE image of the tuner pose, <b>(121.5, 69.5, 270°)</b>, so place the robot there. Drive at the HIVE frame from the front, side and diagonals at full speed. It must start slowing about 8 in out (<code>slow_<wbr>down</code>), cut power toward the frame about 2.5 in out (<code>hard_<wbr>stop</code>), and never touch.</p></div>
+<div><div class="lbl">Panels toggles</div><ul class="ctl"><li><code>rawDirectDrive</code>: bypass Casablanca to compare</li><li><code>fieldcentric</code>: field-relative sticks</li></ul>
+<div class="lbl">If it fails</div><p class="small">Creeps in: raise <code>hard_<wbr>stop</code>, check <code>sentinel.<wbr>robot_<wbr>width</code> and <code>pedro.<wbr>braking</code>. Feels sluggish: lower <code>slow_<wbr>down</code>. Keep depth and side symmetric.</p></div>
+</div></div>
+
+<h2 id="p-turret">7.4 Turret <span class="s">writes <a href="#c-turret">turret.*</a> · do the cards in order</span></h2>
+<div class="card"><div class="hd"><span class="nm">① Turret Center Calibration</span><span class="grp">Tuning</span><span class="meta"><span class="pill">servo unpowered</span><span class="pill">by hand</span><span class="pill">Panels margin</span></span></div>
+<div class="bd">
+<div><div class="lbl">Steps</div><ol>
+<li>Turn the turret <b>by hand</b> to the positive hard stop and press <kbd class="g1">A</kbd>.</li>
+<li>Turn it to the negative hard stop and press <kbd class="g1">A</kbd>.</li>
+<li>Turn it to <i>roughly</i> the middle and press <kbd class="g1">A</kbd>. This only tells it which of the potentiometer's two arcs the turret travels. The exact centre is computed from the stops.</li>
+<li><kbd class="g1">B</kbd> starts over. Paste the printed block.</li>
+</ol>
+<p class="small">The travel limits are half the measured span minus <code>limitSafetyMarginDeg</code> (3°) <span class="pill">Panels</span>. It keeps the existing <code>degrees_<wbr>per_<wbr>volt</code> unless you set <code>knownTotalTravelDeg</code> <span class="pill">Panels</span> to re-derive it.</p></div>
+<div><div class="lbl">Output (paste)</div><div class="out">turret:<br>&nbsp;&nbsp;travel: { min_angle, max_angle }<br>&nbsp;&nbsp;analog_encoder:<br>&nbsp;&nbsp;&nbsp;&nbsp;zero_voltage, degrees_per_volt,<br>&nbsp;&nbsp;&nbsp;&nbsp;min_voltage, max_voltage,<br>&nbsp;&nbsp;&nbsp;&nbsp;full_scale_voltage</div></div>
+</div></div>
+
+<div class="card"><div class="hd"><span class="nm">② Turret Plant Calibration</span><span class="grp">Tuning</span><span class="meta"><span class="pill">turret moves itself</span><span class="pill">Panels τ</span></span></div>
+<div class="bd">
+<div><div class="lbl">Why not normal autotuning</div><p>A CR servo is an <i>integrator</i>: power sets speed, not position, so relay autotuning gives meaningless gains. This OpMode measures the breakaway power in each direction (kS) and the speed per unit of power (K). Then it picks <code>p = 1/(K·τ)</code> for a closed-loop time constant τ = <code>desiredTimeConstantSec</code> (0.20 s) <span class="pill">Panels</span>.</p>
+<div class="lbl">Steps</div><ol><li>Press START. The turret ramps power on its own within its travel limits, up to <code>max_<wbr>power_<wbr>output</code>. <kbd class="g1">B</kbd> aborts at any time.</li>
+<li>If it reports <b>CONTROL LOOP IS INVERTED</b>, flip <code>turret.<wbr>servo_<wbr>direction_<wbr>inverted</code> and re-run before using any closed-loop OpMode.</li><li>Paste the block.</li></ol></div>
+<div><div class="lbl">Output (paste)</div><div class="out">turret:<br>&nbsp;&nbsp;ks_positive: …&nbsp;&nbsp;ks_negative: …<br>&nbsp;&nbsp;kv: … <span class="c"># 1/K, enables feedforward</span><br>&nbsp;&nbsp;pidf: { p: …, i: 0, d: 0, f: 0 }</div>
+<div class="call warn" style="margin-top:5pt"><div class="ic">!</div><div style="font-size:7.9pt">The convergence proof assumes <b>i = d = f = 0</b>, and the repo currently has <code>i: 0.<wbr>008</code>. After <i>any</i> turret gain change, run<br><code>python3 TeamCode/<wbr>verification/<wbr>TurretProof/<wbr>conditions.<wbr>py</code><br>It must exit 0, and it prints the target distances the proof covers.</div></div></div>
+</div></div>
+
+<div class="card"><div class="hd"><span class="nm">③ Turret Angle Verification</span><span class="grp">Tuning</span><span class="meta"><span class="pill">needs turnImu</span></span></div>
+<div class="bd">
+<div><p>Compares the encoder angle against an independent IMU mounted on the turret (<code>turnImu</code>, oriented by <code>turret.<wbr>orientation.<wbr>logo/<wbr>usb</code>). After each move, the encoder and IMU angles should agree within about 1°. A consistent scale error means <code>degrees_<wbr>per_<wbr>volt</code> is off. It also warns at INIT if a pushed <code>zero_<wbr>voltage</code> would put the encoder's wrap point inside the travel.</p>
+<div class="lbl">Then measure by hand</div><ul><li><code>turret.<wbr>pivot_<wbr>forward_<wbr>in</code>, <code>pivot_<wbr>left_<wbr>in</code>: the turret axis position from the robot centre. A 4 in error is a 6–9° aim error at BIOBUZZ ranges.</li>
+<li>The lopsided kS (+0.0009 / −0.0663) suggests the servo's neutral is about 0.033 off centre. Re-centre it with a servo programmer, then re-run ②.</li></ul></div>
+<div><div class="lbl">Controls</div><ul class="ctl">
+<li><kbd class="g1">D↑</kbd>/<kbd class="g1">D↓</kbd> target ±5° · <kbd class="g1">D←</kbd>/<kbd class="g1">D→</kbd> ±15°</li>
+<li><kbd class="g1">Y</kbd> 0° · <kbd class="g1">X</kbd> +30° · <kbd class="g1">B</kbd> −30° (clamped to travel)</li>
+<li><kbd class="g1">A</kbd> zero IMU reference</li>
+<li><kbd class="g1">LT</kbd> kill power / idle · <kbd class="g1">RB</kbd> clear safety fault</li></ul></div>
+</div></div>
+
+<h2 id="p-shooter">7.5 Flywheel and hood <span class="s">writes <a href="#c-shooter">shooter.*</a></span></h2>
+<div class="card"><div class="hd"><span class="nm">Shooter Characterization</span><span class="grp">Calibration</span><span class="meta"><span class="pill">~30 s</span><span class="pill">flywheel clear of balls</span><span class="pill">battery under load</span></span></div>
+<div class="bd">
+<div><div class="lbl">Steps</div><ol>
+<li>Press START, then <kbd class="g1">A</kbd>. It holds a staircase of open-loop powers, waits for the wheel to settle at each, and least-squares fits <code>power = kV·speed + kS</code>. Each point is corrected from the measured battery voltage to <code>shooter.<wbr>nominal_<wbr>voltage</code>.</li>
+<li>Then it steps the power from 0.40 to 0.85 and fits the wheel's time constant and the speed sensor's delay.</li>
+<li>Check the fit's RMS and worst error, which it shows on screen, then paste. A copy is saved as <code>shooter_<wbr>characterization.<wbr>json</code>.</li>
+</ol>
+<p class="small">If <code>use_<wbr>ftc_<wbr>pid</code> is true, the screen warns you that these values are ignored. <code>p = 2·kV</code> (loop gain 2) and <code>i = p / 2 s</code> were chosen by simulation sweep and are checked by <code>FlywheelClosedLoopProperties</code>.</p></div>
+<div><div class="lbl">Output (paste under <code>shooter:</code>)</div><div class="out">ks: …<br>pidf: { p: …, i: …, d: 0, f: … }<br>kick: <span class="c"># only if the step test passed</span><br>&nbsp;&nbsp;wheel_tau_sec: …<br>&nbsp;&nbsp;sensor_lag_sec: …</div>
+<p class="small" style="margin-top:4pt">A non-zero <code>wheel_<wbr>tau_<wbr>sec</code> turns on the <b>recovery kick</b>. After a ball (or during spin-up), it applies as much power as the wheel model allows without overshooting, until the speed is predicted to reach the feed band. If the step test fails, it says so. Leave <code>kick</code> alone in that case.</p></div>
+</div></div>
+
+<div class="cols">
+<div class="card"><div class="hd"><span class="nm">Shooter Velocity Tuner</span><span class="grp">Tuning</span><span class="meta"><span class="pill">Panels</span></span></div>
+<div class="bd one"><p>Runs the real <code>Shooter</code> controller at <code>targetRPM</code> (starts at <code>constant_<wbr>rpm</code>, editable in Panels). It shows speed, error, and the feedforward, P and I terms. Use it to watch spin-up and the dip and recovery when you hand-feed a ball.</p></div></div>
+<div class="card"><div class="hd"><span class="nm">Hood Tuner</span><span class="grp">Tuning</span></div>
+<div class="bd one"><p><kbd class="g1">D↑</kbd>/<kbd class="g1">D↓</kbd> ±0.01 · <kbd class="g1">D→</kbd>/<kbd class="g1">D←</kbd> ±0.001 · <kbd class="g1">A</kbd> go to <code>min_<wbr>hood_<wbr>servo_<wbr>pos</code> · <kbd class="g1">B</kbd> go to <code>max_<wbr>hood_<wbr>servo_<wbr>pos</code>. Walk to each physical end without straining the linkage, then copy the values into those two keys. <b>The linkage is reversed</b>: the flattest arc, <code>min_<wbr>hood_<wbr>servo_<wbr>pos</code> (0.85), is numerically <i>larger</i> than the steepest, <code>max_<wbr>hood_<wbr>servo_<wbr>pos</code> (0.0). That is correct.</p></div></div>
+</div>
+
+<h2 id="p-ballistics">7.6 Shot table: Ballistics Calibration <span class="s">writes <a href="#c-shooter">shooter.shot_table</a></span></h2>
+<div class="card long"><div class="hd"><span class="nm">Ballistics Calibration</span><span class="grp">Calibration</span><span class="meta"><span class="pill">real field + HIVE</span><span class="pill">RED CELL A up</span><span class="pill">many POLLEN</span></span></div>
+<div class="bd">
+<div><div class="lbl">Prerequisites</div><p>Finish §7.2–7.5 first: odometry, turret and flywheel must all behave. Measure <code>turret.<wbr>pivot_<wbr>*_<wbr>in</code> first too, because endpoints place the <i>turret axis</i> on the ray.</p>
+<div class="lbl">Steps</div><ol>
+<li>Place the robot at <code>teleop.<wbr>poses.<wbr>red.<wbr>shoot_<wbr>a</code> <b>[58, 27, 90]</b> with RED's audience CELL (CELL A) <b>facing up</b>. Leave the ball type on POLLEN (<kbd class="g1">RB</kbd> toggles it, but NECTAR is disabled).</li>
+<li>It walks the endpoints <b>24, 30, 36, 42, 48 in</b> along a ray 40° off the opening's axis (toward the RED wall). Endpoints beyond the ray's reach (about 52 in) or with an unsafe drive are skipped automatically.</li>
+<li>For each endpoint it prints the target pose. <kbd class="g1">A</kbd> confirms, and the robot drives there by itself. <kbd class="g1">B</kbd> skips it.</li>
+<li>Load balls and shoot with <kbd class="g1">RT</kbd>. Adjust the hood and flywheel until shots drop in <i>consistently</i>, then press <kbd class="g1">A</kbd> to accept (or <kbd class="g1">B</kbd> to skip). It records the <i>actual</i> distance from the turret axis.</li>
+<li>Progress is saved after every endpoint to <code>/<wbr>sdcard/<wbr>FIRST/<wbr>teamcode/<wbr>shot_<wbr>table_<wbr>pollen.<wbr>yaml</code>. <b>Pull it</b> (<a href="#d-files">§4.5</a>) before re-running.</li>
+<li>Replace <b>only</b> the <code>pollen_<wbr>points</code> entry with the printed rows (pasting a whole <code>shot_<wbr>table:</code> block makes a duplicate key). Then set <b><code>calibrated: true</code></b> and push.</li>
+</ol></div>
+<div><div class="lbl">Controls (gamepad 1)</div><ul class="ctl">
+<li><kbd class="g1">Sticks</kbd> drive (through Casablanca)</li>
+<li><kbd class="g1">RT</kbd> aim + shoot at the pinned speed</li>
+<li><kbd class="g1">RB</kbd> manual intake/feed · <kbd class="g1">LB</kbd>/<kbd class="g1">LT</kbd> stop</li>
+<li><kbd class="g1">X</kbd> toggle flywheel rev</li>
+<li><kbd class="g1">D↑</kbd>/<kbd class="g1">D↓</kbd> hood coarse ±0.05</li>
+<li><kbd class="g1">D→</kbd>/<kbd class="g1">D←</kbd> hood fine ±0.005</li>
+<li><kbd class="g1">L3</kbd>/<kbd class="g1">R3</kbd> (stick clicks) speed −/+ 50</li>
+<li><kbd class="g1">Y</kbd> reset hood + speed to the seed</li>
+<li><kbd class="g1">A</kbd> accept · <kbd class="g1">B</kbd> skip endpoint</li></ul>
+<div class="lbl">Output</div><div class="out">pollen_points: [<br>&nbsp;&nbsp;24.3, 0.0000, 805, <span class="c"># dist, hood, ticks/s</span><br>&nbsp;&nbsp;…<br>]<br>calibrated: true</div></div>
+<div class="full">
+<div class="call warn" style="margin:2pt 0"><div class="ic">!</div><div><b>Three things that bite after calibrating.</b>
+<ol>
+<li><b>Range.</b> A shot is valid only inside the table's distances <i>and</i> inside <code>min_<wbr>valid_<wbr>distance</code>–<code>max_<wbr>valid_<wbr>distance</code> (24–72). With a 24–48 in table, the robot will not shoot from 50 in. To shoot farther, calibrate along a longer ray.</li>
+<li><b>Speed clamp.</b> At runtime the table speed is clamped into <code>preferred_<wbr>shot_<wbr>rpm</code>–<code>max_<wbr>shot_<wbr>rpm</code> (800–1450). If you accepted rows below 800, the screen notes it. Lower <code>preferred_<wbr>shot_<wbr>rpm</code> to match, or those shots go hot.</li>
+<li><b>Old data.</b> The files already in <code>calibration-data/</code> are from <b>last season</b> (distances up to 124 in). Never paste them.</li>
+</ol></div></div></div>
+</div></div>
+
+<h2 id="p-timing">7.7 Autonomous shot windows: Shot Timing Tuner <span class="s">writes <a href="#c-auto">auto.shot_time_points</a></span></h2>
+<div class="card"><div class="hd"><span class="nm">Shot Timing Tuner</span><span class="grp">Calibration</span><span class="meta"><span class="pill">robot does NOT drive</span><span class="pill">fires real balls</span><span class="pill">needs calibrated table</span></span></div>
+<div class="bd">
+<div><div class="lbl">What it does</div><p>For each distance it measures how long a whole volley of <code>auto.<wbr>balls_<wbr>per_<wbr>volley_<wbr>count</code> (4) balls takes, counting balls from the flywheel's speed dips. The robot stays put, but its pose is <i>faked</i> to each distance on the same ray Ballistics Calibration uses (clamped into your table), and the turret still slews.</p>
+<div class="lbl">Steps</div><ol><li>Load 4 balls (<kbd class="g1">X</kbd> runs the intake). Wait for the flywheel to read <b>READY</b>, then <kbd class="g1">RT</kbd> fires the volley.</li>
+<li>Check that the screen counted every ball. If not, adjust the dip trigger with the stick clicks. Then <kbd class="g1">A</kbd> accepts or <kbd class="g1">B</kbd> skips.</li>
+<li>At the end, paste the rows under <code>auto:</code>.</li></ol></div>
+<div><div class="lbl">Controls</div><ul class="ctl"><li><kbd class="g1">RT</kbd> fire · <kbd class="g1">LT</kbd> stop everything</li><li><kbd class="g1">X</kbd> intake on/off</li><li><kbd class="g1">A</kbd> accept · <kbd class="g1">B</kbd> skip</li><li><kbd class="g1">D↑</kbd>/<kbd class="g1">D↓</kbd> expected ball count</li><li><kbd class="g1">L3</kbd>/<kbd class="g1">R3</kbd> dip trigger −/+ 0.5%</li></ul>
+<div class="lbl">Output</div><div class="out">auto:<br>&nbsp;&nbsp;shot_time_points: [ 24.3, 2350, … ]<br><span class="c"># also shot_timing_log.csv (per-loop trace)</span></div>
+<p class="small">The ball detector's <code>dip_<wbr>fraction</code> (0.09) must sit between a real ball's dip (12–26% measured) and the deepest non-ball dip (5.4%).</p></div>
+</div></div>
+
+<h2 id="p-vision">7.8 Vision and HIVE tracking <span class="s">writes <a href="#c-vision">vision.*</a></span></h2>
+<div class="cols">
+<div><ol>
+<li>Mount the webcam so it sees the CELLS. Their tags are 30–60 in above the floor, so tilt it up. The default tilt is 50°.</li>
+<li><b>Measure</b> and enter <code>vision.<wbr>camera.<wbr>forward_<wbr>in</code> and <code>left_<wbr>in</code> (from the robot centre), <code>height_<wbr>in</code> (lens above the floor), <code>yaw_<wbr>deg</code> and <code>pitch_<wbr>up_<wbr>deg</code>. The current values (3.54, 4.72, 7.68, 0, 50) were never measured.</li>
+<li>Check that <code>vision.<wbr>camera_<wbr>name</code> matches the DS configuration (<code>Webcam 1</code>).</li>
+<li>In TeleOp, tip the HIVE by hand. The HIVE telemetry must flip after <code>hive.<wbr>confirm_<wbr>frames_<wbr>count</code> (3) agreeing frames.</li>
+<li>Relocalization: with the HIVE settled and within 72 in, hold <kbd class="g2">G2 D↓</kbd>. The pose should snap toward the truth. It is rejected if the jump exceeds 18 in (<code>relocalize.<wbr>max_<wbr>correction_<wbr>in</code>).</li>
+</ol></div>
+<div>
+<h3>Also measure with a tape</h3>
+<table><tbody>
+<tr><td style="width:48%"><code>sentinel.<wbr>robot_<wbr>width</code></td><td>The robot's outer width (it is modelled as a square). Every safety zone depends on it.</td></tr>
+<tr><td><code>turret.<wbr>pivot_<wbr>forward_<wbr>in / pivot_<wbr>left_<wbr>in</code></td><td>Turret axis offset from the robot centre.</td></tr>
+<tr><td><code>shooter.<wbr>ballistics.<wbr>launch_<wbr>height_<wbr>inches</code></td><td>Ball release height above the tiles (physics model).</td></tr>
+<tr><td><code>pedro.<wbr>localization.<wbr>x/<wbr>y_<wbr>pod_<wbr>offset</code></td><td>Pod positions, which the Pinpoint Tuner then confirms.</td></tr>
+</tbody></table>
+<p class="small">Without a working camera, set <code>vision.<wbr>enabled: false</code>. The operator then records TIPS with <kbd class="g2">G2 LB</kbd>.</p>
+</div></div>
+
+<h2 id="p-poses">7.9 Poses and autonomous routes <span class="s">writes <a href="#c-teleop">poses</a></span></h2>
+<div class="card"><div class="hd"><span class="nm">Start Pose Finder</span><span class="grp">Calibration</span></div>
+<div class="bd">
+<div><ol>
+<li><b>In INIT:</b> <kbd class="g1">D←</kbd>/<kbd class="g1">D→</kbd> picks the alliance and <kbd class="g1">D↑</kbd>/<kbd class="g1">D↓</kbd> picks the CELL A or CELL B routine. It shows that routine's configured start pose.</li>
+<li>Set the robot's <b>centre on the tile-seam crossing two tiles from the audience wall and two from the RED wall</b>, facing +x (toward BLUE). Odometry starts there at (47.17, 47.17, 0°).</li>
+<li>Press START. Drive with the sticks (slow, robot-centric), following "Move ±x, ±y" until the distance to start is about 0.</li>
+<li>Check the robot sits legally (touching the wall, on your side, not in the LOADING ZONE, not touching a FLOWER). Press <kbd class="g1">A</kbd> to re-zero odometry there.</li>
+</ol></div>
+<div><div class="lbl">Then drive every AUTO slowly on a real field</div><ul>
+<li>Adjust <b>RED</b> poses only. BLUE follows through <code>m</code>.</li>
+<li>Paths must keep the robot's swept footprint on your side and clear of the HIVE frame. <code>AutoRouteSafetyTest</code> enforces this in <code>verifyBuild</code> and every <code>pushConfig</code>.</li>
+<li>Every routine must end parked: partly in the LOADING ZONE and off the wall.</li>
+<li><code>score_<wbr>b_<wbr>cp</code> and <code>alt_<wbr>via</code> are path control points and waypoints. Move them to bend a path away from the HIVE.</li>
+</ul></div>
+</div></div>
+
+<!-- ================================ 8 ================================ -->
+<h1 id="s-verify"><span class="n" data-n="8"></span><span class="t">Verification</span></h1><a class="up" href="#toc">↑ contents</a>
+<h2 id="v-auto">8.1 The one command: <code>./<wbr>gradlew verifyBuild</code></h2>
+<table><thead><tr><th style="width:20%">Step</th><th>What it protects</th></tr></thead><tbody>
+<tr><td><code>generateConfig</code></td><td>Rebuilds the typed config from YAML. It fails on a value outside <code>min</code>/<code>max</code> or a key without a description.</td></tr>
+<tr><td><code>spotlessApply</code></td><td>Auto-formats the Java.</td></tr>
+<tr><td><code>testDebugUnitTest</code></td><td>Every JUnit and property test on your computer, no robot needed. Highlights: <b>AutoRouteSafetyTest</b> checks every autonomous path for both alliances against the HIVE frame, the centre line, the walls and LEAVE/PARK. <b>TurretClosedLoopProperties</b> runs the real turret code against a simulated plant (random gain, stiction, lag, noise, jitter). <b>FlywheelClosedLoopProperties</b> runs the real shooter against a simulated flywheel (kS ±30%, kV ±10%, 11.5–13.8 V, sensor lag, ball hits). Plus Sentinel/Casablanca symmetry, HIVE tracker, match clock, inventory, shot solver and table, config loader and season guard, and <b>TunerPoseSafetyTest</b>.</td></tr>
+<tr><td><code>checkConfigKeys</code></td><td>Fails if a <code>red_<wbr>*</code> key lacks its <code>blue_<wbr>*</code> twin.</td></tr>
+<tr><td><code>verifyTurret</code></td><td>OpenJML proves the turret control law, the feed gate (G417, solution currency), the HIVE tracker's transitions, the anti-windup integrator and the ball inventory. <code>-PexactDoubles</code> proves with bit-exact IEEE-754 rounding (minutes).</td></tr>
+<tr><td><code>verifyTurretLean</code></td><td>A Lean 4 proof that the turret, from settled or approaching a still target, ends settled and aimed, for any plant in the stated box and gains meeting the conditions.</td></tr>
+</tbody></table>
+<p class="small">The proofs and tests are cached on their inputs, so a value-only change re-runs quickly. The proofs also run with every assemble/install.</p>
+
+<div class="cols" style="grid-template-columns:0.8fr 1.2fr">
+<div><h2 id="v-when">8.2 What to run after a change</h2>
+<table><thead><tr><th style="width:46%">You changed…</th><th>Run</th></tr></thead><tbody>
+<tr><td>Any config number while tuning</td><td><code>pushConfig</code> (it checks itself), then re-INIT</td></tr>
+<tr><td>Turret gains (<code>pidf</code>, <code>ks_<wbr>*</code>, <code>kv</code>)</td><td><code>conditions.<wbr>py</code> (must exit 0), then <code>verifyBuild</code></td></tr>
+<tr><td>Flywheel kS/kV/gains/kick/voltage</td><td><code>verifyBuild</code>. Flywheel properties must pass.</td></tr>
+<tr><td>Route poses, field geometry, <code>robot_<wbr>width</code></td><td><code>verifyBuild</code> (route safety). <b>Mandatory.</b></td></tr>
+<tr><td>Added a config key</td><td><code>generateConfig</code>, then <code>verifyBuild</code></td></tr>
+<tr><td>Any Java</td><td><code>verifyBuild</code></td></tr>
+</tbody></table>
+<div class="call"><div class="ic">i</div><div>A rejected push names the failing test. The usual causes are a route crossing the centre line or touching the HIVE frame, shot-table distances that don't strictly increase, a bad encoder range, or a season mismatch.</div></div>
+</div>
+<div><h2 id="v-robot">8.3 On-robot acceptance tests <span class="s">recommended · log date + battery V</span></h2>
+<table><thead><tr><th style="width:4%">#</th><th>Test</th><th style="width:40%">Pass</th></tr></thead><tbody>
+<tr><td>1</td><td>Forward Left Return Test</td><td>Back within ~1 in</td></tr>
+<tr><td>2</td><td>Full speed at the HIVE (front/side/diagonal)</td><td>Stops short, never touches</td></tr>
+<tr><td>3</td><td>Release the turn stick after turning</td><td>Holds heading, no hunting</td></tr>
+<tr><td>4</td><td>±20° steps in Angle Verification</td><td>&lt;1 s settle, encoder ≈ IMU</td></tr>
+<tr><td>5</td><td><kbd class="g2">G2 RT</kbd> at each table distance</td><td>≥4/5 in, at every row</td></tr>
+<tr><td>6</td><td>4-ball volley</td><td>All counted, no jam</td></tr>
+<tr><td>7</td><td>Aim while driving under 20 in/s</td><td>Tracks; refused above limit</td></tr>
+<tr><td>8</td><td>Tip the HIVE by hand mid-shot</td><td>Stops, flips, 1.5 s lockout</td></tr>
+<tr><td>9</td><td>Intake a 5th ball</td><td>Stops at 4 (or operator does)</td></tr>
+<tr><td>10</td><td>Each AUTO from its start</td><td>Parked in 30 s, no contact</td></tr>
+<tr><td>11</td><td>TeleOp to 0:20 left</td><td>Park alert fires</td></tr>
+<tr><td>12</td><td>AUTO then TeleOp</td><td>State inherited (&lt;2 min)</td></tr>
+<tr><td>13</td><td>Low battery (about 11.5 V)</td><td>Still reaches feed band</td></tr>
+</tbody></table>
+</div></div>
+
+<!-- ================================ 9 ================================ -->
+<h1 id="s-match"><span class="n" data-n="9"></span><span class="t">Match day</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="cols">
+<div>
+<h2 id="m-check">9.1 Pre-match checklist</h2>
+<ol>
+<li>Charged battery. Connect the hub and the DS. INIT shows <b>no config warning</b> (ignored override, shot-table error, uncalibrated table).</li>
+<li>Agree on autos with your partner: one <i>A: tip first</i> and one <i>B: second CELL</i>, or <i>Park Only</i>. Pick the right alliance's OpMode. Each AUTO preselects TeleOp.</li>
+<li>Place the robot on its start pose: touching the wall, wholly on your side, not in the LOADING ZONE, not touching a FLOWER.</li>
+<li>Load exactly <b>4 POLLEN</b> (<code>inventory.<wbr>preload_<wbr>count</code>).</li>
+<li>INIT, then START. Don't touch the robot in between.</li>
+<li>Start TeleOp within <b>2 minutes</b> of AUTO so it inherits alliance, pose, HIVE state and inventory. Without an AUTO it defaults to RED. Press <kbd>B</kbd> (RED) or <kbd>X</kbd> (BLUE) on either gamepad during INIT.</li>
+</ol>
+<h2 id="m-auto">9.2 Autonomous routines</h2>
+<table><thead><tr><th style="width:26%">OpMode</th><th style="width:22%">RED start</th><th>Plan</th></tr></thead><tbody>
+<tr><td><b>A: tip first</b></td><td>[58, 9, 90°], audience wall</td><td>4 POLLEN into CELL A (the field is set up to TIP at that point), around the HIVE to an angled CELL B pose, fires any leftovers if CELL B is up, parks low in the LOADING ZONE.</td></tr>
+<tr><td><b>B: second CELL</b></td><td>[30, 132.5, 270°], rear wall</td><td>Waits at the CELL B pose for the partner's TIP, fires the pre-load, parks high. If CELL B never comes up, it detours to CELL A and empties there.</td></tr>
+<tr><td><b>Park Only</b></td><td>[9, 75, 0°], alliance wall</td><td>LEAVE + PARK.</td></tr>
+</tbody></table>
+<p class="small">The robot never fires at a downward CELL. A <b>park guard</b> cancels the routine and parks when the time left reaches the estimated drive plus <code>park_<wbr>margin_<wbr>ms</code> (2.5 s), and never later than <code>park_<wbr>reserve_<wbr>ms</code> (3 s) before the end.</p>
+</div>
+<div>
+<h3>TeleOp cues</h3>
+<table><tbody>
+<tr><td style="width:24%"><b>1:00 left</b></td><td>Two rumble blips, and "NECTAR→FLOWERS OK" next to the clock (G410/G426).</td></tr>
+<tr><td><b>Park alert</b></td><td>From 0:20 it estimates the drive to park. Once the time left is that drive + 4 s, both pads rumble and flash red every second, the DS says "park now", and <b>PARK NOW</b> heads the telemetry until parked. F310 pads have no rumble or light. It never drives the robot itself: press <kbd class="g1">G1 LT</kbd>. With no clear route or a lost pose, it fires at 0:20.</td></tr>
+<tr><td><b>Human NECTAR</b></td><td>One allowed per TIP of your HIVE, and all five after 1:00. The field timer is the authority.</td></tr>
+<tr><td><b>"Shot" line</b></td><td>Names the gate that is blocking a feed.</td></tr>
+<tr><td><b>"Pose assist"</b></td><td>Why a pose hold refused to move (it would hit the HIVE or a wall).</td></tr>
+</tbody></table>
+</div></div>
+
+<h2 id="m-pads">9.3 Gamepad cheat sheet</h2>
+<div class="cols">
+<div class="pad g1"><h3>Gamepad 1: driver</h3><table><tbody>
+<tr><td><kbd class="g1">Left stick</kbd></td><td>Translate (cubic, ≤ <code>max_<wbr>speed</code>, through Casablanca). Deflecting past 0.2 cancels a pose hold.</td></tr>
+<tr><td><kbd class="g1">Right stick X</kbd></td><td>Rotate. Releasing it holds the heading.</td></tr>
+<tr><td><kbd class="g1">X</kbd></td><td>Toggle "face the upward CELL" (follows TIPS).</td></tr>
+<tr><td><kbd class="g1">RT</kbd></td><td>Drive to and hold the shooting pose for the CELL that is up.</td></tr>
+<tr><td><kbd class="g1">LT</kbd></td><td>Drive to and hold the park pose.</td></tr>
+<tr><td><kbd class="g1">D←</kbd></td><td>FLOWER pose. <i>Off</i> (<code>flower_<wbr>hold_<wbr>enabled: false</code>).</td></tr>
+<tr><td><kbd class="g1">D→</kbd></td><td>Cancel pose hold.</td></tr>
+<tr><td><kbd class="g1">B</kbd> / <kbd class="g1">X</kbd> in INIT</td><td>Choose RED / BLUE (only when no AUTO ran).</td></tr>
+</tbody></table></div>
+<div class="pad g2"><h3>Gamepad 2: operator</h3><table><tbody>
+<tr><td><kbd class="g2">A</kbd> / <kbd class="g2">B</kbd></td><td>Start / stop intake (it stops itself at a known 4).</td></tr>
+<tr><td><kbd class="g2">D→</kbd> hold</td><td>Eject (reverse at <code>eject_<wbr>power</code>).</td></tr>
+<tr><td><kbd class="g2">RT</kbd> hold</td><td><b>Aim and shoot</b>: holds position, spins up, aims, and feeds when every gate passes.</td></tr>
+<tr><td><kbd class="g2">Y</kbd> hold</td><td>Turret aim only.</td></tr>
+<tr><td><kbd class="g2">X</kbd> hold</td><td>Rev the flywheel, no feed. <kbd class="g2">X</kbd>+<kbd class="g2">Y</kbd> = pre-spin and aim.</td></tr>
+<tr><td><kbd class="g2">D↑</kbd></td><td>Fixed-speed shot at <code>constant_<wbr>rpm</code>. Still gated, and blocked while uncalibrated.</td></tr>
+<tr><td><kbd class="g2">LT</kbd></td><td>Cancel everything.</td></tr>
+<tr><td><kbd class="g2">D↓</kbd> hold</td><td>Vision relocalize.</td></tr>
+<tr><td><kbd class="g2">LB</kbd> / <kbd class="g2">Back</kbd></td><td>Record a missed TIP / undo the last TIP.</td></tr>
+<tr><td><kbd class="g2">RB</kbd></td><td>POLLEN/NECTAR. No effect while NECTAR is disabled.</td></tr>
+<tr><td><kbd class="g2">L3</kbd></td><td>Mark the robot empty (inventory 0).</td></tr>
+</tbody></table></div>
+</div>
+
+<!-- ================================ 10 ================================ -->
+<h1 id="s-ref"><span class="n" data-n="10"></span><span class="t">Config reference</span></h1><a class="up" href="#toc">↑ contents</a>
+<p>Every top-level section of <code>config.<wbr>yaml</code>. <b>Now</b> is the repo value on 2026-11-05. For any key not listed, read its description and limits in <code>config-docs.<wbr>yaml</code>.</p>
+<div class="legend"><span><span class="tag M">Measure</span> calibrate on your robot</span><span><span class="tag H">Placeholder</span> must replace</span><span><span class="tag T">Tuned</span> leave</span><span><span class="tag P">Policy</span> deliberate choice</span><span><span class="tag S">Switch</span> on/off</span><span><span class="tag F">Field</span> game geometry</span><span><span class="tag I">Model only</span> not live aim</span></div>
+
+<h2 id="c-pedro">10.1 <code>pedro</code>: drivetrain and path following <span class="s">set by <a href="#p-pedro">§7.2</a></span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>localization.<wbr>x_<wbr>pod_<wbr>offset / y_<wbr>pod_<wbr>offset</code></td><td class="v">0.883 / −5.463</td><td>Pinpoint pod positions from the robot centre (in).</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>heading.<wbr>pid.<wbr>p / i / d</code>, <code>heading.<wbr>ks</code></td><td class="v">4.27 / 0 / 0, 0</td><td>Path-following heading feedback, P only.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>translation.<wbr>gain_<wbr>threshold</code></td><td class="v">2.5 in</td><td>Error at which each axis switches to its large-error gains.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>translation.<wbr>forward.<wbr>small/<wbr>large_<wbr>error_<wbr>pid.<wbr>p</code></td><td class="v">0.114 / 0.309</td><td>Forward position gains (I = D = 0). Marked provisional.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>translation.<wbr>strafe.<wbr>small/<wbr>large_<wbr>error_<wbr>pid.<wbr>p</code></td><td class="v">0.144 / 0.389</td><td>Strafe position gains (I = D = 0). Marked provisional.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>feedforward.<wbr>coast_<wbr>kv / brake_<wbr>kv</code></td><td class="v">0.01257 / 0.01069</td><td>Foresight motion feedforward.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>braking.<wbr>forward.<wbr>linear / quadratic</code></td><td class="v">0.0984 / 0.00158</td><td>Stopping distance = <code>linear·v + quadratic·v·|v|</code> (inches). <b>Casablanca reuses these.</b></td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>braking.<wbr>strafe.<wbr>linear / quadratic</code></td><td class="v">0.0354 / 0.00214</td><td>Same model, strafe axis.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>braking.<wbr>heading.<wbr>linear / quadratic</code></td><td class="v">0.0533 / 0.00379</td><td>Same model, heading (radians).</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>motion.<wbr>max_<wbr>forward_<wbr>velocity</code></td><td class="v">79.97 in/s</td><td>Top forward speed. Flagged "recheck".</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>motion.<wbr>max_<wbr>strafe_<wbr>velocity</code></td><td class="v">64.77 in/s</td><td>Top strafe speed.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>motion.<wbr>natural_<wbr>forward / strafe_<wbr>deceleration</code></td><td class="v">38.7 / 60.9 in/s²</td><td>Coasting deceleration.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>motion.<wbr>max_<wbr>path_<wbr>speed</code></td><td class="v">0.9</td><td>Fraction of top speed that autonomous paths use. Lower it for gentler autos.</td><td><span class="tag P">Policy</span></td></tr>
+</tbody></table>
+
+<h2 id="c-field">10.2 <code>field</code> · <code>hive</code> · <code>match</code> <span class="s">from manual TU05 and the official CAD</span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>field.<wbr>size_<wbr>in</code></td><td class="v">141.5</td><td>Inside-wall width. The centre (70.75) is the BLUE rotation point. Re-measure if your field differs.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>field.<wbr>hive.<wbr>*</code> (9 keys)</td><td class="v">see file</td><td>Pivots 25.5 apart and 43.95 high. Up opening 15.69 out at 59.56 high, down opening 21.36 out at 38.17 high. Frame 49.46 × 38.95, bottom at 30.6.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>field.<wbr>loading_<wbr>zone / garden / flower</code></td><td class="v">see file</td><td>Zone tape and FLOWER ring centres from the CAD.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>hive.<wbr>up_<wbr>height_<wbr>threshold_<wbr>in</code></td><td class="v">48.9</td><td>A CELL seen above this height is "up". It is the midpoint of 59.6 and 38.2.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>hive.<wbr>confirm_<wbr>frames_<wbr>count</code></td><td class="v">3</td><td>Agreeing frames needed before an unexpected TIP is accepted.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>hive.<wbr>settle_<wbr>ms</code></td><td class="v">1500</td><td>Feed lockout after any TIP, while the HIVE swings.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>hive.<wbr>max_<wbr>observation_<wbr>age_<wbr>ms</code></td><td class="v">400</td><td>Ignore tag sightings older than this.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>match.<wbr>auto_<wbr>ms / teleop_<wbr>ms</code></td><td class="v">30000 / 120000</td><td>Period lengths.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>match.<wbr>flower_<wbr>unlock_<wbr>remaining_<wbr>ms</code></td><td class="v">60000</td><td>The final-minute cue.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>match.<wbr>final_<wbr>warning_<wbr>remaining_<wbr>ms</code></td><td class="v">20000</td><td>When the park alert starts watching.</td><td><span class="tag P">Policy</span></td></tr>
+</tbody></table>
+
+<h2 id="c-inventory">10.3 <code>inventory</code>: ball counting</h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>capacity_<wbr>count / preload_<wbr>count</code></td><td class="v">4 / 4</td><td>The G407 cap and the start load.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>entry_<wbr>sensor_<wbr>enabled</code></td><td class="v"><b>false</b></td><td>Set true only once a beam break named <code>entry_<wbr>sensor_<wbr>name</code> (<code>"intakeBeam"</code>) is wired. Without it, the count becomes unknown once the intake runs, and an unknown count never blocks the intake.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>entry_<wbr>sensor_<wbr>active_<wbr>low</code></td><td class="v">true</td><td>The sensor reads false when blocked (most beam breaks). Flip it if counts look inverted.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>entry_<wbr>debounce_<wbr>ms</code></td><td class="v">40</td><td>How long the sensor must stay blocked to count one ball.</td><td><span class="tag M">Measure</span></td></tr>
+</tbody></table>
+
+<h2 id="c-turret">10.4 <code>turret</code> <span class="s">set by <a href="#p-turret">§7.4</a></span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>enabled</code></td><td class="v">true</td><td>false: no turret, aim with the chassis heading.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>max_<wbr>power_<wbr>output</code></td><td class="v">0.5</td><td>Servo power cap, which sets the top turret speed.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>servo_<wbr>direction_<wbr>inverted</code></td><td class="v">false</td><td>Flip if the turret drives <i>away</i> from its target. Plant Calibration detects this.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>ks_<wbr>positive / ks_<wbr>negative</code></td><td class="v">0.0009 / 0.0663</td><td>Breakaway power in each direction. It is very lopsided (see ③).</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>orientation.<wbr>logo / usb</code></td><td class="v">LEFT / UP</td><td>Mounting of <code>turnImu</code>, for Angle Verification only.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>travel.<wbr>min_<wbr>angle / max_<wbr>angle</code></td><td class="v">−26.5 / 26.5°</td><td>Allowed angle relative to the chassis.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>stall.<wbr>enabled</code></td><td class="v">true</td><td>Cuts power if commanded but not moving.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>stall.<wbr>power_<wbr>threshold / min_<wbr>progress_<wbr>deg / timeout_<wbr>sec / retry_<wbr>after_<wbr>sec</code></td><td class="v">0.12 / 0.75 / 0.35 / 1.0</td><td>When a stall is declared and when power comes back. A retry of 0 latches the fault until restart.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>runaway.<wbr>enabled / divergence_<wbr>deg</code></td><td class="v">false / 8</td><td>Cuts power if the error keeps growing (an inverted loop). Turn it on while debugging direction.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>pidf.<wbr>p / i / d / f</code></td><td class="v">0.02 / 0.008 / 0 / 0</td><td>Turret feedback. The calibration and the proof want i = d = f = 0.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>kv</code> · <code>ff_<wbr>min_<wbr>rate_<wbr>dps</code></td><td class="v"><b>0</b> · 3.0</td><td>Chassis-motion feedforward (1/K), <b>0 = off</b>. Rates under 3°/s are ignored as noise.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>pivot_<wbr>forward_<wbr>in / pivot_<wbr>left_<wbr>in</code></td><td class="v"><b>0 / 0</b></td><td>Turret axis offset from the robot centre. Aim and distances are measured from it.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>integral.<wbr>band_<wbr>deg / limit_<wbr>power</code></td><td class="v">30 / 0.08</td><td>The I term only acts inside the band, and is clamped.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>tolerance.<wbr>max_<wbr>drift</code></td><td class="v">8 in</td><td>Total miss allowed at the CELL. The angle is <code>asin(4/<wbr>dist)</code>, clamped to [min_deg, max_deg].</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>tolerance.<wbr>near_<wbr>cutoff / near_<wbr>val / min_<wbr>deg / max_<wbr>deg</code></td><td class="v">1 / 1.5 / 0.5 / 4</td><td>Tolerance shaping: a fixed 1.5° inside 1 in, otherwise 0.5–4°.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>tolerance.<wbr>exit_<wbr>factor</code></td><td class="v">1.5</td><td>Settle hysteresis: once settled, it stays settled until the error exceeds tolerance × 1.5. This stops hunting.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>analog_<wbr>encoder.<wbr>enabled</code> · <code>inverted</code></td><td class="v">true · true</td><td>Use the pot. <code>inverted</code> means the angle rises as the voltage falls. Never use it to fix the servo direction.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>analog_<wbr>encoder.<wbr>zero_<wbr>voltage / degrees_<wbr>per_<wbr>volt</code></td><td class="v">1.265 / 42.15</td><td>Volts to degrees. Printed by Center Calibration.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>analog_<wbr>encoder.<wbr>min/<wbr>max_<wbr>voltage / full_<wbr>scale_<wbr>voltage</code></td><td class="v">0.556 / 1.964 / 3.3</td><td>The voltage range at the stops, and the pot's wrap voltage.</td><td><span class="tag M">Measure</span></td></tr>
+</tbody></table>
+
+<h2 id="c-vision">10.5 <code>vision</code> <span class="s">set by <a href="#p-vision">§7.8</a></span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>enabled</code></td><td class="v">true</td><td>false: no camera. TIPS must then be entered by hand.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>continuous</code></td><td class="v">true</td><td>Stream all the time so every TIP is seen. false streams only while relocalizing.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>camera_<wbr>name</code></td><td class="v">"Webcam 1"</td><td>Must match the DS configuration.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>decimation</code></td><td class="v">3</td><td>AprilTag speed versus range (1–6). Higher is faster with shorter range.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>camera.<wbr>forward_<wbr>in / left_<wbr>in / height_<wbr>in</code></td><td class="v">3.54 / 4.72 / 7.68</td><td>Lens position on the robot.</td><td><span class="tag H">Placeholder</span></td></tr>
+<tr><td class="key"><code>camera.<wbr>yaw_<wbr>deg / pitch_<wbr>up_<wbr>deg</code></td><td class="v">0 / 50</td><td>Lens direction. Pitch is positive (upward).</td><td><span class="tag H">Placeholder</span></td></tr>
+<tr><td class="key"><code>relocalize.<wbr>max_<wbr>range_<wbr>in / max_<wbr>correction_<wbr>in</code></td><td class="v">72 / 18</td><td>Furthest usable sighting, and the largest pose jump accepted.</td><td><span class="tag P">Policy</span></td></tr>
+</tbody></table>
+
+<h2 id="c-sentinel">10.6 <code>sentinel</code>: geometric safety</h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>robot_<wbr>width</code></td><td class="v">18 in</td><td>Side of the square footprint used for every zone check. <b>If it's wrong, safety is wrong.</b></td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>rotation_<wbr>lookahead_<wbr>time</code></td><td class="v">0.0685 s</td><td>Predicts the footprint ahead of rotation. From Friction Calibration.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>protect_<wbr>full_<wbr>hive_<wbr>footprint</code></td><td class="v">true</td><td>true: the whole HIVE base is no-drive. false protects only the two 2 in foot bars, for a robot built to pass under the HIVE (below 30.6 in, and clear of the inward-leaning legs, which are <i>not</i> modelled).</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>frame_<wbr>base_<wbr>width_<wbr>in</code></td><td class="v">2.0</td><td>Foot-bar width, used when the switch above is false.</td><td><span class="tag F">Field</span></td></tr>
+<tr><td class="key"><code>center_<wbr>line_<wbr>margin_<wbr>in / wall_<wbr>contact_<wbr>tolerance_<wbr>in</code></td><td class="v">0.25 / 0.5</td><td>"Fully on your side" margin, and the distance that counts as touching a wall.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>park_<wbr>lane_<wbr>margin_<wbr>in</code></td><td class="v">3.0</td><td>HIVE clearance in the emergency park lane.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>route_<wbr>sample_<wbr>step</code></td><td class="v">0.005</td><td>Path-check resolution. Smaller is more thorough.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>park_<wbr>turn_<wbr>rate_<wbr>dps / park_<wbr>settle_<wbr>per_<wbr>waypoint_<wbr>sec</code></td><td class="v">180 / 0.25</td><td>Conservative inputs for the park-time estimate.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>geometry_<wbr>epsilon_<wbr>in</code></td><td class="v">1e−9</td><td>Floating-point tolerance. Don't touch it.</td><td><span class="tag F">Field</span></td></tr>
+</tbody></table>
+
+<h2 id="c-casa">10.7 <code>casablanca</code>: driver assist <span class="s">set by <a href="#p-casa">§7.3</a></span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>enable_<wbr>depth_<wbr>protection / enable_<wbr>side_<wbr>protection</code></td><td class="v">true / true</td><td>HIVE protection on x and y. <b>Leave on</b> (G417). Turn off only to debug.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>repulsion.<wbr>power / decel_<wbr>safety_<wbr>factor</code></td><td class="v">0.12 / 0.7</td><td>Push-back power inside a zone, and the braking-model margin (0.7 = 30% margin).</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>depth.<wbr>slow_<wbr>down / hard_<wbr>stop</code> (same for <code>side</code>)</td><td class="v">8 / 2.5 in</td><td>Where slowing starts, and where power toward the HIVE is cut. Keep depth and side equal.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>lane_<wbr>blend_<wbr>distance</code></td><td class="v">12 in</td><td>Smooths slow-downs over this distance.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>friction.<wbr>x / y / rot</code></td><td class="v">0.1041 / 0.1488 / 0.1041</td><td>Power needed to break wheel stiction.</td><td><span class="tag T">Tuned</span></td></tr>
+<tr><td class="key"><code>smoothing.<wbr>teleop_<wbr>enabled</code> · <code>auto_<wbr>enabled</code></td><td class="v">true · false</td><td>Slew-limit TeleOp power. Slew-limit Pedro output in AUTO (off keeps native auto behavior).</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>smoothing.<wbr>forward.<wbr>increase/<wbr>decrease_<wbr>time</code></td><td class="v">0.22 / 0.55</td><td>Seconds per unit of power change, per signed direction. 0 = unrestricted. From the Pod Contact Tuner.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>smoothing.<wbr>strafe.<wbr>increase/<wbr>decrease_<wbr>time</code></td><td class="v">0.22 / 0.22</td><td>Same, strafe axis.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>smoothing.<wbr>turn.<wbr>increase/<wbr>decrease_<wbr>time</code></td><td class="v">0.088 / 0.088</td><td>Same, turn axis.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>smoothing.<wbr>max_<wbr>loop_<wbr>dt</code></td><td class="v">0.05 s</td><td>A stalled loop can't cause a big power step.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>heading_<wbr>lock.<wbr>enabled</code></td><td class="v">true</td><td>Hold heading when the turn stick is released.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>heading_<wbr>lock.<wbr>pid.<wbr>p / i / d</code> · <code>ks</code></td><td class="v">5.82 / 0 / 0 · 0</td><td>Heading-hold gains. From the Heading Lock Autotuner.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>heading_<wbr>lock.<wbr>ks_<wbr>moving</code></td><td class="v">0.0003</td><td>Turn friction compensation while translating. From Friction Calibration.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>heading_<wbr>lock.<wbr>intent_<wbr>threshold / moving_<wbr>speed_<wbr>threshold</code></td><td class="v">0.05 / 10</td><td>Stick level that counts as steering. Speed at which full <code>ks_<wbr>moving</code> applies.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>heading_<wbr>lock.<wbr>max_<wbr>power / error_<wbr>deadband_<wbr>deg / settle_<wbr>rate_<wbr>dps</code></td><td class="v">0.30 / 2.0 / 15</td><td>Correction cap. No correction under 2°. Captures the heading once rotation drops below 15°/s.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>heading_<wbr>tuner.<wbr>*</code> (≈20 keys)</td><td class="v">see file</td><td>Autotuner setup: pose [20,72,90], ±10° steps, a P grid of 1–10 (4 values) and a D grid of 0–0.9 (4 values), plus tolerances and timeouts. <code>TunerPoseSafetyTest</code> checks the pose.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>jump_<wbr>tuner.<wbr>*</code> (≈35 keys)</td><td class="v">see file</td><td>Pod Contact Tuner setup: <code>trial_<wbr>axis</code>, power 0.5, a 48 in lane, the fallback IMU (<code>imu</code>, RIGHT/UP), tilt and abort limits, and a slew search over 0.05–0.8 s with 12 candidates.</td><td><span class="tag P">Policy</span></td></tr>
+</tbody></table>
+
+<h2 id="c-shooter">10.8 <code>shooter</code> <span class="s">set by <a href="#p-shooter">§7.5</a> and <a href="#p-ballistics">§7.6</a></span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>use_<wbr>ftc_<wbr>pid</code></td><td class="v">false</td><td><b>false</b>: this code's loop (feedforward + P + clamped I + voltage compensation). <b>true</b>: the hub firmware PIDF with <code>motor_<wbr>pidf</code>, which oscillated with the old gains. <code>motor_<wbr>pidf</code> stays on the hub until it is power-cycled.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>ks</code></td><td class="v">0.1811</td><td>Flywheel breakaway power.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>nominal_<wbr>voltage</code></td><td class="v">12.0 V</td><td>The voltage the feedforward is expressed at. Commands scale by nominal ÷ measured. Set it to the loaded voltage seen while characterizing.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>max_<wbr>voltage_<wbr>compensation / voltage_<wbr>refresh_<wbr>sec</code></td><td class="v">1.4 / 0.25</td><td>Largest scale factor (covers down to about 8.6 V), and how often the voltage is re-read.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>max_<wbr>rpm</code></td><td class="v">1500</td><td>Ticks/s that target power 1.0 maps to.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>constant_<wbr>rpm</code></td><td class="v">1000</td><td>The D-pad Up fixed shot, and the hold speed between volleys.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>min_<wbr>transfer_<wbr>threshold / max_<wbr>velocity_<wbr>threshold</code></td><td class="v">0.97 / 1.03</td><td>The feed may <i>arm</i> only at 97–103% of target speed.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>feed_<wbr>release_<wbr>threshold</code></td><td class="v">0.80</td><td>A running feed pauses if speed sags below 80%. Must be below <code>min_<wbr>transfer_<wbr>threshold</code>. Lower it if the intake stutters.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>feed_<wbr>intake_<wbr>power / feed_<wbr>transfer_<wbr>power</code></td><td class="v">1.0 / 1.0</td><td>Intake powers while feeding the shooter.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ball_<wbr>detection.<wbr>dip_<wbr>fraction / rebound_<wbr>fraction</code></td><td class="v">0.09 / 0.05</td><td>A ball counts as a speed dip of more than 9% below reference. Rebound must be below dip.</td><td><span class="tag T">Tuned</span></td></tr>
+<tr><td class="key"><code>ball_<wbr>detection.<wbr>baseline_<wbr>alpha / refractory_<wbr>ms</code></td><td class="v">0.03 / 120</td><td>Reference smoothing, and the minimum spacing between counted balls.</td><td><span class="tag T">Tuned</span></td></tr>
+<tr><td class="key"><code>pidf.<wbr>p / i / d / f</code></td><td class="v">0.0010125 / 0.00050625 / 0 / 16.59</td><td>Software loop: p = 2 kV, i = p / 2 s, f is the fitted feedforward.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>motor_<wbr>pidf.<wbr>p / i / d / f</code></td><td class="v">2.204 / 0.2204 / 0 / 22.04</td><td>Used only when <code>use_<wbr>ftc_<wbr>pid: true</code>. REV's recipe is p = 0.1 F, i = 0.1 p.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>integral.<wbr>band_<wbr>ticks / max_<wbr>contribution</code></td><td class="v">150 / 0.25</td><td>The I term integrates only within 150 ticks/s of target, and adds at most 0.25 power.</td><td><span class="tag T">Tuned</span></td></tr>
+<tr><td class="key"><code>kick.<wbr>wheel_<wbr>tau_<wbr>sec / sensor_<wbr>lag_<wbr>sec</code></td><td class="v"><b>0 / 0</b></td><td>From the step test. <b>0 disables the recovery kick</b> and the prediction.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>kick.<wbr>kick_<wbr>lag_<wbr>margin_<wbr>sec / kick_<wbr>trigger_<wbr>fraction / kick_<wbr>speed_<wbr>margin</code></td><td class="v">0.0075 / 0.09 / 1.4</td><td>Model margins. Keep the trigger fraction equal to <code>dip_<wbr>fraction</code>.</td><td><span class="tag T">Tuned</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>max_<wbr>moving_<wbr>speed_<wbr>ips</code></td><td class="v">20</td><td>Shots are refused above this robot speed.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>min_<wbr>valid_<wbr>distance / max_<wbr>valid_<wbr>distance</code></td><td class="v">24 / 72 in</td><td>Valid shot range. The table's own range also applies.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>max_<wbr>off_<wbr>axis_<wbr>deg</code></td><td class="v">60°</td><td>Refuses shots from too far to the side of the opening.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>preferred_<wbr>shot_<wbr>rpm / max_<wbr>shot_<wbr>rpm</code></td><td class="v">800 / 1450</td><td><b>The table speed is clamped into this band</b> at runtime.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>rpm_<wbr>update_<wbr>deadband</code></td><td class="v">25</td><td>Minimum speed change before re-commanding the setpoint (each re-command resets the integrator).</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>flight_<wbr>time_<wbr>base_<wbr>sec / sec_<wbr>per_<wbr>inch</code></td><td class="v">0.51 / 0.0049</td><td>Time of flight, used only to lead moving shots.</td><td><span class="tag H">Placeholder</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>lead_<wbr>min_<wbr>speed_<wbr>ips / lead_<wbr>bias_<wbr>gain</code></td><td class="v">10 / 1.0</td><td>No lead below 10 in/s (noise). The lead multiplier.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>min/<wbr>max_<wbr>hood_<wbr>servo_<wbr>pos</code></td><td class="v">0.85 / 0.0</td><td>Servo values at the flattest and steepest hood positions. Reversed on purpose. Calibration clamps hood moves to this range.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>min/<wbr>max_<wbr>hood_<wbr>angle_<wbr>deg</code></td><td class="v">15 / 65°</td><td>Physical hood angles at those servo values. Used for the angle display.</td><td><span class="tag I">Model only</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>v0 / k / magnus_<wbr>l</code></td><td class="v">250 / 0.0012 / 0.015</td><td>Flight-model exit speed, drag and spin lift. The live aim comes from the table.</td><td><span class="tag I">Model only</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>launch_<wbr>height_<wbr>inches / g_<wbr>inches_<wbr>per_<wbr>sec2</code></td><td class="v">15 / 386.088</td><td>Release height and gravity, for the flight model.</td><td><span class="tag I">Model only</span></td></tr>
+<tr><td class="key"><code>ballistics.<wbr>v0_<wbr>reference_<wbr>rpm / v0_<wbr>margin_<wbr>fraction</code></td><td class="v">1000 / 0.12</td><td>Speed↔exit-speed conversion (reported in the solution), and long-shot headroom in the model.</td><td><span class="tag I">Model only</span></td></tr>
+<tr><td class="key"><code>shot_<wbr>table.<wbr>calibrated</code></td><td class="v"><b>false</b></td><td><b>While false, nothing ever feeds.</b> Set true after Ballistics Calibration.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>shot_<wbr>table.<wbr>nectar_<wbr>enabled</code></td><td class="v">false</td><td>true allows selecting the NECTAR table. This robot can't handle NECTAR.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>shot_<wbr>table.<wbr>pollen_<wbr>points</code></td><td class="v">5 rows, 24–72</td><td>Flat <code>distance, hood_<wbr>servo, ticks/<wbr>s</code> triples with strictly increasing distances. Currently guesses from a launch model.</td><td><span class="tag H">Placeholder</span></td></tr>
+<tr><td class="key"><code>shot_<wbr>table.<wbr>nectar_<wbr>points</code></td><td class="v">5 rows</td><td>Same format, for NECTAR. Unused.</td><td><span class="tag H">Placeholder</span></td></tr>
+</tbody></table>
+
+<h2 id="c-auto">10.9 <code>auto</code>: autonomous behavior</h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>shot_<wbr>time_<wbr>points</code></td><td class="v">24:2200, 72:3000</td><td><code>distance, window_<wbr>ms</code> pairs from the Shot Timing Tuner. A volley ends when the ball count is reached <i>or</i> the window expires (the jam safety net).</td><td><span class="tag H">Placeholder</span></td></tr>
+<tr><td class="key"><code>shoot_<wbr>wait_<wbr>ms</code></td><td class="v">2500</td><td>Fallback window, used only if the table above is empty.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>balls_<wbr>per_<wbr>volley_<wbr>count</code></td><td class="v">4</td><td>Balls expected per volley.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>tip_<wbr>wait_<wbr>ms</code></td><td class="v">2500</td><td>How long to wait for the target CELL to be seen up before giving up on it.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>collect_<wbr>dwell_<wbr>ms</code></td><td class="v">1200</td><td>Time at a FLOWER with the intake on. Unused here.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>park_<wbr>margin_<wbr>ms / park_<wbr>reserve_<wbr>ms / park_<wbr>update_<wbr>ms</code></td><td class="v">2500 / 3000 / 250</td><td>Park when the time left ≤ drive estimate + margin, or at the reserve time at the latest. Re-estimated every 250 ms.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>transfer_<wbr>power</code></td><td class="v">0.12</td><td>Transfer power while collecting in AUTO.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>cell_<wbr>a_<wbr>collect_<wbr>flower</code></td><td class="v">false</td><td>The CELL A routine refills at the side-wall FLOWER. Off: no mechanism.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>cell_<wbr>a_<wbr>second_<wbr>volley</code></td><td class="v">true</td><td>Drive around the HIVE and fire leftovers into CELL B once it is up.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>cell_<wbr>b_<wbr>collect_<wbr>flower</code></td><td class="v">false</td><td>The CELL B routine refills at the rear-wall FLOWER. Off.</td><td><span class="tag S">Switch</span></td></tr>
+</tbody></table>
+
+<h2 id="c-teleop">10.10 <code>teleop</code> and poses <span class="s">RED values; BLUE = <code>m</code></span></h2>
+<table class="cfg"><thead><tr><th>Key</th><th>Now</th><th>Meaning</th><th>Status</th></tr></thead><tbody>
+<tr><td class="key"><code>max_<wbr>speed</code></td><td class="v">1</td><td>Driver translation scale (0–1). Lower it for a new driver.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>field_<wbr>centric</code></td><td class="v">false</td><td>true: the stick points in a fixed field direction. false: robot-relative.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>field_<wbr>centric_<wbr>offset_<wbr>deg</code></td><td class="v">0</td><td>Field heading for "stick forward" when field-centric (90 = +y, away from the audience).</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>intake_<wbr>power / transfer_<wbr>power</code></td><td class="v">1.0 / 0.1</td><td>Operator intake (G2 A).</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>manual_<wbr>rev_<wbr>power / eject_<wbr>power</code></td><td class="v">0.6 / −0.6</td><td>Operator rev (G2 X) and eject (G2 D→, negative = reverse).</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>flower_<wbr>hold_<wbr>enabled</code></td><td class="v">false</td><td>Driver D← FLOWER pose. Off: no pickup.</td><td><span class="tag S">Switch</span></td></tr>
+<tr><td class="key"><code>rumble_<wbr>ms</code></td><td class="v">600</td><td>Rumble length for match cues.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>park_<wbr>alert_<wbr>margin_<wbr>ms / _<wbr>update_<wbr>ms / _<wbr>repeat_<wbr>ms</code></td><td class="v">4000 / 250 / 1000</td><td>Park alert timing.</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>poses.<wbr>red.<wbr>start / park</code></td><td class="v">[58,9,90] / [16,99,90]</td><td>TeleOp start (if no AUTO ran) and park hold.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>poses.<wbr>red.<wbr>shoot_<wbr>a / shoot_<wbr>b</code></td><td class="v">[58,27,90] / [58,114,270]</td><td>Shooting poses facing CELL A and CELL B (G1 RT).</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>poses.<wbr>red.<wbr>flower</code></td><td class="v">[16,47.36,180]</td><td>FLOWER pickup pose (disabled).</td><td><span class="tag P">Policy</span></td></tr>
+<tr><td class="key"><code>auto_<wbr>poses.<wbr>cell_<wbr>a.<wbr>red.<wbr>*</code></td><td class="v">6 poses</td><td>The <i>A: tip first</i> waypoints: start [58,9,90] · score_a [58,27,90] · flower [16,47.36,180] · score_b_cp [16,100,0] · score_b [36,106,318.36] · park [16,99,90]. <code>score_<wbr>b_<wbr>cp</code> is a Bezier control point that keeps the swept path clear of the HIVE.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>auto_<wbr>poses.<wbr>cell_<wbr>b.<wbr>red.<wbr>*</code></td><td class="v">7 poses</td><td>The <i>B: second CELL</i> waypoints: start [30,132.5,270] · score_b_cp [30,114,0] · score_b [58,114,270] · flower [47.36,125.5,90] · alt_via [30,104,0] · alt_a [32,33,40.31] · park [16,119.5,270]. <code>alt_<wbr>via</code> and <code>alt_<wbr>a</code> are the fallback route to CELL A.</td><td><span class="tag M">Measure</span></td></tr>
+<tr><td class="key"><code>auto_<wbr>poses.<wbr>park_<wbr>only.<wbr>red.<wbr>*</code></td><td class="v">2 poses</td><td>LEAVE + PARK: start [9,75,0] · park [16,99,0].</td><td><span class="tag M">Measure</span></td></tr>
+</tbody></table>
+
+<h2 id="c-switches">10.11 Every switch in one table</h2>
+<p>Every on/off feature flag in the config, its current setting, and when to flip it.</p>
+<table><thead><tr><th style="width:36%">Switch</th><th style="width:8%">Now</th><th>Flip it when…</th></tr></thead><tbody>
+<tr><td><a href="#c-shooter"><code>shooter.<wbr>shot_<wbr>table.<wbr>calibrated</code></a></td><td class="v"><b>false</b></td><td>…Ballistics Calibration rows are pasted. <b>Nothing feeds until it's true.</b></td></tr>
+<tr><td><a href="#c-shooter"><code>shooter.<wbr>shot_<wbr>table.<wbr>nectar_<wbr>enabled</code></a></td><td class="v">false</td><td>…a NECTAR mechanism exists and <code>nectar_<wbr>points</code> is calibrated.</td></tr>
+<tr><td><a href="#c-shooter"><code>shooter.<wbr>use_<wbr>ftc_<wbr>pid</code></a></td><td class="v">false</td><td>…you deliberately want the hub's firmware PIDF (<code>motor_<wbr>pidf</code>). Not recommended.</td></tr>
+<tr><td><a href="#c-inventory"><code>inventory.<wbr>entry_<wbr>sensor_<wbr>enabled</code></a></td><td class="v">false</td><td>…an intake beam break named <code>intakeBeam</code> is wired.</td></tr>
+<tr><td><a href="#c-inventory"><code>inventory.<wbr>entry_<wbr>sensor_<wbr>active_<wbr>low</code></a></td><td class="v">true</td><td>…the ball count goes up when the beam is <i>clear</i>.</td></tr>
+<tr><td><a href="#c-turret"><code>turret.<wbr>enabled</code></a></td><td class="v">true</td><td>…the robot has no turret (aim with the chassis instead).</td></tr>
+<tr><td><a href="#c-turret"><code>turret.<wbr>servo_<wbr>direction_<wbr>inverted</code></a></td><td class="v">false</td><td>…the turret drives away from its target (Plant Calibration says INVERTED).</td></tr>
+<tr><td><a href="#c-turret"><code>turret.<wbr>analog_<wbr>encoder.<wbr>inverted</code></a></td><td class="v">true</td><td>…the measured angle moves opposite the real turret. Never use it to fix the servo direction.</td></tr>
+<tr><td><a href="#c-turret"><code>turret.<wbr>analog_<wbr>encoder.<wbr>enabled</code></a></td><td class="v">true</td><td>…never, on this robot. Aiming needs the encoder.</td></tr>
+<tr><td><a href="#c-turret"><code>turret.<wbr>stall.<wbr>enabled</code></a></td><td class="v">true</td><td>…never, outside a bench test.</td></tr>
+<tr><td><a href="#c-turret"><code>turret.<wbr>runaway.<wbr>enabled</code></a></td><td class="v">false</td><td>…you are debugging turret direction (set it true for safety).</td></tr>
+<tr><td><a href="#c-vision"><code>vision.<wbr>enabled</code></a></td><td class="v">true</td><td>…no camera is fitted. TIPS are then recorded by hand (G2 LB).</td></tr>
+<tr><td><a href="#c-vision"><code>vision.<wbr>continuous</code></a></td><td class="v">true</td><td>…you need CPU and only relocalize. You will miss TIPS.</td></tr>
+<tr><td><a href="#c-sentinel"><code>sentinel.<wbr>protect_<wbr>full_<wbr>hive_<wbr>footprint</code></a></td><td class="v">true</td><td>…the robot is built to drive under the HIVE (low, and clear of the legs).</td></tr>
+<tr><td><a href="#c-casa"><code>casablanca.<wbr>enable_<wbr>depth_<wbr>protection</code> / <code>…side…</code></a></td><td class="v">true</td><td>…never, in a match. Only for debugging, and always both together.</td></tr>
+<tr><td><a href="#c-casa"><code>casablanca.<wbr>smoothing.<wbr>teleop_<wbr>enabled</code></a></td><td class="v">true</td><td>…comparing feel without the slew limiter.</td></tr>
+<tr><td><a href="#c-casa"><code>casablanca.<wbr>smoothing.<wbr>auto_<wbr>enabled</code></a></td><td class="v">false</td><td>…pods lift during autonomous paths.</td></tr>
+<tr><td><a href="#c-casa"><code>casablanca.<wbr>heading_<wbr>lock.<wbr>enabled</code></a></td><td class="v">true</td><td>…drivers prefer free rotation when the stick is released.</td></tr>
+<tr><td><a href="#c-auto"><code>auto.<wbr>cell_<wbr>a_<wbr>collect_<wbr>flower</code> / <code>cell_<wbr>b_<wbr>collect_<wbr>flower</code></a></td><td class="v">false</td><td>…a FLOWER pickup mechanism exists.</td></tr>
+<tr><td><a href="#c-auto"><code>auto.<wbr>cell_<wbr>a_<wbr>second_<wbr>volley</code></a></td><td class="v">true</td><td>…the drive around the HIVE costs more than the leftover POLLEN is worth.</td></tr>
+<tr><td><a href="#c-teleop"><code>teleop.<wbr>flower_<wbr>hold_<wbr>enabled</code></a></td><td class="v">false</td><td>…a FLOWER pickup mechanism exists.</td></tr>
+<tr><td><a href="#c-teleop"><code>teleop.<wbr>field_<wbr>centric</code></a></td><td class="v">false</td><td>…drivers want field-relative sticks (also set the offset).</td></tr>
+<tr><td><code>shooter.<wbr>kick.<wbr>wheel_<wbr>tau_<wbr>sec</code> (0 = off)</td><td class="v">0</td><td>…Shooter Characterization's step test passes (paste its value).</td></tr>
+<tr><td><code>turret.<wbr>kv</code> (0 = off)</td><td class="v">0</td><td>…Plant Calibration gives K (paste 1/K).</td></tr>
+</tbody></table>
+
+<!-- ================================ 11 ================================ -->
+<h1 id="s-trouble"><span class="n" data-n="11"></span><span class="t">Troubleshooting</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="cols">
+<div>
+<h3>Shooting</h3>
+<table><thead><tr><th style="width:38%">Symptom</th><th>Cause and fix</th></tr></thead><tbody>
+<tr><td>Never feeds a ball</td><td><code>calibrated: false</code>, or a gate is failing. The TeleOp "Shot" line names the gate. Also check the distance is inside the table, speed is under 20 in/s, and the robot is within 60° of the opening axis.</td></tr>
+<tr><td>Wheel sits just under target</td><td>Feedforward is off. Re-run Characterization on a loaded battery, and check <code>nominal_<wbr>voltage</code>.</td></tr>
+<tr><td>Overshoot after each ball</td><td>The I term is too strong. Lower <code>pidf.<wbr>i</code> or <code>integral.<wbr>max_<wbr>contribution</code>, or enable the kick.</td></tr>
+<tr><td>Balls not counted</td><td>Adjust <code>dip_<wbr>fraction</code> (in the Shot Timing Tuner).</td></tr>
+<tr><td>Short-range shots go hot</td><td>Table speeds below 800 are clamped up. Lower <code>preferred_<wbr>shot_<wbr>rpm</code>.</td></tr>
+<tr><td>Intake stutters while feeding</td><td>Lower <code>feed_<wbr>release_<wbr>threshold</code> (keep it below 0.97).</td></tr>
+<tr><td>Misses consistently to one side</td><td>Pivot offset, odometry drift (relocalize with G2 D↓), or pod offsets.</td></tr>
+</tbody></table>
+<h3>Turret</h3>
+<table><thead><tr><th style="width:38%">Symptom</th><th>Cause and fix</th></tr></thead><tbody>
+<tr><td>Drives away from target</td><td>Flip <code>servo_<wbr>direction_<wbr>inverted</code>. Turn on <code>runaway</code> while debugging.</td></tr>
+<tr><td>Hunts or buzzes</td><td>Lower <code>pidf.<wbr>p</code>, set <code>d: 0</code>, raise <code>exit_<wbr>factor</code>, re-run Plant Calibration.</td></tr>
+<tr><td>Creeps at zero power</td><td>Servo neutral is off. Re-centre it, then re-measure kS.</td></tr>
+<tr><td>Lags a turning robot</td><td><code>kv</code> is 0. Set it to 1/K.</td></tr>
+<tr><td>Stall faults</td><td>Binding, or <code>stall.<wbr>power_<wbr>threshold</code> / <code>min_<wbr>progress_<wbr>deg</code> too tight for encoder noise.</td></tr>
+</tbody></table>
+</div>
+<div>
+<h3>Driving and vision</h3>
+<table><thead><tr><th style="width:38%">Symptom</th><th>Cause and fix</th></tr></thead><tbody>
+<tr><td>Odometry drifts or jumps</td><td>A pod is lifting (Pod Contact Tuner), or pod offsets or directions are wrong (Pinpoint Tuner).</td></tr>
+<tr><td>Robot reaches the HIVE</td><td><code>robot_<wbr>width</code>, braking coefficients or <code>hard_<wbr>stop</code> is wrong. Re-run Casablanca Test.</td></tr>
+<tr><td>Pose hold refuses</td><td>See "Pose assist". The direct path hits the HIVE or a wall, so drive to a clear approach first.</td></tr>
+<tr><td>HIVE never flips</td><td>Camera mount values, name, tilt, <code>vision.<wbr>enabled</code>. Record TIPS with G2 LB meanwhile.</td></tr>
+<tr><td>Relocalize rejected</td><td>HIVE not settled, no fresh frame, over 72 in away, or a jump of more than 18 in.</td></tr>
+</tbody></table>
+<h3>Build and deploy</h3>
+<table><thead><tr><th style="width:38%">Symptom</th><th>Cause and fix</th></tr></thead><tbody>
+<tr><td>Pushed config ignored</td><td>Re-INIT. Read the DS banner (season mismatch). Check that <code>pushConfig</code> succeeded.</td></tr>
+<tr><td><code>pushConfig</code> fails</td><td>Read the failing test name: route safety, sanity, or match window.</td></tr>
+<tr><td>"red_ without blue_"</td><td>Add the other alliance's key.</td></tr>
+<tr><td>Build rejects a value</td><td>Outside <code>min</code>/<code>max</code> in <code>config-docs.<wbr>yaml</code>, or the key has no description.</td></tr>
+<tr><td><code>adb devices</code> empty</td><td>Use an A-to-C cable, check macOS Local Network permission, join the robot Wi-Fi.</td></tr>
+<tr><td>Gradle silent</td><td>Frozen daemon. Use <code>--no-daemon</code>.</td></tr>
+<tr><td>Max Velocity Test acts oddly after a firmware-PID run</td><td><code>motor_<wbr>pidf</code> persists on the hub. Power-cycle it.</td></tr>
+<tr><td>Intake passes 4 balls</td><td>No sensor. Wire one, or the operator presses G2 B.</td></tr>
+</tbody></table>
+</div></div>
+
+<!-- ================================ 12 ================================ -->
+<h1 id="s-gaps"><span class="n" data-n="12"></span><span class="t">Known gaps and further reading</span></h1><a class="up" href="#toc">↑ contents</a>
+<div class="cols">
+<div>
+<h3>Not built, or limited</h3>
+<ul>
+<li><b>No FLOWER mechanism.</b> All three flower switches are off, so each auto fires only its 4 pre-loads.</li>
+<li><b>No NECTAR mechanism.</b> Every shot uses the POLLEN table.</li>
+<li><b>No color sensor.</b> The operator ejects opponent NECTAR (G408).</li>
+<li><b>Continuous feeding</b> while every gate passes. A TIP detected mid-volley stops further feeding, but balls already in the air can't be recalled.</li>
+<li><b>Hood settling is not measured</b>: the servo readback is just the command. A clamped speed is not re-validated against the table.</li>
+<li><b>Moving shots</b> use first-order lead only, with a conservative 20 in/s limit.</li>
+<li><b>Hood range.</b> A launch-model estimate wants a 64–78° lob, and the hood tops out at 65°. Confirm the real mechanism scores at 24–48 in.</li>
+<li><b>Calibration reach.</b> Both calibration OpModes stop at 48 in (the ray ends around 52 in), so longer shots need a different ray.</li>
+<li><b>Proof scope.</b> The proofs cover the control logic for a stated plant model and the conditions <code>conditions.<wbr>py</code> checks. They don't show the hardware matches the model. §8.3 does.</li>
+<li><b>Unused hardware.</b> The <code>gate</code> servo appears in <code>hwmap.<wbr>yaml</code>, but no code drives it.</li>
+</ul>
+</div>
+<div>
+<h3>Further reading in the repo</h3>
+<table><tbody>
+<tr><td style="width:40%"><code>AGENTS.<wbr>md</code></td><td>Coding standards and architecture rules, the contract for editing Java.</td></tr>
+<tr><td><code>BIOBUZZ-SEASON.<wbr>md</code></td><td>Rules mapped to code, the field geometry table, the bring-up checklist.</td></tr>
+<tr><td><code>teleop_<wbr>controls.<wbr>md</code></td><td>The authoritative TeleOp controls.</td></tr>
+<tr><td><code>MIGRATION-PEDRO3.<wbr>md</code></td><td>Pedro 3 decisions and the AutoTune bring-up.</td></tr>
+<tr><td><code>robot/<wbr>config/<wbr>config.<wbr>yaml</code></td><td>Every value.</td></tr>
+<tr><td><code>robot/<wbr>config/<wbr>config-docs.<wbr>yaml</code></td><td>Every description and limit.</td></tr>
+<tr><td><code>teamcode/<wbr>hwmap.<wbr>yaml</code></td><td>Hub ports.</td></tr>
+<tr><td><code>calibration-data/</code></td><td>Past calibration output (last season's, so don't reuse it).</td></tr>
+</tbody></table>
+<div class="call ok"><div class="ic">✓</div><div><b>Done means:</b> every <span class="tag M">Measure</span> and <span class="tag H">Placeholder</span> in §10 is replaced, <code>calibrated: true</code>, <code>verifyBuild</code> passes, the final config is in the APK (after <code>resetConfig</code>), and all 13 acceptance tests pass.</div></div>
+</div></div>
+
+</body></html>
