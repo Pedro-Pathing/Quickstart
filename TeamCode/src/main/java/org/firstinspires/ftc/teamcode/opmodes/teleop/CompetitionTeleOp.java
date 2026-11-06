@@ -51,7 +51,14 @@ import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
  *   R2 / L2          Launch Pollen / Nectar: queued until ready (again cancels)
  *   R1 held          Fire everything             Square       Auto-aim on/off
  *   D-pad up / down  Camera to shooting / collecting
+ * Launches (R2 / L2 / R1) also wait for the aim to lock while auto-aim is on; with it off the
+ * gunner is aiming by hand and they only wait for the camera, the flywheel and any collect.
  * During INIT, d-pad left / right on either pad picks red / blue (the last auto's alliance if one ran).
+ * Triangle on either pad switches between the last auto's finishing pose and the default starting
+ * pose; the telemetry shows how old the saved pose is. With no press the saved pose is used,
+ * however old, so check the age if you have restarted the match without an auto.
+ * The flywheels idle at idleRPM until a launch is queued or firing, or the aim is on, then run at
+ * the RPM for the distance.
  *
  * The rules between the two (who wins, who waits) come from the Ivy commands' requirements and
  * priorities (commands.Requirements), plus the few in rules() below. More Than Driving Test is the
@@ -68,6 +75,12 @@ public class CompetitionTeleOp extends OpMode {
     public static double reZeroHoldSeconds = 0.5;
     /** A stick moved further than this cancels an auto-collect. */
     public static double stickCancel = 0.2;
+    /**
+     * Flywheel speed while nothing needs a shot soon: no launch queued or firing, no Fire All, no
+     * aim. Spinning up from here is quicker than from rest and the motors run cooler. Set it at or
+     * above the shooting RPM (about 4000 here) to switch idling off.
+     */
+    public static double idleRPM = 1500;
 
     // Rumbles (ms)
     public static int queuedRumbleMs = 120;
@@ -115,6 +128,10 @@ public class CompetitionTeleOp extends OpMode {
     private final ElapsedTime optionsHeld = new ElapsedTime();
     private boolean optionsWasDown = false, reZeroed = false;
     private String lastFeedback = "";
+    /** The driver's INIT choice: start from the auto's saved pose (true) or the default (false). */
+    private boolean useSavedPose = true;
+    /** A launch or aim was scheduled this loop, before the flywheels' targets are set. */
+    private boolean shotRequested = false;
 
     @Override
     public void init() {
@@ -122,8 +139,8 @@ public class CompetitionTeleOp extends OpMode {
         bulkCache = new BulkCache(hardwareMap);
         leds = new Leds(hardwareMap);
         if (MatchState.alliance() != null) alliance = MatchState.alliance();
-        Pose start = MatchState.pose() != null ? MatchState.pose() : startingPose;
-        follower = TeleOpDrive.createFollower(hardwareMap, start, status);
+        // start() sets the pose again from the driver's final choice
+        follower = TeleOpDrive.createFollower(hardwareMap, chosenStartPose(), status);
         drive = follower != null ? new TeleOpDrive(follower) : null;
         mixer = drive != null ? new DriveMixer(drive) : null;
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -155,7 +172,9 @@ public class CompetitionTeleOp extends OpMode {
 
     private void buildCommands() {
         LaunchCommands.Conditions conditions = new LaunchCommands.Conditions(camera, readiness,
-                () -> collectCommand != null && collectCommand.isScheduled());
+                () -> collectCommand != null && collectCommand.isScheduled(),
+                // Read the field, as aim is made below. Not aiming means the gunner is aiming by hand.
+                () -> aim == null || !aim.isScheduled() || aim.isLocked());
         LaunchCommands.Launcher pollen = new LaunchCommands.Launcher("Pollen", pollenLauncher,
                 gates::feedPollen, gates::isPollenOpen, Requirements.POLLEN_GATE);
         LaunchCommands.Launcher nectar = new LaunchCommands.Launcher("Nectar", nectarLauncher,
@@ -187,13 +206,26 @@ public class CompetitionTeleOp extends OpMode {
         gamepad1.setLedColor(colour[0], colour[1], colour[2], LED_CONTINUOUS);
         gamepad2.setLedColor(colour[0], colour[1], colour[2], LED_CONTINUOUS);
         telemetry.addData("Alliance", alliance + (MatchState.alliance() != null ? " (from the auto)" : ""));
-        telemetry.addData("Start", MatchState.pose() != null ? "where the auto finished" : "the default pose");
+        if (gamepad1.triangleWasPressed() | gamepad2.triangleWasPressed()) useSavedPose = !useSavedPose;
+        if (MatchState.pose() != null) {
+            telemetry.addData("Start", useSavedPose ? "where the auto finished" : "the default pose");
+            telemetry.addData("Saved pose", String.format("%s, saved %.0f s ago (triangle switches)",
+                    MatchState.pose(), MatchState.ageSeconds()));
+        } else {
+            telemetry.addData("Start", "the default pose (no auto has run)");
+        }
         status.addTelemetry(telemetry);
         telemetry.update();
     }
 
+    /** The saved auto pose unless there isn't one or the driver chose the default. */
+    private Pose chosenStartPose() {
+        return MatchState.pose() != null && useSavedPose ? MatchState.pose() : startingPose;
+    }
+
     @Override
     public void start() {
+        if (follower != null) follower.setPose(chosenStartPose());
         bulkCache.clear();
         nectarLauncher.reset();
         pollenLauncher.reset();
@@ -210,8 +242,6 @@ public class CompetitionTeleOp extends OpMode {
         hiveTarget = camera.findTarget();
 
         Pose pose = follower != null ? follower.pose() : null;
-        nectarLauncher.runToRPM(nectarRpmTable.rpmFor(hiveTarget, alliance, pose));
-        pollenLauncher.runToRPM(pollenRpmTable.rpmFor(hiveTarget, alliance, pose));
         gates.update();
 
         if (follower != null) {
@@ -227,7 +257,11 @@ public class CompetitionTeleOp extends OpMode {
         readiness.update(camera, hiveTarget);
         leds.update();
 
+        shotRequested = false;
         rules();
+        // After rules(), so a launch queued this loop already has its full target: its readiness is
+        // judged against that, not against the idle speed it was queued from.
+        setFlywheels(pose);
         Scheduler.execute();
         if (mixer != null) mixer.flush();
         showLightBars();
@@ -235,6 +269,17 @@ public class CompetitionTeleOp extends OpMode {
         if (telemetryM.getShouldUpdateLines()) {
             showTelemetry();
         }
+    }
+
+    /** Shooting RPM when a shot is wanted or likely (queued, firing or aiming), else idleRPM. */
+    private void setFlywheels(Pose pose) {
+        boolean wanted = shotRequested || pollenLaunch.isScheduled() || nectarLaunch.isScheduled()
+                || fireAll.isScheduled() || (aim != null && aim.isScheduled());
+        double nectarRpm = nectarRpmTable.rpmFor(hiveTarget, alliance, pose);
+        double pollenRpm = pollenRpmTable.rpmFor(hiveTarget, alliance, pose);
+        // Never above the shooting RPM, so an idleRPM set too high just means no idling
+        nectarLauncher.runToRPM(wanted ? nectarRpm : Math.min(idleRPM, nectarRpm));
+        pollenLauncher.runToRPM(wanted ? pollenRpm : Math.min(idleRPM, pollenRpm));
     }
 
     /** The buttons, and the rules the commands' priorities don't cover. */
@@ -271,12 +316,16 @@ public class CompetitionTeleOp extends OpMode {
         // Gunner
         if (gamepad2.rightTriggerWasPressed()) toggleLaunch(pollenLaunch);
         if (gamepad2.leftTriggerWasPressed()) toggleLaunch(nectarLaunch);
-        if (gamepad2.rightBumperWasPressed() && !fireAll.isScheduled()) Scheduler.schedule(fireAll);
+        if (gamepad2.rightBumperWasPressed() && !fireAll.isScheduled()) {
+            Scheduler.schedule(fireAll);
+            shotRequested = true;
+        }
         if (aim != null && gamepad2.squareWasPressed()) {
             if (aim.isScheduled()) {
                 gunnerCancel(aim);
             } else {
                 Scheduler.schedule(aim);
+                shotRequested = true;
             }
         }
         if (gamepad2.dpadUpWasPressed()) Scheduler.schedule(cameraUp);  // ends a collect (higher priority)
@@ -293,6 +342,7 @@ public class CompetitionTeleOp extends OpMode {
             gunnerCancel(launch);
         } else {
             Scheduler.schedule(launch);
+            shotRequested = true;
             feedback(gamepad2, queuedRumbleMs, "Gunner: launch queued");
         }
     }

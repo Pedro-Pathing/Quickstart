@@ -18,8 +18,10 @@ import java.util.function.Consumer;
 
 /**
  * Launching. A launch waits until it can shoot well and then feeds once: no auto-collect is running
- * (one that is has the camera down), the camera is up with a distance (ShotReadiness), and the
- * flywheel is at that distance's RPM. The OpMode sets the flywheels' RPM every loop.
+ * (one that is has the camera down), the camera is up with a distance (ShotReadiness), the aim is
+ * locked if auto-aim is on (so a shot never leaves while the robot is still turning; with auto-aim
+ * off the gunner is aiming by hand and nothing is checked), and the flywheel is at that distance's
+ * RPM. The OpMode sets the flywheels' RPM every loop.
  */
 @Configurable
 public final class LaunchCommands {
@@ -56,16 +58,29 @@ public final class LaunchCommands {
         final LimelightCamera camera;
         final ShotReadiness readiness;
         final BooleanSupplier collecting;
+        final BooleanSupplier aimReady;
 
+        /** No aim check: the gunner is always aiming by hand. */
         public Conditions(LimelightCamera camera, ShotReadiness readiness, BooleanSupplier collecting) {
+            this(camera, readiness, collecting, () -> true);
+        }
+
+        /**
+         * aimReady says whether the aim allows a shot: true when auto-aim is off (the gunner is
+         * aiming by hand) or locked, false while it is still turning.
+         */
+        public Conditions(LimelightCamera camera, ShotReadiness readiness, BooleanSupplier collecting,
+                          BooleanSupplier aimReady) {
             this.camera = camera;
             this.readiness = readiness;
             this.collecting = collecting;
+            this.aimReady = aimReady;
         }
 
         /** Ask for the camera up (unless a collect has it down) and say whether a shot can go. */
         boolean ready() {
             if (collecting.getAsBoolean()) return false;
+            if (!aimReady.getAsBoolean()) return false;
             camera.setMode(LimelightCamera.Mode.TAGS);
             return readiness.isReady();
         }
