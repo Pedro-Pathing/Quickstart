@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.turret;
+package org.firstinspires.ftc.teamcode.subsystems.shooter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class ShotTable {
     }
 
     public String velocityLine() {
-        StringBuilder line = new StringBuilder("SHOOTER_VEL = {");
+        StringBuilder line = new StringBuilder("SHOOTER_RPM = {");
         List<Shot> shots = sorted();
         for (int i = 0; i < shots.size(); i++) {
             if (i > 0) line.append(", ");

@@ -80,7 +80,7 @@ public class Limelight extends SubsystemBase {
         }
 
         CellLocator.CameraMount mount = new CellLocator.CameraMount(CAM_FWD, CAM_LEFT, CAM_UP,
-                Math.toRadians(CAM_PITCH_DEG), Math.toRadians(CAM_YAW_DEG));
+                Math.toRadians(CAM_PITCH_DEG), Math.toRadians(CAM_YAW_DEG), Math.toRadians(CAM_ROLL_DEG));
         tagPoints.clear();
         Map<HiveCells.Cell, List<CellLocator.TagPoint>> byCell = new EnumMap<>(HiveCells.Cell.class);
         for (LLResultTypes.FiducialResult tag : visibleTags) {

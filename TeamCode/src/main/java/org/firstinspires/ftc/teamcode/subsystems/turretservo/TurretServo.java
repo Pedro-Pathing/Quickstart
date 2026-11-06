@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
@@ -17,6 +16,7 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.field.Field;
 import org.firstinspires.ftc.teamcode.field.HiveCells;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.turret.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.turret.TurretHistory;
 import org.firstinspires.ftc.teamcode.vision.CellObservation;
@@ -59,12 +59,11 @@ public class TurretServo extends SubsystemBase {
         this.vision = vision;
         this.history = history;
         servo = hardwareMap.get(ServoImplEx.class, TurretServoConstants.SERVO_NAME);
-        servo.setPwmRange(new PwmControl.PwmRange(PWM_LOWER_US, PWM_UPPER_US));
-        shooter = hardwareMap.get(DcMotorEx.class, SHOOTER_NAME);
+        shooter = hardwareMap.get(DcMotorEx.class, ShooterConstants.MOTOR_NAME);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        for (int i = 0; i < Math.min(SHOOTER_DIST_IN.length, SHOOTER_VEL.length); i++) {
-            shooterTable.add(SHOOTER_DIST_IN[i], SHOOTER_VEL[i]);
+        for (int i = 0; i < Math.min(ShooterConstants.SHOOTER_DIST_IN.length, ShooterConstants.SHOOTER_RPM.length); i++) {
+            shooterTable.add(ShooterConstants.SHOOTER_DIST_IN[i], ShooterConstants.SHOOTER_RPM[i]);
         }
         shooterTable.createLUT();
     }
@@ -155,14 +154,10 @@ public class TurretServo extends SubsystemBase {
     }
 
     private void updateShooter() {
-        shooter.setDirection(SHOOTER_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
-        if (TUNING_SHOOTER) {
-            shooterTarget = TUNING_VELOCITY;
-        } else {
-            shooterTarget = Double.isNaN(distance) ? 0 : shooterTable.get(distance);
-        }
+        shooter.setDirection(ShooterConstants.MOTOR_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        shooterTarget = Double.isNaN(distance) ? 0 : shooterTable.get(distance);
         if (shooterEnabled && shooterTarget > 0) {
-            shooter.setVelocity(shooterTarget);
+            shooter.setVelocity(shooterTarget * ShooterConstants.TICKS_PER_REV / 60.0);
         } else {
             shooter.setPower(0);
         }
@@ -178,7 +173,7 @@ public class TurretServo extends SubsystemBase {
 
     public boolean isShooterReady() {
         return shooterEnabled && shooterTarget > 0
-                && Math.abs(shooter.getVelocity() - shooterTarget) <= SHOOTER_TOLERANCE;
+                && Math.abs(shooter.getVelocity() * 60.0 / ShooterConstants.TICKS_PER_REV - shooterTarget) <= ShooterConstants.SHOOTER_TOLERANCE_RPM;
     }
 
     public boolean okToShoot() {

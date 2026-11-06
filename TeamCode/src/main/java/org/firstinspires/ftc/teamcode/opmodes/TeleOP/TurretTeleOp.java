@@ -13,9 +13,12 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.commands.ShootWhenReady;
+import org.firstinspires.ftc.teamcode.commands.field.ResetPose;
 import org.firstinspires.ftc.teamcode.commands.turret.SetTurretSide;
 import org.firstinspires.ftc.teamcode.field.Field;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.turret.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.turret.TurretHistory;
 import org.firstinspires.ftc.teamcode.util.PosePersistency;
@@ -31,6 +34,7 @@ public class TurretTeleOp extends CommandOpMode {
 
     private Follower follower;
     private Turret turret;
+    private Shooter shooter;
     private Limelight limelight;
     private GamepadEx driver;
     private GamepadEx operator;
@@ -47,8 +51,9 @@ public class TurretTeleOp extends CommandOpMode {
         follower = Constants.createFollower(hardwareMap);
         TurretHistory history = new TurretHistory();
         limelight = new Limelight(hardwareMap, history);
-        turret = new Turret(hardwareMap, limelight, history);
-        register(limelight, turret);
+        turret = new Turret(hardwareMap, limelight, history, follower::pose);
+        shooter = new Shooter(hardwareMap, turret::getDistance);
+        register(limelight, turret, shooter);
 
         driver = new GamepadEx(gamepad1);
         operator = new GamepadEx(gamepad2);
@@ -60,19 +65,24 @@ public class TurretTeleOp extends CommandOpMode {
 
         operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(() -> {
             shooterOn = !shooterOn;
-            turret.setShooterEnabled(shooterOn);
+            shooter.setFlywheel(shooterOn ? ShooterConstants.TUNING_RPM : 0, shooterOn);
         });
-        operator.getGamepadButton(GamepadKeys.Button.A).whenPressed(new ShootWhenReady(turret::okToShoot));
+        operator.getGamepadButton(GamepadKeys.Button.A).whenPressed(new ShootWhenReady(() -> turret.isAimed() && shooter.flywheelReady()));
+        driver.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new ResetPose(follower, Field.Alliance.RED));
+        driver.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new ResetPose(follower, Field.Alliance.BLUE));
     }
 
     @Override
     public void initialize_loop() {
         if (gamepad1.x) alliance = Field.Alliance.BLUE;
         if (gamepad1.b) alliance = Field.Alliance.RED;
-        if (gamepad1.y) useSavedPose = false;
+        if (gamepad1.y) {
+            useSavedPose = false;
+            turret.zeroHere();
+        }
 
         turret.readEncoder();
-        telemetryData.addData("Controls", "X = BLUE, B = RED, Y = ignore saved pose");
+        telemetryData.addData("Controls", "X = BLUE, B = RED, Y = ignore saved pose and zero turret here");
         telemetryData.addData("Alliance", alliance);
         telemetryData.addData("Start pose", useSavedPose ? "saved " + PosePersistency.getPose(null) : "dashboard START_*");
         telemetryData.addData("Turret deg", Math.toDegrees(turret.getAngle()));
@@ -85,6 +95,7 @@ public class TurretTeleOp extends CommandOpMode {
         Pose start = new Pose(START_X_IN, START_Y_IN, Math.toRadians(START_HEADING_DEG));
         follower.setPose(useSavedPose ? PosePersistency.getPose(start) : start);
         schedule(new SetTurretSide(turret, alliance));
+        turret.setState(Turret.State.AIM);
     }
 
     @Override
@@ -93,20 +104,19 @@ public class TurretTeleOp extends CommandOpMode {
                 gamepad1.left_stick_y,
                 gamepad1.left_stick_x,
                 -gamepad1.right_stick_x,
-                follower.pose().heading()
+                follower.pose().heading() + (alliance == Field.Alliance.RED ? Math.PI : 0)
         ));
         follower.update();
-        turret.updateBotPose(follower.pose());
 
         super.run();
 
         PosePersistency.savePose(follower.pose());
 
-        telemetryData.addData("Shooter", shooterOn ? "on" : "off");
         StringBuilder ids = new StringBuilder();
         for (CellLocator.TagPoint tag : limelight.getTagPoints()) ids.append(tag.id).append(' ');
         telemetryData.addData("Seen tag IDs", ids.toString().trim());
         turret.addTelemetry(telemetryData);
+        shooter.addTelemetry(telemetryData);
         telemetryData.update();
     }
 

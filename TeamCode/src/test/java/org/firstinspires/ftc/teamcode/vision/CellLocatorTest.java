@@ -34,6 +34,13 @@ public class CellLocatorTest {
         assertArrayEquals(new double[]{3, 11, 2}, CellLocator.cameraToTurret(0, 0, 10, mount), EPS);
     }
 
+    @Test
+    public void rolledCameraTurnsImageRightIntoUp() {
+        CellLocator.CameraMount mount = new CellLocator.CameraMount(0, 0, 0, 0, 0, Math.toRadians(90));
+        assertArrayEquals(new double[]{10, 0, 1}, CellLocator.cameraToTurret(1, 0, 10, mount), EPS);
+        assertArrayEquals(new double[]{10, -2, 0}, CellLocator.cameraToTurret(0, 2, 10, mount), EPS);
+    }
+
     private static List<CellLocator.TagPoint> row(double f, double l, double yaw, int... indices) {
         List<CellLocator.TagPoint> tags = new ArrayList<>();
         for (int i : indices) {

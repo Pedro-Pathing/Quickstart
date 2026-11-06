@@ -1,28 +1,20 @@
 package org.firstinspires.ftc.teamcode.subsystems.shooter;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @Config
 public class ShooterConstants {
-    public static String MOTOR_NAME = "flywheel";
-    public static boolean MOTOR_REVERSED = true;
+    public static String MOTOR_NAME = "shooter";
+    public static boolean MOTOR_REVERSED = false;
     public static double TICKS_PER_REV = 28;
-
-    public static double HIVE_RPM = 1850;
-
     public static double MAX_RPM = 6000;
 
-    public static double kP = 0.1;
-    public static double kI = 0;
-    public static double kD = 0.02;
-    public static double kF = 0.00071;
+    public static PIDFCoefficients FLYWHEEL_PIDF_COEFFICIENTS = new PIDFCoefficients(1, 0, 0, 0.00085);
+    public static double SHOOTER_TOLERANCE_RPM = 40;
+    public static double IDLE_POWER = 0.3;
 
-    public static double VELOCITY_TOLERANCE = 20;
-
-    // Anti-windup bounds on the PIDF controller's accumulated integral (ticks/sec-equivalent).
-    // The controller library defaults to +-1, which saturates almost instantly against
-    // velocity errors in the hundreds/thousands of ticks/sec - these widen it so kI has a
-    // meaningful effect instead of acting like an on/off bias.
-    public static double INTEGRAL_MIN = -3000;
-    public static double INTEGRAL_MAX = 3000;
+    public static double[] SHOOTER_DIST_IN = {41.4, 50.8, 64.9, 70.4};
+    public static double[] SHOOTER_RPM = {1675, 1755, 1835, 1885};
+    public static double TUNING_RPM = 1950;
 }

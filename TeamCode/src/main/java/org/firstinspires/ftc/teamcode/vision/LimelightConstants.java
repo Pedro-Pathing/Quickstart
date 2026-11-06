@@ -10,11 +10,12 @@ public class LimelightConstants {
 
     public static int POLL_RATE_HZ = 100;
 
-    public static double CAM_FWD = 0;
-    public static double CAM_LEFT = 0;
-    public static double CAM_UP = 0;
-    public static double CAM_PITCH_DEG = 0;
+    public static double CAM_FWD = -2.9;
+    public static double CAM_LEFT = -0.197;
+    public static double CAM_UP = 6.004;
+    public static double CAM_PITCH_DEG = 8.4;
     public static double CAM_YAW_DEG = 0;
+    public static double CAM_ROLL_DEG = -90;
 
     public static double MAX_AGE_MS = 100;
 }

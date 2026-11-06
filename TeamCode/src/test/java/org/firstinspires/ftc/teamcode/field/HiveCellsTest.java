@@ -10,10 +10,10 @@ import org.junit.Test;
 public class HiveCellsTest {
     @Test
     public void cellFollowsFieldHalfLikeTrackCell() {
-        assertEquals(HiveCells.Cell.BLUE_FAR, HiveCells.forRobot(Field.Alliance.BLUE, new Pose(100, 72, 0)));
-        assertEquals(HiveCells.Cell.BLUE_AUDIENCE, HiveCells.forRobot(Field.Alliance.BLUE, new Pose(100, 71.9, 0)));
-        assertEquals(HiveCells.Cell.RED_FAR, HiveCells.forRobot(Field.Alliance.RED, new Pose(20, 130, 0)));
-        assertEquals(HiveCells.Cell.RED_AUDIENCE, HiveCells.forRobot(Field.Alliance.RED, new Pose(20, 10, 0)));
+        assertEquals(HiveCells.Cell.BLUE_AUDIENCE, HiveCells.forRobot(Field.Alliance.BLUE, new Pose(100, 72, 0)));
+        assertEquals(HiveCells.Cell.BLUE_FAR, HiveCells.forRobot(Field.Alliance.BLUE, new Pose(100, 71.9, 0)));
+        assertEquals(HiveCells.Cell.RED_AUDIENCE, HiveCells.forRobot(Field.Alliance.RED, new Pose(20, 130, 0)));
+        assertEquals(HiveCells.Cell.RED_FAR, HiveCells.forRobot(Field.Alliance.RED, new Pose(20, 10, 0)));
     }
 
     @Test

@@ -29,17 +29,26 @@ public final class CellLocator {
         public final double up;
         public final double pitch;
         public final double yaw;
+        public final double roll;
 
         public CameraMount(double forward, double left, double up, double pitch, double yaw) {
+            this(forward, left, up, pitch, yaw, 0);
+        }
+
+        public CameraMount(double forward, double left, double up, double pitch, double yaw, double roll) {
             this.forward = forward;
             this.left = left;
             this.up = up;
             this.pitch = pitch;
             this.yaw = yaw;
+            this.roll = roll;
         }
     }
 
-    public static double[] cameraToTurret(double xRight, double yDown, double zForward, CameraMount mount) {
+    public static double[] cameraToTurret(double xImage, double yImage, double zForward, CameraMount mount) {
+        double cr = Math.cos(mount.roll), sr = Math.sin(mount.roll);
+        double xRight = xImage * cr + yImage * sr;
+        double yDown = yImage * cr - xImage * sr;
         double cp = Math.cos(mount.pitch), sp = Math.sin(mount.pitch);
         double cy = Math.cos(mount.yaw), sy = Math.sin(mount.yaw);
 

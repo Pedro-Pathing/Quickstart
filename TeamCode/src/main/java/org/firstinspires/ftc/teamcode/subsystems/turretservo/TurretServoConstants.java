@@ -7,9 +7,6 @@ public class TurretServoConstants {
     public static String SERVO_NAME = "turret";
     public static boolean SERVO_REVERSED = false;
 
-    public static double PWM_LOWER_US = 500;
-    public static double PWM_UPPER_US = 2500;
-
     public static double SERVO_RANGE_DEG = 270;
 
     public static double CENTER_POSITION = 0.5;
