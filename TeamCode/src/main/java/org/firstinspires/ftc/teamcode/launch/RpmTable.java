@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.launch;
 
 import com.pedropathing.math.Pose;
 
+import org.firstinspires.ftc.teamcode.helpers.Units;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
 import org.firstinspires.ftc.teamcode.vision.HiveCells;
 import org.firstinspires.ftc.teamcode.vision.HiveTarget;
@@ -52,10 +53,10 @@ public class RpmTable {
         if (target != null) return rpmFor(target);
         if (pose == null) return LaunchModel.rpmForSpeed(DEFAULT_LAUNCH_SPEED_MPS);
         double cos = Math.cos(pose.heading()), sin = Math.sin(pose.heading());
-        double axleX = pose.x() + (launcher.axleForward * cos - launcher.axleLeft * sin) / 0.0254;
-        double axleY = pose.y() + (launcher.axleForward * sin + launcher.axleLeft * cos) / 0.0254;
+        double axleX = pose.x() + Units.metresToInches(launcher.axleForward * cos - launcher.axleLeft * sin);
+        double axleY = pose.y() + Units.metresToInches(launcher.axleForward * sin + launcher.axleLeft * cos);
         double[] cell = HiveCells.nearestCell(alliance, axleX, axleY);
-        return rpmAt(Math.hypot(cell[0] - axleX, cell[1] - axleY) * 0.0254);
+        return rpmAt(Units.inchesToMetres(Math.hypot(cell[0] - axleX, cell[1] - axleY)));
     }
 
     /** RPM to hit a target the camera sees, from this launcher's axle. */

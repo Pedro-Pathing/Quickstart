@@ -5,6 +5,7 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 
+import org.firstinspires.ftc.teamcode.helpers.Units;
 import org.firstinspires.ftc.teamcode.intake.Intake;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
 import org.firstinspires.ftc.teamcode.vision.FloorBall;
@@ -62,7 +63,6 @@ public class CollectAssist {
 
     public enum State { IDLE, SEARCHING, TURNING, DRIVING, FINISHING }
 
-    private static final double METRES_TO_INCHES = 39.3701;
 
     private final Follower follower;
     private final LimelightCamera camera;
@@ -189,14 +189,14 @@ public class CollectAssist {
                 } else {
                     // Re-aim the line at the ball's latest position until it's close
                     if (balls != null && Math.hypot(targetX - pose.x(), targetY - pose.y())
-                            > steerUntilDistance * METRES_TO_INCHES) {
+                            > Units.metresToInches(steerUntilDistance)) {
                         aimLine(pose);
                     }
                     follower.hold(new Pose(endX, endY, lineHeading));
                     intake.update();
                     // How far short of the end of the line the robot is, along the line (negative once past it)
                     double shortBy = (endX - pose.x()) * Math.cos(lineHeading) + (endY - pose.y()) * Math.sin(lineHeading);
-                    boolean arrived = shortBy < arriveTolerance * METRES_TO_INCHES;
+                    boolean arrived = shortBy < Units.metresToInches(arriveTolerance);
                     if (intake.hasPickedUp()) {
                         finish("picked up " + targetKind);
                     } else if (arrived) {
@@ -225,7 +225,7 @@ public class CollectAssist {
             Pose pose = follower.pose();
             telemetryM.addData("Collect Target", targetKind);
             telemetryM.addData("Collect Distance (m)",
-                    Math.hypot(targetX - pose.x(), targetY - pose.y()) / METRES_TO_INCHES);
+                    Units.inchesToMetres(Math.hypot(targetX - pose.x(), targetY - pose.y())));
         }
         if (intake.isRunning()) {
             telemetryM.addData("Intake Current (A)", intake.getCurrentAmps());
@@ -237,7 +237,7 @@ public class CollectAssist {
     /** Aim the line from where the robot is through the ball, ending driveBeyondBall past it. */
     private void aimLine(Pose pose) {
         lineHeading = Math.atan2(targetY - pose.y(), targetX - pose.x());
-        double beyond = driveBeyondBall * METRES_TO_INCHES;
+        double beyond = Units.metresToInches(driveBeyondBall);
         endX = targetX + beyond * Math.cos(lineHeading);
         endY = targetY + beyond * Math.sin(lineHeading);
     }
@@ -264,7 +264,7 @@ public class CollectAssist {
      */
     private boolean trackTarget(List<FloorBall> balls, Alliance alliance, Pose pose) {
         FloorBall match = null;
-        double matchDistance = matchRadius * METRES_TO_INCHES;
+        double matchDistance = Units.metresToInches(matchRadius);
         for (FloorBall ball : balls) {
             if (ball.kind != targetKind) continue;
             double[] field = toField(ball, pose);
@@ -299,7 +299,7 @@ public class CollectAssist {
     /** A ball's robot-frame position (m) as a field position (Pedro inches). */
     private static double[] toField(FloorBall ball, Pose pose) {
         double cos = Math.cos(pose.heading()), sin = Math.sin(pose.heading());
-        double x = ball.x * METRES_TO_INCHES, y = ball.y * METRES_TO_INCHES;
+        double x = Units.metresToInches(ball.x), y = Units.metresToInches(ball.y);
         return new double[] {pose.x() + x * cos - y * sin, pose.y() + x * sin + y * cos};
     }
 

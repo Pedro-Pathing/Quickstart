@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.vision;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.math.Pose;
 
+import org.firstinspires.ftc.teamcode.helpers.Units;
+
 /**
  * Chooses the field heading that points the robot at our HIVE, for auto-aim in TeleOp and Autonomous.
  *
@@ -28,7 +30,6 @@ public class HiveAim {
     /** ...while turning slower than this (rad/s). Shared by TeleOp and the autos. */
     public static double lockSettleRate = 0.3;
 
-    private static final double METRES_TO_INCHES = 1.0 / 0.0254;
     /**
      * Closer than this (inches) to the remembered point the direction to it swings wildly for a small
      * move, so the last heading is held instead. The point is kept, so the aim recovers on leaving.
@@ -64,8 +65,8 @@ public class HiveAim {
         if (target != null && target.frame != frame) {
             Pose then = history.at(target.captureNanos);
             double cos = Math.cos(then.heading()), sin = Math.sin(then.heading());
-            targetX = then.x() + (target.x * cos - target.y * sin) * METRES_TO_INCHES;
-            targetY = then.y() + (target.x * sin + target.y * cos) * METRES_TO_INCHES;
+            targetX = then.x() + Units.metresToInches(target.x * cos - target.y * sin);
+            targetY = then.y() + Units.metresToInches(target.x * sin + target.y * cos);
             frame = target.frame;
             fromVision = true;
         }
