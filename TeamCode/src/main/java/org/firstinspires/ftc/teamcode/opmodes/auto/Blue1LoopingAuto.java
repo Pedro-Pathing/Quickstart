@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.vision.Alliance;
  * works the blue scoring-side quarter: along the rear wall through the blue GARDEN, then down the blue wall short of
  * its FLOWER, shooting at the scoring-side CELL.
  */
-@Autonomous(name = "Blue 1 Looping Auto", group = "Autonomous")
+@Autonomous(name = "SIM Blue 1 Looping Auto", group = "Sim")
 public class Blue1LoopingAuto extends LoopingAuto {
 
     @Override
