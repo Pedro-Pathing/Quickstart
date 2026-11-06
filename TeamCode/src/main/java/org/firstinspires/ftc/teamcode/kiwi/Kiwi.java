@@ -79,6 +79,18 @@ public class Kiwi implements Drivetrain {
         drivePowers = powers;
         double voltageNormalized = config.voltageCompensation.get() ? getVoltageNormalized() : 1.0;
 
+        powerScale = scaleWheelPowers(powers, voltageNormalized, turnFirst, wheelPowers);
+        for (int i = 0; i < wheelPowers.length; i++) {
+            motors[i].setPower(wheelPowers[i]);
+        }
+    }
+
+    /**
+     * The wheel powers (written into out) for these drive powers, scaled to keep every wheel within
+     * full power; returns the scale applied. Pure maths, split out from applyDrive() so it can be
+     * tested without hardware.
+     */
+    static double scaleWheelPowers(DrivePowers powers, double voltageNormalized, boolean turnFirst, double[] out) {
         if (turnFirst) {
             double turn = Math.max(-1.0, Math.min(1.0, powers.turn() * voltageNormalized));
             double[] translation = computeWheelPowersUnnormalized(new DrivePowers(powers.forward(), powers.strafe(), 0.0));
@@ -90,12 +102,10 @@ public class Kiwi implements Drivetrain {
                 double limit = ((wheel > 0 ? 1.0 : -1.0) - turn) / wheel;
                 scale = Math.min(scale, Math.max(0.0, limit));
             }
-            powerScale = scale;
             for (int i = 0; i < translation.length; i++) {
-                wheelPowers[i] = translation[i] * voltageNormalized * scale + turn;
-                motors[i].setPower(wheelPowers[i]);
+                out[i] = translation[i] * voltageNormalized * scale + turn;
             }
-            return;
+            return scale;
         }
 
         double[] requested = computeWheelPowersUnnormalized(powers);
@@ -108,15 +118,13 @@ public class Kiwi implements Drivetrain {
         for (double power : requested) {
             maxPower = Math.max(maxPower, Math.abs(power));
         }
-        powerScale = 1.0 / maxPower;
-
         for (int i = 0; i < requested.length; i++) {
-            wheelPowers[i] = requested[i] / maxPower;
-            motors[i].setPower(wheelPowers[i]);
+            out[i] = requested[i] / maxPower;
         }
+        return 1.0 / maxPower;
     }
 
-    public double[] computeWheelPowersUnnormalized(DrivePowers powers) {
+    public static double[] computeWheelPowersUnnormalized(DrivePowers powers) {
         double[] wheelPowers = new double[3];
         double forward = powers.forward();
         double strafe = powers.strafe();
@@ -131,6 +139,11 @@ public class Kiwi implements Drivetrain {
 
     @Override
     public double maxScaling(DrivePowers current, DrivePowers delta) {
+        return scalingFor(current, delta);
+    }
+
+    /** How far (0..1) along delta from current the wheels can go before one passes full power. */
+    static double scalingFor(DrivePowers current, DrivePowers delta) {
         double lambda = 1.0;
 
         double[] currentPowers = computeWheelPowersUnnormalized(current);
