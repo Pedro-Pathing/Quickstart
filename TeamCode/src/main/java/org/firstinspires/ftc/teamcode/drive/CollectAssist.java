@@ -4,7 +4,6 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.intake.Intake;
 import org.firstinspires.ftc.teamcode.vision.Alliance;
@@ -13,6 +12,7 @@ import org.firstinspires.ftc.teamcode.vision.LimelightCamera;
 import org.firstinspires.ftc.teamcode.vision.PoseHistory;
 
 import java.util.List;
+import java.util.function.DoubleSupplier;
 
 /**
  * Drives the robot to collect the nearest ball it's allowed: Pollen, or Nectar of our colour.
@@ -30,7 +30,9 @@ import java.util.List;
  * It finishes when the intake reports a pickup or the robot passes the end of the line, then
  * runs the intake for intakeAfterSeconds more and tilts the camera back up. If their Nectar comes
  * into the way while turning or driving, it goes back to SEARCHING and picks again. It gives up if
- * nothing suitable is seen for searchTimeoutSeconds or a collect takes over collectTimeoutSeconds.
+ * nothing suitable is seen for searchTimeoutSeconds. The collect as a whole, counted from start()
+ * across SEARCHING, TURNING and DRIVING (and every trip back to SEARCHING), also gives up after
+ * collectTimeoutSeconds, so Nectar that keeps getting in the way can't keep it going for ever.
  *
  * While active it drives the follower with hold(), so the OpMode must not drive it as well.
  * Each camera image is used once, and its balls are turned into field positions with the robot's
@@ -53,6 +55,7 @@ public class CollectAssist {
     /** Once the ball is this close (m) to the robot's centre, the line stops being re-aimed. */
     public static double steerUntilDistance = 0.35;
     public static double searchTimeoutSeconds = 1.5;
+    /** The longest a whole collect may take from start(), over searching, turning and driving. */
     public static double collectTimeoutSeconds = 4.0;
     /** The intake keeps running this long after a collect, to pull the ball fully in. */
     public static double intakeAfterSeconds = 0.5;
@@ -69,7 +72,10 @@ public class CollectAssist {
     private long frame = -1;
 
     private State state = State.IDLE;
-    private final ElapsedTime stateTimer = new ElapsedTime();
+    /** Seconds on a steady clock; replaced in tests so they needn't wait. */
+    private final DoubleSupplier clock;
+    /** When the current state was entered, and when start() was called (clock seconds). */
+    private double stateStart, collectStart;
     private String result = "";
 
     /** Where the robot was when the collect started, held while searching and turning (Pedro inches). */
@@ -82,6 +88,12 @@ public class CollectAssist {
     private int ballsSeen = 0;
 
     public CollectAssist(Follower follower, LimelightCamera camera, Intake intake) {
+        this(follower, camera, intake, () -> System.nanoTime() * 1e-9);
+    }
+
+    /** As above, with the clock (in seconds) given, for tests. */
+    CollectAssist(Follower follower, LimelightCamera camera, Intake intake, DoubleSupplier clock) {
+        this.clock = clock;
         this.follower = follower;
         this.camera = camera;
         this.intake = intake;
@@ -98,6 +110,7 @@ public class CollectAssist {
         holdY = pose.y();
         holdHeading = pose.heading();
         camera.setMode(LimelightCamera.Mode.FLOOR);
+        collectStart = clock.getAsDouble();
         setState(State.SEARCHING);
         result = "";
     }
@@ -142,9 +155,12 @@ public class CollectAssist {
                 return;
             case SEARCHING:
                 follower.hold(new Pose(holdX, holdY, holdHeading));
-                if (balls != null && chooseTarget(balls, alliance, seenFrom)) {
+                if (collectSeconds() > collectTimeoutSeconds) {
+                    // Checked first, so a ball that keeps turning up can't keep the collect going
+                    finish("timed out");
+                } else if (balls != null && chooseTarget(balls, alliance, seenFrom)) {
                     setState(State.TURNING);
-                } else if (stateTimer.seconds() > searchTimeoutSeconds) {
+                } else if (stateSeconds() > searchTimeoutSeconds) {
                     finish("no ball of ours in reach");
                     setState(State.IDLE);
                 }
@@ -185,14 +201,16 @@ public class CollectAssist {
                         finish("picked up " + targetKind);
                     } else if (arrived) {
                         finish("reached " + targetKind + " (no pickup detected)");
-                    } else if (stateTimer.seconds() > collectTimeoutSeconds) {
-                        finish("timed out");
                     }
+                }
+                // Out of time overall, whichever of turning and driving it was in (pickup and arrival win a tie)
+                if ((state == State.TURNING || state == State.DRIVING) && collectSeconds() > collectTimeoutSeconds) {
+                    finish("timed out");
                 }
                 break;
             case FINISHING:
                 intake.update();
-                if (stateTimer.seconds() > intakeAfterSeconds) {
+                if (stateSeconds() > intakeAfterSeconds) {
                     intake.stop();
                     setState(State.IDLE);
                 }
@@ -294,6 +312,14 @@ public class CollectAssist {
 
     private void setState(State newState) {
         state = newState;
-        stateTimer.reset();
+        stateStart = clock.getAsDouble();
+    }
+
+    private double stateSeconds() {
+        return clock.getAsDouble() - stateStart;
+    }
+
+    private double collectSeconds() {
+        return clock.getAsDouble() - collectStart;
     }
 }
