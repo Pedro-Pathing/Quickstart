@@ -46,3 +46,14 @@ java {
 
 // Adds the deploySloth and removeSlothRemote tasks
 apply plugin: 'dev.frozenmilk.sinister.sloth.load'
+
+// PC unit tests (TeamCode/src/test): ./gradlew :TeamCode:testDebugUnitTest
+android {
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+}
