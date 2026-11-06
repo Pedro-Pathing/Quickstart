@@ -34,4 +34,6 @@ dependencies {
     // Slothboard: Sloth's drop-in replacement for FTC Dashboard, aware of hot-reloaded classes
     // (lets @Config fields like shooter RPM/PIDF be tuned live without going stale on reload)
     implementation "com.acmerobotics.slothboard:dashboard:0.3.2+0.6.0"
+
+    testImplementation "junit:junit:4.13.2"
 }

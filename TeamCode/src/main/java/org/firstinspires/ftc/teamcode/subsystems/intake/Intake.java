@@ -11,6 +11,8 @@ public class Intake extends SubsystemBase {
     public Intake(HardwareMap hardwareMap){
         intake1 = hardwareMap.get(DcMotor.class, IntakeConstants.HMIntake1);
         index1 = hardwareMap.get(DcMotor.class, IntakeConstants.HMIndex1);
+        intake1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        index1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void intakeOn(){
