@@ -12,7 +12,6 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.List;
@@ -22,6 +21,10 @@ public class ThreeWheelIMUTuner extends Procedure {
     private static String leftEncoderName = "lf";
     private static String rightEncoderName = "rr";
     private static String strafeEncoderName = "lr";
+    private static String frontLeftName = "lf";
+    private static String backLeftName = "lr";
+    private static String frontRightName = "rf";
+    private static String backRightName = "rr";
     private static String imuName = "imu";
     private static RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
             RevHubOrientationOnRobot.LogoFacingDirection.UP;
@@ -39,6 +42,10 @@ public class ThreeWheelIMUTuner extends Procedure {
         Inputs.Field<String> leftEncoder = setup.s("Left Encoder Motor Name").withDefault("lf");
         Inputs.Field<String> rightEncoder = setup.s("Right Encoder Motor Name").withDefault("rr");
         Inputs.Field<String> strafeEncoder = setup.s("Strafe Encoder Motor Name").withDefault("lr");
+        Inputs.Field<String> frontLeft = setup.s("Front Left Drive Motor Name").withDefault("lf");
+        Inputs.Field<String> backLeft = setup.s("Back Left Drive Motor Name").withDefault("lr");
+        Inputs.Field<String> frontRight = setup.s("Front Right Drive Motor Name").withDefault("rf");
+        Inputs.Field<String> backRight = setup.s("Back Right Drive Motor Name").withDefault("rr");
         Inputs.Field<String> imu = setup.s("IMU HardwareMap Name").withDefault("imu");
         Inputs.Field<RevHubOrientationOnRobot.LogoFacingDirection> logo =
                 setup.e("Logo Facing Direction", RevHubOrientationOnRobot.LogoFacingDirection.class)
@@ -50,6 +57,10 @@ public class ThreeWheelIMUTuner extends Procedure {
         leftEncoderName = leftEncoder.get();
         rightEncoderName = rightEncoder.get();
         strafeEncoderName = strafeEncoder.get();
+        frontLeftName = frontLeft.get();
+        backLeftName = backLeft.get();
+        frontRightName = frontRight.get();
+        backRightName = backRight.get();
         imuName = imu.get();
         logoDirection = logo.get();
         usbDirection = usb.get();
@@ -188,11 +199,12 @@ public class ThreeWheelIMUTuner extends Procedure {
         for (LynxModule hub : map.getAll(LynxModule.class)) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-        for (String name : new String[]{"lf", "lr", "rf", "rr"}) {
-            DcMotorEx motor = map.get(DcMotorEx.class, name);
+        for (String name : new String[]{frontLeftName, backLeftName, frontRightName, backRightName}) {
+            DcMotorEx motor = map.tryGet(DcMotorEx.class, name);
+            if (motor == null) {
+                continue;
+            }
             motor.setPower(0);
-            motor.setDirection(name.equals("lf") || name.equals("lr")
-                    ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
         return new ThreeWheelIMULocalizer(map, config);
