@@ -1,6 +1,7 @@
 repositories {
     mavenCentral()
     maven { url 'https://repo.dairy.foundation/releases/'}
+    maven { url 'https://mymaven.bylazar.com/releases' }
     google() // Needed for androidx
 }
 
@@ -19,5 +20,5 @@ dependencies {
     implementation 'com.pedropathing:tuning:1.0.3'
     implementation 'com.pedropathing.ivy:pedro:1.1.1'
 
-    implementation 'com.bylazar.sloth:fullpanels:0.3.2+1.0.13'
+    implementation 'com.bylazar:fullpanels:1.0.19'
 }
