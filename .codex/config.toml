@@ -1,0 +1,13 @@
+# Project-scoped Codex config: loaded only once this project is trusted in Codex.
+# The robot MCP server (tools/robot-mcp); see tools/robot-mcp/README.md.
+
+[mcp_servers.robot]
+command = "sh"
+# Codex does not document a server's working directory, so the launcher is found from the repo
+# root rather than by a relative path.
+args = ["-c", "exec \"$(git rev-parse --show-toplevel)/tools/robot-mcp/launch.sh\""]
+env = { ROBOT_HOST = "192.168.43.1", ROBOT_PORT = "8080" }
+# First start: uv fetches Python and the dependencies.
+startup_timeout_sec = 180
+# run_experiment can run an OpMode for up to 600 s.
+tool_timeout_sec = 660

@@ -23,6 +23,7 @@ public final class config {
   public static Shooter shooter;
   public static Auto auto;
   public static Teleop teleop;
+  public static AgentBridge agent_bridge;
 
   public static String META_SEASON;
   public static double FIELD_SIZE_IN;
@@ -263,6 +264,11 @@ public final class config {
   public static double SHOOTER_MOTOR_PIDF_F;
   public static double SHOOTER_INTEGRAL_BAND_TICKS;
   public static double SHOOTER_INTEGRAL_MAX_CONTRIBUTION;
+  public static double SHOOTER_KICK_WHEEL_TAU_SEC;
+  public static double SHOOTER_KICK_SENSOR_LAG_SEC;
+  public static double SHOOTER_KICK_KICK_LAG_MARGIN_SEC;
+  public static double SHOOTER_KICK_KICK_TRIGGER_FRACTION;
+  public static double SHOOTER_KICK_KICK_SPEED_MARGIN;
   public static double SHOOTER_BALLISTICS_V0;
   public static double SHOOTER_BALLISTICS_K;
   public static double SHOOTER_BALLISTICS_MAGNUS_L;
@@ -286,6 +292,7 @@ public final class config {
   public static double SHOOTER_BALLISTICS_FLIGHT_TIME_SEC_PER_INCH;
   public static double SHOOTER_BALLISTICS_LEAD_MIN_SPEED_IPS;
   public static boolean SHOOTER_SHOT_TABLE_CALIBRATED;
+  public static boolean SHOOTER_SHOT_TABLE_NECTAR_ENABLED;
   public static double[] SHOOTER_SHOT_TABLE_POLLEN_POINTS;
   public static double[] SHOOTER_SHOT_TABLE_NECTAR_POINTS;
   public static double[] AUTO_SHOT_TIME_POINTS;
@@ -307,6 +314,7 @@ public final class config {
   public static double TELEOP_TRANSFER_POWER;
   public static double TELEOP_MANUAL_REV_POWER;
   public static double TELEOP_EJECT_POWER;
+  public static boolean TELEOP_FLOWER_HOLD_ENABLED;
   public static int TELEOP_RUMBLE_MS;
   public static int TELEOP_PARK_ALERT_MARGIN_MS;
   public static int TELEOP_PARK_ALERT_UPDATE_MS;
@@ -321,6 +329,19 @@ public final class config {
   public static Pose TELEOP_POSES_BLUE_SHOOT_A;
   public static Pose TELEOP_POSES_BLUE_SHOOT_B;
   public static Pose TELEOP_POSES_BLUE_FLOWER;
+  public static boolean AGENT_BRIDGE_BRIDGE_ENABLED;
+  public static double AGENT_BRIDGE_RECORD_RATE_HZ;
+  public static double AGENT_BRIDGE_RECORD_MAX_ROWS;
+  public static double AGENT_BRIDGE_CURRENT_EVERY_N_SAMPLES;
+  public static double AGENT_BRIDGE_TELEMETRY_BUFFER_ENTRIES;
+  public static int AGENT_BRIDGE_MAX_SCRIPT_MS;
+  public static int AGENT_BRIDGE_SCRIPT_TICK_MS;
+  public static int AGENT_BRIDGE_DEADMAN_MS;
+  public static boolean AGENT_BRIDGE_FLIGHT_AUTO;
+  public static double AGENT_BRIDGE_FLIGHT_POLL_HZ;
+  public static int AGENT_BRIDGE_FLIGHT_FLUSH_MS;
+  public static double AGENT_BRIDGE_FLIGHT_MAX_ROWS;
+  public static double AGENT_BRIDGE_FLIGHT_KEEP;
 
   static {
     reload();
@@ -341,6 +362,7 @@ public final class config {
     shooter = ConfigLoader.load(Shooter.class, "shooter");
     auto = ConfigLoader.load(Auto.class, "auto");
     teleop = ConfigLoader.load(Teleop.class, "teleop");
+    agent_bridge = ConfigLoader.load(AgentBridge.class, "agent_bridge");
     META_SEASON = meta.season;
     FIELD_SIZE_IN = field.size_in;
     FIELD_HIVE_CENTER_TO_CENTER_IN = field.hive.center_to_center_in;
@@ -584,6 +606,11 @@ public final class config {
     SHOOTER_MOTOR_PIDF_F = shooter.motor_pidf.f;
     SHOOTER_INTEGRAL_BAND_TICKS = shooter.integral.band_ticks;
     SHOOTER_INTEGRAL_MAX_CONTRIBUTION = shooter.integral.max_contribution;
+    SHOOTER_KICK_WHEEL_TAU_SEC = shooter.kick.wheel_tau_sec;
+    SHOOTER_KICK_SENSOR_LAG_SEC = shooter.kick.sensor_lag_sec;
+    SHOOTER_KICK_KICK_LAG_MARGIN_SEC = shooter.kick.kick_lag_margin_sec;
+    SHOOTER_KICK_KICK_TRIGGER_FRACTION = shooter.kick.kick_trigger_fraction;
+    SHOOTER_KICK_KICK_SPEED_MARGIN = shooter.kick.kick_speed_margin;
     SHOOTER_BALLISTICS_V0 = shooter.ballistics.v0;
     SHOOTER_BALLISTICS_K = shooter.ballistics.k;
     SHOOTER_BALLISTICS_MAGNUS_L = shooter.ballistics.magnus_l;
@@ -607,6 +634,7 @@ public final class config {
     SHOOTER_BALLISTICS_FLIGHT_TIME_SEC_PER_INCH = shooter.ballistics.flight_time_sec_per_inch;
     SHOOTER_BALLISTICS_LEAD_MIN_SPEED_IPS = shooter.ballistics.lead_min_speed_ips;
     SHOOTER_SHOT_TABLE_CALIBRATED = shooter.shot_table.calibrated;
+    SHOOTER_SHOT_TABLE_NECTAR_ENABLED = shooter.shot_table.nectar_enabled;
     SHOOTER_SHOT_TABLE_POLLEN_POINTS = shooter.shot_table.pollen_points;
     SHOOTER_SHOT_TABLE_NECTAR_POINTS = shooter.shot_table.nectar_points;
     AUTO_SHOT_TIME_POINTS = auto.shot_time_points;
@@ -628,6 +656,7 @@ public final class config {
     TELEOP_TRANSFER_POWER = teleop.transfer_power;
     TELEOP_MANUAL_REV_POWER = teleop.manual_rev_power;
     TELEOP_EJECT_POWER = teleop.eject_power;
+    TELEOP_FLOWER_HOLD_ENABLED = teleop.flower_hold_enabled;
     TELEOP_RUMBLE_MS = teleop.rumble_ms;
     TELEOP_PARK_ALERT_MARGIN_MS = teleop.park_alert_margin_ms;
     TELEOP_PARK_ALERT_UPDATE_MS = teleop.park_alert_update_ms;
@@ -642,6 +671,19 @@ public final class config {
     TELEOP_POSES_BLUE_SHOOT_A = teleop.poses.blue.shoot_a;
     TELEOP_POSES_BLUE_SHOOT_B = teleop.poses.blue.shoot_b;
     TELEOP_POSES_BLUE_FLOWER = teleop.poses.blue.flower;
+    AGENT_BRIDGE_BRIDGE_ENABLED = agent_bridge.bridge_enabled;
+    AGENT_BRIDGE_RECORD_RATE_HZ = agent_bridge.record_rate_hz;
+    AGENT_BRIDGE_RECORD_MAX_ROWS = agent_bridge.record_max_rows;
+    AGENT_BRIDGE_CURRENT_EVERY_N_SAMPLES = agent_bridge.current_every_n_samples;
+    AGENT_BRIDGE_TELEMETRY_BUFFER_ENTRIES = agent_bridge.telemetry_buffer_entries;
+    AGENT_BRIDGE_MAX_SCRIPT_MS = agent_bridge.max_script_ms;
+    AGENT_BRIDGE_SCRIPT_TICK_MS = agent_bridge.script_tick_ms;
+    AGENT_BRIDGE_DEADMAN_MS = agent_bridge.deadman_ms;
+    AGENT_BRIDGE_FLIGHT_AUTO = agent_bridge.flight_auto;
+    AGENT_BRIDGE_FLIGHT_POLL_HZ = agent_bridge.flight_poll_hz;
+    AGENT_BRIDGE_FLIGHT_FLUSH_MS = agent_bridge.flight_flush_ms;
+    AGENT_BRIDGE_FLIGHT_MAX_ROWS = agent_bridge.flight_max_rows;
+    AGENT_BRIDGE_FLIGHT_KEEP = agent_bridge.flight_keep;
   }
 
   public static final class Meta {
@@ -2038,6 +2080,47 @@ public final class config {
 
     public Integral integral;
 
+    public static final class Kick {
+      /**
+       * Flywheel mechanical time constant (seconds): time to cover 63% of a power step, measured by
+       * Shooter Characterization's step test. Used only by the recovery kick's model; 0 disables
+       * the kick. Minimum: 0.0 Maximum: 5.0
+       */
+      public double wheel_tau_sec;
+
+      /**
+       * Dead time (seconds) between a flywheel power change and the first change in the measured
+       * velocity, from Shooter Characterization's step test. The recovery kick runs its model
+       * forward over this long so it stops on the wheel's speed now, not the reading's. Minimum:
+       * 0.0 Maximum: 0.3
+       */
+      public double sensor_lag_sec;
+
+      /**
+       * How far shooter.kick.sensor_lag_sec may be short (the step test fits it to within 7.5 ms).
+       * While kicking, the model runs over the lag plus this, which predicts an accelerating wheel
+       * faster and so stops the kick early rather than late. Minimum: 0.0 Maximum: 0.1
+       */
+      public double kick_lag_margin_sec;
+
+      /**
+       * The recovery kick starts once the measured flywheel speed is this fraction below target (a
+       * ball hit or spin-up). Match shooter.ball_detection.dip_fraction so every counted ball also
+       * kicks. Minimum: 0.0 Maximum: 0.5
+       */
+      public double kick_trigger_fraction;
+
+      /**
+       * The recovery kick asks only for the power that would land a wheel this many times faster
+       * than its model on target, so a model error costs a little speed rather than an overshoot.
+       * 1.4 covers a 25% wheel_tau_sec error times the 10% kV error FlywheelClosedLoopProperties
+       * allows (1.25 x 1.1). Minimum: 1.0 Maximum: 3.0
+       */
+      public double kick_speed_margin;
+    }
+
+    public Kick kick;
+
     public static final class Ballistics {
       /** Fitted initial ring exit velocity (in/s) at constant RPM. Minimum: 0.0 */
       public double v0;
@@ -2179,6 +2262,13 @@ public final class config {
       public boolean calibrated;
 
       /**
+       * False when the robot cannot handle NECTAR: the shot controller stays on the POLLEN table
+       * and the TeleOp and Ballistics Calibration ball-type toggles do nothing. True allows
+       * selecting the NECTAR table.
+       */
+      public boolean nectar_enabled;
+
+      /**
        * POLLEN shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples from the
        * Ballistics Calibration OpMode. Distances must strictly increase.
        */
@@ -2260,8 +2350,9 @@ public final class config {
     public boolean cell_a_collect_flower;
 
     /**
-     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
-     * upward-facing.
+     * CELL A routine: drive around the HIVE on the FLOWER-side lane and launch a second volley into
+     * CELL B once it is upward-facing. Without cell_a_collect_flower this fires only POLLEN left
+     * over when the TIP stopped the first volley.
      */
     public boolean cell_a_second_volley;
 
@@ -2315,6 +2406,12 @@ public final class config {
      * SCORING ELEMENT (G407) or opponent NECTAR (G408). Minimum: -1.0 Maximum: 0.0
      */
     public double eject_power;
+
+    /**
+     * TeleOp: driver dpad left drives to and holds the FLOWER pickup pose. False when the robot
+     * cannot take POLLEN from a FLOWER; the button then does nothing.
+     */
+    public boolean flower_hold_enabled;
 
     /** Gamepad rumble length (milliseconds) for match-time cues. Minimum: 0.0 */
     public int rumble_ms;
@@ -2396,6 +2493,89 @@ public final class config {
     }
 
     public Poses poses;
+  }
+
+  public static final class AgentBridge {
+    /**
+     * Serve the agent bridge's /agent/ endpoints. False: every endpoint except /agent/status
+     * answers 403. Turn off before competitions.
+     */
+    public boolean bridge_enabled;
+
+    /**
+     * Hardware recorder sample rate in Hz. Each sample sends one bulk-input command per hub,
+     * independent of the OpMode's bulk cache, so higher rates add hub traffic the OpMode competes
+     * with. Minimum: 1.0 Maximum: 200.0
+     */
+    public double record_rate_hz;
+
+    /**
+     * Hardware recorder capacity in samples; later samples are dropped and the recording marked
+     * full. Memory is about 4 bytes per column per row. Minimum: 100.0 Maximum: 200000.0
+     */
+    public double record_max_rows;
+
+    /**
+     * Read every motor's current (one hub command per motor) on every Nth recorder sample; columns
+     * hold the last reading in between. 0 never reads currents. Minimum: 0.0 Maximum: 1000.0
+     */
+    public double current_every_n_samples;
+
+    /**
+     * Number of OpMode telemetry updates the agent bridge keeps for /agent/telemetry. Minimum: 10.0
+     * Maximum: 100000.0
+     */
+    public double telemetry_buffer_entries;
+
+    /**
+     * Longest gamepad script, in milliseconds, the agent bridge accepts. Minimum: 100.0 Maximum:
+     * 600000.0
+     */
+    public int max_script_ms;
+
+    /**
+     * Period in milliseconds at which the agent bridge advances a running gamepad script: the
+     * timing resolution of its steps. Minimum: 1.0 Maximum: 100.0
+     */
+    public int script_tick_ms;
+
+    /**
+     * Stop an OpMode the agent bridge started when no bridge request arrives for this many
+     * milliseconds, so a stalled agent cannot leave a mechanism running. 0 disables. Minimum: 0.0
+     * Maximum: 600000.0
+     */
+    public int deadman_ms;
+
+    /**
+     * Run the agent bridge's flight recorder for every OpMode run, without an agent: each run's
+     * reads land in /sdcard/FIRST/flight/. False: only when an agent starts one.
+     */
+    public boolean flight_auto;
+
+    /**
+     * Rate at which the flight recorder checks the SDK's bulk caches and the Pinpoint for a new
+     * read. Keep it above the OpMode's loop rate, or consecutive loops merge into one row. Minimum:
+     * 50.0 Maximum: 2000.0
+     */
+    public double flight_poll_hz;
+
+    /**
+     * Milliseconds between flight recorder writes to the file: the most data a robot-app crash can
+     * lose, and how fresh a live read of the file is. Minimum: 50.0 Maximum: 10000.0
+     */
+    public int flight_flush_ms;
+
+    /**
+     * Flight recorder capacity in rows; later rows are dropped and the flight marked truncated.
+     * Minimum: 1000.0 Maximum: 2000000.0
+     */
+    public double flight_max_rows;
+
+    /**
+     * Number of flights kept on the robot; the oldest are deleted when a new flight starts.
+     * Minimum: 1.0 Maximum: 1000.0
+     */
+    public double flight_keep;
   }
 
   public static final class CellAAuto {
@@ -2492,8 +2672,9 @@ public final class config {
     public boolean cellACollectFlower;
 
     /**
-     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
-     * upward-facing.
+     * CELL A routine: drive around the HIVE on the FLOWER-side lane and launch a second volley into
+     * CELL B once it is upward-facing. Without cell_a_collect_flower this fires only POLLEN left
+     * over when the TIP stopped the first volley.
      */
     public boolean cellASecondVolley;
 
@@ -2603,8 +2784,9 @@ public final class config {
     public boolean cellACollectFlower;
 
     /**
-     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
-     * upward-facing.
+     * CELL A routine: drive around the HIVE on the FLOWER-side lane and launch a second volley into
+     * CELL B once it is upward-facing. Without cell_a_collect_flower this fires only POLLEN left
+     * over when the TIP stopped the first volley.
      */
     public boolean cellASecondVolley;
 
@@ -2691,8 +2873,9 @@ public final class config {
     public boolean cellACollectFlower;
 
     /**
-     * CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is
-     * upward-facing.
+     * CELL A routine: drive around the HIVE on the FLOWER-side lane and launch a second volley into
+     * CELL B once it is upward-facing. Without cell_a_collect_flower this fires only POLLEN left
+     * over when the TIP stopped the first volley.
      */
     public boolean cellASecondVolley;
 

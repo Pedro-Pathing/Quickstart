@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "robot": {
+      "command": "uv",
+      "args": ["run", "--quiet", "--directory", "tools/robot-mcp", "robot-mcp"],
+      "env": {
+        "ROBOT_HOST": "192.168.43.1",
+        "ROBOT_PORT": "8080"
+      }
+    }
+  }
+}

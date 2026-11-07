@@ -19,8 +19,9 @@ import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 /**
  * The partner routine to {@link CellAAuto}: starts on the CELL B side and waits for the alliance
  * partner's pre-load to TIP CELL A, which turns CELL B upward. It then launches its pre-load into
- * CELL B, optionally refills from its rear-wall FLOWER for a second volley (eight POLLEN in an
- * empty CELL is the official TIP calibration), and parks.
+ * CELL B, refills from its rear-wall FLOWER for a second volley if {@code
+ * auto.cell_b_collect_flower} (eight POLLEN in an empty CELL is the official TIP calibration; off
+ * on this robot, which has no FLOWER pickup), and parks.
  *
  * <p>If CELL B never comes up (no partner TIP within {@code auto.tip_wait_ms}), it drives around
  * the HIVE on its own side and empties its pre-load into CELL A instead, so the pre-load still

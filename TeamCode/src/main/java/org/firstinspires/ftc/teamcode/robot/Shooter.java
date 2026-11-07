@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import java.util.function.LongSupplier;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.AntiWindupIntegrator;
+import org.firstinspires.ftc.teamcode.utilities.FlywheelKick;
 
 @Configurable
 public class Shooter {
@@ -21,6 +22,13 @@ public class Shooter {
   private final VoltageSensor voltageSensor;
   private final PIDController pidfController;
   private final AntiWindupIntegrator integrator = new AntiWindupIntegrator();
+  private final FlywheelKick kick = new FlywheelKick();
+
+  /**
+   * The integrator's last contribution: the feedforward's error, learned in normal loops and held
+   * through a kick. The kick's model adds it to kS, so it predicts the wheel actually on the robot.
+   */
+  private double learnedCorrection = 0.0;
 
   /** Time source (ns). Injected so simulations can step the flywheel loop deterministically. */
   private final LongSupplier nanoClock;
@@ -111,6 +119,8 @@ public class Shooter {
       pidfController.reset();
     }
     integrator.reset();
+    kick.reset();
+    learnedCorrection = 0.0;
     lastSaturationSign = 0;
     loopStartNanos = nanoClock.getAsLong();
   }
@@ -188,28 +198,84 @@ public class Shooter {
         lastFeedforwardTerm = 0.0;
         lastCommand = targetPower;
       } else {
-        double pidOutput = pidfController.calculate(targetVel, targetVel - currentVel);
-
-        double error = targetVel - currentVel;
-        double integralTerm =
-            integrator.update(
-                error,
-                secondsSince(loopStartNanos),
-                config.shooter.pidf.i,
-                config.shooter.integral.band_ticks,
-                config.shooter.integral.max_contribution,
-                lastSaturationSign);
-        loopStartNanos = nanoClock.getAsLong();
-
-        double ks = config.shooter.ks;
-        double ff = (config.shooter.pidf.f * targetVel) / 32767.0;
-
+        // How long the previous command was applied, and what it delivered at nominal voltage.
+        double dt = secondsSince(loopStartNanos);
         refreshBusVoltage();
         lastVoltageScale =
             voltageCompensationScale(
                 config.shooter.nominal_voltage,
                 lastBusVoltage,
                 config.shooter.max_voltage_compensation);
+        double nominalPerCommand =
+            lastBusVoltage > 0.0 ? lastBusVoltage / config.shooter.nominal_voltage : 1.0;
+        kick.record(lastCommand * nominalPerCommand, dt);
+
+        double ks = config.shooter.ks;
+        double kv = config.shooter.pidf.f / 32767.0;
+        double ff = kv * targetVel;
+        double error = targetVel - currentVel;
+        var k = config.shooter.kick;
+        // With the wheel model configured, P acts on the predicted speed now (a Smith predictor):
+        // on the reading, which lags by sensor_lag_sec, P kept pushing for loops after a ball the
+        // wheel had already recovered from, and overshot. The integrator still learns from the
+        // reading, which is unbiased once the wheel settles.
+        double predictedVel =
+            kick.predictNow(
+                currentVel, k.sensor_lag_sec, k.wheel_tau_sec, ks + learnedCorrection, kv);
+        double pError = targetVel - predictedVel;
+        // What the normal loop would deliver, with the integrator as it stands: the kick only
+        // takes a loop when it asks for more.
+        double normalCommand =
+            Math.clamp(
+                (config.shooter.pidf.p * pError
+                        + learnedCorrection
+                        + ff
+                        + Math.copySign(ks, targetVel))
+                    * lastVoltageScale,
+                -1.0,
+                1.0);
+        double kickPower =
+            kick.update(
+                currentVel,
+                targetVel,
+                nominalPerCommand,
+                normalCommand * nominalPerCommand,
+                dt,
+                k.wheel_tau_sec,
+                k.sensor_lag_sec,
+                k.kick_lag_margin_sec,
+                ks + learnedCorrection,
+                kv,
+                k.kick_trigger_fraction,
+                config.shooter.min_transfer_threshold,
+                k.kick_speed_margin);
+        if (!Double.isNaN(kickPower)) {
+          // The integrator holds what it learned, as it does on any rail.
+          double command = Math.clamp(kickPower / nominalPerCommand, -1.0, 1.0);
+          loopStartNanos = nanoClock.getAsLong();
+          lastSaturationSign = command >= 1.0 ? 1 : 0;
+          lastTargetVelocity = targetVel;
+          lastError = error;
+          lastPidTerm = 0.0;
+          lastIntegralTerm = 0.0;
+          lastFeedforwardTerm = 0.0;
+          lastCommand = command;
+          shooter1.setPower(command);
+          shooter2.setPower(command);
+          return;
+        }
+
+        double pidOutput = pidfController.calculate(targetVel, pError);
+
+        double integralTerm =
+            integrator.update(
+                error,
+                dt,
+                config.shooter.pidf.i,
+                config.shooter.integral.band_ticks,
+                config.shooter.integral.max_contribution,
+                lastSaturationSign);
+        loopStartNanos = nanoClock.getAsLong();
 
         double raw =
             (pidOutput + integralTerm + ff + Math.copySign(ks, targetVel)) * lastVoltageScale;
@@ -221,6 +287,7 @@ public class Shooter {
         lastError = error;
         lastPidTerm = pidOutput;
         lastIntegralTerm = integralTerm;
+        learnedCorrection = integralTerm;
         lastFeedforwardTerm = ff + Math.copySign(ks, targetVel);
         lastCommand = command;
 
@@ -302,5 +369,10 @@ public class Shooter {
 
   public double getLastCommand() {
     return lastCommand;
+  }
+
+  /** True while the recovery kick holds full power (see {@link FlywheelKick}). */
+  public boolean isKicking() {
+    return kick.isKicking();
   }
 }

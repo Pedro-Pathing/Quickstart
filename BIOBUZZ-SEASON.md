@@ -37,8 +37,8 @@ BLUE's CELL A is its rear CELL (tags 42-45), the rotation of RED's CELL A. The m
 
 | OpMode | Start (RED) | Plan |
 | --- | --- | --- |
-| `Red/Blue A: tip first` | (58, 9) on the audience wall facing CELL A | 4 POLLEN into CELL A (it already holds 3 NECTAR; the field is calibrated to TIP at 3 NECTAR + 3 POLLEN), refill at the side-wall FLOWER, around the HIVE to an angled CELL B pose, volley if CELL B is up, park low in the LOADING ZONE |
-| `Red/Blue B: second CELL` | (30, 132.5) on the rear wall | Wait at the CELL B pose for the partner's TIP, volley, refill at the rear-wall FLOWER, volley again (8 POLLEN TIPS an empty CELL), park high in the LOADING ZONE. If CELL B never comes up: detour to CELL A and empty the pre-load there |
+| `Red/Blue A: tip first` | (58, 9) on the audience wall facing CELL A | 4 POLLEN into CELL A (it already holds 3 NECTAR; the field is calibrated to TIP at 3 NECTAR + 3 POLLEN), around the HIVE past the side-wall FLOWER (refilling there only if `cell_a_collect_flower`; off on this robot) to an angled CELL B pose, volley any leftover POLLEN if CELL B is up, park low in the LOADING ZONE |
+| `Red/Blue B: second CELL` | (30, 132.5) on the rear wall | Wait at the CELL B pose for the partner's TIP, volley the pre-load (a rear-wall FLOWER refill and second volley only if `cell_b_collect_flower`; off on this robot), park high in the LOADING ZONE. If CELL B never comes up: detour to CELL A and empty the pre-load there |
 | `Red/Blue Park Only` | (9, 75) on the alliance wall | LEAVE + PARK |
 
 Pick complementary routines with your alliance partner (one A, one B). Toggles: `auto.cell_a_collect_flower`, `auto.cell_a_second_volley`, `auto.cell_b_collect_flower`. Routes are not checked on the robot: `AutoRouteSafetyTest` rejects any configured route that would cross the centre line, hit the HIVE frame or fail LEAVE/PARK, both when the APK is built and when `pushConfig` runs (`checkPushConfig`), so such a config never reaches the robot. A config copied onto the Control Hub some other way (plain `adb push`) is not checked. A shot-table parse error is shown at INIT as a warning and does not block driving. Disabling FLOWER collection in the CELL A routine still uses the same clear lane with the intake off.
@@ -51,7 +51,7 @@ Pick complementary routines with your alliance partner (one A, one B). Toggles: 
 4. **Turret.** Run Turret Plant Calibration and paste its `ks_positive`, `ks_negative` and `kv` lines. `kv` turns on the chassis-rate feedforward: in simulation it cut aim lag behind a 30 deg/s chassis turn from ~10 deg to under 1 deg. Measure the turret axis offset from the robot centre into `turret.pivot_forward_in` / `pivot_left_in`. Last season's breakaway powers (+0.0009 / -0.0663) mean the CR servo's neutral sits about 0.033 off centre, so zero power leaves it on the edge of creeping; re-centre the servo's PWM neutral (servo programmer) and re-measure. The calibration OpMode recommends `pidf.i: 0`; the config keeps the old 0.008, now clamped.
 5. **Drivetrain.** If the chassis changed, re-run Pedro AutoTune (`MIGRATION-PEDRO3.md`). The `pedro.*` values are last season's.
 6. **Shooter.** POLLEN (2.8 in, ~25 g) and NECTAR (3.6 in, ~41 g) need steep lobs: a launch-model estimate is 64-78 deg elevation at 24-60 in, above the DECODE hood's 65 deg maximum. Re-run Shooter Characterization / Autotune if the flywheel changed.
-7. **Shot tables.** Run Ballistics Calibration (RED CELL A up, robot at `teleop.poses.red.shoot_a`) once for POLLEN and once for NECTAR (right bumper at INIT). Paste the rows into `shooter.shot_table.pollen_points` / `nectar_points`, then set `calibrated: true`. Until then TeleOp and autonomous shots never feed, including the fixed-power TeleOp shot. The calibration OpModes provide the deliberate fixed-power bypass for collecting measurements.
+7. **Shot tables.** Run Ballistics Calibration (RED CELL A up, robot at `teleop.poses.red.shoot_a`) for POLLEN. Paste the rows into `shooter.shot_table.pollen_points`, then set `calibrated: true`. Until then TeleOp and autonomous shots never feed, including the fixed-power TeleOp shot. The calibration OpModes provide the deliberate fixed-power bypass for collecting measurements.
 8. **Shot windows.** Run Shot Timing Tuner; paste its `shot_time_points` under `auto:`.
 9. **Field check.** Drive every routine slowly on a real field; adjust RED poses only (BLUE follows) unless BLUE measures differently, in which case replace that BLUE `m` with explicit values.
 10. **Clear old configs.** A DECODE `config.yaml` pushed to the Control Hub is ignored automatically (season tag), but `./gradlew resetConfig` removes it.
@@ -60,8 +60,9 @@ TeleOp pose holds check the direct approach for HIVE and wall clearance. A block
 
 ## Known gaps
 
-- No FLOWER-scoring mechanism or routine. Ownership is worth 2 points per element plus the 5-point bottom NECTAR bonus, but the 4 in opening leaves ~0.2 in around a 3.6 in NECTAR; it needs a dedicated mechanism decision.
-- No color sensing: opponent NECTAR (G408) and NECTAR-vs-POLLEN shot selection are manual.
+- No FLOWER mechanism: the robot can neither take POLLEN from a FLOWER nor score into one. `auto.cell_a_collect_flower`, `auto.cell_b_collect_flower` and `teleop.flower_hold_enabled` are false, so each auto fires only its 4 pre-loads. Ownership is worth 2 points per element plus the 5-point bottom NECTAR bonus, but the 4 in opening leaves ~0.2 in around a 3.6 in NECTAR; it needs a dedicated mechanism decision.
+- No NECTAR mechanism: the robot cannot intake or launch NECTAR, so `shooter.shot_table.nectar_enabled` is false and every shot uses the POLLEN table. AUTO is unaffected: pre-loads, FLOWERS and GARDENS start with POLLEN only (manual 10.3.1). To add NECTAR later, calibrate `nectar_points` (right bumper at Ballistics Calibration INIT) and set `nectar_enabled: true`.
+- No color sensing: opponent NECTAR (G408) is ejected manually.
 - Feeding is continuous while every gate passes (not one ball at a time). A TIP detected mid-volley stops further feeding, but balls already in the air cannot be recalled.
 - Hood settling is not measured (the servo readback is the command), and a flywheel setpoint clamped by `max_shot_rpm` is not re-validated against the table.
 - Moving shots use first-order lead only; `max_moving_speed_ips` is a conservative 20.

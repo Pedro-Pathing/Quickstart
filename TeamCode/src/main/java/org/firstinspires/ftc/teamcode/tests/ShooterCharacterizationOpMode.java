@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.firstinspires.ftc.teamcode.ballistics.FlywheelFeedforwardFit;
+import org.firstinspires.ftc.teamcode.ballistics.FlywheelStepFit;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
 
@@ -30,6 +31,10 @@ import org.firstinspires.ftc.teamcode.utilities.OpModeUtil;
  * <p>This OpMode instead holds a staircase of open-loop power setpoints, waits for the flywheel to
  * actually settle at each one, and least-squares fits {@code u = kV * v + kS} over all of them. It
  * reports the residuals so a bad fit is visible rather than silent.
+ *
+ * <p>It then steps the power from {@link #STEP_FROM} to {@link #STEP_TO} and fits the wheel's time
+ * constant and the velocity reading's dead time ({@link FlywheelStepFit}), the two numbers the
+ * recovery kick ({@code shooter.kick}) needs.
  */
 @TeleOp(name = "Shooter Characterization", group = "Calibration")
 @Configurable
@@ -59,6 +64,18 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
   private static final double LOOP_GAIN_TARGET = 2.0;
 
   private static final double INTEGRAL_TIME_SEC = 2.0;
+
+  /** Step test: settle at STEP_FROM, then record STEP_HOLD_SEC at STEP_TO. */
+  private static final double STEP_FROM = 0.40;
+
+  private static final double STEP_TO = 0.85;
+  private static final double STEP_SETTLE_SEC = 3.0;
+
+  /** Long enough for 4 time constants of a 1 s wheel plus the averaging window. */
+  private static final double STEP_HOLD_SEC = 4.5;
+
+  /** Window (end of each hold) averaged for the settled speeds either side of the step. */
+  private static final double STEP_AVERAGE_SEC = 0.5;
 
   private List<LynxModule> allHubs;
   private TelemetryManager telemetryM;
@@ -107,6 +124,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
     }
 
     runSweep();
+    FlywheelStepFit.Result step = runStepTest();
     stopMotors();
 
     if (sweep.size() < 3) {
@@ -123,7 +141,60 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
       double atNominal = p.power() * p.busVolts() / config.shooter.nominal_voltage;
       samples.add(new FlywheelFeedforwardFit.Sample(atNominal, p.velocityTicksPerSec()));
     }
-    reportResults(FlywheelFeedforwardFit.fit(samples));
+    reportResults(FlywheelFeedforwardFit.fit(samples), step);
+  }
+
+  /**
+   * Settles at STEP_FROM, steps to STEP_TO and records every reading with its time from the power
+   * write. The recording loop only reads the hub, so its period (a few ms) is the lag's resolution.
+   */
+  private FlywheelStepFit.Result runStepTest() {
+    ElapsedTime timer = new ElapsedTime();
+    setPowerRaw(STEP_FROM);
+    double before = 0.0;
+    int nBefore = 0;
+    timer.reset();
+    while (opModeIsActive() && !isStopRequested() && timer.seconds() < STEP_SETTLE_SEC) {
+      clearBulkCache();
+      double v = Math.abs(shooter1.getVelocity());
+      if (timer.seconds() > STEP_SETTLE_SEC - STEP_AVERAGE_SEC) {
+        before += v;
+        nBefore++;
+      }
+      telemetry.addLine("STEP TEST: settling");
+      telemetry.addData("Velocity", "%.1f ticks/s", v);
+      telemetry.update();
+      sleep(10);
+    }
+    if (nBefore == 0) {
+      return FlywheelStepFit.fit(new double[0], new double[0], 0, 0);
+    }
+    List<double[]> trace = new ArrayList<>();
+    setPowerRaw(STEP_TO);
+    timer.reset();
+    while (opModeIsActive() && !isStopRequested() && timer.seconds() < STEP_HOLD_SEC) {
+      clearBulkCache();
+      double v = Math.abs(shooter1.getVelocity());
+      trace.add(new double[] {timer.seconds(), v});
+      // No telemetry here: it would stretch the loop and blur the lag.
+    }
+    stopMotors();
+    double after = 0.0;
+    int nAfter = 0;
+    double[] t = new double[trace.size()];
+    double[] v = new double[trace.size()];
+    for (int i = 0; i < trace.size(); i++) {
+      t[i] = trace.get(i)[0];
+      v[i] = trace.get(i)[1];
+      if (t[i] > STEP_HOLD_SEC - STEP_AVERAGE_SEC) {
+        after += v[i];
+        nAfter++;
+      }
+    }
+    if (nAfter == 0) {
+      return FlywheelStepFit.fit(new double[0], new double[0], 0, 0);
+    }
+    return FlywheelStepFit.fit(t, v, before / nBefore, after / nAfter);
   }
 
   /** Holds each power step, waits for settle, then averages velocity over a sampling window. */
@@ -194,7 +265,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
     }
   }
 
-  private void reportResults(FlywheelFeedforwardFit.Result fit) {
+  private void reportResults(FlywheelFeedforwardFit.Result fit, FlywheelStepFit.Result step) {
     double kV = fit.kV();
     double kS = fit.kS();
     double rms = fit.rmsResidual();
@@ -206,7 +277,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
     double target = config.shooter.constant_rpm;
     double predictedCommand = fit.predictPower(target);
 
-    saveToFile(kV, kS, fittedF, recommendedP, rms, maxResidual);
+    saveToFile(kV, kS, fittedF, recommendedP, rms, maxResidual, step);
 
     while (opModeIsActive() && !isStopRequested()) {
       clearBulkCache();
@@ -234,6 +305,13 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
       telemetry.addLine(String.format("    i: %.7f", recommendedP / INTEGRAL_TIME_SEC));
       telemetry.addLine("    d: 0");
       telemetry.addLine(String.format("    f: %.4f", fittedF));
+      if (step.valid()) {
+        telemetry.addLine("  kick:");
+        telemetry.addLine(String.format("    wheel_tau_sec: %.3f", step.tauSec()));
+        telemetry.addLine(String.format("    sensor_lag_sec: %.3f", step.lagSec()));
+      } else {
+        telemetry.addLine("!! Step test failed, leave shooter.kick as it is: " + step.problem());
+      }
       telemetry.update();
 
       if (telemetryM != null) {
@@ -245,6 +323,11 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
         telemetryM.addData("P", String.format("%.7f", recommendedP));
         telemetryM.addData("Fit RMS", String.format("%.4f", rms));
         telemetryM.addData("vMax", String.format("%.1f", vMaxExtrapolated));
+        telemetryM.addData(
+            "Step",
+            step.valid()
+                ? String.format("tau %.3f s, lag %.3f s", step.tauSec(), step.lagSec())
+                : step.problem());
         for (SweepPoint p : sweep) {
           telemetryM.addData(
               String.format("u=%.3f", p.power()),
@@ -259,7 +342,13 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
   }
 
   private void saveToFile(
-      double kV, double kS, double fittedF, double p, double rms, double maxResidual) {
+      double kV,
+      double kS,
+      double fittedF,
+      double p,
+      double rms,
+      double maxResidual,
+      FlywheelStepFit.Result step) {
     File dir = new File("/sdcard/FIRST/teamcode/");
     if (!dir.exists()) {
       dir.mkdirs();
@@ -271,6 +360,12 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
           String.format(
               "  \"fit\": {\"kv\": %.8f, \"ks\": %.4f, \"f\": %.4f, \"p\": %.8f, \"rms\": %.5f, \"max_residual\": %.5f},\n",
               kV, kS, fittedF, p, rms, maxResidual));
+      writer.write(
+          step.valid()
+              ? String.format(
+                  "  \"step\": {\"wheel_tau_sec\": %.4f, \"sensor_lag_sec\": %.4f},\n",
+                  step.tauSec(), step.lagSec())
+              : "  \"step\": null,\n");
       writer.write("  \"sweep\": [\n");
       for (int i = 0; i < sweep.size(); i++) {
         SweepPoint sp = sweep.get(i);

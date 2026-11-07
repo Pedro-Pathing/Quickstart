@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.records.BallType;
 import org.firstinspires.ftc.teamcode.records.HiveCell;
 import org.firstinspires.ftc.teamcode.records.MatchProfile;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.robot.ShotController;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.utilities.CalibrationRay;
 import org.firstinspires.ftc.teamcode.utilities.DrawingUtil;
@@ -92,7 +93,7 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
     boolean bumperPrev = false;
     while (!isStarted() && !isStopRequested()) {
       boolean bumper = gamepad1.right_bumper;
-      if (bumper && !bumperPrev) {
+      if (bumper && !bumperPrev && ShotController.isSelectable(ballType.toggled())) {
         ballType = ballType.toggled();
       }
       bumperPrev = bumper;
@@ -100,7 +101,11 @@ public class BallisticsCalibrationOpMode extends LinearOpMode {
       telemetry.addLine("Ballistics Human-in-the-Loop Calibration (RED CELL A)");
       telemetry.addLine("Place the robot at teleop.poses.red.shoot_a; RED's audience CELL UP.");
       telemetry.addData("Target CELL opening", "(%.1f, %.1f)", ray.targetX(), ray.targetY());
-      telemetry.addData("Ball type (right bumper)", ballType);
+      telemetry.addData(
+          "Ball type (right bumper)",
+          ShotController.isSelectable(BallType.NECTAR)
+              ? ballType
+              : ballType + " (NECTAR disabled)");
       telemetry.addData("Longest distance on ray", "%.1f in", ray.maxDistance());
       telemetry.addLine("--------------------------------------------------");
       telemetry.addLine("Workflow per Distance Endpoint:");

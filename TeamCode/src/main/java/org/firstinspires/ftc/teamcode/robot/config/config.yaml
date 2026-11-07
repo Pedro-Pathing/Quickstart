@@ -374,6 +374,18 @@ shooter:
   integral:
     band_ticks: 150.0
     max_contribution: 0.25
+  # Recovery kick (utilities/FlywheelKick): once the wheel reads kick_trigger_fraction below target
+  # (a ball, or spin-up), the most power the wheel model (kS, kV, the integrator's correction,
+  # wheel_tau_sec) allows without passing target next loop, until the speed predicted over
+  # sensor_lag_sec reaches min_transfer_threshold. With the model configured, P also acts on that
+  # predicted speed. No gain to tune: both times come from Shooter Characterization's step test.
+  # wheel_tau_sec 0 disables the kick and the prediction (the loop above, unchanged).
+  kick:
+    wheel_tau_sec: 0.0
+    sensor_lag_sec: 0.0
+    kick_lag_margin_sec: 0.0075
+    kick_trigger_fraction: 0.09
+    kick_speed_margin: 1.4
   ballistics:
     v0: 250.0
     k: 0.0012
@@ -405,6 +417,9 @@ shooter:
     # measured. While calibrated is false the automatic feed gate refuses to fire; run the
     # Ballistics Calibration OpMode for each SCORING ELEMENT, paste its rows, then set true.
     calibrated: false
+    # This robot cannot intake or launch NECTAR (3.6 in), so only the POLLEN table is used.
+    # The NECTAR rows below stay in place for a future mechanism; set true to allow selecting them.
+    nectar_enabled: false
     # distance_in, hood_servo, flywheel ticks/s
     pollen_points: [
         24.0, 0.0000, 800.0,
@@ -439,9 +454,12 @@ auto:
   park_reserve_ms: 3000
   park_update_ms: 250
   transfer_power: 0.12
-  cell_a_collect_flower: true
+  # This robot cannot take POLLEN from a FLOWER, so neither routine refills. CELL A still drives
+  # the FLOWER-side lane around the HIVE (without stopping) to fire any POLLEN left after the TIP
+  # into CELL B.
+  cell_a_collect_flower: false
   cell_a_second_volley: true
-  cell_b_collect_flower: true
+  cell_b_collect_flower: false
 
 teleop:
   max_speed: 1
@@ -451,6 +469,9 @@ teleop:
   transfer_power: 0.1
   manual_rev_power: 0.6
   eject_power: -0.6
+  # Driver dpad left drives to and holds poses.<alliance>.flower. Off: this robot has no FLOWER
+  # pickup.
+  flower_hold_enabled: false
   rumble_ms: 600
   # Park alert, from match.final_warning_remaining_ms on: once the time left is no more than the
   # estimated drive to the park pose plus this margin, rumble, speak and flash until parked.
@@ -514,3 +535,40 @@ auto_poses:
     blue:
       start: m
       park: m
+
+# Agent bridge: HTTP endpoints under /agent/ on the Robot Controller's web server (port 8080)
+# for the laptop MCP server in tools/robot-mcp. It records hardware and OpMode telemetry, plays
+# gamepad scripts into the running OpMode, inits/starts/stops OpModes and sets config values in
+# memory. It never writes an actuator: OpModes still own every motor and servo.
+agent_bridge:
+  # Off: every endpoint except /agent/status answers 403. Turn off before competitions.
+  bridge_enabled: true
+  # Independent hardware sampling: one bulk read per hub per sample, sent as its own command so
+  # the OpMode's bulk cache is never cleared or replaced.
+  record_rate_hz: 50
+  # 30000 rows is 10 minutes at 50 Hz; samples past it are dropped and the run is marked full.
+  record_max_rows: 30000
+  # Motor currents cost one hub command per motor, so they are read every Nth sample (0: never).
+  current_every_n_samples: 10
+  telemetry_buffer_entries: 2000
+  # Longest gamepad script the bridge accepts, and how often a running script is advanced (its
+  # timing resolution).
+  max_script_ms: 120000
+  script_tick_ms: 5
+  # An OpMode the bridge started is stopped when no bridge request arrives for this long, so a
+  # stalled agent cannot leave a mechanism running. 0 disables.
+  deadman_ms: 30000
+  # Flight recorder: one row per change in what the OpMode read (each new hub bulk read, each
+  # Pinpoint update), taken from the SDK's caches, so it adds no hub traffic. Written to
+  # /sdcard/FIRST/flight/<time>-<label>/ while it runs. Started by the agent (flight_record) or,
+  # with flight_auto, for every OpMode run.
+  flight_auto: false
+  # How often the caches are checked for a new read; above the OpMode's loop rate.
+  flight_poll_hz: 500
+  # How often rows reach the file (the most a robot-app crash can lose).
+  flight_flush_ms: 500
+  # 200000 rows is about 17 minutes at a 200 Hz loop; later rows are dropped and the flight
+  # marked truncated.
+  flight_max_rows: 200000
+  # Flights kept on the robot; older ones are deleted when a new one starts.
+  flight_keep: 30

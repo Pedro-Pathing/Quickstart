@@ -15,13 +15,14 @@ import org.firstinspires.ftc.teamcode.utilities.Casablanca;
  *
  * <p>Driver: sticks drive; X toggles facing the upward CELL; right trigger holds the shooting pose
  * for whichever CELL is up; left trigger holds the LOADING ZONE park pose; dpad left holds the
- * side-wall FLOWER pickup pose; dpad right or any stick cancels a hold.
+ * side-wall FLOWER pickup pose (only while {@code teleop.flower_hold_enabled}); dpad right or any
+ * stick cancels a hold.
  *
  * <p>Operator: A intake, B stop intake, dpad right (hold) eject, right trigger (hold)
  * aim-and-shoot, Y (hold) turret aim, X (hold) rev, dpad up fixed-power shot, left trigger cancels
  * everything, dpad down (hold) vision relocalize, left bumper records a TIP the camera missed, back
- * undoes one, right bumper toggles POLLEN/NECTAR shot tables, left stick button marks the robot
- * empty.
+ * undoes one, right bumper toggles POLLEN/NECTAR shot tables (only while {@code
+ * shooter.shot_table.nectar_enabled}), left stick button marks the robot empty.
  */
 @Configurable
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "!")
@@ -179,7 +180,7 @@ public class TeleOp extends TeleOpBase {
     if (driverRightTrigger.onTrue()) {
       shootPoseCommand.schedule();
     }
-    if (driverDpadLeft.onTrue()) {
+    if (driverDpadLeft.onTrue() && config.teleop.flower_hold_enabled) {
       flowerPoseCommand.schedule();
     }
 

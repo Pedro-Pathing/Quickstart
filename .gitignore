@@ -86,3 +86,8 @@ bun.lock
 
 # jqwik replays failing samples from this local database
 .jqwik-database
+
+# Agent bridge: per-run recordings (large) and the MCP server virtualenv
+calibration-data/agent-runs/
+tools/robot-mcp/.venv/
+__pycache__/

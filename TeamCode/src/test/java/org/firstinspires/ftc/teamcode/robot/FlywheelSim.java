@@ -88,7 +88,8 @@ final class FlywheelSim {
   }
 
   private double measured() {
-    double lagged = history.isEmpty() ? omega : history.peekFirst();
+    double lagged =
+        plant.measurementLagLoops() == 0 || history.isEmpty() ? omega : history.peekFirst();
     return lagged + plant.encoderNoise() * (2 * random.nextDouble() - 1);
   }
 
@@ -106,7 +107,8 @@ final class FlywheelSim {
         Math.abs(u) <= plant.ks() ? 0.0 : Math.signum(u) * (Math.abs(u) - plant.ks()) / plant.kv();
     omega += (target - omega) * Math.min(1.0, dt / plant.tauSec());
     history.addLast(omega);
-    while (history.size() > plant.measurementLagLoops()) {
+    // Keep lag + 1 speeds: the oldest is the one the encoder reports, lag loops behind.
+    while (history.size() > plant.measurementLagLoops() + 1) {
       history.removeFirst();
     }
   }

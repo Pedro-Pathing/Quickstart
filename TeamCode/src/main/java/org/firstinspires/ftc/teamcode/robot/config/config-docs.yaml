@@ -273,6 +273,31 @@ max_contribution:
   min: 0.0
   max: 1.0
 
+wheel_tau_sec:
+  desc: "Flywheel mechanical time constant (seconds): time to cover 63% of a power step, measured by Shooter Characterization's step test. Used only by the recovery kick's model; 0 disables the kick."
+  min: 0.0
+  max: 5.0
+
+sensor_lag_sec:
+  desc: "Dead time (seconds) between a flywheel power change and the first change in the measured velocity, from Shooter Characterization's step test. The recovery kick runs its model forward over this long so it stops on the wheel's speed now, not the reading's."
+  min: 0.0
+  max: 0.3
+
+kick_lag_margin_sec:
+  desc: "How far shooter.kick.sensor_lag_sec may be short (the step test fits it to within 7.5 ms). While kicking, the model runs over the lag plus this, which predicts an accelerating wheel faster and so stops the kick early rather than late."
+  min: 0.0
+  max: 0.1
+
+kick_trigger_fraction:
+  desc: "The recovery kick starts once the measured flywheel speed is this fraction below target (a ball hit or spin-up). Match shooter.ball_detection.dip_fraction so every counted ball also kicks."
+  min: 0.0
+  max: 0.5
+
+kick_speed_margin:
+  desc: "The recovery kick asks only for the power that would land a wheel this many times faster than its model on target, so a model error costs a little speed rather than an overshoot. 1.4 covers a 25% wheel_tau_sec error times the 10% kV error FlywheelClosedLoopProperties allows (1.25 x 1.1)."
+  min: 1.0
+  max: 3.0
+
 v0:
   desc: "Fitted initial ring exit velocity (in/s) at constant RPM."
   min: 0.0
@@ -889,6 +914,9 @@ max_off_axis_deg:
 calibrated:
   desc: "False marks the shot tables as placeholders: the automatic feed gate refuses to fire. Set true only after the Ballistics Calibration OpMode has produced real BIOBUZZ rows."
 
+nectar_enabled:
+  desc: "False when the robot cannot handle NECTAR: the shot controller stays on the POLLEN table and the TeleOp and Ballistics Calibration ball-type toggles do nothing. True allows selecting the NECTAR table."
+
 pollen_points:
   desc: "POLLEN shot table as flat distance_in, hood_servo, flywheel_ticks_per_sec triples from the Ballistics Calibration OpMode. Distances must strictly increase."
   suppress_similarity_check: true
@@ -926,11 +954,14 @@ cell_a_collect_flower:
   desc: "CELL A routine: collect POLLEN from the alliance's side-wall FLOWER after the first volley."
 
 cell_a_second_volley:
-  desc: "CELL A routine: drive around the HIVE and launch a second volley into CELL B once it is upward-facing."
+  desc: "CELL A routine: drive around the HIVE on the FLOWER-side lane and launch a second volley into CELL B once it is upward-facing. Without cell_a_collect_flower this fires only POLLEN left over when the TIP stopped the first volley."
 
 cell_b_collect_flower:
   desc: "CELL B routine: collect POLLEN from the alliance's rear-wall FLOWER and launch a second volley."
   suppress_similarity_check: true
+
+flower_hold_enabled:
+  desc: "TeleOp: driver dpad left drives to and holds the FLOWER pickup pose. False when the robot cannot take POLLEN from a FLOWER; the button then does nothing."
 
 eject_power:
   desc: "Intake power (negative = reverse) for the operator eject button, used to spit out a fifth SCORING ELEMENT (G407) or opponent NECTAR (G408)."
@@ -1040,3 +1071,67 @@ retry_after_sec:
   desc: "Seconds after a turret stall fault before power is allowed again (0 keeps the fault latched until the OpMode restarts). A ball jam or a defender holding the turret must not disable aiming for the rest of the match."
   min: 0.0
   max: 10.0
+
+agent_bridge:
+  desc: "Agent bridge (org.firstinspires.ftc.teamcode.agent): /agent/ HTTP endpoints on the Robot Controller web server, used by the tools/robot-mcp MCP server. Reads hardware and telemetry, injects gamepad scripts, controls OpModes, sets config in memory; never writes an actuator."
+
+bridge_enabled:
+  desc: "Serve the agent bridge's /agent/ endpoints. False: every endpoint except /agent/status answers 403. Turn off before competitions."
+
+record_rate_hz:
+  desc: "Hardware recorder sample rate in Hz. Each sample sends one bulk-input command per hub, independent of the OpMode's bulk cache, so higher rates add hub traffic the OpMode competes with."
+  min: 1
+  max: 200
+
+record_max_rows:
+  desc: "Hardware recorder capacity in samples; later samples are dropped and the recording marked full. Memory is about 4 bytes per column per row."
+  min: 100
+  max: 200000
+
+current_every_n_samples:
+  desc: "Read every motor's current (one hub command per motor) on every Nth recorder sample; columns hold the last reading in between. 0 never reads currents."
+  min: 0
+  max: 1000
+
+telemetry_buffer_entries:
+  desc: "Number of OpMode telemetry updates the agent bridge keeps for /agent/telemetry."
+  min: 10
+  max: 100000
+
+max_script_ms:
+  desc: "Longest gamepad script, in milliseconds, the agent bridge accepts."
+  min: 100
+  max: 600000
+
+script_tick_ms:
+  desc: "Period in milliseconds at which the agent bridge advances a running gamepad script: the timing resolution of its steps."
+  min: 1
+  max: 100
+
+deadman_ms:
+  desc: "Stop an OpMode the agent bridge started when no bridge request arrives for this many milliseconds, so a stalled agent cannot leave a mechanism running. 0 disables."
+  min: 0
+  max: 600000
+
+flight_auto:
+  desc: "Run the agent bridge's flight recorder for every OpMode run, without an agent: each run's reads land in /sdcard/FIRST/flight/. False: only when an agent starts one."
+
+flight_poll_hz:
+  desc: "Rate at which the flight recorder checks the SDK's bulk caches and the Pinpoint for a new read. Keep it above the OpMode's loop rate, or consecutive loops merge into one row."
+  min: 50
+  max: 2000
+
+flight_flush_ms:
+  desc: "Milliseconds between flight recorder writes to the file: the most data a robot-app crash can lose, and how fresh a live read of the file is."
+  min: 50
+  max: 10000
+
+flight_max_rows:
+  desc: "Flight recorder capacity in rows; later rows are dropped and the flight marked truncated."
+  min: 1000
+  max: 2000000
+
+flight_keep:
+  desc: "Number of flights kept on the robot; the oldest are deleted when a new flight starts."
+  min: 1
+  max: 1000

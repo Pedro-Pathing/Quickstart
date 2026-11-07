@@ -24,9 +24,26 @@ import org.firstinspires.ftc.teamcode.utilities.FlywheelDipDetector;
  * characterization runs on one battery, matches are played on others, and wheels wear. Requirements
  * a driver would notice: the wheel reaches the feed band and stays in it, recovers after every ball
  * without ringing, and the ball counter sees each ball exactly once.
+ *
+ * <p>Every property runs with the recovery kick ({@code shooter.kick}) on or off. On, its wheel
+ * time constant is the plant's off by up to 25% (the step test fits it to 3%; the rest is drift)
+ * and its sensor lag the plant's off by up to 7.5 ms (the step test's bound, FlywheelStepFitTest).
  */
 class FlywheelClosedLoopProperties {
   private final boolean savedFtcPid = config.shooter.use_ftc_pid;
+  private final double savedKickTau = config.shooter.kick.wheel_tau_sec;
+  private final double savedKickLag = config.shooter.kick.sensor_lag_sec;
+
+  /** The recovery kick's configuration for one try: off, or measured with these errors. */
+  record Kick(boolean on, double tauError, double lagErrorSec) {
+    void apply(FlywheelSim.Plant plant) {
+      config.shooter.kick.wheel_tau_sec = on ? plant.tauSec() * tauError : 0.0;
+      config.shooter.kick.sensor_lag_sec =
+          on
+              ? Math.max(0.0, plant.measurementLagLoops() * FlywheelSim.LOOP_SEC + lagErrorSec)
+              : 0.0;
+    }
+  }
 
   FlywheelClosedLoopProperties() {
     config.shooter.use_ftc_pid = false;
@@ -35,6 +52,8 @@ class FlywheelClosedLoopProperties {
   @AfterProperty
   void restore() {
     config.shooter.use_ftc_pid = savedFtcPid;
+    config.shooter.kick.wheel_tau_sec = savedKickTau;
+    config.shooter.kick.sensor_lag_sec = savedKickLag;
   }
 
   /** Feed band: the speed ratio the shot gate accepts. */
@@ -63,8 +82,10 @@ class FlywheelClosedLoopProperties {
   @Property(tries = 500)
   void reachesTheFeedBandAndStaysThere(
       @ForAll("plants") FlywheelSim.Plant plant,
+      @ForAll("kicks") Kick kick,
       @ForAll @DoubleRange(min = 0, max = 1) double where) {
     double target = target(plant, where);
+    kick.apply(plant);
     FlywheelSim sim = new FlywheelSim(plant);
     sim.shooter.setTargetPower(target / config.shooter.max_rpm);
     double integralTimeSec = config.shooter.pidf.p / config.shooter.pidf.i;
@@ -94,9 +115,11 @@ class FlywheelClosedLoopProperties {
   @Property(tries = 500)
   void recoversFromEveryBallWithoutRinging(
       @ForAll("plants") FlywheelSim.Plant plant,
+      @ForAll("kicks") Kick kick,
       @ForAll @DoubleRange(min = 0, max = 1) double where,
       @ForAll @DoubleRange(min = 0.12, max = 0.26) double dip) {
     double target = target(plant, where);
+    kick.apply(plant);
     FlywheelSim sim = new FlywheelSim(plant);
     sim.shooter.setTargetPower(target / config.shooter.max_rpm);
     for (int i = 0; i < 200; i++) {
@@ -119,10 +142,16 @@ class FlywheelClosedLoopProperties {
     double worst = peak;
     assertTrue(
         recovered,
-        () -> "not back in band " + recoverySec + " s after a ball: " + sim.omega / target);
+        () ->
+            "not back in band "
+                + recoverySec
+                + " s after a ball: "
+                + sim.omega / target
+                + ", "
+                + kick);
     assertTrue(
         worst <= config.shooter.max_velocity_threshold + 0.02,
-        () -> "overshot to " + worst + " of target after a ball");
+        () -> "overshot to " + worst + " of target after a ball, " + kick);
   }
 
   /**
@@ -133,11 +162,13 @@ class FlywheelClosedLoopProperties {
   @Property(tries = 300)
   void theBallCounterSeesEachBallOnce(
       @ForAll("plants") FlywheelSim.Plant plant,
+      @ForAll("kicks") Kick kick,
       @ForAll @DoubleRange(min = 0, max = 1) double where,
       @ForAll @IntRange(min = 1, max = 4) int balls,
       @ForAll @DoubleRange(min = 0.12, max = 0.26) double dip,
       @ForAll @DoubleRange(min = 0.3, max = 0.8) double spacingSec) {
     double target = target(plant, where);
+    kick.apply(plant);
     FlywheelSim sim = new FlywheelSim(plant);
     sim.shooter.setTargetPower(target / config.shooter.max_rpm);
     for (int i = 0; i < 200; i++) {
@@ -169,6 +200,57 @@ class FlywheelClosedLoopProperties {
       sim.step();
     }
     assertEquals(balls, counted, "balls counted");
+  }
+
+  /**
+   * The kick costs at most three loops of re-arm time on any wheel, after the same ball, compared
+   * with no kick. Its margins (kick_speed_margin, kick_lag_margin_sec) trade speed for no
+   * overshoot, so where the model overestimates a fast wheel (tau measured 25% short, tau 0.15 s)
+   * it stops a little early: 0.12 s instead of 0.08 s. Over the corner grid it halves the median
+   * re-arm (0.20 to 0.10-0.16 s) and cuts the 90th percentile from 0.58 to 0.40 s.
+   */
+  @Property(tries = 300)
+  void theKickCostsAtMostThreeLoops(
+      @ForAll("plants") FlywheelSim.Plant plant,
+      @ForAll("kicks") Kick kick,
+      @ForAll @DoubleRange(min = 0, max = 1) double where,
+      @ForAll @DoubleRange(min = 0.12, max = 0.26) double dip) {
+    double target = target(plant, where);
+    new Kick(false, 1.0, 0.0).apply(plant);
+    double without = rearmSec(plant, target, dip);
+    new Kick(true, kick.tauError(), kick.lagErrorSec()).apply(plant);
+    double with = rearmSec(plant, target, dip);
+    assertTrue(
+        with <= without + 3 * FlywheelSim.LOOP_SEC + 1e-9,
+        () -> "re-armed after " + with + " s with the kick, " + without + " s without");
+  }
+
+  /** Seconds after a {@code dip} ball until the wheel first reaches min_transfer_threshold. */
+  private static double rearmSec(FlywheelSim.Plant plant, double target, double dip) {
+    FlywheelSim sim = new FlywheelSim(plant);
+    sim.shooter.setTargetPower(target / config.shooter.max_rpm);
+    double integralTimeSec = config.shooter.pidf.p / config.shooter.pidf.i;
+    int settle = (int) ((4.0 + 4 * plant.tauSec() + 3 * integralTimeSec) / FlywheelSim.LOOP_SEC);
+    for (int i = 0; i < settle; i++) {
+      sim.step();
+    }
+    sim.launch(dip);
+    for (int i = 1; i <= 500; i++) {
+      sim.step();
+      if (sim.omega / target >= config.shooter.min_transfer_threshold) {
+        return i * FlywheelSim.LOOP_SEC;
+      }
+    }
+    return Double.POSITIVE_INFINITY;
+  }
+
+  @Provide
+  Arbitrary<Kick> kicks() {
+    return Combinators.combine(
+            Arbitraries.of(false, true),
+            Arbitraries.doubles().between(0.75, 1.25).ofScale(3),
+            Arbitraries.doubles().between(-0.0075, 0.0075).ofScale(4))
+        .as(Kick::new);
   }
 
   @Provide

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "robot": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "cd \"${extensionPath}\" 2>/dev/null; exec \"$(git rev-parse --show-toplevel)/tools/robot-mcp/launch.sh\""
+      ],
+      "env": {
+        "ROBOT_HOST": "192.168.43.1",
+        "ROBOT_PORT": "8080"
+      }
+    }
+  }
+}

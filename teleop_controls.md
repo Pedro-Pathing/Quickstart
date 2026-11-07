@@ -20,7 +20,7 @@ If an AUTO ran, TeleOp inherits its alliance, final pose, HIVE state (which CELL
 | **X** | Press | Toggle "face the upward CELL" | Heading lock on the bearing to whichever CELL the HIVE tracker says is up; follows the robot as it translates and swaps CELL on a TIP. Translation stays manual. |
 | **Right Trigger** | Press | Hold shooting pose | Drives to and holds `shoot_a` or `shoot_b`, whichever faces the CELL that is up right now. |
 | **Left Trigger** | Press | Hold park pose | Drives to and holds `park` (partly inside the LOADING ZONE, clear of the wall). Use it when the park alert fires (see Match Cues). |
-| **DPad Left** | Press | Hold FLOWER pose | Drives to and holds `flower`, with the intake at the alliance's side-wall FLOWER retrieval opening. POLLEN may only come out of the bottom of a FLOWER (G418). |
+| **DPad Left** | Press | Hold FLOWER pose | Drives to and holds `flower`, with the intake at the alliance's side-wall FLOWER retrieval opening. POLLEN may only come out of the bottom of a FLOWER (G418). Does nothing while `teleop.flower_hold_enabled` is false (the current robot has no FLOWER pickup). |
 | **DPad Right** | Press | Cancel pose hold | Restores manual driving. Stick deflection does the same. |
 
 Pose holds check their direct approach against the HIVE frame and field boundary before moving. If blocked, the robot stops and `Pose assist` telemetry shows the reason. Cancel the hold, drive to a clear approach, and retry.
@@ -40,7 +40,7 @@ Pose holds check their direct approach against the HIVE frame and field boundary
 | **DPad Down** | Hold | Vision relocalize | Re-anchors odometry on the upward CELL opening while the HIVE is settled; requires a fresh camera frame and is rejected if the fix is more than `vision.relocalize.max_correction_in` from odometry. |
 | **Left Bumper** | Press | Record a TIP | For a TIP the camera missed: flips which CELL is up and adds one to the TIP count (and the human player's NECTAR allowance). |
 | **Back** | Press | Undo a TIP | Reverses the last flip and TIP count. |
-| **Right Bumper** | Press | Toggle POLLEN / NECTAR | Selects which shot table the solver uses. |
+| **Right Bumper** | Press | Toggle POLLEN / NECTAR | Selects which shot table the solver uses. Does nothing while `shooter.shot_table.nectar_enabled` is false (the current robot cannot handle NECTAR, so it always shoots POLLEN). |
 | **Left Stick Button** | Press | Mark robot empty | Sets the inventory to 0 when the robot is visibly empty. |
 
 ## 3. Match Cues and Telemetry

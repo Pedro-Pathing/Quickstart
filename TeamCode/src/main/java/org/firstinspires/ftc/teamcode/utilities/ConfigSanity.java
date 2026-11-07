@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.ballistics.ShotTable;
 import org.firstinspires.ftc.teamcode.ballistics.ShotTimeTable;
 import org.firstinspires.ftc.teamcode.records.BallType;
 import org.firstinspires.ftc.teamcode.records.BallisticsParameters;
+import org.firstinspires.ftc.teamcode.robot.ShotController;
 import org.firstinspires.ftc.teamcode.robot.Turret;
 import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 
@@ -129,6 +130,9 @@ public final class ConfigSanity {
       p.add("shooter.ballistics: " + e.getMessage() + " (every shot is refused)");
     }
     for (BallType type : BallType.values()) {
+      if (!ShotController.isSelectable(type)) {
+        continue; // a disabled table is never solved against
+      }
       try {
         ShotTable.fromConfig(type);
       } catch (RuntimeException e) {

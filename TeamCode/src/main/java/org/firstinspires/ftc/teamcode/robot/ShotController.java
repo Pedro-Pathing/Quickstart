@@ -365,13 +365,23 @@ public class ShotController {
     return ballType;
   }
 
-  /** Which shot table to use. Changing it invalidates the current solution. */
-  public void setBallType(BallType ballType) {
+  /**
+   * Which shot table to use. Changing it invalidates the current solution. A ball type that is not
+   * {@link #isSelectable selectable} falls back to POLLEN.
+   */
+  public void setBallType(BallType requested) {
+    BallType ballType = isSelectable(requested) ? requested : BallType.POLLEN;
     if (this.ballType != ballType) {
       this.ballType = ballType;
       invalidateSolve();
       this.commandedSolvedRpm = Double.NaN;
     }
+  }
+
+  /** NECTAR is selectable only while {@code shooter.shot_table.nectar_enabled} is true. */
+  public static boolean isSelectable(BallType type) {
+    return type == BallType.POLLEN
+        || (type == BallType.NECTAR && config.shooter.shot_table.nectar_enabled);
   }
 
   private static FlywheelDipDetector newBallDetector() {

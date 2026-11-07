@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -13,11 +14,57 @@ import org.firstinspires.ftc.teamcode.game.HiveTracker;
 import org.firstinspires.ftc.teamcode.records.Alliance;
 import org.firstinspires.ftc.teamcode.records.BallType;
 import org.firstinspires.ftc.teamcode.records.ShotSolution;
+import org.firstinspires.ftc.teamcode.robot.config.generated.config;
 import org.junit.jupiter.api.Test;
 
 public class ShotControllerLifecycleTest {
+  private static ShotController idleController() {
+    return new ShotController(
+        mock(Shooter.class),
+        mock(Turret.class),
+        mock(Intake.class),
+        () -> new Pose(58, 27, Math.PI / 2),
+        Velocity::zero,
+        null,
+        new FieldModel(Alliance.RED),
+        new HiveTracker(3, 1000, 500, () -> 0),
+        null,
+        (inputs, previousFlight) -> ShotSolution.invalid("unused"));
+  }
+
+  @Test
+  public void nectarIsRefusedWhileDisabled() {
+    config.shooter.shot_table.nectar_enabled = false;
+    ShotController controller = idleController();
+    try {
+      assertFalse(ShotController.isSelectable(BallType.NECTAR));
+      assertTrue(ShotController.isSelectable(BallType.POLLEN));
+      controller.setBallType(BallType.NECTAR);
+      assertEquals(BallType.POLLEN, controller.getBallType());
+      controller.setBallType(controller.getBallType().toggled());
+      assertEquals(BallType.POLLEN, controller.getBallType(), "the TeleOp toggle stays on POLLEN");
+    } finally {
+      controller.shutdown();
+    }
+  }
+
+  @Test
+  public void nectarIsSelectableWhenEnabled() {
+    config.shooter.shot_table.nectar_enabled = true;
+    ShotController controller = idleController();
+    try {
+      controller.setBallType(BallType.NECTAR);
+      assertEquals(BallType.NECTAR, controller.getBallType());
+      controller.setBallType(controller.getBallType().toggled());
+      assertEquals(BallType.POLLEN, controller.getBallType());
+    } finally {
+      controller.shutdown();
+    }
+  }
+
   @Test
   public void oldSolveCannotPublishAfterRestartOrBallTypeRoundTrip() throws Exception {
+    config.shooter.shot_table.nectar_enabled = true; // the round trip needs NECTAR selectable
     for (boolean restart : new boolean[] {true, false}) {
       CountDownLatch entered = new CountDownLatch(1);
       CountDownLatch release = new CountDownLatch(1);

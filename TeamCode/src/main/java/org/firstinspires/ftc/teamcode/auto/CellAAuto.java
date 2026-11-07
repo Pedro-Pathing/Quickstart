@@ -20,9 +20,11 @@ import org.firstinspires.ftc.teamcode.robot.config.generated.config;
  *
  * <p>CELL A starts with three NECTAR in it, and the official field calibration tips a CELL holding
  * three NECTAR with three more POLLEN, so four pre-loaded POLLEN should earn the first TIP (20) on
- * their own. Then, if enabled, the robot collects POLLEN from its side-wall FLOWER's bottom opening
- * (G418), drives around the HIVE on its own side, and launches into CELL B once the camera confirms
- * it is upward-facing. It always ends parked for LEAVE + PARK.
+ * their own. Then, if {@code auto.cell_a_second_volley}, it drives around the HIVE on its own side
+ * by the FLOWER-side lane and launches into CELL B once the camera confirms it is upward-facing:
+ * with {@code auto.cell_a_collect_flower} it first refills from the side-wall FLOWER's bottom
+ * opening (G418); without it (this robot has no FLOWER pickup) the volley fires only POLLEN left
+ * when the TIP stopped the first volley. It always ends parked for LEAVE + PARK.
  */
 // Paths are assigned by buildPaths(), which init() calls, not by a constructor.
 @SuppressWarnings("NullAway.Init")
