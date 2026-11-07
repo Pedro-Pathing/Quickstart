@@ -48,6 +48,32 @@ will share the same drive train.
   read, so it costs no extra loop time. At a 10 ms loop, one count is about 0.7 RPM. Keep
   `getVelocity()` for the motor's built-in encoder, which overflows only above about 70,000 motor
   RPM.
+- **Timing jitter limits speed from position.** With 8192 counts the count itself is no longer
+  the limit (one count over 50 ms is 0.15 RPM). The limit is how accurately we know when each
+  position was read. An error of δt over a span W gives an error of about RPM × δt / W. At 3900 RPM
+  over a single 10 ms loop, 0.2 to 0.5 ms of jitter is ±78 to ±195 RPM, so never use only the
+  last loop. Ways to deal with it, in the order to try them:
+  1. **The hub's velocity with the overflow corrected.** If the wrap test below shows the hub's 16-bit velocity wraps round, read `getVelocity()` anyway and
+     add the multiple of 65,536 counts/s (480 flywheel RPM at 8192 counts) closest to a rough
+     speed from position (options 2 and 3 give it to well within ±240 RPM). The hub times its
+     velocity on its own clock, so this has no loop-timing error and keeps the full 8192-count
+     resolution. If the hub caps the value at 32,767 instead, this doesn't work.
+  2. **Always: timestamp the bulk read itself.** Take `System.nanoTime()` just before and just
+     after the bulk read and use the midpoint, not a loop timer reset part-way through the loop.
+     Bulk reads carry no hub timestamp (`LynxGetBulkInputDataResponse` has none), so this is the
+     closest our clock can get. It removes the time spent on other work in the loop (telemetry,
+     vision, Pedro); only the variation in the hub's reply time remains.
+  3. **Best-fit slope:** keep the last several (time, position) readings, e.g. 50 ms of them, and
+     use the slope of a least-squares line through them, not (newest − oldest) / time. For readings
+     every 5 ms over 50 ms, the timing error is about 1.5 times smaller than with two points.
+  4. **Model-based filter:** a small Kalman or alpha-beta filter that predicts the next speed from
+     the motor power just applied and only partly trusts each reading. It smooths timing noise
+     while still showing a real drop from a ball straight away, because the power didn't change.
+     It's the most work to tune, so only try it if 1 to 3 aren't good enough.
+
+  Any speed measured over a span W also arrives about W/2 late, which slows the PIDF's response to
+  a ball and blurs the dip in Flywheel Characterization. Choose the span from the jitter check
+  below, not by guessing.
 - **Encoder source.** The Through Bore may be on a different port from the motor it measures. Add
   a way to read the encoder from another motor's port, by name: `hardwareMap.get(DcMotorEx.class,
   name)` on that port, reading only `getCurrentPosition()` and never setting its power. Add this
@@ -102,15 +128,31 @@ a small config class. The tuned gains for each launcher would live there as well
 
 ## Checks on the robot
 
-1. **Count rate:** at the top of the range the Through Bore produces about 670,000 counts a second
+1. **Hub velocity wrap test (do first: it decides how speed is measured).** With a Through Bore
+   fitted, spin the flywheel from rest up past 240 RPM and graph the raw `getVelocity()` value for
+   the Through Bore's port in Panels.
+   - **It wraps:** a sawtooth that jumps from +32,767 to −32,768 and climbs again. Use option 1
+     above: the hub's velocity with the overflow corrected.
+   - **It's capped:** it rises to 32,767 and stays flat. Speed has to come from position: use
+     options 2 and 3, and option 4 if needed.
+2. **The hub's velocity window** (can be done now, with the motor encoder). Hold a steady speed and
+   log the raw `getVelocity()` in counts/s. The readings only take certain values: if they come in
+   multiples of 20 counts/s, for example, the hub counts over 1/20 s = 50 ms. That sets the
+   precision of the motor-encoder method (a step of 60 / (counts per turn × window) RPM) and how
+   late its reading arrives.
+3. **Loop timing jitter** (with a Through Bore fitted). At a steady speed, log the bulk read's
+   timestamp and the Through Bore position every loop. The scatter in speed computed over different
+   spans shows the jitter directly; choose the shortest span that's precise enough for the ±65 RPM
+   far-shot tolerance.
+4. **Count rate:** at the top of the range the Through Bore produces about 670,000 counts a second
    (more at full power). Spin up to full power with both encoders connected. The Through Bore RPM
    should equal 1.25 times the motor-encoder RPM all the way to top speed. If it falls short or
    jumps about at high speed, the hub input isn't keeping up: try port 0 or 3.
-2. **Direction:** both encoders should read positive RPM when the launcher spins forward.
-3. **Top speed:** measure the flywheel's top speed at full power with the swapped pulleys. It's
+5. **Direction:** both encoders should read positive RPM when the launcher spins forward.
+6. **Top speed:** measure the flywheel's top speed at full power with the swapped pulleys. It's
    likely around 6000 RPM, less because of air drag. Use it for `maxRPM` in Flywheel
    Characterization.
-4. **Baseline first (optional):** before swapping pulleys, run Flywheel Characterization at about
+7. **Baseline first (optional):** before swapping pulleys, run Flywheel Characterization at about
    2800 and 3800 flywheel RPM and compare `recovery_ms`. Repeat after the change to see the
    improvement.
 
