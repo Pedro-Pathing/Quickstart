@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.flywheel.Flywheel;
 import org.firstinspires.ftc.teamcode.helpers.BulkCache;
 import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
+import org.firstinspires.ftc.teamcode.leds.Leds;
+import org.firstinspires.ftc.teamcode.leds.RobotState;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -38,9 +40,15 @@ import java.util.Locale;
  * starts a new launch. RPM is used rather than motor current because the velocity comes in the bulk
  * read, so it's sampled every loop, while each current read is a slow extra hub transaction.
  *
+ * LEDs, for lining the video up with the log: yellow when ready for a ball, red while not (spinning
+ * up, recovering or stopped), and a green flash of flashSeconds the moment each launch is detected.
+ * The flash comes a little after the drop starts (once it passes dropPercent) and the Blinkin takes
+ * a few tens of ms to change, so the log records the detection time too.
+ *
  * Each launch is written as a CSV line to FIRST/data/FlywheelCharacterization/ on the robot:
  *  launch       launch number, from 1
  *  time_ms      when the speed started to drop, in ms since START was pressed
+ *  flash_ms     when the launch was detected and the LEDs flashed green, in ms since START
  *  clock        the same moment as a time of day (the robot's clock), to help find it on video
  *  battery_v    battery voltage just before the launch
  *  target_rpm   the target speed selected
@@ -67,6 +75,8 @@ public class FlywheelCharacterization extends OpMode {
     public static double recoveredPercent = 2.0;
     /** ...or after this long, whichever comes first. */
     public static double maxLaunchSeconds = 2.0;
+    /** How long the LEDs flash green when a launch is detected. */
+    public static double flashSeconds = 0.3;
 
     private enum Launcher {
         NECTAR("Nectar", "NectarFlywheel", DcMotorSimple.Direction.FORWARD),
@@ -95,6 +105,7 @@ public class FlywheelCharacterization extends OpMode {
     private BulkCache bulkCache;
     private VoltageSensor voltageSensor;  // null if there's no hub to read it from
     private TelemetryManager telemetryM;
+    private Leds leds;
 
     private Launcher launcher = Launcher.POLLEN;
     private Flywheel flywheel;
@@ -116,7 +127,7 @@ public class FlywheelCharacterization extends OpMode {
     private double armedSinceMs = -1;
     private boolean armed = false;
     private boolean inLaunch = false;
-    private double launchStartMs, launchBeforeRPM, launchVoltage, launchTargetRPM, launchLowestRPM;
+    private double launchStartMs, launchDetectedMs, launchBeforeRPM, launchVoltage, launchTargetRPM, launchLowestRPM;
     /** Highest speed since the lowest point of this launch, for spotting a second ball. */
     private double peakSinceLowestRPM;
     private int launches = 0;
@@ -131,6 +142,9 @@ public class FlywheelCharacterization extends OpMode {
         bulkCache = new BulkCache(hardwareMap);
         voltageSensor = hardwareMap.voltageSensor.iterator().hasNext() ? hardwareMap.voltageSensor.iterator().next() : null;
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        leds = new Leds(hardwareMap);
+        leds.setState(RobotState.NO_SHOT);
+        leds.update();
     }
 
     @Override
@@ -150,6 +164,7 @@ public class FlywheelCharacterization extends OpMode {
         bulkCache.clear();
         flywheel = new Flywheel(hardwareMap, launcher.motorName, launcher.direction);
         status.check(launcher.label + " launcher", flywheel.missingDevices());
+        status.check("LEDs", leds.missingDevices());
         flywheel.reset();
         targetRPM = clampRPM(startRPM);
         openLog();
@@ -179,6 +194,8 @@ public class FlywheelCharacterization extends OpMode {
         double rpm = flywheel.filteredRPM();
         record(nowMs, rpm);
         detectLaunch(nowMs, rpm);
+        leds.setState(armed && !inLaunch ? RobotState.READY : RobotState.NO_SHOT);
+        leds.update();
 
         // Between launches only, so the reading logged is the voltage before the ball, not the sag during it
         if (!inLaunch && voltageTimer.seconds() >= VOLTAGE_READ_INTERVAL_SECONDS) readVoltage();
@@ -290,6 +307,8 @@ public class FlywheelCharacterization extends OpMode {
             index = previous;
         }
         inLaunch = true;
+        launchDetectedMs = runTimer.milliseconds();
+        leds.flash(RobotState.GOOD_SHOT, flashSeconds);
         launchStartMs = historyMs[index];
         launchBeforeRPM = historyRPM[index];
         launchLowestRPM = rpm;
@@ -311,8 +330,8 @@ public class FlywheelCharacterization extends OpMode {
                 recovered ? String.format(Locale.US, ", recovered in %.0f ms", recoveryMs) : "");
 
         if (log != null) {
-            log.printf(Locale.US, "%d,%.0f,%s,%.2f,%.0f,%.0f,%.0f,%s%n",
-                    launches, launchStartMs, clock, launchVoltage, launchTargetRPM,
+            log.printf(Locale.US, "%d,%.0f,%.0f,%s,%.2f,%.0f,%.0f,%.0f,%s%n",
+                    launches, launchStartMs, launchDetectedMs, clock, launchVoltage, launchTargetRPM,
                     launchBeforeRPM, launchLowestRPM,
                     recovered ? String.format(Locale.US, "%.0f", recoveryMs) : "");
             // Flushed every launch, so nothing is lost if the robot is switched off mid-run
@@ -336,7 +355,7 @@ public class FlywheelCharacterization extends OpMode {
                     flywheel.getRpmFilterTimeConstant());
             log.printf(Locale.US, "# Detection: drop %.1f%%, armed within %.1f%% for %.2f s, recovered within %.1f%%%n",
                     dropPercent, armedPercent, armedSeconds, recoveredPercent);
-            log.println("launch,time_ms,clock,battery_v,target_rpm,before_rpm,lowest_rpm,recovery_ms");
+            log.println("launch,time_ms,flash_ms,clock,battery_v,target_rpm,before_rpm,lowest_rpm,recovery_ms");
             log.flush();
         } catch (IOException e) {
             log = null;
