@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -15,11 +14,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.helpers.Devices;
 
 import java.util.Locale;
+import java.util.function.LongSupplier;
 
 /**
  * Flywheel velocity control using Pedro Pathing 3 controllers: PID feedback on the filtered RPM error
  * plus feedforward on the target RPM, with a per-second limit on how fast the power can change.
  * Call one of the run methods once per loop.
+ *
+ * Ready (healthy flywheel): the filtered RPM must stay within readyTolerancePercent of the target
+ * for readyHoldMs without a break. Merely passing through the window, e.g. overshooting on the way
+ * up, doesn't count, because the wheel isn't settled and a ball fed then would leave at the wrong
+ * speed. Leaving the window, or the target moving by more than the tolerance, restarts the hold.
  *
  * Each flywheel starts with the DEFAULT_ gains below; use the setters to give it its own tuned values.
  *
@@ -76,6 +81,8 @@ public class Flywheel {
     public static final double DEFAULT_RPM_FILTER_TIME_CONSTANT = 0.03;
     /** The flywheel is ready to launch when within this percentage of its target speed. */
     public static final double DEFAULT_READY_TOLERANCE_PERCENT = 2.0;
+    /** How long (in milliseconds) the speed must stay within the tolerance before the flywheel is ready. */
+    public static final double DEFAULT_READY_HOLD_MS = 80;
 
     /** Longest loop time used for the slew limit, so a stalled loop can't allow a large jump. */
     private static final double MAX_LOOP_SECONDS = 0.05;
@@ -90,7 +97,8 @@ public class Flywheel {
     private final DcMotorEx motor;  // null when the flywheel is disabled
     private final VoltageSensor voltageSensor;  // null if there's no hub to read it from
     private final Controller controller;
-    private final ElapsedTime loopTimer = new ElapsedTime();
+    private final LongSupplier clock;  // nanoseconds; injectable so tests don't have to sleep
+    private final Stopwatch loopTimer, readyTimer, faultTimer, jamCheckTimer, settleTimer, voltageTimer;
 
     private double countsPerRev = DEFAULT_COUNTS_PER_REV;
     private double kP = DEFAULT_KP;
@@ -101,6 +109,7 @@ public class Flywheel {
     private double maxPowerRate = DEFAULT_MAX_POWER_RATE;
     private double rpmFilterTimeConstant = DEFAULT_RPM_FILTER_TIME_CONSTANT;
     private double readyTolerancePercent = DEFAULT_READY_TOLERANCE_PERCENT;
+    private double readyHoldMs = DEFAULT_READY_HOLD_MS;
 
     private double rawRPM = 0;
     private double filteredRPM = 0;
@@ -110,14 +119,24 @@ public class Flywheel {
 
     private Health health = Health.OK;
     private boolean faultSuspected = false;
-    private final ElapsedTime faultTimer = new ElapsedTime();
-    private final ElapsedTime jamCheckTimer = new ElapsedTime();
-    private final ElapsedTime settleTimer = new ElapsedTime();
-    private final ElapsedTime voltageTimer = new ElapsedTime();
+    private boolean inReadyWindow = false;  // within tolerance since readyTimer was last reset
+    private double readyWindowTarget = 0;   // the target the hold is being timed against
     private double voltage = Double.NaN;
     private double faultCurrent = 0;
 
     public Flywheel(HardwareMap hardwareMap, String motorName, DcMotorSimple.Direction direction) {
+        this(hardwareMap, motorName, direction, System::nanoTime);
+    }
+
+    /** For tests: takes the clock (in nanoseconds) the timers run from. */
+    Flywheel(HardwareMap hardwareMap, String motorName, DcMotorSimple.Direction direction, LongSupplier clock) {
+        this.clock = clock;
+        loopTimer = new Stopwatch();
+        readyTimer = new Stopwatch();
+        faultTimer = new Stopwatch();
+        jamCheckTimer = new Stopwatch();
+        settleTimer = new Stopwatch();
+        voltageTimer = new Stopwatch();
         this.motorName = motorName;
         motor = Devices.get(hardwareMap, DcMotorEx.class, motorName, m -> {
             m.setDirection(direction);
@@ -159,17 +178,20 @@ public class Flywheel {
         rpmRate = 0;
         health = Health.OK;
         faultSuspected = false;
+        inReadyWindow = false;
     }
 
     /** Drives the flywheel towards targetRPM: closed loop normally, open loop with an encoder fault. */
     public void runToRPM(double targetRPM) {
         this.targetRPM = targetRPM;
         double dt = measure();
+        if (health != Health.OK) inReadyWindow = false;
         switch (health) {
             case OK:
                 double error = targetRPM - filteredRPM;
                 // Passing the filtered RPM's rate of change makes the D term act on the measurement
                 applyPower(controller.calculate(targetRPM, error, rpmRate), dt);
+                updateReadyHold();
                 checkEncoder();
                 break;
             case ENCODER_FAULT:
@@ -211,12 +233,14 @@ public class Flywheel {
     /** Sends a fixed power (still rate-limited) with no feedback, for feedforward testing. */
     public void runOpenLoop(double requestedPower) {
         targetRPM = 0;
+        inReadyWindow = false;
         applyPower(requestedPower, measure());
     }
 
     /** Cuts power; with FLOAT the wheel coasts to a stop. */
     public void stop() {
         targetRPM = 0;
+        inReadyWindow = false;
         cutPower();
         measure();
     }
@@ -238,8 +262,9 @@ public class Flywheel {
     }
 
     /**
-     * True when the flywheel is running to a target and its filtered speed is within
-     * readyTolerancePercent of it, so a ball fed now leaves at the intended speed. In open loop (an
+     * True when the flywheel is running to a target and its filtered speed has stayed within
+     * readyTolerancePercent of it for readyHoldMs, so a ball fed now leaves at the intended speed.
+     * The hold is timed in runToRPM, so call that first each loop. In open loop (an
      * encoder fault) the speed can't be measured, so it's ready once the power has been steady for
      * openLoopSettleSeconds. Never ready when jammed or missing.
      */
@@ -247,7 +272,7 @@ public class Flywheel {
         if (motor == null || targetRPM <= 0) return false;
         switch (health) {
             case OK:
-                return Math.abs(targetRPM - filteredRPM) <= targetRPM * readyTolerancePercent / 100;
+                return inReadyWindow && readyTimer.milliseconds() >= readyHoldMs;
             case ENCODER_FAULT:
                 return settleTimer.seconds() >= openLoopSettleSeconds;
             default:
@@ -334,6 +359,14 @@ public class Flywheel {
         this.readyTolerancePercent = readyTolerancePercent;
     }
 
+    public double getReadyHoldMs() {
+        return readyHoldMs;
+    }
+
+    public void setReadyHoldMs(double readyHoldMs) {
+        this.readyHoldMs = readyHoldMs;
+    }
+
     public double getCountsPerRev() {
         return countsPerRev;
     }
@@ -366,6 +399,25 @@ public class Flywheel {
             rpmRate = (filteredRPM - lastFilteredRPM) / dt;
         }
         return dt;
+    }
+
+    /**
+     * Times how long the filtered RPM has been continuously within tolerance of the target. A target
+     * that moves further than the tolerance from the one the hold started on restarts the hold, as
+     * the wheel has to settle on the new speed. Smaller moves don't: in TeleOp and the autos the
+     * target follows the camera's distance and changes a little on almost every loop, and
+     * restarting on each of those would keep the flywheel from ever being ready.
+     */
+    private void updateReadyHold() {
+        double band = targetRPM * readyTolerancePercent / 100;
+        boolean inWindow = targetRPM > 0 && Math.abs(targetRPM - filteredRPM) <= band;
+        if (!inWindow) {
+            inReadyWindow = false;
+        } else if (!inReadyWindow || Math.abs(targetRPM - readyWindowTarget) > band) {
+            inReadyWindow = true;
+            readyWindowTarget = targetRPM;
+            readyTimer.reset();
+        }
     }
 
     private void applyPower(double requested, double dt) {
@@ -437,6 +489,23 @@ public class Flywheel {
     private void setHealth(Health newHealth) {
         health = newHealth;
         RobotLog.ww("Flywheel", "\"%s\" %s", motorName, faultMessage());
+    }
+
+    /** Elapsed time since reset(), read from the (injectable) clock. */
+    private final class Stopwatch {
+        private long startNanos = clock.getAsLong();
+
+        void reset() {
+            startNanos = clock.getAsLong();
+        }
+
+        double seconds() {
+            return (clock.getAsLong() - startNanos) / 1e9;
+        }
+
+        double milliseconds() {
+            return seconds() * 1000.0;
+        }
     }
 
     /** Feedforward power for a target, scaled up as the battery drops below nominalVoltage. */

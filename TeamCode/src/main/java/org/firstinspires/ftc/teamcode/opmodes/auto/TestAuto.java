@@ -70,7 +70,7 @@ public class TestAuto extends LinearOpMode {
     // Autonomous routine
     public Command autoRoutine() {
         return sequential(
-                follow(follower, path1()),
+                lazy(() -> follow(follower, path1())),
                 instant(this::startAiming),
                 repeat(sequential(
                         waitUntil(this::readyToFire),
@@ -138,8 +138,13 @@ public class TestAuto extends LinearOpMode {
         camera.stop();
     }
 
+    /**
+     * Path 1 from where the robot actually is when it starts (not exactly where it was placed) to the
+     * planned end of path 1. Built when the step starts, not when the routine is.
+     */
     public Path path1() {
-        return Paths.line(start, path1).linear(start, path1);
+        Pose from = follower.pose();
+        return Paths.line(from, path1).linear(from, path1);
     }
 
     private void startAiming() {

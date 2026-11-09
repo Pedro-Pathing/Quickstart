@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.vision.Alliance;
  * the red scoring-side quarter: across towards the rear wall short of its FLOWER, then down through the red LOADING
  * ZONE (its NECTAR), shooting at the scoring-side CELL.
  */
-@Autonomous(name = "Red 2 Looping Auto", group = "Autonomous")
+@Autonomous(name = "SIM Red 2 Looping Auto", group = "Sim")
 public class Red2LoopingAuto extends LoopingAuto {
 
     @Override

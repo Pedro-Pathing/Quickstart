@@ -14,8 +14,11 @@ import org.firstinspires.ftc.teamcode.helpers.Devices;
  */
 @Configurable
 public class Gates {
-    public static double openPosition = 1.0;
-    public static double closedPosition = 0.0;
+    // Each gate has its own positions, as mirrored servos usually need different values
+    public static double pollenOpenPosition = 1.0;
+    public static double pollenClosedPosition = 0.0;
+    public static double nectarOpenPosition = 1.0;
+    public static double nectarClosedPosition = 0.0;
     /** How long a gate stays open per ball. */
     public static long feedMs = 250;
 
@@ -28,8 +31,8 @@ public class Gates {
     private boolean pollenOpen = false, nectarOpen = false;
 
     public Gates(HardwareMap hardwareMap) {
-        pollen = Devices.get(hardwareMap, Servo.class, POLLEN_NAME, s -> s.setPosition(closedPosition));
-        nectar = Devices.get(hardwareMap, Servo.class, NECTAR_NAME, s -> s.setPosition(closedPosition));
+        pollen = Devices.get(hardwareMap, Servo.class, POLLEN_NAME, s -> s.setPosition(pollenClosedPosition));
+        nectar = Devices.get(hardwareMap, Servo.class, NECTAR_NAME, s -> s.setPosition(nectarClosedPosition));
     }
 
     /** Names of missing gate servos in quotes, or "" if both were found. */
@@ -40,7 +43,7 @@ public class Gates {
     public void feedPollen() {
         if (pollen == null) return;
         if (!pollenOpen) {
-            pollen.setPosition(openPosition);
+            pollen.setPosition(pollenOpenPosition);
             pollenOpen = true;
         }
         pollenTimer.reset();
@@ -49,7 +52,7 @@ public class Gates {
     public void feedNectar() {
         if (nectar == null) return;
         if (!nectarOpen) {
-            nectar.setPosition(openPosition);
+            nectar.setPosition(nectarOpenPosition);
             nectarOpen = true;
         }
         nectarTimer.reset();
@@ -58,11 +61,11 @@ public class Gates {
     /** Call every loop: closes each gate again after feedMs. */
     public void update() {
         if (pollenOpen && pollenTimer.milliseconds() > feedMs) {
-            pollen.setPosition(closedPosition);
+            pollen.setPosition(pollenClosedPosition);
             pollenOpen = false;
         }
         if (nectarOpen && nectarTimer.milliseconds() > feedMs) {
-            nectar.setPosition(closedPosition);
+            nectar.setPosition(nectarClosedPosition);
             nectarOpen = false;
         }
     }

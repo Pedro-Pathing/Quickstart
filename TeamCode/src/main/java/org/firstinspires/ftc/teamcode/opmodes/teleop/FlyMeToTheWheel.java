@@ -51,9 +51,9 @@ import org.firstinspires.ftc.teamcode.helpers.SystemStatus;
 @Configurable
 public class FlyMeToTheWheel extends OpMode {
 
-    public static String motorName = "Launcher";
-    public static DcMotorSimple.Direction direction = DcMotorSimple.Direction.FORWARD;
-    public static double targetRPM = 5000;
+    public static String motorName = "PollenFlywheel";
+    public static DcMotorSimple.Direction direction = DcMotorSimple.Direction.REVERSE;
+    public static double targetRPM = 3000;
 
     private final SystemStatus status = new SystemStatus();
     private BulkCache bulkCache;
@@ -94,6 +94,7 @@ public class FlyMeToTheWheel extends OpMode {
             telemetryM.addData("filteredRPM", flywheel.filteredRPM());
             telemetryM.addData("error", targetRPM - flywheel.filteredRPM());
             telemetryM.addData("power", flywheel.power());
+            telemetryM.addData("ready", flywheel.isReady() ? 1 : 0);
             telemetryM.update(telemetry);
         }
     }
