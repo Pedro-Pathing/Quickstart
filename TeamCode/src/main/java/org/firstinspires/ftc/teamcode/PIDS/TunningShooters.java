@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.PIDS;
 
 
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Mech.MidTake;
@@ -100,21 +101,18 @@ public class TunningShooters extends LinearOpMode {
 
 
             if (B_ON){
-
-
-                if (gamepad1.a && !lastA) targetVelocity += 20;
-                if (gamepad1.y && !lastY) targetVelocity -= 20;
-
-
                 shooter.Tune(Pshooter, 0, 0, Fshooter, targetVelocity);
                 midTake.Tune(PmidTake, 0, 0, Fmidtake, targetVelocity);
-
-
             }
             else{
-                shooter.Tune(0,0,0,0,0);
-                midTake.Tune(0,0,0,0,0);
+                shooter.Tune(Pshooter, 0, 0, Fshooter, 0);
+                midTake.Tune(PmidTake, 0, 0, Fmidtake, 0);
             }
+
+
+            if (gamepad1.a && !lastA) targetVelocity += 20;
+            if (gamepad1.y && !lastY) targetVelocity -= 20;
+
             lastB = B;
             lastA = gamepad1.a;
             lastY = gamepad1.y;
@@ -124,11 +122,18 @@ public class TunningShooters extends LinearOpMode {
 
             //velocidades para debug
 
+            telemetry.addData("B", B_ON);
+            telemetry.addLine("===========================================================");
             telemetry.addData("P do shooter", Pshooter);
             telemetry.addData("F do shooter", Fshooter);
             telemetry.addLine("===========================================================");
             telemetry.addData("P do midtake", PmidTake);
             telemetry.addData("F do midtake", Fmidtake);
+            telemetry.addLine("===========================================================");
+            telemetry.addData("Target", targetVelocity);
+            telemetry.addData("Vel. Shooter", velocityShooter);
+            telemetry.addData("Vel. MidTake", velocityMidtake);
+            telemetry.addLine("===========================================================");
             telemetry.addData("Erro Shooter", targetVelocity - velocityShooter);
             telemetry.addData("Erro MidTake", targetVelocity - velocityMidtake);
             telemetry.update();
