@@ -5,6 +5,12 @@ import java.text.SimpleDateFormat
 //
 apply plugin: 'com.android.library'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 android {
 
     defaultConfig {
