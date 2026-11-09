@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.testing_TeaganandJessica;
 import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.behaviors.EndCondition;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -16,5 +17,12 @@ public ElapsedTime timer = new ElapsedTime();
       shooter.setPower(0);
       shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+    } public Command shooter(double power, double time) {
+        return Command.build()
+                .setStart(() -> timer.reset())
+                .setExecute(() -> shooter.setPower(power))
+                .setDone(() -> timer.time() >= time)
+                .setEnd(EndCondition -> shooter.setPower(0))
+                .requiring(shooter);
     }
 }

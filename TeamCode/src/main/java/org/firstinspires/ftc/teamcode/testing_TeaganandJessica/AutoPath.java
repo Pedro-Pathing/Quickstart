@@ -5,12 +5,14 @@ import com.pedropathing.api.Paths;
 
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.CommandBuilder;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.*;
+import static com.pedropathing.ivy.groups.Groups.parallel;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -20,6 +22,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "AutoPath", group = "Autonomous")
 public class AutoPath extends LinearOpMode {
+    HardwareMapTest robot = new HardwareMapTest();
 
     private Follower follower;
 
@@ -43,6 +46,7 @@ public class AutoPath extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        robot.init(hardwareMap);
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
@@ -50,6 +54,9 @@ public class AutoPath extends LinearOpMode {
 
         waitForStart();
         schedule(autoRoutine());
+        CommandBuilder driving = parallel(
+                autoRoutine(),
+                robot.shooter( 0.5, 2));
 
         while (opModeIsActive()) {
             follower.update();
