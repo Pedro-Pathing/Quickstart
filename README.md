@@ -15,7 +15,7 @@ The robot code is under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`
 - **Vision**: a Limelight 3A on a tilt mount, finding the HIVE AprilTags to aim at and balls on the floor.
 - **Commands**: Ivy commands for driving, launching, collecting and aiming, with requirements so they don't fight over the same parts.
 - **OpModes**: the Competition TeleOp, test TeleOps, tuning OpModes and autonomous routines (see [OpModes](#opmodes)).
-- **Sim support**: the Looping Autos are sim-only stress tests, and `pedro/Constants.java` switches between SIM and ROBOT drive constants.
+- **Sim support**: the Looping Autos are sim-only stress tests, and the BIOBUZZ sim applies its own drive values to `pedro/Constants.java` from its `vhub/sim-overrides.txt`.
 
 Packages under `teamcode/`:
 
@@ -144,11 +144,11 @@ The project uses Java 17.
 
 Panels is the live dashboard for the robot. Values marked `@Configurable` in the code (for example `CompetitionTeleOp.alliance` or `Gates.feedMs`) can be changed in Panels and take effect without rebuilding. Telemetry and graphs also show in Panels. Tune values there, then copy the final values into the code.
 
-### Drive constants: SIM or ROBOT
+### Drive constants and the sim
 
-`pedro/Constants.java` has a single switch, `Constants.target`, that selects the SIM or ROBOT drive constants. It defaults to ROBOT, and you can change it in Panels.
+`pedro/Constants.java` holds the real robot's drive constants. The Pinpoint values marked TODO and the Foresight gains are placeholders until the robot is tuned. Until then `Constants.foresightTuned` is false, and the TeleOp heading lock uses PID instead of Foresight. Set it to true once the Foresight tuner's results are in.
 
-The ROBOT Pinpoint and Foresight values are placeholders until they are tuned. Until then, the TeleOp heading lock falls back to PID.
+The BIOBUZZ sim ([LEdgeley/BioBuzzSim](https://github.com/LEdgeley/BioBuzzSim)) keeps its own values out of TeamCode: its `vhub/sim-overrides.txt` sets them on `Constants`' public static fields by name, for example `Constants.foresightTuned = true`. Keep the names `drivetrainConfig`, `localizerConfig`, `foresightConfig` and `foresightTuned` as they are; `ConstantsTest` fails if one is renamed or made final.
 
 ### Limelight pipelines
 

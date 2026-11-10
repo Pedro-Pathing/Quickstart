@@ -32,8 +32,8 @@ import java.util.function.DoubleSupplier;
  * Constants' headingBrakeCoefficients, the Foresight tuner's coasting stop, times brakeScale) is
  * taken off the error. It pushes while that stop falls short of the target and brakes once it
  * would overshoot, so it can use a high gain without overshooting. Otherwise it's the PID above.
- * That includes when the selected Constants set's Foresight gains aren't tuned yet (the robot's, at
- * first): the PID is used until the team tunes them, and the telemetry says which is in use.
+ * That includes when Constants.foresightTuned is false (on the robot, until it is tuned): the PID
+ * is used until the team tunes Foresight, and the telemetry says which is in use.
  */
 @Configurable
 public class TeleOpDrive {
@@ -255,16 +255,15 @@ public class TeleOpDrive {
     }
 
     /**
-     * Whether the heading lock is the Foresight one: it's switched on and the selected constants
-     * set's Foresight gains are tuned. Untuned gains (the robot's, until the team tunes them) would
+     * Whether the heading lock is the Foresight one: it is switched on and Constants marks its
+     * Foresight gains as tuned (Constants.foresightTuned). Untuned gains would
      * make the brake prediction wrong, so the PID is used instead.
      */
     boolean usingForesight() {
-        return useForesight && Constants.foresightTuned();
+        return useForesight && Constants.foresightTuned;
     }
 
     public void addTelemetry(TelemetryManager telemetryM) {
-        telemetryM.addData("Constants Set", Constants.target);
         telemetryM.addData("Heading Lock", usingForesight() ? "Foresight"
                 : useForesight ? "PID (Foresight gains not tuned)" : "PID");
         telemetryM.addData("Drive Mode", fieldCentric ? "Field-centric" : "Robot-centric");
@@ -283,7 +282,7 @@ public class TeleOpDrive {
      * where the robot is now, so this brakes it.
      */
     private double foresightTurn() {
-        Vector2D brake = Constants.foresightConfig().headingBrakeCoefficients.get();
+        Vector2D brake = Constants.foresightConfig.headingBrakeCoefficients.get();
         double omega = angularVelocity;
         double stop = brakeScale * (brake.x() * omega + brake.y() * omega * omega * Math.signum(omega));
         double error = Angle.normalizeSigned(targetHeading - heading) - stop;
