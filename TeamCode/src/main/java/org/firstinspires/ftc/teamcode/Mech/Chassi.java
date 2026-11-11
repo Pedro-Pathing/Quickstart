@@ -34,7 +34,7 @@ public class Chassi {
 
         rx = Math.copySign(rx*rx*rx*rx, rx);
 
-        double Median = Math.min(Math.abs(x) + Math.abs(y) + Math.abs(rx), 1);
+        double Median = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rx), 1);
 
         double lfp = (y + x + rx) / Median;
         double lbp = (y - x + rx) / Median;
@@ -46,4 +46,5 @@ public class Chassi {
         rightFront.setPower(rfp); rightBack.setPower(rbp);
 
     }
+
 }

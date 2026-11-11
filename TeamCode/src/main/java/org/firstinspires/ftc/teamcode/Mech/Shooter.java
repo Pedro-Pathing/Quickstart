@@ -95,36 +95,4 @@ public class Shooter {
     }
 
     public double getVelocity(){ return shooter.getVelocity();}
-
-    public void ActivateTu(boolean RT_ON, double TargetVelocity){
-
-        if (RT_ON){
-
-            if (timer.milliseconds() > 500){
-                if (battery != null){
-                    double v = battery.getVoltage();
-                    // Ignora leitura invalida ou queda brusca de tensao
-                    if (v > 7.0){
-                        // Filtro: suaviza as quedas momentaneas ao acelerar o shooter
-                        cachedVolts = 0.8 * cachedVolts + 0.2 * v;
-                    }
-                }
-                timer.reset();
-            }
-
-            double f = BasePotence * (PorcentOfBatteryOf/cachedVolts);
-
-            if(Math.abs(f - lastF) > 0.05){
-
-                shooter.setVelocityPIDFCoefficients(p, 0,0, f);
-                lastF = f;
-            }
-
-            shooter.setVelocity(TargetVelocity);
-        }
-        else{
-            shooter.setVelocity(0);
-        }
-
-    }
 }
