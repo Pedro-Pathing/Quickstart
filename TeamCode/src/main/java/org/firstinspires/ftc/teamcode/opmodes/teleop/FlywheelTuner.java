@@ -21,7 +21,9 @@ import java.util.Locale;
  * Tuning OpMode for a flywheel's gains. Set motorName (and direction) in Panels before INIT to
  * choose which flywheel to tune, e.g. the nectar or pollen launcher.
  *
- * A / Cross     Feedforward test: steps through fixed powers and fits kV and kS
+ * A / Cross     Feedforward test: steps through fixed powers and fits kV and kS. The battery voltage
+ *               is averaged at each step and the powers are scaled to Flywheel.nominalVoltage before
+ *               fitting, so the gains suit the flywheel's voltage compensation whatever the battery.
  * D-pad up      Apply the fitted kV and kS (after the feedforward test)
  * B / Circle    Step test: alternates between two target speeds, for tuning kP, kD and kI
  * Y / Triangle  Shot test: holds shotRPM and measures the speed drop and recovery after each shot
@@ -35,7 +37,7 @@ import java.util.Locale;
 public class FlywheelTuner extends OpMode {
 
     // Which flywheel to tune (read at INIT)
-    public static String motorName = "Launcher";
+    public static String motorName = "PollenLauncher";
     public static DcMotorSimple.Direction direction = DcMotorSimple.Direction.FORWARD;
 
     // Gains being tuned, starting from the Flywheel defaults
@@ -90,9 +92,12 @@ public class FlywheelTuner extends OpMode {
     // Feedforward test state
     private final List<Double> ffPowers = new ArrayList<>();
     private final List<Double> ffSpeeds = new ArrayList<>();
+    private final List<Double> ffVoltages = new ArrayList<>();  // NaN if there's no hub to read it from
     private int ffIndex = 0;
     private double ffRPMSum = 0;
     private int ffRPMCount = 0;
+    private double ffVoltageSum = 0;
+    private int ffVoltageCount = 0;
     private boolean ffHasResult = false;
     private double fitKV = 0, fitKS = 0, fitR2 = 0;
     private String ffMessage = "";
@@ -250,12 +255,15 @@ public class FlywheelTuner extends OpMode {
         mode = Mode.FEEDFORWARD;
         ffPowers.clear();
         ffSpeeds.clear();
+        ffVoltages.clear();
         for (double p = ffStartPower; p <= ffEndPower + 1e-6; p += ffPowerStep) {
             ffPowers.add(Math.min(p, 1.0));
         }
         ffIndex = 0;
         ffRPMSum = 0;
         ffRPMCount = 0;
+        ffVoltageSum = 0;
+        ffVoltageCount = 0;
         ffHasResult = false;
         ffMessage = "";
         flywheel.reset();
@@ -275,15 +283,23 @@ public class FlywheelTuner extends OpMode {
         if (t > ffSettleSeconds) {
             ffRPMSum += flywheel.rawRPM();
             ffRPMCount++;
+            // The battery sags under load, so it's read while the wheel is held at this power
+            if (voltageSensor != null) {
+                ffVoltageSum += voltageSensor.getVoltage();
+                ffVoltageCount++;
+            }
         }
 
         if (t > ffSettleSeconds + ffMeasureSeconds) {
             double averageRPM = ffRPMCount > 0 ? ffRPMSum / ffRPMCount : 0;
             ffSpeeds.add(averageRPM);
+            ffVoltages.add(ffVoltageCount > 0 ? ffVoltageSum / ffVoltageCount : Double.NaN);
 
             ffIndex++;
             ffRPMSum = 0;
             ffRPMCount = 0;
+            ffVoltageSum = 0;
+            ffVoltageCount = 0;
             modeTimer.reset();
 
             if (ffIndex >= ffPowers.size()) {
@@ -293,14 +309,27 @@ public class FlywheelTuner extends OpMode {
         }
     }
 
-    /** Least-squares fit of power = kS + kV * RPM over the points where the wheel was turning. */
+    /**
+     * The power that would have given step i's speed at Flywheel.nominalVoltage. The motor's voltage is
+     * power times battery voltage, so the same speed at nominal voltage needs power * V / nominal. This
+     * matches the flywheel's feedforward, which divides by V / nominal.
+     */
+    private double nominalPower(int i) {
+        double v = ffVoltages.get(i);
+        return Double.isNaN(v) || v < 1 ? ffPowers.get(i) : ffPowers.get(i) * v / Flywheel.nominalVoltage;
+    }
+
+    /**
+     * Least-squares fit of power = kS + kV * RPM over the points where the wheel was turning, with each
+     * power scaled to nominal voltage.
+     */
     private void fitFeedforward() {
         int n = 0;
         double sx = 0, sy = 0, sxx = 0, sxy = 0, syy = 0;
         for (int i = 0; i < ffSpeeds.size(); i++) {
             double rpm = ffSpeeds.get(i);
             if (rpm < ffMinRPM) continue;
-            double p = ffPowers.get(i);
+            double p = nominalPower(i);
             n++;
             sx += rpm;
             sy += p;
@@ -325,7 +354,7 @@ public class FlywheelTuner extends OpMode {
             double rpm = ffSpeeds.get(i);
             if (rpm < ffMinRPM) continue;
             double predicted = fitKS + fitKV * rpm;
-            double residual = ffPowers.get(i) - predicted;
+            double residual = nominalPower(i) - predicted;
             ssResidual += residual * residual;
         }
         fitR2 = ssTotal > 0 ? 1 - ssResidual / ssTotal : 0;
@@ -340,9 +369,16 @@ public class FlywheelTuner extends OpMode {
                     ffIndex + 1, ffPowers.size(), ffPowers.get(ffIndex));
         }
         for (int i = 0; i < ffSpeeds.size(); i++) {
-            telemetry.addData(String.format(Locale.US, "Power %.2f", ffPowers.get(i)), "%.0f RPM", ffSpeeds.get(i));
+            double v = ffVoltages.get(i);
+            String label = String.format(Locale.US, "Power %.2f", ffPowers.get(i));
+            if (Double.isNaN(v)) {
+                telemetry.addData(label, "%.0f RPM", ffSpeeds.get(i));
+            } else {
+                telemetry.addData(label, "%.0f RPM at %.2f V", ffSpeeds.get(i), v);
+            }
         }
         if (ffHasResult) {
+            telemetry.addData("Fitted at", "%.1f V (Flywheel.nominalVoltage)", Flywheel.nominalVoltage);
             telemetry.addData("Fitted kV", "%.10f", fitKV);
             telemetry.addData("Fitted kS", "%.6f", fitKS);
             telemetry.addData("Fit quality (R²)", "%.3f (aim for 0.98 or more)", fitR2);
