@@ -43,9 +43,11 @@ public class TeleOpDrive {
     public static double kS = 0.03; // Static feedforward to overcome turning friction
 
     // Foresight heading lock (see the class comment): turn power per radian of the predicted error,
-    // kS while that error is over foresightKSDeadbandDegrees, and a scale on the brake model
+    // kS while that error is over foresightKSDeadbandDegrees, and a scale on the brake model.
+    // foresightKP 4 jiggled back and forth at the target with 20 ms loops (each loop's power is held
+    // until the next); 2 settles as fast with none.
     public static boolean useForesight = true;
-    public static double foresightKP = 4.0;
+    public static double foresightKP = 2.0;
     public static double foresightKS = 0.03;
     public static double foresightKSDeadbandDegrees = 0.5;
     public static double brakeScale = 0.6;
