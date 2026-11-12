@@ -31,7 +31,7 @@ public class RobotConstants {
     public static final double MAX_RELOCALIZATION_DISTANCE_MM = 600.0;  // Reject relocalization jumps > 600mm
     public static final double MIN_RELOCALIZATION_DISTANCE_MM = 10.0;  // Ignore tiny corrections < 10mm
     public static final long CAMERA_DATA_MAX_STALENESS_MS = 100;  // Reject camera data older than 100ms
-    public static final int BLUE_GOAL_APRILTAG_ID = 20;  // Blue alliance goal AprilTag ID
+    public static final String BLUE_GOAL_APRILTAG_IDS = "40,41,42,43,44,45,46,47";  // Blue alliance goal AprilTag ID
 
     public static final String RED_GOAL_APRILTAGS_AF = "36,37,38,39";
     public static final String RED_GOAL_APRILTAGS_SF = "32,33,34,35";
@@ -40,7 +40,7 @@ public class RobotConstants {
     public static final String BLUE_GOAL_APRILTAGS_SF = "44,45,46,47";
 
 
-    public static final int RED_GOAL_APRILTAG_ID = 24;  // Red alliance goal AprilTag ID
+    public static final String RED_GOAL_APRILTAG_IDS = "36,37,38,39,32,33,34,35";  // Red alliance goal AprilTag ID
 
     // Servo constants
     public static final double SERVO_DELAY_MS = 1000;  // Fallback delay if velocity check fails (1 second to ensure motors reach speed)

@@ -17,7 +17,7 @@ public class RedAllianceLinearTeleOp extends BaseLinearTeleOp {
 
     @Override
     protected AllianceConfig getAllianceConfig() {
-        return AllianceConfig.createRedAllianceConfigAF();
+        return AllianceConfig.createRedAllianceConfig();
     }
 
     @Override

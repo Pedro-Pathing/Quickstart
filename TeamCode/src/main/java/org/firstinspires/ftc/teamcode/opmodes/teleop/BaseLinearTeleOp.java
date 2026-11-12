@@ -19,6 +19,8 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop;
  * - Right stick: Robot rotation
  * - Right trigger: Slow mode (RobotConstants.SLOW_MODE_MULTIPLIER)
  * - Left + right bumper (hold): Drive to the shooting position if inside the shooting zone (release to cancel)
+ * - Back (press to toggle): Turn to face the alliance goal AprilTag cluster using the Limelight.
+ *   Stays on, holding the goal heading, until Back is pressed again or the right stick is moved
  * - X button: Toggle pollen launcher (on at RobotConstants.NEAR_LAUNCH_SPEED, press again to stop);
  *   the pollen gate opens automatically once the launcher reaches speed
  * - B button: Toggle nectar launcher (on at RobotConstants.NEAR_LAUNCH_SPEED, press again to stop);
@@ -70,7 +72,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
     // Control states
     protected boolean slowMode = false;             // Tracks whether slow mode is held
     protected DrivePowers lastDrivePowers = DrivePowers.zero();  // Last powers sent to the follower (for telemetry)
-    protected boolean aligning = false;             // Tracks whether goal alignment is active (both bumpers held)
+    protected boolean aligning = false;             // Tracks whether goal alignment is active (toggled by gamepad1 back)
     protected boolean aligned = false;              // Tracks whether the robot is facing the goal tag
     protected int speedSteps = 0;                   // Gamepad1 bumper launcher adjustment this loop: +1 faster, -1 slower, 0 none
     protected int intakeSpeedSteps = 0;             // Gamepad2 bumper intake adjustment this loop: +1 faster, -1 slower, 0 none
@@ -120,7 +122,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
             follower.update();
 
             // Cache fresh AprilTag data for this loop
-            //limelight.update();
+            limelight.update();
 
             // MANUAL DRIVE CONTROL (GAMEPAD1)
             handleManualControl();
@@ -162,8 +164,12 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
         servos.init(hardwareMap);
 
         // Track only this alliance's goal AprilTag
-        //limelight = new LimelightUtil(hardwareMap);
-        //limelight.setTargetTagId(allianceConfig.getTargetAprilTagId());
+        limelight = new LimelightUtil(hardwareMap);
+        limelight.setTargetTagId(-1);
+        limelight.setClusterMode(true);
+        // Blue: RobotConstants.BLUE_GOAL_APRILTAG_IDS, Red: RobotConstants.RED_GOAL_APRILTAG_IDS
+        limelight.setTargetCluster(allianceConfig.getAllianceName() + " Goal",
+                allianceConfig.getTargetAprilTagIds());
 
         // Create the follower object using our robot's hardware configuration
         follower = Constants.create(hardwareMap);
@@ -199,10 +205,16 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
         double strafe = -applyDeadzone(gamepad1.left_stick_x) * speedMultiplier;    // Left/right strafe movement
         double turn = -applyDeadzone(gamepad1.right_stick_x) * speedMultiplier;     // Rotation
 
-        // Both bumpers held - Limelight takes over rotation to face the goal
-        aligning = gamepad1.left_bumper && gamepad1.right_bumper;
+        // Back toggles goal align on/off; moving the right stick cancels it so the driver can take over
+        if (gamepad1.backWasPressed()) {
+            aligning = !aligning;
+        }
+        if (aligning && turn != 0) {
+            aligning = false;
+        }
         if (aligning) {
-            //turn = handleAlignToGoal(turn);
+            // Limelight takes over rotation to face the goal
+            turn = handleAlignToGoal(turn);
         } else {
             aligned = false;
         }
@@ -223,7 +235,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
      *
      * @param driverTurn the driver's turn input, used when no tag is visible
      * @return turn power to send to the follower
-     *//*
+     */
     protected double handleAlignToGoal(double driverTurn) {
         if (!limelight.hasTarget()) {
             // No tag in view - leave rotation to the driver so they can find it
@@ -241,7 +253,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
         double turnPower = Math.min(RobotConstants.ALIGN_MAX_TURN_POWER,
             Math.max(RobotConstants.ALIGN_MIN_TURN_POWER, Math.abs(tx) * RobotConstants.ALIGN_KP));
         return -Math.signum(tx) * turnPower;
-    }*/
+    }
 
     /**
      * Reads the bumper edges once per loop - gamepad1 bumpers adjust the launchers, gamepad2 bumpers the intake
@@ -427,7 +439,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
             lastDrivePowers.forward(), lastDrivePowers.strafe(), lastDrivePowers.turn()));
         telemetry.addData("Raw Sticks", String.format("LX:%.2f LY:%.2f RX:%.2f",
             gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x));
-        //telemetry.addData("Goal Align", !aligning ? "OFF" : (!limelight.hasTarget() ? "NO TAG" : (aligned ? "ALIGNED" : "TURNING")));
+        telemetry.addData("Goal Align", !aligning ? "OFF" : (!limelight.hasTarget() ? "NO TAG" : (aligned ? "ALIGNED" : "TURNING")));
 
         // Launcher status (each motor is controlled separately)
         telemetry.addData("Pollen Launcher", launcherStatus(launcher.isPollenOn(),
@@ -446,13 +458,25 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
         telemetry.addData("Nectar Gate", servos.isNectarOpen() ? "OPEN" : "CLOSED");
 
         // Limelight status
-        /*telemetry.addData("Limelight", limelight.getStatusString());
+        telemetry.addData("Limelight", limelight.getStatusString());
+        telemetry.addData("Cluster Mode", limelight.isClusterMode() ? "ON" : "OFF");
+        telemetry.addData("Target Cluster", "%s [%s]",
+            limelight.getTargetClusterName() == null ? "Any" : limelight.getTargetClusterName(),
+            allianceConfig.getTargetAprilTagIds());
         if (limelight.hasTarget()) {
+            if (limelight.isTrackingCluster()) {
+                telemetry.addData("Cluster", limelight.getTrackedClusterName());
+                telemetry.addData("Tags Found", "%d%% %s",
+                    limelight.getClusterPercentFound(), limelight.getClusterTagIds());
+            }
+            telemetry.addData("Target ID", limelight.getTrackedTagId());
             telemetry.addData("Goal Distance", String.format("%.1f in", limelight.getDistanceToTargetInches()));
+            telemetry.addData("Goal Height", String.format("%.1f in", limelight.getHeightToTargetInches()));
             telemetry.addData("Goal tx", String.format("%.1f°", limelight.getTx()));
-        }*/
+            telemetry.addData("Target Area", String.format("%.2f", limelight.getTargetArea()));
+        }
 
-        telemetry.addData("Gamepad1 Controls", String.format("X=Pollen On(%d)/Off, B=Nectar On/Off, RB=+%d, LB=-%d, RT=Slow, LB+RB=Shoot Pos, DpadL=Pollen Gate, DpadR=Nectar Gate",
+        telemetry.addData("Gamepad1 Controls", String.format("X=Pollen On(%d)/Off, B=Nectar On/Off, RB=+%d, LB=-%d, RT=Slow, LB+RB=Shoot Pos, Back=Align On/Off, DpadL=Pollen Gate, DpadR=Nectar Gate",
             RobotConstants.NEAR_LAUNCH_SPEED, RobotConstants.LAUNCHER_SPEED_STEP, RobotConstants.LAUNCHER_SPEED_STEP));
         telemetry.addData("Intake Controls", String.format("GP2 Y=Intake On/Off, GP2 A=Outtake On/Off, GP2 RB=+%d, GP2 LB=-%d",
             RobotConstants.INTAKE_SPEED_STEP, RobotConstants.INTAKE_SPEED_STEP));
@@ -487,7 +511,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
     protected void stopAllMotors() {
         launcher.stop();
         intake.stop();
-        //limelight.stop();
+        limelight.stop();
         follower.stop();
     }
 

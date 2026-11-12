@@ -91,18 +91,21 @@ public class AllianceConfig {
      */
     public static AllianceConfig createBlueAllianceConfig() {
         return new AllianceConfig(
-            true,   // isBlueAlliance
-            RobotConstants.BLUE_GOAL_APRILTAGS_AF,     // AprilTag ID
-            "Blue"  // Alliance name
+                true,   // isBlueAlliance
+                RobotConstants.BLUE_GOAL_APRILTAG_IDS,     // AprilTag ID
+                "Blue",  // Alliance name
+                RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
+                RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
+                LaunchTarget.AUTON_END
         );
     }
 
     public static AllianceConfig createBlueAllianceConfigAF() {
         return new AllianceConfig(
                 true,   // isBlueAlliance
-                RobotConstants.BLUE_GOAL_APRILTAGS_AF,     // AprilTag ID
+                RobotConstants.BLUE_GOAL_APRILTAG_IDS,     // AprilTag ID
                 "Blue",  // Alliance name
-                1110,
+                RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
                 RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
                 LaunchTarget.AUTON_END
         );
@@ -140,7 +143,7 @@ public class AllianceConfig {
     public static AllianceConfig createRedAllianceConfigAF() {
         return new AllianceConfig(
                 false,  // isBlueAlliance
-                RobotConstants.RED_GOAL_APRILTAGS_AF,     // AprilTag ID
+                RobotConstants.RED_GOAL_APRILTAG_IDS,     // AprilTag ID
                 "Red" ,  // Alliance name
                 RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
                 RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
@@ -175,14 +178,14 @@ public class AllianceConfig {
     /**
      * Red SF configuration for launching from the side (side launch speeds)
      */
-    public static AllianceConfig createRedAllianceConfigSFSideLaunch() {
+    public static AllianceConfig createRedAllianceConfig() {
         return new AllianceConfig(
                 false,  // isBlueAlliance
-                RobotConstants.RED_GOAL_APRILTAGS_SF,     // AprilTag ID
-                "Red",   // Alliance name
-                RobotConstants.SIDE_POLLEN_LAUNCH_SPEED,
-                RobotConstants.SIDE_NECTAR_LAUNCH_SPEED,
-                LaunchTarget.AUTON_END_SF
+                RobotConstants.RED_GOAL_APRILTAG_IDS,     // AprilTag ID
+                "Red" ,  // Alliance name
+                RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
+                RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
+                LaunchTarget.AUTON_END
         );
     }
 }
