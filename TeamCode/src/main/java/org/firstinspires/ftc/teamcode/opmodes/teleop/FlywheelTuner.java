@@ -31,14 +31,36 @@ import java.util.Locale;
  *
  * Watch targetRPM, filteredRPM and power on the Panels graph and tune the gains below in Panels.
  * They are copied into the flywheel every loop. Copy the final values into that flywheel's setup code.
+ *
+ * The speeds are of whatever the encoder is on: the flywheel shaft for a Through Bore, the motor for
+ * its built-in encoder. Gains tuned with one encoder don't carry over to the other. If the RPM reads
+ * negative while the wheel spins the right way, set encoderReversed.
  */
 @TeleOp(name = "Flywheel Tuner", group = "Tuning")
 @Configurable
 public class FlywheelTuner extends OpMode {
 
+    public enum EncoderType {
+        /** REV Through Bore encoder on the flywheel shaft. */
+        THROUGH_BORE(Flywheel.THROUGH_BORE_COUNTS_PER_REV),
+        /** The motor's built-in encoder. */
+        MOTOR(Flywheel.DEFAULT_COUNTS_PER_REV);
+
+        final double countsPerRev;
+
+        EncoderType(double countsPerRev) {
+            this.countsPerRev = countsPerRev;
+        }
+    }
+
     // Which flywheel to tune (read at INIT)
     public static String motorName = "PollenLauncher";
     public static DcMotorSimple.Direction direction = DcMotorSimple.Direction.FORWARD;
+    /** The motor whose encoder port the encoder is plugged into, or "" for this flywheel's own motor (read at INIT). */
+    public static String encoderPort = "";
+    /** THROUGH_BORE for the pollen launcher; MOTOR for a launcher without one. */
+    public static EncoderType encoderType = EncoderType.THROUGH_BORE;
+    public static boolean encoderReversed = false;
 
     // Gains being tuned, starting from the Flywheel defaults
     public static double kP = Flywheel.DEFAULT_KP;
@@ -128,12 +150,13 @@ public class FlywheelTuner extends OpMode {
     public void init() {
         bulkCache = new BulkCache(hardwareMap);
         flywheel = new Flywheel(hardwareMap, motorName, direction);
+        flywheel.useEncoder(hardwareMap, encoderPort);
         applySettings();
         voltageSensor = hardwareMap.voltageSensor.iterator().hasNext() ? hardwareMap.voltageSensor.iterator().next() : null;
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         status.check("Flywheel", flywheel.missingDevices());
 
-        telemetry.addLine("Flywheel Tuner ready for " + motorName + ". Press START, then:");
+        telemetry.addLine("Flywheel Tuner ready for " + motorName + " (" + encoderDescription() + "). Press START, then:");
         telemetry.addLine("A/Cross: feedforward test   B/Circle: step test");
         telemetry.addLine("Y/Triangle: shot test   X/Square: stop");
         status.addTelemetry(telemetry);
@@ -208,7 +231,10 @@ public class FlywheelTuner extends OpMode {
         telemetryM.addData("power", flywheel.power());
 
         status.addTelemetry(telemetry);
-        telemetry.addData("Flywheel", motorName);
+        telemetry.addData("Flywheel", "%s, %s", motorName, encoderDescription());
+        if (flywheel.power() >= Flywheel.faultMinPower && flywheel.rawRPM() < -Flywheel.faultMaxRPM) {
+            telemetry.addLine("The encoder counts backwards: toggle encoderReversed in Panels.");
+        }
         if (flywheel.getHealth() != Flywheel.Health.OK) {
             telemetry.addData("FAULT", flywheel.faultMessage() + " (start a test again to retry)");
         }
@@ -241,8 +267,16 @@ public class FlywheelTuner extends OpMode {
         telemetryM.update(telemetry);
     }
 
+    private String encoderDescription() {
+        String type = encoderType == EncoderType.THROUGH_BORE ? "Through Bore encoder" : "motor encoder";
+        String port = encoderPort.isEmpty() ? "" : " on " + encoderPort + "'s port";
+        return type + port + (encoderReversed ? ", reversed" : "");
+    }
+
     /** Copies the Panels values into the flywheel, so changes take effect straight away. */
     private void applySettings() {
+        flywheel.setCountsPerRev(encoderType.countsPerRev);
+        flywheel.setEncoderReversed(encoderReversed);
         flywheel.setPID(kP, kI, kD);
         flywheel.setFeedforward(kV, kS);
         flywheel.setMaxPowerRate(maxPowerRate);

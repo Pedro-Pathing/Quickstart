@@ -221,6 +221,73 @@ public class FlywheelTest {
         assertEquals(1234, flywheel.filteredRPM(), 1e-6);
     }
 
+    /** What the hub reports for a true velocity: it wraps into a signed 16-bit range. */
+    private static double hubVelocity(double countsPerSecond) {
+        return ((countsPerSecond + 32768) % 65536 + 65536) % 65536 - 32768;
+    }
+
+    /** Runs 10 ms loops with a Through Bore on encoderMotor turning at each RPM in turn. */
+    private void throughBoreLoops(DcMotorEx encoderMotor, int sign, double... rpms) {
+        int position = 0;
+        for (double rpm : rpms) {
+            double countsPerSecond = rpm * Flywheel.THROUGH_BORE_COUNTS_PER_REV / 60.0;
+            position += (int) Math.round(countsPerSecond * STEP_NANOS / 1e9);
+            nanos.addAndGet(STEP_NANOS);
+            when(encoderMotor.getCurrentPosition()).thenReturn(sign * position);
+            when(encoderMotor.getVelocity()).thenReturn(hubVelocity(sign * countsPerSecond));
+            flywheel.runToRPM(TARGET);
+        }
+    }
+
+    @Test
+    public void throughBoreSpeedIsUnwrappedFromThe16BitVelocity() {
+        flywheel.setCountsPerRev(Flywheel.THROUGH_BORE_COUNTS_PER_REV);
+        flywheel.reset();
+        // 3000 RPM is 409600 counts/s, which the hub wraps to 16384
+        assertEquals(16384, hubVelocity(3000 * 8192 / 60.0), 0);
+        throughBoreLoops(motor, 1, 2900, 2950, 3000);
+        assertEquals(3000, flywheel.rawRPM(), 1e-6);
+        // A ball slowing the wheel by 200 RPM in one loop is still read right
+        throughBoreLoops(motor, 1, 3000, 2800);
+        assertEquals(2800, flywheel.rawRPM(), 1e-6);
+    }
+
+    @Test
+    public void reversedEncoderReadsForwards() {
+        flywheel.setCountsPerRev(Flywheel.THROUGH_BORE_COUNTS_PER_REV);
+        flywheel.setEncoderReversed(true);
+        flywheel.reset();
+        throughBoreLoops(motor, -1, 2900, 3000);
+        assertEquals(3000, flywheel.rawRPM(), 1e-6);
+    }
+
+    @Test
+    public void readsAnEncoderOnAnotherMotorsPort() throws Exception {
+        HardwareMap map = hardwareMapWith(motor);
+        DcMotorEx intake = mock(DcMotorEx.class);
+        when(map.get(DcMotorEx.class, "Intake")).thenReturn(intake);
+        flywheel = new Flywheel(map, "PollenFlywheel", DcMotorSimple.Direction.REVERSE, nanos::get);
+        flywheel.setRpmFilterTimeConstant(0);
+        flywheel.setCountsPerRev(Flywheel.THROUGH_BORE_COUNTS_PER_REV);
+        flywheel.useEncoder(map, "Intake");
+        flywheel.reset();
+
+        setRPM(5000);  // the motor's own encoder is ignored
+        throughBoreLoops(intake, 1, 2500);
+        assertEquals(2500, flywheel.rawRPM(), 1e-6);
+        assertEquals("", flywheel.missingDevices());
+    }
+
+    @Test
+    public void missingEncoderIsReported() throws Exception {
+        HardwareMap map = hardwareMapWith(motor);
+        when(map.get(DcMotorEx.class, "Intake")).thenThrow(new IllegalArgumentException("not found"));
+        flywheel.useEncoder(map, "Intake");
+        assertEquals("\"Intake\"", flywheel.missingDevices());
+        loop(TARGET);
+        assertEquals(0, flywheel.rawRPM(), 0);
+    }
+
     @Test
     public void missingMotorIsDisabledAndNeverReady() throws Exception {
         Flywheel missing = new Flywheel(hardwareMapWith(null), "PollenFlywheel",

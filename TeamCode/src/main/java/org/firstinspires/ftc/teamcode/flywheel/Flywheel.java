@@ -42,6 +42,12 @@ import java.util.function.LongSupplier;
  *    every jamCheckSeconds in case the wheel jams later.
  * Open loop needs tuned kV and kS: with the defaults (0) the wheel just stops.
  * The safety settings below are shared by all flywheels and live-tunable in Panels.
+ *
+ * Encoder: by default the speed comes from the motor's built-in encoder. useEncoder() switches to
+ * another one, e.g. a REV Through Bore on the flywheel shaft (set countsPerRev to
+ * THROUGH_BORE_COUNTS_PER_REV), plugged into this motor's encoder port or another motor's. The hub
+ * reports velocity as a 16-bit number, which wraps above 32767 counts per second (only 240 RPM for
+ * a Through Bore), so the reading is corrected using the change in position, which doesn't wrap.
  */
 @Configurable
 public class Flywheel {
@@ -68,6 +74,8 @@ public class Flywheel {
     // Default settings every new flywheel starts with
     /** Encoder counts per motor revolution (the HD Hex motor's built-in encoder). */
     public static final double DEFAULT_COUNTS_PER_REV = 28.0;
+    /** Encoder counts per revolution of a REV Through Bore encoder. */
+    public static final double THROUGH_BORE_COUNTS_PER_REV = 8192.0;
     // Feedback gains (power per RPM of error)
     public static final double DEFAULT_KP = 0.0005;
     public static final double DEFAULT_KI = 0.0;
@@ -92,9 +100,15 @@ public class Flywheel {
     private static final double SETTLED_POWER_ERROR = 0.02;
     /** The battery voltage is read at most this often in open loop, as each read takes loop time. */
     private static final double VOLTAGE_READ_INTERVAL_SECONDS = 0.1;
+    /** The hub's velocity is a signed 16-bit count, so it wraps by this many counts per second. */
+    private static final double VELOCITY_WRAP = 65536.0;
 
     private final String motorName;
     private final DcMotorEx motor;  // null when the flywheel is disabled
+    private String encoderName = "";  // "" when the encoder is the motor's own
+    private DcMotorEx encoder;  // the motor whose encoder port it's plugged into; null if missing
+    private boolean encoderReversed = false;
+    private int lastPosition = 0;
     private final VoltageSensor voltageSensor;  // null if there's no hub to read it from
     private final Controller controller;
     private final LongSupplier clock;  // nanoseconds; injectable so tests don't have to sleep
@@ -142,6 +156,7 @@ public class Flywheel {
             m.setDirection(direction);
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         });
+        encoder = motor;
         voltageSensor = hardwareMap.voltageSensor.iterator().hasNext()
                 ? hardwareMap.voltageSensor.iterator().next() : null;
 
@@ -161,9 +176,21 @@ public class Flywheel {
         return motor != null;
     }
 
-    /** The motor's name in quotes if it's missing, otherwise "". */
+    /** The motor's name (and a separate encoder's) in quotes if it's missing, otherwise "". */
     public String missingDevices() {
-        return Devices.missing(motor, motorName);
+        return Devices.join(Devices.missing(motor, motorName),
+                encoderName.isEmpty() ? "" : Devices.missing(encoder, encoderName));
+    }
+
+    /**
+     * Reads the speed from the encoder plugged into the encoder port of the motor called encoderName,
+     * or from this flywheel's own motor if encoderName is "". Set countsPerRev to match the encoder.
+     * That motor's direction (set by whatever drives it) also sets which way the encoder counts, so
+     * use setEncoderReversed() rather than changing it. Call before reset().
+     */
+    public void useEncoder(HardwareMap hardwareMap, String encoderName) {
+        this.encoderName = encoderName;
+        encoder = encoderName.isEmpty() ? motor : Devices.get(hardwareMap, DcMotorEx.class, encoderName);
     }
 
     /**
@@ -173,7 +200,7 @@ public class Flywheel {
     public void reset() {
         loopTimer.reset();
         controller.reset();
-        rawRPM = readRPM();
+        rawRPM = readRPM(0);
         filteredRPM = rawRPM;
         rpmRate = 0;
         health = Health.OK;
@@ -375,6 +402,15 @@ public class Flywheel {
         this.countsPerRev = countsPerRev;
     }
 
+    public boolean isEncoderReversed() {
+        return encoderReversed;
+    }
+
+    /** Set when the encoder counts backwards (negative RPM while the wheel spins forwards). */
+    public void setEncoderReversed(boolean encoderReversed) {
+        this.encoderReversed = encoderReversed;
+    }
+
     /** The motor's direction, or null if it's missing. */
     public DcMotorSimple.Direction getDirection() {
         return motor != null ? motor.getDirection() : null;
@@ -391,7 +427,7 @@ public class Flywheel {
         double dt = loopTimer.seconds();
         loopTimer.reset();
 
-        rawRPM = readRPM();
+        rawRPM = readRPM(dt);
         double alpha = rpmFilterTimeConstant > 0 ? dt / (rpmFilterTimeConstant + dt) : 1.0;
         double lastFilteredRPM = filteredRPM;
         filteredRPM += alpha * (rawRPM - filteredRPM);
@@ -440,8 +476,25 @@ public class Flywheel {
         }
     }
 
-    private double readRPM() {
-        return motor != null ? motor.getVelocity() / countsPerRev * 60.0 : 0.0;
+    /**
+     * The encoder's speed in RPM. dt is the time in seconds since the last read, or 0 if unknown.
+     * The hub's velocity has 16-bit wraps added back: as many as bring it closest to the speed
+     * estimated from the change in position (or, with no dt, the last measured speed). The
+     * estimate only has to be within half a wrap (240 RPM for a Through Bore), and the hub's
+     * velocity is used rather than the estimate itself because it's timed more precisely.
+     */
+    private double readRPM(double dt) {
+        if (motor == null || encoder == null) return 0.0;
+        int sign = encoderReversed ? -1 : 1;
+        int position = sign * encoder.getCurrentPosition();
+        double velocity = sign * encoder.getVelocity();
+        // int subtraction stays right even when the position wraps past Integer.MAX_VALUE
+        double estimate = dt > 1e-3
+                ? (position - lastPosition) / dt
+                : filteredRPM * countsPerRev / 60.0;
+        lastPosition = position;
+        velocity += VELOCITY_WRAP * Math.round((estimate - velocity) / VELOCITY_WRAP);
+        return velocity / countsPerRev * 60.0;
     }
 
     /** Closed loop: is the wheel getting power but the encoder reading nothing? If so for long enough, find out why. */
