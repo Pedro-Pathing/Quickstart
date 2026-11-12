@@ -41,6 +41,10 @@ public class FlywheelTest {
 
     /** A hardware map that returns the motor (or throws if it's null, like a missing device) and a battery. */
     private static HardwareMap hardwareMapWith(DcMotorEx motor) throws Exception {
+        return hardwareMapWith(motor, 12.0);
+    }
+
+    private static HardwareMap hardwareMapWith(DcMotorEx motor, double batteryVolts) throws Exception {
         HardwareMap map = mock(HardwareMap.class);
         if (motor != null) {
             when(map.get(DcMotorEx.class, "PollenFlywheel")).thenReturn(motor);
@@ -48,7 +52,7 @@ public class FlywheelTest {
             when(map.get(DcMotorEx.class, "PollenFlywheel")).thenThrow(new IllegalArgumentException("not found"));
         }
         VoltageSensor battery = mock(VoltageSensor.class);
-        when(battery.getVoltage()).thenReturn(12.0);
+        when(battery.getVoltage()).thenReturn(batteryVolts);
         @SuppressWarnings("unchecked")
         HardwareMap.DeviceMapping<VoltageSensor> sensors = mock(HardwareMap.DeviceMapping.class);
         when(sensors.iterator()).thenAnswer(i -> Collections.singletonList(battery).iterator());
@@ -347,6 +351,21 @@ public class FlywheelTest {
         assertEquals("\"Intake\"", flywheel.missingDevices());
         loop(TARGET);
         assertEquals(0, flywheel.rawRPM(), 0);
+    }
+
+    @Test
+    public void closedLoopFeedforwardIsScaledForTheBattery() throws Exception {
+        // The pollen launcher's fitted gains (for 12 V), on a fresh 13.8 V battery, feedback off
+        flywheel = new Flywheel(hardwareMapWith(motor, 13.8), "PollenFlywheel",
+                DcMotorSimple.Direction.REVERSE, nanos::get);
+        flywheel.setRpmFilterTimeConstant(0);
+        flywheel.setPID(0, 0, 0);
+        flywheel.setFeedforward(0.000151398, 0.211076);
+        flywheel.reset();
+        loops(100, TARGET);  // 1 s at 3000 RPM: long enough for the slew limit
+        // 0.665 at 12 V; unscaled on a 13.8 V battery it overshot by about 650 RPM
+        double atNominal = 0.211076 + 0.000151398 * TARGET;
+        assertEquals(atNominal * 12.0 / 13.8, flywheel.power(), 0.002);
     }
 
     @Test

@@ -43,6 +43,10 @@ import java.util.function.LongSupplier;
  * Open loop needs tuned kV and kS: with the defaults (0) the wheel just stops.
  * The safety settings below are shared by all flywheels and live-tunable in Panels.
  *
+ * kV and kS are the feedforward at nominalVoltage (FlywheelTuner fits them that way). Closed and
+ * open loop both scale them by nominalVoltage / battery voltage, so a fresh battery doesn't
+ * overshoot the target and a flat one doesn't fall short.
+ *
  * Encoder: by default the speed comes from the motor's built-in encoder. useEncoder() switches to
  * another one, e.g. a REV Through Bore on the flywheel shaft (set countsPerRev to
  * THROUGH_BORE_COUNTS_PER_REV), plugged into this motor's encoder port or another motor's. The hub
@@ -156,6 +160,7 @@ public class Flywheel {
     private boolean inReadyWindow = false;  // within tolerance since readyTimer was last reset
     private double readyWindowTarget = 0;   // the target the hold is being timed against
     private double voltage = Double.NaN;
+    private double voltageCompensation = 1.0;  // nominalVoltage / battery voltage
     private double faultCurrent = 0;
 
     public Flywheel(HardwareMap hardwareMap, String motorName, DcMotorSimple.Direction direction) {
@@ -181,13 +186,14 @@ public class Flywheel {
                 ? hardwareMap.voltageSensor.iterator().next() : null;
 
         // The controllers read this flywheel's gains through suppliers every loop, so the setters
-        // take effect immediately without rebuilding the controllers
+        // take effect immediately without rebuilding the controllers. The feedforward gains are
+        // for nominalVoltage, so they're scaled for the battery, as in open loop.
         controller = Controller.sum(
                 Controller.proportional(() -> kP),
                 Controller.integral(() -> kI),
                 Controller.derivative(() -> kD),
-                Controller.proportionalFeedforward(() -> kV),
-                Controller.staticTargetFeedforward(() -> kS)
+                Controller.proportionalFeedforward(() -> kV * voltageCompensation),
+                Controller.staticTargetFeedforward(() -> kS * voltageCompensation)
         );
     }
 
@@ -236,6 +242,7 @@ public class Flywheel {
         if (health != Health.OK) inReadyWindow = false;
         switch (health) {
             case OK:
+                updateVoltageCompensation();
                 double error = targetRPM - filteredRPM;
                 // Passing the filtered RPM's rate of change makes the D term act on the measurement
                 applyPower(controller.calculate(targetRPM, error, rpmRate), dt);
@@ -634,13 +641,23 @@ public class Flywheel {
         }
     }
 
-    /** Feedforward power for a target, scaled up as the battery drops below nominalVoltage. */
+    /** Feedforward power for a target, scaled for the battery (see updateVoltageCompensation()). */
     private double openLoopPower(double target) {
+        updateVoltageCompensation();
+        return (kS + kV * target) * voltageCompensation;
+    }
+
+    /**
+     * Sets voltageCompensation to nominalVoltage / battery voltage, so the feedforward gives the
+     * same motor voltage whatever the battery: less power on a fresh 13.8 V battery, more as it
+     * sags. The battery isn't in the bulk read, so it's read at most every
+     * VOLTAGE_READ_INTERVAL_SECONDS. With no battery reading, the gains are used as they are.
+     */
+    private void updateVoltageCompensation() {
         if (voltageSensor != null && (Double.isNaN(voltage) || voltageTimer.seconds() > VOLTAGE_READ_INTERVAL_SECONDS)) {
             voltage = voltageSensor.getVoltage();
             voltageTimer.reset();
         }
-        double compensation = voltage > 1 ? nominalVoltage / voltage : 1.0;
-        return (kS + kV * target) * compensation;
+        voltageCompensation = voltage > 1 ? nominalVoltage / voltage : 1.0;
     }
 }
