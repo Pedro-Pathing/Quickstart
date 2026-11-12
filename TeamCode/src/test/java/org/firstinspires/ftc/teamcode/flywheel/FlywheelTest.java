@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 /** Flywheel tests on a mocked motor, with a fake clock so no test has to wait. */
@@ -226,39 +227,100 @@ public class FlywheelTest {
         return ((countsPerSecond + 32768) % 65536 + 65536) % 65536 - 32768;
     }
 
-    /** Runs 10 ms loops with a Through Bore on encoderMotor turning at each RPM in turn. */
-    private void throughBoreLoops(DcMotorEx encoderMotor, int sign, double... rpms) {
-        int position = 0;
+    private double throughBorePosition = 0;  // counts, at the times the loop timer is read
+    private final Random jitter = new Random(1);
+
+    /**
+     * Runs one 10 ms loop with a Through Bore on encoderMotor turning at rpm. As on the robot, the
+     * position is sampled (during the bulk read) jitterMs away from when the loop timer is read.
+     */
+    private void throughBoreLoop(DcMotorEx encoderMotor, int sign, double rpm, double jitterMs) {
+        double countsPerSecond = rpm * Flywheel.THROUGH_BORE_COUNTS_PER_REV / 60.0;
+        throughBorePosition += countsPerSecond * STEP_NANOS / 1e9;
+        double sampled = throughBorePosition + countsPerSecond * jitterMs / 1000.0;
+        nanos.addAndGet(STEP_NANOS);
+        when(encoderMotor.getCurrentPosition()).thenReturn(sign * (int) Math.round(sampled));
+        when(encoderMotor.getVelocity()).thenReturn(hubVelocity(sign * countsPerSecond));
+        flywheel.runToRPM(TARGET);
+    }
+
+    /** Loops at each RPM in turn with up to maxJitterMs of sampling jitter, checking every reading. */
+    private void throughBoreLoopsReadExactly(DcMotorEx encoderMotor, int sign, double maxJitterMs, double... rpms) {
         for (double rpm : rpms) {
-            double countsPerSecond = rpm * Flywheel.THROUGH_BORE_COUNTS_PER_REV / 60.0;
-            position += (int) Math.round(countsPerSecond * STEP_NANOS / 1e9);
-            nanos.addAndGet(STEP_NANOS);
-            when(encoderMotor.getCurrentPosition()).thenReturn(sign * position);
-            when(encoderMotor.getVelocity()).thenReturn(hubVelocity(sign * countsPerSecond));
-            flywheel.runToRPM(TARGET);
+            throughBoreLoop(encoderMotor, sign, rpm, (jitter.nextDouble() * 2 - 1) * maxJitterMs);
+            assertEquals(rpm, flywheel.rawRPM(), 1e-6);
         }
+    }
+
+    /** The speeds of a 1 s spin-up from rest to rpm, one per 10 ms loop, then holdLoops at rpm. */
+    private static double[] spinUp(double rpm, int holdLoops) {
+        return ramp(0, rpm, holdLoops);
+    }
+
+    /** The speeds of a 1 s ramp from one speed to another, one per 10 ms loop, then holdLoops at the end speed. */
+    private static double[] ramp(double fromRPM, double toRPM, int holdLoops) {
+        double[] rpms = new double[100 + holdLoops];
+        for (int i = 0; i < rpms.length; i++) {
+            rpms[i] = fromRPM + (toRPM - fromRPM) * Math.min(1.0, (i + 1) / 100.0);
+        }
+        return rpms;
+    }
+
+    private void useThroughBore() {
+        flywheel.setCountsPerRev(Flywheel.THROUGH_BORE_COUNTS_PER_REV);
+        flywheel.reset();
     }
 
     @Test
     public void throughBoreSpeedIsUnwrappedFromThe16BitVelocity() {
-        flywheel.setCountsPerRev(Flywheel.THROUGH_BORE_COUNTS_PER_REV);
-        flywheel.reset();
+        useThroughBore();
         // 3000 RPM is 409600 counts/s, which the hub wraps to 16384
         assertEquals(16384, hubVelocity(3000 * 8192 / 60.0), 0);
-        throughBoreLoops(motor, 1, 2900, 2950, 3000);
-        assertEquals(3000, flywheel.rawRPM(), 1e-6);
-        // A ball slowing the wheel by 200 RPM in one loop is still read right
-        throughBoreLoops(motor, 1, 3000, 2800);
-        assertEquals(2800, flywheel.rawRPM(), 1e-6);
+        throughBoreLoopsReadExactly(motor, 1, 0, spinUp(3000, 50));
+        // A ball slowing the wheel by 230 RPM in one loop, then recovering, is still read right
+        throughBoreLoopsReadExactly(motor, 1, 0, 2770, 2800, 2850, 2900, 2950, 3000);
+    }
+
+    @Test
+    public void noSpikesWhenThePositionIsSampledAtAVariableTime() {
+        // Up to 4 ms either way in a 10 ms loop: 40% out, enough to put a speed estimated from
+        // the change in position over one loop out by several wraps
+        useThroughBore();
+        throughBoreLoopsReadExactly(motor, 1, 4, spinUp(3000, 300));
+        throughBoreLoopsReadExactly(motor, 1, 4, 2850, 2750, 2800, 2900, 3000, 3000, 3000);
+        throughBoreLoopsReadExactly(motor, 1, 4, ramp(3000, 6000, 300));
+    }
+
+    @Test
+    public void readsAWheelAlreadySpinningWhenTheOpModeStarts() throws Exception {
+        // A new OpMode's flywheel has no previous reading, but the wheel is still coasting at
+        // 3000 RPM from the last one. The first reads (the first 0.1 s) go by the change in position.
+        throughBorePosition = 123456;
+        when(motor.getCurrentPosition()).thenReturn(123456);
+        when(motor.getVelocity()).thenReturn(hubVelocity(409600));
+        flywheel = new Flywheel(hardwareMapWith(motor), "PollenFlywheel",
+                DcMotorSimple.Direction.REVERSE, nanos::get);
+        flywheel.setRpmFilterTimeConstant(0);
+        useThroughBore();
+        for (int i = 0; i < 10; i++) throughBoreLoop(motor, 1, 3000, 0);
+        throughBoreLoopsReadExactly(motor, 1, 2, ramp(3000, 2000, 100));
+    }
+
+    @Test
+    public void putsAMissedWrapRightWithinTheCheckWindow() {
+        // The wheel speeds up by 300 RPM in one loop (more than half a wrap), so the first reading
+        // after that is a wrap out; the check against the position puts it right within 0.6 s
+        useThroughBore();
+        throughBoreLoopsReadExactly(motor, 1, 0, spinUp(2700, 10));
+        for (int i = 0; i < 60; i++) throughBoreLoop(motor, 1, 3000, 1);
+        throughBoreLoopsReadExactly(motor, 1, 2, ramp(3000, 3000, 50));
     }
 
     @Test
     public void reversedEncoderReadsForwards() {
-        flywheel.setCountsPerRev(Flywheel.THROUGH_BORE_COUNTS_PER_REV);
         flywheel.setEncoderReversed(true);
-        flywheel.reset();
-        throughBoreLoops(motor, -1, 2900, 3000);
-        assertEquals(3000, flywheel.rawRPM(), 1e-6);
+        useThroughBore();
+        throughBoreLoopsReadExactly(motor, -1, 2, spinUp(3000, 20));
     }
 
     @Test
@@ -273,8 +335,7 @@ public class FlywheelTest {
         flywheel.reset();
 
         setRPM(5000);  // the motor's own encoder is ignored
-        throughBoreLoops(intake, 1, 2500);
-        assertEquals(2500, flywheel.rawRPM(), 1e-6);
+        throughBoreLoopsReadExactly(intake, 1, 2, spinUp(2500, 20));
         assertEquals("", flywheel.missingDevices());
     }
 

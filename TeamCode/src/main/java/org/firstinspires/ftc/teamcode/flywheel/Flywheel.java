@@ -102,13 +102,33 @@ public class Flywheel {
     private static final double VOLTAGE_READ_INTERVAL_SECONDS = 0.1;
     /** The hub's velocity is a signed 16-bit count, so it wraps by this many counts per second. */
     private static final double VELOCITY_WRAP = 65536.0;
+    /**
+     * How often the unwrapped speed is checked against the change in position. Long enough that
+     * a few milliseconds' timing slip at each end of the window stays well under half a wrap
+     * (a third at 6000 RPM with 4 ms each way).
+     */
+    private static final double WRAP_CHECK_SECONDS = 0.3;
+    /**
+     * For this long after the first read, the wrap is chosen by the change in position since then
+     * rather than by the last reading, as there's no reading yet to go by (the wheel may still be
+     * coasting from the last OpMode).
+     */
+    private static final double SYNC_SECONDS = 0.1;
 
     private final String motorName;
     private final DcMotorEx motor;  // null when the flywheel is disabled
     private String encoderName = "";  // "" when the encoder is the motor's own
     private DcMotorEx encoder;  // the motor whose encoder port it's plugged into; null if missing
     private boolean encoderReversed = false;
+    private boolean hasRead = false;  // whether the encoder has been read yet
+    private boolean synced = false;  // whether the last reading can be trusted to unwrap the next
     private int lastPosition = 0;
+    private double lastVelocity = 0;  // counts per second, unwrapped
+    // Wrap check: the position at the start of the window, its length, and the counts the
+    // unwrapped speeds add up to over it
+    private int checkStartPosition = 0;
+    private double checkSeconds = 0;
+    private double checkCounts = 0;
     private final VoltageSensor voltageSensor;  // null if there's no hub to read it from
     private final Controller controller;
     private final LongSupplier clock;  // nanoseconds; injectable so tests don't have to sleep
@@ -191,6 +211,7 @@ public class Flywheel {
     public void useEncoder(HardwareMap hardwareMap, String encoderName) {
         this.encoderName = encoderName;
         encoder = encoderName.isEmpty() ? motor : Devices.get(hardwareMap, DcMotorEx.class, encoderName);
+        resync();
     }
 
     /**
@@ -408,6 +429,7 @@ public class Flywheel {
 
     /** Set when the encoder counts backwards (negative RPM while the wheel spins forwards). */
     public void setEncoderReversed(boolean encoderReversed) {
+        if (encoderReversed != this.encoderReversed) resync();
         this.encoderReversed = encoderReversed;
     }
 
@@ -478,23 +500,74 @@ public class Flywheel {
 
     /**
      * The encoder's speed in RPM. dt is the time in seconds since the last read, or 0 if unknown.
-     * The hub's velocity has 16-bit wraps added back: as many as bring it closest to the speed
-     * estimated from the change in position (or, with no dt, the last measured speed). The
-     * estimate only has to be within half a wrap (240 RPM for a Through Bore), and the hub's
-     * velocity is used rather than the estimate itself because it's timed more precisely.
+     *
+     * The hub's velocity has 16-bit wraps added back: as many as bring it closest to the last
+     * speed read. The wheel's speed changes by much less than half a wrap (240 RPM for a Through
+     * Bore) between reads, and unlike an estimate from the change in position over one loop, this
+     * doesn't depend on timing. The loop time is measured here, but the position is sampled during
+     * the bulk read, a variable few milliseconds later; in a 20 ms loop at 3000 RPM, a 2 ms slip
+     * puts that estimate out by more than half a wrap, which showed up as 480 RPM spikes.
+     *
+     * The change in position is the guide instead for the first SYNC_SECONDS (there's no reading
+     * yet; the wheel may still be coasting from the last OpMode, so readings in that time can be
+     * a wrap out) and after a long gap between reads. Every WRAP_CHECK_SECONDS it's compared with
+     * the counts the unwrapped speeds add up to over the same time. Over that longer window, timing
+     * slips are small, so a wrap's worth of difference means one was missed (e.g. a sudden jolt
+     * of more than half a wrap in one loop) and is put right.
      */
     private double readRPM(double dt) {
         if (motor == null || encoder == null) return 0.0;
+        if (!hasRead) dt = 0;  // e.g. the first read after INIT: the time since construction means nothing
         int sign = encoderReversed ? -1 : 1;
         int position = sign * encoder.getCurrentPosition();
-        double velocity = sign * encoder.getVelocity();
         // int subtraction stays right even when the position wraps past Integer.MAX_VALUE
-        double estimate = dt > 1e-3
-                ? (position - lastPosition) / dt
-                : filteredRPM * countsPerRev / 60.0;
+        int moved = position - lastPosition;
+        double sinceSync = checkSeconds + dt;
+        double reference;
+        if (dt >= WRAP_CHECK_SECONDS) {
+            reference = moved / dt;
+        } else if (!synced && sinceSync > 0) {
+            reference = (position - checkStartPosition) / sinceSync;
+        } else {
+            reference = lastVelocity;
+        }
+        double velocity = unwrap(sign * encoder.getVelocity(), reference);
+
+        if (dt > 0) {
+            checkSeconds += dt;
+            checkCounts += (lastVelocity + velocity) / 2 * dt;
+            if (checkSeconds >= SYNC_SECONDS) synced = true;
+            if (checkSeconds >= WRAP_CHECK_SECONDS) {
+                double missed = ((position - checkStartPosition) - checkCounts) / checkSeconds;
+                velocity += VELOCITY_WRAP * Math.round(missed / VELOCITY_WRAP);
+                startWrapCheck(position);
+            }
+        } else {
+            startWrapCheck(position);
+        }
+
+        hasRead = true;
         lastPosition = position;
-        velocity += VELOCITY_WRAP * Math.round((estimate - velocity) / VELOCITY_WRAP);
+        lastVelocity = velocity;
         return velocity / countsPerRev * 60.0;
+    }
+
+    /** Forgets the previous reading, e.g. after a change of encoder, so the next reads sync afresh. */
+    private void resync() {
+        hasRead = false;
+        synced = false;
+        lastVelocity = 0;
+    }
+
+    /** velocity with as many 16-bit wraps added as bring it closest to reference. */
+    private static double unwrap(double velocity, double reference) {
+        return velocity + VELOCITY_WRAP * Math.round((reference - velocity) / VELOCITY_WRAP);
+    }
+
+    private void startWrapCheck(int position) {
+        checkStartPosition = position;
+        checkSeconds = 0;
+        checkCounts = 0;
     }
 
     /** Closed loop: is the wheel getting power but the encoder reading nothing? If so for long enough, find out why. */
