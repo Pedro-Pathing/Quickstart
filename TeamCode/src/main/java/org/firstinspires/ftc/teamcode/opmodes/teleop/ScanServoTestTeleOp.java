@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * connected servos are able to move freely before running this test.
  */
 @TeleOp(name = "Scan Servo Test", group = "Test")
+@Disabled
 public class ScanServoTestTeleOp extends LinearOpMode {
 
     static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle

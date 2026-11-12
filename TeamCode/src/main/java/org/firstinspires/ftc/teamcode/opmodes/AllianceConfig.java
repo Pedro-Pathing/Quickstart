@@ -102,7 +102,7 @@ public class AllianceConfig {
                 true,   // isBlueAlliance
                 RobotConstants.BLUE_GOAL_APRILTAGS_AF,     // AprilTag ID
                 "Blue",  // Alliance name
-                RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
+                1110,
                 RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
                 LaunchTarget.AUTON_END
         );

@@ -39,7 +39,7 @@ public class BlueCenterAutonomousAF extends BaseLinearAutonomous {
         sequence.add(state(AutonomousState.CLOSE_POLLEN_SERVO));
         sequence.add(waitMs(1000));
         sequence.add(state(AutonomousState.START_INTAKE));
-        sequence.add(waitMs(4000));
+        sequence.add(waitMs(6000));
         sequence.add(state(AutonomousState.STOP_POLLEN_LAUNCHER));
         sequence.add(state(AutonomousState.STOP_INTAKE));
         sequence.add(waitMs(500));

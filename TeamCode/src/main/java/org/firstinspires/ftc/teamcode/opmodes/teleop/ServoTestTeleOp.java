@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.ServoUtil;
  * - gamepad1.b: Toggle pollen gate open/closed
  */
 @TeleOp(name = "Servo Test", group = "Test")
+@Disabled
 public class ServoTestTeleOp extends OpMode {
 
     private ServoUtil servos;
