@@ -89,7 +89,8 @@ public class TurretTuningTeleOp extends CommandOpMode {
         follower.update();
 
         TurretTuning.apply();
-        shooter.setFlywheel(shooterOn ? ShooterConstants.TUNING_RPM : 0, shooterOn);
+        shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
+        shooter.setState(shooterOn ? Shooter.State.DISTANCE : Shooter.State.OFF);
         if (TurretTuning.AUTO_AIM) {
             turret.setState(Turret.State.AIM);
         } else {

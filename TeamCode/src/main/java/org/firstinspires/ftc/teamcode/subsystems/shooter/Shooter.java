@@ -15,13 +15,17 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import java.util.function.DoubleSupplier;
 
 public class Shooter extends SubsystemBase {
+    public enum State {
+        OFF, FIXED, DISTANCE
+    }
+
     private final DcMotorEx flywheel;
     private final DoubleSupplier distance;
     private final PIDFController flywheelController = new PIDFController(FLYWHEEL_PIDF_COEFFICIENTS);
     private final InterpLUT distanceLUT = new InterpLUT();
 
-    private boolean activeControl = false;
-    private boolean distanceControl = true;
+    private State state = State.OFF;
+    private double targetRpm = 0;
     private double flywheelVelocity = 0;
 
     public Shooter(HardwareMap hardwareMap, DoubleSupplier distance) {
@@ -35,25 +39,17 @@ public class Shooter extends SubsystemBase {
         distanceLUT.createLUT();
     }
 
-    public void setFlywheel(double rpm, boolean setActiveControl) {
-        flywheelController.setSetPoint(toTicks(Range.clip(rpm, 0, MAX_RPM)));
-        setActiveControl(setActiveControl);
+    public void setState(State state) {
+        if (state != this.state) flywheelController.reset();
+        this.state = state;
     }
 
-    public void setActiveControl(boolean state) {
-        activeControl = state;
+    public State getState() {
+        return state;
     }
 
-    public boolean getActiveControl() {
-        return activeControl;
-    }
-
-    public void setDistanceControl(boolean state) {
-        distanceControl = state;
-    }
-
-    public boolean getDistanceControl() {
-        return distanceControl;
+    public void setTargetRPM(double rpm) {
+        targetRpm = Range.clip(rpm, 0, MAX_RPM);
     }
 
     public double getTargetRPM() {
@@ -65,7 +61,8 @@ public class Shooter extends SubsystemBase {
     }
 
     public boolean flywheelReady() {
-        return activeControl && getTargetRPM() > 0 && Math.abs(getTargetRPM() - getRPM()) <= SHOOTER_TOLERANCE_RPM;
+        return (state == State.FIXED || state == State.DISTANCE) && getTargetRPM() > 0
+                && Math.abs(getTargetRPM() - getRPM()) <= SHOOTER_TOLERANCE_RPM;
     }
 
     @Override
@@ -74,24 +71,27 @@ public class Shooter extends SubsystemBase {
         flywheelController.setCoefficients(FLYWHEEL_PIDF_COEFFICIENTS);
         flywheelVelocity = flywheel.getVelocity();
 
-        if (activeControl && distanceControl) {
-            double inches = distance.getAsDouble();
-            if (!Double.isNaN(inches)) {
-                flywheelController.setSetPoint(toTicks(distanceLUT.get(inches)));
-            }
-        }
-
-        if (activeControl) {
-            flywheel.setPower(Range.clip(flywheelController.calculate(flywheelVelocity), 0, 1));
-        } else {
-            flywheelController.reset();
-            flywheel.setPower(flywheelController.getSetPoint() == 0 ? 0 : IDLE_POWER);
+        switch (state) {
+            case OFF:
+                flywheelController.reset();
+                flywheelController.setSetPoint(0);
+                flywheel.setPower(0);
+                break;
+            case FIXED:
+                flywheelController.setSetPoint(toTicks(targetRpm));
+                flywheel.setPower(Range.clip(flywheelController.calculate(flywheelVelocity), 0, 1));
+                break;
+            case DISTANCE:
+                double inches = distance.getAsDouble();
+                double rpm = Double.isNaN(inches) ? targetRpm : distanceLUT.get(inches);
+                flywheelController.setSetPoint(toTicks(rpm));
+                flywheel.setPower(Range.clip(flywheelController.calculate(flywheelVelocity), 0, 1));
+                break;
         }
     }
 
     public void addTelemetry(TelemetryData telemetry) {
-        telemetry.addData("Shooter", activeControl ? (distanceControl ? "ACTIVE (distance)" : "ACTIVE (fixed RPM)")
-                : getTargetRPM() == 0 ? "OFF" : "IDLE");
+        telemetry.addData("Shooter state", state);
         telemetry.addData("Shooter target", getTargetRPM());
         telemetry.addData("Current RPM", getRPM());
         telemetry.addData("Shooter ready", flywheelReady());

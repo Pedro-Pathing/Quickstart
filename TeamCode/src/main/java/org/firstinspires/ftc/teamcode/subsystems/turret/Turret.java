@@ -364,7 +364,7 @@ public class Turret extends SubsystemBase {
         return wrap(turretAtCapture + bearing - wrap(headingNow - headingAtCapture));
     }
 
-    static double[] leadPivot(double x, double y, double velX, double velY, double aimX, double aimY,
+    public static double[] leadPivot(double x, double y, double velX, double velY, double aimX, double aimY,
                               double transferDelay, DoubleUnaryOperator timeOfFlight) {
         double t = transferDelay + timeOfFlight.applyAsDouble(Math.hypot(aimX - x, aimY - y));
         for (int i = 0; i < 3; i++) {

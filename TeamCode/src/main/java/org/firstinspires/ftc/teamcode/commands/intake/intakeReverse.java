@@ -12,7 +12,7 @@ public class intakeReverse extends CommandBase {
 
     @Override
     public void initialize(){
-        intake.intakeReverse();
+        intake.setState(Intake.State.REVERSE);
     }
 
     @Override

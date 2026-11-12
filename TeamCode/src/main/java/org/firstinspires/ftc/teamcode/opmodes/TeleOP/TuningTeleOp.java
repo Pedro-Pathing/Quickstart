@@ -55,6 +55,7 @@ public class TuningTeleOp extends CommandOpMode {
     private Field.Alliance alliance = PosePersistency.getAlliance(Field.Alliance.BLUE);
     private boolean useSavedPose = PosePersistency.hasPose();
     private boolean shooterOn = true;
+    private boolean distanceMode = true;
 
     @Override
     public void initialize() {
@@ -81,10 +82,10 @@ public class TuningTeleOp extends CommandOpMode {
         gamepadEx1.getGamepadButton(GamepadKeys.Button.Y).whenInactive(new intakeOff(intake));
         gamepadEx1.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new ResetPose(follower, () -> alliance));
         gamepadEx1.getGamepadButton(GamepadKeys.Button.A).whenPressed(
-                () -> shooter.setDistanceControl(!shooter.getDistanceControl()));
+                () -> distanceMode = !distanceMode);
         gamepadEx1.getGamepadButton(GamepadKeys.Button.B).whenPressed(() -> shooterOn = !shooterOn);
         gamepadEx1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(() -> {
-            if (!shooter.getDistanceControl()) shotTable.record(turret.getDistance(), ShooterConstants.TUNING_RPM);
+            if (!distanceMode) shotTable.record(turret.getDistance(), ShooterConstants.TUNING_RPM);
         });
         gamepadEx1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(() -> shotTable.clear());
     }
@@ -126,7 +127,8 @@ public class TuningTeleOp extends CommandOpMode {
                 follower.pose().heading() + (alliance == Field.Alliance.RED ? Math.PI : 0)
         ));
         follower.update();
-        shooter.setFlywheel(shooterOn ? ShooterConstants.TUNING_RPM : 0, shooterOn);
+        shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
+        shooter.setState(!shooterOn ? Shooter.State.OFF : distanceMode ? Shooter.State.DISTANCE : Shooter.State.FIXED);
         if (TurretConstants.USE_MANUAL_ANGLE) {
             turret.setManualAngle(Math.toRadians(TurretConstants.MANUAL_ANGLE_DEG));
         } else {
@@ -137,7 +139,7 @@ public class TuningTeleOp extends CommandOpMode {
         PosePersistency.savePose(follower.pose());
 
         telemetryData.addData("Controls", "A = shooter AUTO/TUNING, B = shooter OFF/ON, dpad up = record, dpad down = clear");
-        telemetryData.addData("Shooter mode", !shooterOn ? "OFF" : shooter.getDistanceControl() ? "AUTO" : "TUNING");
+        telemetryData.addData("Shooter mode", !shooterOn ? "OFF" : distanceMode ? "AUTO" : "TUNING");
         telemetryData.addData("Manual angle", TurretConstants.USE_MANUAL_ANGLE
                 ? TurretConstants.MANUAL_ANGLE_DEG + " deg" : "off (auto aim)");
         telemetryData.addData("Pose", String.format(Locale.US, "%.1f, %.1f, %.1f deg",

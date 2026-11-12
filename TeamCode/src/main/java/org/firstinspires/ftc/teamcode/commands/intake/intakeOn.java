@@ -13,7 +13,7 @@ public class intakeOn extends CommandBase {
 
     @Override
     public void initialize(){
-        intake.intakeOn();
+        intake.setState(Intake.State.INTAKE);
     }
 
     @Override

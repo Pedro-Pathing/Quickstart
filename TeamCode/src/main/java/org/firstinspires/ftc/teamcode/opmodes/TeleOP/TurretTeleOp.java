@@ -65,7 +65,8 @@ public class TurretTeleOp extends CommandOpMode {
 
         operator.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(() -> {
             shooterOn = !shooterOn;
-            shooter.setFlywheel(shooterOn ? ShooterConstants.TUNING_RPM : 0, shooterOn);
+            shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
+            shooter.setState(shooterOn ? Shooter.State.DISTANCE : Shooter.State.OFF);
         });
         operator.getGamepadButton(GamepadKeys.Button.A).whenPressed(new ShootWhenReady(() -> turret.isAimed() && shooter.flywheelReady()));
         driver.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new ResetPose(follower, Field.Alliance.RED));

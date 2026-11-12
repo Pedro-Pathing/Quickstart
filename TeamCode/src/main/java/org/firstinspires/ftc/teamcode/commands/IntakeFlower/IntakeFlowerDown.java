@@ -12,7 +12,7 @@ public class IntakeFlowerDown extends CommandBase {
     }
 
     @Override
-    public void initialize(){intakeFlower.intakeFlowerOn();}
+    public void initialize(){intakeFlower.setState(IntakeFlower.State.DOWN);}
 
     @Override
     public boolean isFinished(){return true;}

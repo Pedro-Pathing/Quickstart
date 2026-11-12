@@ -77,7 +77,8 @@ public class ShooterTuneTeleOp extends CommandOpMode {
 
     @Override
     public void run() {
-        shooter.setFlywheel(shooterOn ? ShooterConstants.TUNING_RPM : 0, shooterOn);
+        shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
+        shooter.setState(shooterOn ? Shooter.State.FIXED : Shooter.State.OFF);
 
         super.run();
 
@@ -122,6 +123,6 @@ public class ShooterTuneTeleOp extends CommandOpMode {
 
     @Override
     public void end() {
-        intake.intakeOff();
+        intake.setState(Intake.State.OFF);
     }
 }

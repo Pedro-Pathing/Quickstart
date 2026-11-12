@@ -13,7 +13,7 @@ public class intakeToShooter extends CommandBase {
 
     @Override
     public void initialize(){
-        intake.intakeToShooter();
+        intake.setState(Intake.State.FEED);
     }
 
     @Override

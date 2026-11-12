@@ -78,21 +78,21 @@ public class autoPath extends CommandOpMode {
                 new FollowPathCommand(follower, initGarden()),
                 new intakeOff(intake),
                 new FollowPathCommand(follower, gardenToShoot1()),
-                new InstantCommand(() -> shooter.setFlywheel(ShooterConstants.TUNING_RPM, true)),
+                new InstantCommand(() -> shooter.setState(Shooter.State.FIXED)),
                 new WaitCommand(300),
                 new intakeShooting(intake, shooter),
                 new WaitCommand(300),
                 new intakeShooting(intake, shooter),
-                new InstantCommand(() -> shooter.setFlywheel(0, false)),
+                new InstantCommand(() -> shooter.setState(Shooter.State.OFF)),
                 new FollowPathCommand(follower, shoot1ToHive1()),
                 // Esperar um intake pra flower
                 new FollowPathCommand(follower, hive1ToShoot2()),
-                new InstantCommand(() -> shooter.setFlywheel(ShooterConstants.TUNING_RPM, true)),
+                new InstantCommand(() -> shooter.setState(Shooter.State.FIXED)),
                 new WaitCommand(300),
                 new intakeShooting(intake, shooter),
                 new WaitCommand(300),
                 new intakeShooting(intake, shooter),
-                new InstantCommand(() -> shooter.setFlywheel(0, false)),
+                new InstantCommand(() -> shooter.setState(Shooter.State.OFF)),
                 new FollowPathCommand(follower, shoot2ToHive2()),
                 // Esperar um intake pra flower
                 // Preciso de uma pose pra shootar de novo
@@ -137,8 +137,8 @@ public class autoPath extends CommandOpMode {
         PosePersistency.saveAlliance(alliance);
         turret.setAlliance(alliance);
         turret.setState(Turret.State.AIM);
-        shooter.setDistanceControl(false);
-        shooter.setFlywheel(ShooterConstants.TUNING_RPM, true);
+        shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
+        shooter.setState(Shooter.State.FIXED);
         schedule(autoRoutine());
     }
 
@@ -165,7 +165,7 @@ public class autoPath extends CommandOpMode {
 
     @Override
     public void end() {
-        intake.intakeOff();
+        intake.setState(Intake.State.OFF);
         PosePersistency.savePose(follower.pose());
     }
     public Path initGarden() {

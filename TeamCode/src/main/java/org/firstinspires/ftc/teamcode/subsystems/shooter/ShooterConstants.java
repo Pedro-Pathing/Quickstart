@@ -12,7 +12,6 @@ public class ShooterConstants {
 
     public static PIDFCoefficients FLYWHEEL_PIDF_COEFFICIENTS = new PIDFCoefficients(0.01, 0, 0, 0.00052);
     public static double SHOOTER_TOLERANCE_RPM = 40;
-    public static double IDLE_POWER = 0.3;
 
     public static double[] SHOOTER_DIST_IN = {41.4, 50.8, 64.9, 70.4};
     public static double[] SHOOTER_RPM = {1675, 1755, 1835, 1885};

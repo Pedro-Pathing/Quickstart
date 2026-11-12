@@ -59,7 +59,7 @@ public class testMatch extends CommandOpMode {
                 new WaitCommand(300),
                 new intakeShooting(intake, shooter),
                 new WaitCommand(300),
-                new InstantCommand(() -> shooter.setFlywheel(0, false)),
+                new InstantCommand(() -> shooter.setState(Shooter.State.OFF)),
                 new FollowPathCommand(follower, startToPark())
         );
     }
@@ -98,8 +98,8 @@ public class testMatch extends CommandOpMode {
         PosePersistency.saveAlliance(alliance);
         turret.setAlliance(alliance);
         turret.setState(Turret.State.AIM);
-        shooter.setDistanceControl(false);
-         shooter.setFlywheel(ShooterConstants.TUNING_RPM, true);
+        shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
+        shooter.setState(Shooter.State.FIXED);
         schedule(autoRoutine());
     }
 
@@ -127,7 +127,7 @@ public class testMatch extends CommandOpMode {
 
     @Override
     public void end() {
-        intake.intakeOff();
+        intake.setState(Intake.State.OFF);
         PosePersistency.savePose(follower.pose());
     }
 
