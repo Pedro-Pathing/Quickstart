@@ -14,9 +14,9 @@ public class turretPID extends OpMode {
     double P = 0;
     double I = 0;
     double D = 0;
-    double position = 0;
+    int position = 0;
     double speed = 1;
-    double range = 0;
+    int range = 0;
     int run = 1;
 
     public double changeValue(double howMuch) {
@@ -32,6 +32,7 @@ public class turretPID extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap);
+        robot.getTurret().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     @Override
@@ -47,11 +48,11 @@ public class turretPID extends OpMode {
                 telemetry.addData("P" , P);
                 break;
             case 1:
-                I += changeValue(0.5);
+                I += changeValue(0.01);
                 telemetry.addData("I" , I);
                 break;
             case 2:
-                D += changeValue(0.5);
+                D += changeValue(0.01);
                 telemetry.addData("D", D);
                 break;
             case 3:
@@ -72,9 +73,11 @@ public class turretPID extends OpMode {
             run *= -1;
         }
         if(run == -1) {
-            robot.runToPositionPID(robot.getTurret(), position, speed, range, new PIDFCoefficients(P, I, D, 0));
+            robot.runToPosition(robot.getTurret(), position, speed, range);
+            telemetry.addLine("Running");
         } else {
             robot.getTurret().setPower(0);
+            telemetry.addLine("Not Running");
         }
         telemetry.addData("position", robot.getTurret().getCurrentPosition());
         telemetry.update();

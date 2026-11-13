@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.pedro.mechanisms;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -40,6 +42,14 @@ public class robot {
     public DcMotorEx getIntake() {
         return intake;
     }
+    private CRServo rightLaunch;
+    public CRServo getRightLaunch() {
+        return rightLaunch;
+    }
+    private CRServo leftLaunch;
+    public CRServo getLeftLaunch() {
+        return leftLaunch;
+    }
 
     // Connect each motor variable to the motor in the configuration
     public void init(HardwareMap hwMap) {
@@ -51,17 +61,20 @@ public class robot {
         leftShoot = hwMap.get(DcMotorEx.class, "leftShoot");
         rightShoot = hwMap.get(DcMotorEx.class, "rightShoot");
         intake = hwMap.get(DcMotorEx.class, "intake");
+        rightLaunch = hwMap.get(CRServo.class, "rightLaunch");
+        leftLaunch = hwMap.get(CRServo.class, "leftLaunch");
 
         FR.setDirection(DcMotor.Direction.REVERSE);
         BR.setDirection(DcMotor.Direction.REVERSE);
+        turret.setDirection(DcMotor.Direction.REVERSE);
+        leftShoot.setDirection(DcMotor.Direction.REVERSE);
+        leftLaunch.setDirection(CRServo.Direction.REVERSE);
 
         // Set each motor's mode
         FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         FR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         BR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftShoot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightShoot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightShoot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -80,15 +93,10 @@ public class robot {
     public void setPower(DcMotorEx motor, double power) {
         motor.setPower(power);
     }
-    public void runToPositionPID(DcMotorEx motor, double position, double speed, double range, PIDFCoefficients PIDFCoefficients) {
-        double currentPosition = motor.getCurrentPosition();
-        motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDFCoefficients);
-        if(currentPosition > position + range) {
-            motor.setPower(-speed);
-        } else if(currentPosition < position - range) {
-            motor.setPower(speed);
-        } else {
-            motor.setPower(0);
-        }
+    public void runToPosition(DcMotorEx motor, int position, double speed, int range) {
+        motor.setTargetPositionTolerance(range);
+        motor.setTargetPosition(position);
+        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motor.setPower(speed);
     }
 }
