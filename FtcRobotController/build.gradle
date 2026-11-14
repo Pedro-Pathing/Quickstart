@@ -3,7 +3,7 @@ import java.text.SimpleDateFormat
 //
 // build.gradle in FtcRobotController
 //
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.internal.library'
 
 android {
 
@@ -17,7 +17,7 @@ android {
     buildFeatures {
         buildConfig = true
     }
-    compileSdk 34
+    compileSdk 37
 
 
     compileOptions {
