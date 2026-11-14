@@ -31,16 +31,16 @@ public class RobotConstants {
     public static final double MAX_RELOCALIZATION_DISTANCE_MM = 600.0;  // Reject relocalization jumps > 600mm
     public static final double MIN_RELOCALIZATION_DISTANCE_MM = 10.0;  // Ignore tiny corrections < 10mm
     public static final long CAMERA_DATA_MAX_STALENESS_MS = 100;  // Reject camera data older than 100ms
-    public static final String BLUE_GOAL_APRILTAG_IDS = "40,41,42,43,44,45,46,47";  // Blue alliance goal AprilTag ID
+    public static final String BLUE_GOAL_APRILTAG_IDS = "38,39,40,41,42,43,44,45";  // Blue alliance goal AprilTag ID
 
-    public static final String RED_GOAL_APRILTAGS_AF = "36,37,38,39";
-    public static final String RED_GOAL_APRILTAGS_SF = "32,33,34,35";
+    public static final String RED_GOAL_APRILTAGS_AF = "34,35,36,37";
+    public static final String RED_GOAL_APRILTAGS_SF = "30,31,32,33";
 
-    public static final String BLUE_GOAL_APRILTAGS_AF = "40,41,42,43";
-    public static final String BLUE_GOAL_APRILTAGS_SF = "44,45,46,47";
+    public static final String BLUE_GOAL_APRILTAGS_AF = "38,39,40,41";
+    public static final String BLUE_GOAL_APRILTAGS_SF = "42,43,44,45";
 
 
-    public static final String RED_GOAL_APRILTAG_IDS = "36,37,38,39,32,33,34,35";  // Red alliance goal AprilTag ID
+    public static final String RED_GOAL_APRILTAG_IDS = "30,31,32,33,34,35,36,37";  // Red alliance goal AprilTag ID
 
     // Servo constants
     public static final double SERVO_DELAY_MS = 1000;  // Fallback delay if velocity check fails (1 second to ensure motors reach speed)
@@ -114,9 +114,17 @@ public class RobotConstants {
     public static final double ALIGN_MAX_TURN_POWER = 0.4;      // Cap on turn power while aligning
     public static final double ALIGN_MIN_TURN_POWER = 0.05;     // Minimum turn power to overcome friction outside tolerance
     public static final double ALIGN_TOLERANCE_DEG = 1.5;       // tx within this is considered aligned
+    // Teleop goal align: the Limelight sets a target heading, odometry heading + turn rate steer to it (no camera lag)
+    public static final double ALIGN_HEADING_KP = 0.8;          // Turn power per radian of heading error
+    public static final double ALIGN_HEADING_KD = 0.05;         // Turn power per rad/s of turn rate (damping - raise if it still overshoots)
+    public static final double ALIGN_TARGET_FILTER = 0.3;       // 0-1: how much of each new Limelight reading moves the target heading
+    public static final double ALIGN_MAX_UPDATE_OMEGA = 1.0;    // rad/s: ignore Limelight readings while turning faster than this (stale tx)
+    public static final double ALIGN_SETTLED_OMEGA = 0.2;       // rad/s: turn rate below which the robot counts as stopped
+    public static final long ALIGN_SETTLE_MS = 150;             // Auton ALIGN_TO_GOAL: tx must stay in tolerance this long
+    public static final long ALIGN_TIMEOUT_MS = 2000;           // Auton ALIGN_TO_GOAL: give up and move on after this
 
     // Test autonomous constants (LinearAuto, CurveAuto)
-    public static final double TEST_PATH_SPEED = 0.5;           // Max path speed for simple test paths
+    public static final double TEST_PATH_SPEED = 0.75;           // Max path speed for simple test paths
 
     // Autonomous-specific constants
     public static final boolean ENABLE_BALL_COLLECTION_SEQUENCE = true;  // Enable/disable ball collection after initial launch
@@ -133,6 +141,8 @@ public class RobotConstants {
     public static final long HEADING_SETTLING_DELAY_MS = 200;  // 200ms delay after path completes to allow heading to settle before launch
     public static final double SHORT_PATH_THRESHOLD_MM = 150.0;  // Paths shorter than this use constant heading, longer paths use heading interpolation
     public static final double AUTON_SPEED_MULTIPLIER = 0.8;
+    public static final int TIP_CLUSTER_MIN_PERCENT = 25;            // WAIT_FOR_TIP_AND_LAUNCH: launch once this % of the goal cluster is visible
+    public static final long TIP_WAIT_GIVE_UP_MS = 20000;            // WAIT_FOR_TIP_AND_LAUNCH: go home if no launch by this auton time
     public static final long AUTONOMOUS_RETURN_HOME_DEADLINE_MS = 28000;  // 28 seconds - Force return home to ensure completion within 30 seconds
 
     public static final int LIFT_TICKS_ATON = 500;
@@ -145,11 +155,11 @@ public class RobotConstants {
     public static final double RED_SF_SHOOTING_ZONE_MAX_X = 70;
     public static final double RED_SF_SHOOTING_ZONE_MAX_Y = 48;
 
-    public static final double RED_SF_SHOOTING_POSITION_HEADING_DEG = 270;
+    public static final double RED_SF_SHOOTING_POSITION_HEADING_DEG = 265;
 
     public static final double RED_AF_SHOOTING_POSITION_X = 57;        // Where it drives to (inches)
     public static final double RED_AF_SHOOTING_POSITION_Y = 10;
-    public static final double RED_AF_SHOOTING_POSITION_HEADING_DEG = 90;
+    public static final double RED_AF_SHOOTING_POSITION_HEADING_DEG = 85;
 
     public static final double RED_SF_SHOOTING_POSITION_X = 61;        // Where it drives to (inches)
     public static final double RED_SF_SHOOTING_POSITION_Y = 134;
@@ -160,12 +170,12 @@ public class RobotConstants {
 
     public static final double BLUE_AF_SHOOTING_POSITION_X = 84;        // Where it drives to (inches)
     public static final double BLUE_AF_SHOOTING_POSITION_Y = 134;
-    public static final double BLUE_AF_SHOOTING_POSITION_HEADING_DEG = 270;
+    public static final double BLUE_AF_SHOOTING_POSITION_HEADING_DEG = 265;
 
     public static final double BLUE_SF_SHOOTING_POSITION_X = 83;        // Where it drives to (inches)
     public static final double BLUE_SF_SHOOTING_POSITION_Y = 14;
 
-    public static final double BLUE_SF_SHOOTING_POSITION_HEADING_DEG = 90;
+    public static final double BLUE_SF_SHOOTING_POSITION_HEADING_DEG = 85;
 
     public static final double SHOOTING_POSITION_PATH_SPEED = 0.5;  // Max path speed while driving there
     public static final long LIFT_TIMEOUT_MS = 2000;  // 2 second timeout for an autonomous LIFT_UP / LIFT_DOWN move

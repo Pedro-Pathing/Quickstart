@@ -15,9 +15,11 @@ import java.util.List;
 
 /**
  * Red Alliance center autonomous (SF):
- * 1. Spin up the pollen launcher, open the pollen gate and fire
- * 2. Stop the pollen launcher and close the gate
- * 3. Return to auton end position
+ * 1. Wait until the Limelight sees at least RobotConstants.TIP_CLUSTER_MIN_PERCENT of the SF (32-35) goal tags
+ *    (gives up and parks at RobotConstants.TIP_WAIT_GIVE_UP_MS)
+ * 2. Spin up the pollen launcher, close the pollen gate and feed with the intake
+ * 3. Stop the launcher and intake
+ * 4. Return to auton end position (AUTON_END_SF)
  *
  * Alliance-specific poses come from AllianceConfig / LaunchTarget; the sequence itself is shared logic.
  */
@@ -34,7 +36,14 @@ public class RedCenterAutonomousSF extends BaseLinearAutonomous {
         List<StateNode> sequence = new ArrayList<>();
 
         // Start launcher motors
-        sequence.add(waitMs(20000));
+        sequence.add(state(AutonomousState.WAIT_FOR_TIP));
+        sequence.add(state(AutonomousState.START_POLLEN_LAUNCHER));
+        sequence.add(waitMs(3000));
+        sequence.add(state(AutonomousState.CLOSE_POLLEN_SERVO));
+        sequence.add(state(AutonomousState.START_INTAKE));
+        sequence.add(waitMs(4000));
+        sequence.add(state(AutonomousState.STOP_POLLEN_LAUNCHER));
+        sequence.add(state(AutonomousState.STOP_INTAKE));
         // Return to auton end position
         sequence.add(state(AutonomousState.RETURN_HOME));
         return sequence;

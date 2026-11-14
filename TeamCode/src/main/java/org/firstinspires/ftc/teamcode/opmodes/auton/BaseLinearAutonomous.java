@@ -22,6 +22,7 @@ import static com.pedropathing.api.Paths.line;
 
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
+import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
@@ -38,6 +39,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.mechanisms.IntakeUtil;
 import org.firstinspires.ftc.teamcode.mechanisms.LauncherUtil;
 import org.firstinspires.ftc.teamcode.mechanisms.LiftUtil;
+import org.firstinspires.ftc.teamcode.mechanisms.LimelightUtil;
 import org.firstinspires.ftc.teamcode.mechanisms.ServoUtil;
 import org.firstinspires.ftc.teamcode.opmodes.AllianceConfig;
 import org.firstinspires.ftc.teamcode.opmodes.LaunchTarget;
@@ -58,6 +60,7 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
     protected IntakeUtil intake;
     protected ServoUtil servos;
     protected LiftUtil lift;
+    protected LimelightUtil limelight;              // Limelight3A AprilTag camera (alliance goal cluster)
     // Alliance-specific configuration
     protected AllianceConfig allianceConfig;
 
@@ -70,6 +73,8 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
     protected Path homePath;                        // RETURN_HOME: park path, built once when RETURN_HOME starts
     protected Pose homeTurnPose;                    // RETURN_HOME: current x/y with the heading the park path starts with
     protected int liftStartPosition;                // LIFT_UP / LIFT_DOWN: encoder position when the move started
+    protected ElapsedTime alignedTimer = new ElapsedTime();  // ALIGN_TO_GOAL: time tx has stayed within tolerance
+    protected boolean aligned = false;              // ALIGN_TO_GOAL: tx currently within tolerance
 
     // Timing control
     protected ElapsedTime autonomousTimer = new ElapsedTime();  // Tracks total autonomous runtime (never reset)
@@ -92,6 +97,8 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
         OPEN_NECTAR_SERVO,
         CLOSE_POLLEN_SERVO,
         CLOSE_NECTAR_SERVO,
+        WAIT_FOR_TIP,                   // Wait for the goal tag cluster, then start the pollen launcher (go home at TIP_WAIT_GIVE_UP_MS)
+        ALIGN_TO_GOAL,                  // Turn in place until the Limelight sees the alliance goal centered (tx ~ 0)
         WAIT,                           // Parameterized: pause for "ms" milliseconds
         RETURN_HOME,                    // Return to auton end position
         COMPLETE                        // Autonomous sequence complete
@@ -221,6 +228,13 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
     }
 
     /**
+     * Helper method to create an ALIGN_TO_GOAL StateNode (turn to face the alliance goal with the Limelight)
+     */
+    protected StateNode alignToGoal() {
+        return state(AutonomousState.ALIGN_TO_GOAL);
+    }
+
+    /**
      * Helper method to create a WAIT StateNode
      */
     protected StateNode waitMs(long ms) {
@@ -270,6 +284,7 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
         // Init loop (equivalent to init_loop()): keep odometry live so the start pose can be checked
         while (opModeInInit()) {
             follower.update();
+            limelight.update();
 
             Pose pose = follower.pose();
             telemetry.addData("Status", "Ready to start autonomous");
@@ -277,6 +292,7 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
             telemetry.addData("State Sequence", "Loaded (" + stateSequence.size() + " states)");
             telemetry.addData("Pose", String.format("(%.1f, %.1f, %.1f°)",
                 pose.x(), pose.y(), Math.toDegrees(pose.heading())));
+            telemetry.addData("Limelight", limelight.getStatusString());
             telemetry.update();
         }
 
@@ -336,6 +352,13 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
 
         lift = new LiftUtil();
         lift.init(hardwareMap);
+
+        // Track only this alliance's goal AprilTags (same setup as BaseLinearTeleOp)
+        limelight = new LimelightUtil(hardwareMap);
+        limelight.setTargetTagId(-1);
+        limelight.setClusterMode(true);
+        limelight.setTargetCluster(allianceConfig.getAllianceName() + " Goal",
+                allianceConfig.getTargetAprilTagIds());
     }
     /**
      * Main state machine update - called every loop
@@ -358,7 +381,13 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
             }
         }
 
+        // Cache fresh AprilTag data for this loop
+        limelight.update();
+
         switch (currentState) {
+            case ALIGN_TO_GOAL:
+                handleAlignToGoal();
+                break;
             case START_POLLEN_LAUNCHER:
                 handlePollenStart();
                 break;
@@ -401,6 +430,9 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
             case STOP_INTAKE:
                 handleStopIntake();
                 break;
+            case WAIT_FOR_TIP:
+                handleWaitForTip();
+                break;
             case COMPLETE:
                 break;
         }
@@ -409,6 +441,31 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
         if (currentState != AutonomousState.COMPLETE) {
             follower.update();
             updateTelemetry();
+        }
+    }
+
+    /**
+     * Wait until the Limelight sees at least RobotConstants.TIP_CLUSTER_MIN_PERCENT of the goal cluster
+     * (the alliance config's tag IDs - 32-35 for Red SF, 44-47 for Blue SF), then advance to the next state.
+     * If nothing is seen by RobotConstants.TIP_WAIT_GIVE_UP_MS of auton time, skip the rest of the sequence
+     * and go straight to RETURN_HOME.
+     */
+    protected void handleWaitForTip(){
+        int percentFound = limelight.getClusterPercentFound();
+        telemetry.addData("Status", String.format("Waiting for goal tags: %d%% visible (need %d%%) %s",
+            percentFound, RobotConstants.TIP_CLUSTER_MIN_PERCENT, limelight.getClusterTagIds()));
+
+        if (percentFound >= RobotConstants.TIP_CLUSTER_MIN_PERCENT) {
+            advanceToNextState();
+            return;  // don't let the give-up check below override the state we just moved to
+        }
+
+        if (autonomousTimer.milliseconds() >= RobotConstants.TIP_WAIT_GIVE_UP_MS) {
+            telemetry.addData("WARNING", "Goal tags not seen in time - going home");
+            pathStarted = false;
+            homeTurnDone = false;
+            currentState = AutonomousState.RETURN_HOME;
+            stateTimer.reset();
         }
     }
 
@@ -475,6 +532,52 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
             lift.stop();
             advanceToNextState();
         }
+    }
+
+    /**
+     * Turn in place to face the alliance goal using the Limelight horizontal offset (tx).
+     * Same proportional control as BaseLinearTeleOp.handleAlignToGoal(). Advances once tx has stayed within
+     * RobotConstants.ALIGN_TOLERANCE_DEG for ALIGN_SETTLE_MS, or after ALIGN_TIMEOUT_MS (e.g. no tag in view),
+     * then holds the current pose so the follower keeps the new heading.
+     */
+    protected void handleAlignToGoal() {
+        boolean timedOut = stateTimer.milliseconds() >= RobotConstants.ALIGN_TIMEOUT_MS;
+        double turnPower = 0.0;
+
+        if (!limelight.hasTarget()) {
+            aligned = false;
+            telemetry.addData("Status", "Align: no goal tag in view");
+        } else {
+            double tx = limelight.getTx();
+            boolean inTolerance = Math.abs(tx) <= RobotConstants.ALIGN_TOLERANCE_DEG;
+            if (inTolerance && !aligned) {
+                alignedTimer.reset();  // just entered tolerance - start the settle timer
+            }
+            aligned = inTolerance;
+            if (!aligned) {
+                // tx > 0 means the tag is to the right; negative turn power turns the robot right
+                turnPower = -Math.signum(tx) * Math.min(RobotConstants.ALIGN_MAX_TURN_POWER,
+                    Math.max(RobotConstants.ALIGN_MIN_TURN_POWER, Math.abs(tx) * RobotConstants.ALIGN_KP));
+            }
+            telemetry.addData("Status", String.format("Align: tx %.1f° %s", tx, aligned ? "ALIGNED" : "TURNING"));
+        }
+
+        boolean settled = aligned && alignedTimer.milliseconds() >= RobotConstants.ALIGN_SETTLE_MS;
+        if (settled || timedOut) {
+            if (timedOut && !settled) {
+                telemetry.addData("WARNING", "Align to goal timed out!");
+            }
+            aligned = false;
+            follower.hold(follower.pose());  // Keep the aligned heading while later states run
+            advanceToNextState();
+            return;
+        }
+
+        follower.manual(new DrivePowers(0, 0, turnPower));
+    }
+
+    protected void handleDelayedPollenStart(){
+
     }
 
     protected void handlePollenStart(){
@@ -655,6 +758,7 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
         telemetry.addData("Pose", String.format("(%.1f, %.1f, %.1f°)",
             currentPose.x(), currentPose.y(), Math.toDegrees(currentPose.heading())));
         telemetry.addData("Follower Status", follower.isBusy() ? "BUSY" : "IDLE");
+        telemetry.addData("Limelight", limelight.getStatusString());
     }
 
     /**
@@ -664,6 +768,7 @@ public abstract class BaseLinearAutonomous extends LinearOpMode {
         launcher.stop();
         intake.stop();
         lift.stop();
+        limelight.stop();
     }
 
     /**

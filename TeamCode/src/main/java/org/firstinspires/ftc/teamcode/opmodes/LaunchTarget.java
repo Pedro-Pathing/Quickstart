@@ -43,11 +43,17 @@ public enum LaunchTarget {
         0                                                // No launcher
     ),
 
-    // SF autonomous end positions - placeholder copy of AUTON_END, set the real SF park poses here
+    // SF autonomous end positions (Red SF park; Blue pose currently unused)
     AUTON_END_SF(
         new Pose(132, 30, Math.toRadians(90)),          // Blue alliance pose
         new Pose(12, 118, Math.toRadians(270)),          // Red alliance pose
         0                                                // No launcher
+    ),
+    // AF autonomous end positions (Blue AF park; Red pose currently unused) - same poses as AUTON_END_SF for now
+    AUTON_END_AF(
+            new Pose(132, 30, Math.toRadians(90)),          // Blue alliance pose
+            new Pose(12, 118, Math.toRadians(270)),          // Red alliance pose
+            0                                                // No launcher
     ),
 
     // Home/starting positions

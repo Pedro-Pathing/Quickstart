@@ -100,17 +100,6 @@ public class AllianceConfig {
         );
     }
 
-    public static AllianceConfig createBlueAllianceConfigAF() {
-        return new AllianceConfig(
-                true,   // isBlueAlliance
-                RobotConstants.BLUE_GOAL_APRILTAG_IDS,     // AprilTag ID
-                "Blue",  // Alliance name
-                RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
-                RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
-                LaunchTarget.AUTON_END
-        );
-    }
-
     public static AllianceConfig createBlueAllianceConfigSF() {
         return new AllianceConfig(
                 true,   // isBlueAlliance
@@ -118,7 +107,18 @@ public class AllianceConfig {
                 "Blue",  // Alliance name
                 RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
                 RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
-                LaunchTarget.AUTON_END_SF
+                LaunchTarget.AUTON_END
+        );
+    }
+
+    public static AllianceConfig createBlueAllianceConfigAF() {
+        return new AllianceConfig(
+                true,   // isBlueAlliance
+                RobotConstants.BLUE_GOAL_APRILTAGS_AF,     // AprilTag ID
+                "Blue",  // Alliance name
+                RobotConstants.CENTER_POLLEN_LAUNCH_SPEED,
+                RobotConstants.CENTER_NECTAR_LAUNCH_SPEED,
+                LaunchTarget.AUTON_END_AF
         );
     }
 

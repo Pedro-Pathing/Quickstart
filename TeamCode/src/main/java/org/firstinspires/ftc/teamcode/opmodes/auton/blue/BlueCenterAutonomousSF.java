@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.auton.blue;
 
 import com.pedropathing.api.Paths;
 import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.opmodes.AllianceConfig;
@@ -11,17 +12,16 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.pedropathing.paths.Path;
+
 /**
  * Blue Alliance center autonomous (SF):
- * 1. Spin up the pollen launcher, open the pollen gate and fire, then stop it
- * 2. Spin up the nectar launcher, open the nectar gate and fire, then stop it
- * 3. Close both gates
- * 4. Return to auton end position (AUTON_END_SF)
+ * 1. Spin up the pollen launcher, close the pollen gate and feed with the intake (timed, no Limelight)
+ * 2. Stop the launcher and intake, then open the pollen gate
+ * 3. Return to auton end position (AUTON_END)
  *
  * Alliance-specific poses come from AllianceConfig / LaunchTarget; the sequence itself is shared logic.
  */
-@Autonomous(name = "Blue-Center-AF", group = "Blue-Center-AF")
+@Autonomous(name = "Blue-Center-SF", group = "Blue-Center-SF")
 public class BlueCenterAutonomousSF extends BaseLinearAutonomous {
 
     @Override
@@ -33,7 +33,17 @@ public class BlueCenterAutonomousSF extends BaseLinearAutonomous {
     protected List<StateNode> buildStateSequence() {
         List<StateNode> sequence = new ArrayList<>();
 
-        sequence.add(waitMs(20000));
+        // Start launcher motors
+        sequence.add(state(AutonomousState.START_POLLEN_LAUNCHER));
+        sequence.add(waitMs(3000));
+        sequence.add(state(AutonomousState.CLOSE_POLLEN_SERVO));
+        sequence.add(waitMs(1000));
+        sequence.add(state(AutonomousState.START_INTAKE));
+        sequence.add(waitMs(6000));
+        sequence.add(state(AutonomousState.STOP_POLLEN_LAUNCHER));
+        sequence.add(state(AutonomousState.STOP_INTAKE));
+        sequence.add(waitMs(500));
+        sequence.add(state(AutonomousState.OPEN_POLLEN_SERVO));
         // Return to auton end position
         sequence.add(state(AutonomousState.RETURN_HOME));
         return sequence;
@@ -43,11 +53,11 @@ public class BlueCenterAutonomousSF extends BaseLinearAutonomous {
     protected Path park() {
         Pose start = follower.pose();
         Pose end = allianceConfig.getAutonEndPose();
-        double startHrading = Math.toDegrees(start.heading());
         // Push the control points away from the nearest side wall (x = 0 for Red, x = 144 for Blue)
-        Pose control1 = new Pose(start.x() , start.y()+10, 0);  // Bezier control points; their headings are unused
+        Pose control1 = new Pose(start.x() , start.y()-RobotConstants.PARK_WALL_CLEARANCE_IN, 0);  // Bezier control points; their headings are unused
+        Pose control2 = new Pose(end.x()-12 , end.y()+50, 0);
 
-        return Paths.curve(start, control1, end)
+        return Paths.curve(start, control1, control2, end)
                 .linear(start, end)
                 .with(Constants.foresightConfig.maxPathSpeed.at(RobotConstants.TEST_PATH_SPEED));
     }

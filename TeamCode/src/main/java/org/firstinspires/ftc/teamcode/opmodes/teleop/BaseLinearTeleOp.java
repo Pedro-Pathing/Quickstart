@@ -20,9 +20,10 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop;
  * - Right trigger: Slow mode (RobotConstants.SLOW_MODE_MULTIPLIER)
  * - Left + right bumper (hold): Drive to the shooting position if inside the shooting zone (release to cancel)
  * - Back (press to toggle): Turn to face the alliance goal AprilTag cluster using the Limelight.
- *   Stays on, holding the goal heading, until Back is pressed again or the right stick is moved
+ *   Stays on, holding the goal heading, until Back is pressed again, the right stick is moved,
+ *   or the pollen launcher is turned off with X
  * - X button: Toggle pollen launcher (on at RobotConstants.NEAR_LAUNCH_SPEED, press again to stop);
- *   the pollen gate opens automatically once the launcher reaches speed
+ *   the pollen gate opens automatically once the launcher reaches speed. Turning it off also ends goal align
  * - B button: Toggle nectar launcher (on at RobotConstants.NEAR_LAUNCH_SPEED, press again to stop);
  *   the nectar gate opens automatically once the launcher reaches speed
  * - Right bumper: Add RobotConstants.LAUNCHER_SPEED_STEP to every running launcher
@@ -74,6 +75,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
     protected DrivePowers lastDrivePowers = DrivePowers.zero();  // Last powers sent to the follower (for telemetry)
     protected boolean aligning = false;             // Tracks whether goal alignment is active (toggled by gamepad1 back)
     protected boolean aligned = false;              // Tracks whether the robot is facing the goal tag
+    protected Double alignTargetHeading = null;     // Goal align: heading (radians) the Limelight says faces the goal; null until first seen
     protected int speedSteps = 0;                   // Gamepad1 bumper launcher adjustment this loop: +1 faster, -1 slower, 0 none
     protected int intakeSpeedSteps = 0;             // Gamepad2 bumper intake adjustment this loop: +1 faster, -1 slower, 0 none
     protected boolean pollenGatePending = false;    // Pollen launcher started with X; open its gate once at speed
@@ -217,6 +219,7 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
             turn = handleAlignToGoal(turn);
         } else {
             aligned = false;
+            alignTargetHeading = null;  // next align starts from a fresh Limelight reading
         }
 
         // Path to the shooting position has control of the drivetrain - don't override it with the sticks
@@ -230,29 +233,61 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
     }
 
     /**
-     * Turns the robot to face the alliance goal AprilTag using the Limelight horizontal offset (tx).
-     * Proportional control on tx, clamped to RobotConstants.ALIGN_MAX_TURN_POWER.
+     * Turns the robot to face the alliance goal AprilTag cluster.
      *
-     * @param driverTurn the driver's turn input, used when no tag is visible
+     * The Limelight only sets the target heading (current heading - tx). The turn itself is a PD loop on the
+     * odometry heading, damped by the measured turn rate, so camera lag can't make it overshoot and shake:
+     * - each reading is blended into the target with RobotConstants.ALIGN_TARGET_FILTER, smoothing the jumps in
+     *   cluster tx when tags drop in and out of view
+     * - readings are ignored while turning faster than ALIGN_MAX_UPDATE_OMEGA, when tx is out of date
+     * - if the tag is lost, the robot keeps holding the last target heading
+     *
+     * @param driverTurn the driver's turn input, used before the goal has been seen
      * @return turn power to send to the follower
      */
     protected double handleAlignToGoal(double driverTurn) {
-        if (!limelight.hasTarget()) {
-            // No tag in view - leave rotation to the driver so they can find it
+        double heading = follower.pose().heading();
+        double omega = follower.twist().omega;
+
+        if (limelight.hasTarget()) {
+            double measuredTarget = heading - Math.toRadians(limelight.getTx());
+            if (alignTargetHeading == null) {
+                alignTargetHeading = measuredTarget;
+            } else if (Math.abs(omega) < RobotConstants.ALIGN_MAX_UPDATE_OMEGA) {
+                alignTargetHeading = alignTargetHeading
+                    + RobotConstants.ALIGN_TARGET_FILTER * normalizeAngle(measuredTarget - alignTargetHeading);
+            }
+        }
+
+        if (alignTargetHeading == null) {
+            // Goal not seen yet - leave rotation to the driver so they can find it
             aligned = false;
             return driverTurn;
         }
 
-        double tx = limelight.getTx();
-        aligned = Math.abs(tx) <= RobotConstants.ALIGN_TOLERANCE_DEG;
+        // Positive error = goal is to the left (counter-clockwise); positive turn power turns left
+        double error = normalizeAngle(alignTargetHeading - heading);
+        aligned = Math.abs(error) <= Math.toRadians(RobotConstants.ALIGN_TOLERANCE_DEG)
+            && Math.abs(omega) < RobotConstants.ALIGN_SETTLED_OMEGA;
         if (aligned) {
             return 0.0;
         }
 
-        // tx > 0 means the tag is to the right; negative turn power turns the robot right
-        double turnPower = Math.min(RobotConstants.ALIGN_MAX_TURN_POWER,
-            Math.max(RobotConstants.ALIGN_MIN_TURN_POWER, Math.abs(tx) * RobotConstants.ALIGN_KP));
-        return -Math.signum(tx) * turnPower;
+        double turnPower = RobotConstants.ALIGN_HEADING_KP * error - RobotConstants.ALIGN_HEADING_KD * omega;
+        return Math.max(-RobotConstants.ALIGN_MAX_TURN_POWER, Math.min(RobotConstants.ALIGN_MAX_TURN_POWER, turnPower));
+    }
+
+    /**
+     * Wraps an angle to [-pi, pi]
+     */
+    protected static double normalizeAngle(double angle) {
+        while (angle > Math.PI) {
+            angle -= 2 * Math.PI;
+        }
+        while (angle < -Math.PI) {
+            angle += 2 * Math.PI;
+        }
+        return angle;
     }
 
     /**
@@ -295,6 +330,10 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
                 servos.openPollen();
                 pollenGatePending = false;
                 pollenAtSpeed = false;
+                // Done shooting - stop goal align so the driver gets rotation back
+                aligning = false;
+                aligned = false;
+                alignTargetHeading = null;
             } else {
                 launcher.setPollenSpeed(RobotConstants.CENTER_POLLEN_LAUNCH_SPEED);
                 pollenGatePending = true;
@@ -439,7 +478,14 @@ public abstract class BaseLinearTeleOp extends LinearOpMode {
             lastDrivePowers.forward(), lastDrivePowers.strafe(), lastDrivePowers.turn()));
         telemetry.addData("Raw Sticks", String.format("LX:%.2f LY:%.2f RX:%.2f",
             gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x));
-        telemetry.addData("Goal Align", !aligning ? "OFF" : (!limelight.hasTarget() ? "NO TAG" : (aligned ? "ALIGNED" : "TURNING")));
+        telemetry.addData("Goal Align", !aligning ? "OFF"
+            : alignTargetHeading == null ? "NO TAG"
+            : (aligned ? "ALIGNED" : "TURNING") + (limelight.hasTarget() ? "" : " (tag lost, holding)"));
+        if (aligning && alignTargetHeading != null) {
+            telemetry.addData("Align Target / Error", String.format("%.1f° / %.1f°",
+                Math.toDegrees(alignTargetHeading),
+                Math.toDegrees(normalizeAngle(alignTargetHeading - follower.pose().heading()))));
+        }
 
         // Launcher status (each motor is controlled separately)
         telemetry.addData("Pollen Launcher", launcherStatus(launcher.isPollenOn(),
