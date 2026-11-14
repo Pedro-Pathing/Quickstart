@@ -1,0 +1,15 @@
+Kinematics:
+ - These are the math to run the drive train.
+ - They do not set the actual motor powers.
+ - Their main function is named after the class and returns an array of motor powers in the order of
+  front right, front left, back right, back left *
+
+
+Drive:
+ - These classes use their associated Kinematics class to actually drive the motors.
+ - These classes set the motor powers directly, and need the motor objects
+ - The Drive classes accept the motor objects in the same order as the Kinematics classes return powers:
+  front right, front left, back right, back left *
+
+
+   * note: for kinematics or drivers that do not have four motors, the right or front motor is prioritized
