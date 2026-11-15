@@ -16,7 +16,7 @@ public class Flywheel
 
     public void init(HardwareMap hwMap)
     {
-        shooter_driver = hwMap.get(DcMotorEx.class, "motor");
+        shooter_driver = hwMap.get(DcMotorEx.class, "shooter_driver");
 
         shooter_driver.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
