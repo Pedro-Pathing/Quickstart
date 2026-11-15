@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.fwheel;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+@TeleOp(name="kS", group="TeleOp")
 public class kVTuner extends OpMode
 {
     Flywheel flywheel = new Flywheel();
