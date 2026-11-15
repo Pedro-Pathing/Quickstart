@@ -110,7 +110,7 @@ public class Teleop extends LinearOpMode {
 
                 // Intake
                 boolean intakeHeld = gamepad2.left_trigger > 0.05;
-                boolean outakeHeld = gamepad2.right_trigger > 0.05;
+                boolean outakeHeld = gamepad2.left_bumper  > 0.05;
                 boolean intakeActive = false;
                 if (intakeHeld && !outakeHeld) {
                     intakeMotor.setVelocity(intakeTPS);
