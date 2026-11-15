@@ -12,7 +12,7 @@ public class Flywheel
 
     private double gearRatio = 1;
 
-    private double kV,kS,kP;
+    private double kV,kS= 0.043488,kP;
 
     public void init(HardwareMap hwMap)
     {

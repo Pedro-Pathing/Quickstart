@@ -8,7 +8,7 @@ public class kSTuner extends OpMode
 {
     Flywheel flywheel = new Flywheel();
 
-    public static double kS = 0;
+    public static double kS = 0.043488;
 
     double[] increments = {0.000001, 0.00001, 0.0001, 0.001, 0.01};
 
