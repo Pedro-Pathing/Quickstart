@@ -40,9 +40,9 @@ public class Teleop extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         DcMotorEx frontLeftMotor = hardwareMap.get(DcMotorEx.class, "frontLeftMotor");
-        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "backLeftMotor");
+        DcMotorEx backLeftMotor = hardwareMap.get(DcMotorEx.class, "backRightMotor");
         DcMotorEx frontRightMotor = hardwareMap.get(DcMotorEx.class, "frontRightMotor");
-        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "backRightMotor");
+        DcMotorEx backRightMotor = hardwareMap.get(DcMotorEx.class, "backLeftMotor");
 
         DcMotorEx shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
         DcMotorEx transferMotor = hardwareMap.get(DcMotorEx.class, "transferMotor");
@@ -50,9 +50,9 @@ public class Teleop extends LinearOpMode {
 
         // Drive: standard mecanum setup (left side reversed)
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
