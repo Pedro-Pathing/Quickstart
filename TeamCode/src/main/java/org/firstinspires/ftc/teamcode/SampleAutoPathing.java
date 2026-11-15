@@ -51,6 +51,7 @@ public class SampleAutoPathing extends OpMode {
 
             case DONE:
                 if (!follower.isBusy()) {
+                    requestOpModeStop();
                     // Robot is at endPose and stopped
                 }
                 break;
