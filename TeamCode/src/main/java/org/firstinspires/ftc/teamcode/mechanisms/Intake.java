@@ -35,7 +35,7 @@ public class Intake
 {
     ElapsedTime stopperTimer = new ElapsedTime();
     public static final double INTAKE_POWER  = 1;
-    public static final double REVERSE_POWER = 1;
+    public static final double REVERSE_POWER = 0.5;
 
     public enum IntakeState {
         START,
