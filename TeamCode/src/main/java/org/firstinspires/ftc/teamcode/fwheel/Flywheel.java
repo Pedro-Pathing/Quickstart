@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Flywheel
 {
-    private DcMotorEx m1;
+    private DcMotorEx shooter_driver;
 
     private double encoderCPM = 384.5;
 
@@ -16,19 +16,19 @@ public class Flywheel
 
     public void init(HardwareMap hwMap)
     {
-        m1 = hwMap.get(DcMotorEx.class, "motor");
+        shooter_driver = hwMap.get(DcMotorEx.class, "motor");
 
-        m1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter_driver.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void setPower(double power)
     {
-        m1.setPower(power);
+        shooter_driver.setPower(power);
     }
 
     public double getTicksPerSec()
     {
-        return m1.getVelocity();
+        return shooter_driver.getVelocity();
     }
 
     public double getRPM()
