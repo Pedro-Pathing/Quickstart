@@ -8,6 +8,7 @@ public final class PosePersistency {
     private static Pose pose = null;
     private static Field.Alliance alliance = null;
     private static double turretZeroTicks = Double.NaN;
+    private static double turretMotorZeroTicks = Double.NaN;
 
     public static void savePose(Pose pose) {
         PosePersistency.pose = pose;
@@ -23,6 +24,14 @@ public final class PosePersistency {
 
     public static double getTurretZero(double fallback) {
         return Double.isNaN(turretZeroTicks) ? fallback : turretZeroTicks;
+    }
+
+    public static void saveTurretMotorZero(double ticks) {
+        turretMotorZeroTicks = ticks;
+    }
+
+    public static double getTurretMotorZero(double fallback) {
+        return Double.isNaN(turretMotorZeroTicks) ? fallback : turretMotorZeroTicks;
     }
 
     public static Pose getPose(Pose fallback) {
@@ -41,6 +50,7 @@ public final class PosePersistency {
         pose = null;
         alliance = null;
         turretZeroTicks = Double.NaN;
+        turretMotorZeroTicks = Double.NaN;
     }
 
     private PosePersistency() {

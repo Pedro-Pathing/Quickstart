@@ -1,10 +1,12 @@
 repositories {
     mavenCentral()
     maven {
-        // Hosts org.solverslib:* and dev.frozenmilk:* (a transitive dep of com.pedropathing:tuning)
         url "https://repo.dairy.foundation/releases"
     }
-    google() // Needed for androidx
+    maven {
+        url "https://mymaven.bylazar.com/releases"
+    }
+    google()
 }
 
 dependencies {
@@ -21,7 +23,8 @@ dependencies {
     implementation 'com.pedropathing:revhub:3.0.1'
     implementation 'com.pedropathing:tuning:1.0.1'
 
-    // SolversLib: command-based framework
     implementation 'org.solverslib:core:0.3.6'
     implementation 'org.solverslib:pedroPathing:0.3.6'
+
+    implementation 'com.bylazar:fullpanels:1.0.20'
 }

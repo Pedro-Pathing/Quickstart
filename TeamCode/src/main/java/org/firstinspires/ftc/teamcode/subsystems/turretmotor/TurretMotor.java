@@ -85,8 +85,8 @@ public class TurretMotor extends SubsystemBase {
         motor.setDirection(MOTOR_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        zeroTicks = PosePersistency.getTurretZero(motor.getCurrentPosition());
-        PosePersistency.saveTurretZero(zeroTicks);
+        zeroTicks = PosePersistency.getTurretMotorZero(motor.getCurrentPosition());
+        PosePersistency.saveTurretMotorZero(zeroTicks);
         for (int i = 0; i < Math.min(TOF_DIST_IN.length, TOF_S.length); i++) {
             timeOfFlightTable.add(TOF_DIST_IN[i], TOF_S[i]);
         }
@@ -137,7 +137,7 @@ public class TurretMotor extends SubsystemBase {
 
     public void zeroHere() {
         zeroTicks = motor.getCurrentPosition();
-        PosePersistency.saveTurretZero(zeroTicks);
+        PosePersistency.saveTurretMotorZero(zeroTicks);
     }
 
     public void readEncoder() {

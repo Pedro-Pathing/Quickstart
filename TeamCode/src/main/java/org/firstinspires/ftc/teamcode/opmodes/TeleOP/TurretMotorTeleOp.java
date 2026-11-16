@@ -15,8 +15,13 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.commands.ShootWhenReady;
 import org.firstinspires.ftc.teamcode.commands.field.ResetPose;
+import org.firstinspires.ftc.teamcode.commands.intake.intakeOff;
+import org.firstinspires.ftc.teamcode.commands.intake.intakeOn;
+import org.firstinspires.ftc.teamcode.commands.intake.intakeReverse;
+import org.firstinspires.ftc.teamcode.commands.intake.intakeToShooter;
 import org.firstinspires.ftc.teamcode.field.Field;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.turret.TurretHistory;
@@ -29,11 +34,12 @@ import org.firstinspires.ftc.teamcode.vision.Limelight;
 @Config
 @TeleOp(name = "Turret Motor TeleOp")
 public class TurretMotorTeleOp extends CommandOpMode {
-    public static double START_X_IN = 40;
-    public static double START_Y_IN = 8;
-    public static double START_HEADING_DEG = 90;
+    public static double START_X_IN = 133;
+    public static double START_Y_IN = 132;
+    public static double START_HEADING_DEG = -90;
 
     private Follower follower;
+    private Intake intake;
     private TurretMotor turret;
     private Shooter shooter;
     private Limelight limelight;
@@ -54,6 +60,7 @@ public class TurretMotorTeleOp extends CommandOpMode {
         turret = new TurretMotor(hardwareMap, limelight, history, follower::pose);
         shooter = new Shooter(hardwareMap, turret::getDistance);
         register(limelight, turret, shooter);
+        intake = new Intake(hardwareMap);
 
         driver = new GamepadEx(gamepad1);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -76,6 +83,12 @@ public class TurretMotorTeleOp extends CommandOpMode {
         driver.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(() -> stepManualAngle(-1));
         driver.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new ResetPose(follower, Field.Alliance.RED));
         driver.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new ResetPose(follower, Field.Alliance.BLUE));
+        driver.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenActive(new intakeOn(intake));
+        driver.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenInactive(new intakeOff(intake));
+        driver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenActive(new intakeToShooter(intake));
+        driver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenInactive(new intakeOff(intake));
+        driver.getGamepadButton(GamepadKeys.Button.Y).whenActive(new intakeReverse(intake));
+        driver.getGamepadButton(GamepadKeys.Button.Y).whenInactive(new intakeOff(intake));
     }
 
     @Override

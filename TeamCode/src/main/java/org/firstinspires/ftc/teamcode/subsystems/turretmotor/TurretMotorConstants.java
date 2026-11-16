@@ -6,7 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 public class TurretMotorConstants {
     public static String MOTOR_NAME = "turretMotor";
     public static boolean MOTOR_REVERSED = true;
-    public static double MOTOR_TICKS_PER_REV = 28;
+    public static double MOTOR_TICKS_PER_REV = 140;
     public static double MOTOR_GEAR_RATIO = 72.0 / 14.0;
 
     public static double MOTOR_SANITY_MARGIN_DEG = 30;

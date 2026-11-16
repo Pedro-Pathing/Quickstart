@@ -4,6 +4,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
@@ -20,9 +22,9 @@ import java.util.List;
 @Config
 @TeleOp(name = "Odometry Drift Test")
 public class OdometryDriftTest extends LinearOpMode {
-    public static double START_X_IN = 72;
-    public static double START_Y_IN = 72;
-    public static double START_HEADING_DEG = 90;
+    public static double START_X_IN = 132;
+    public static double START_Y_IN = 133;
+    public static double START_HEADING_DEG = -90;
     public static boolean FIELD_CENTRIC = false;
     public static double DRIVE_SPEED = 0.6;
     public static double TRAIL_MIN_STEP_IN = 1;
@@ -186,6 +188,51 @@ public class OdometryDriftTest extends LinearOpMode {
         drawRobot(c, pose);
 
         dashboard.sendTelemetryPacket(packet);
+        drawPanels(pose, start);
+    }
+
+    private void drawPanels(Pose pose, Pose start) {
+        FieldManager f = PanelsField.INSTANCE.getField();
+        f.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
+
+        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#888888", 1);
+        panelsCircle(f, Field.RED_CELL_TOP, 3);
+        panelsCircle(f, Field.RED_CELL_BOTTOM, 3);
+        panelsCircle(f, Field.BLUE_CELL_TOP, 3);
+        panelsCircle(f, Field.BLUE_CELL_BOTTOM, 3);
+
+        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#4CAF50", 1);
+        for (int i = 1; i < trail.size(); i++) {
+            f.moveCursor(trail.get(i - 1)[0], trail.get(i - 1)[1]);
+            f.line(trail.get(i)[0], trail.get(i)[1]);
+        }
+
+        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#FFC107", 2);
+        panelsRobot(f, start);
+
+        if (measured != null) {
+            f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#F44336", 2);
+            f.moveCursor(start.x(), start.y());
+            f.line(measured.x(), measured.y());
+            panelsRobot(f, measured);
+        }
+
+        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#2196F3", 2);
+        panelsRobot(f, pose);
+
+        f.update();
+    }
+
+    private void panelsRobot(FieldManager f, Pose p) {
+        panelsCircle(f, p, ROBOT_RADIUS_IN);
+        f.moveCursor(p.x(), p.y());
+        f.line(p.x() + ROBOT_RADIUS_IN * Math.cos(p.heading()),
+                p.y() + ROBOT_RADIUS_IN * Math.sin(p.heading()));
+    }
+
+    private void panelsCircle(FieldManager f, Pose p, double radius) {
+        f.moveCursor(p.x(), p.y());
+        f.circle(radius);
     }
 
     private void drawRobot(Canvas c, Pose p) {
