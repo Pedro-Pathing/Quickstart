@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -31,7 +32,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 
 @Autonomous(name = "AutoCloseB", group = "Autonomous")
-public class AutoCloseB extends LinearOpMode {
+public class AutoCloseB extends OpMode {
 
 
     public DcMotorEx shoota;
@@ -39,7 +40,7 @@ public class AutoCloseB extends LinearOpMode {
     public DcMotor transfer;
     public Servo gate;
     double shootaPowwa;
-    double shootaSpeedy = 1550;
+    double shootaSpeedy = 2000;
     double F = 12.6;
     double P = 0;
 
@@ -69,8 +70,7 @@ public class AutoCloseB extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() {
-
+    public void init() {
 
 
         Scheduler.reset();
@@ -94,14 +94,15 @@ public class AutoCloseB extends LinearOpMode {
         shoota.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootaPID);
 
 
-
         gate = hardwareMap.get(Servo.class, "gateServo");
 
-
-        waitForStart();
+    }
+    @Override
+    public void start() {
         schedule(autoRoutine());
-
-        while (opModeIsActive()) {
+    }
+    @Override
+    public void loop() {
 
 
 
@@ -123,7 +124,12 @@ public class AutoCloseB extends LinearOpMode {
             telemetry.update();
 
 
-        }
+
+    }
+    @Override
+    public void stop() {
+        follower.update();
+        OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {
@@ -136,7 +142,7 @@ public class AutoCloseB extends LinearOpMode {
                     shootaPowwa = shootaSpeedy;
                     shoota.setVelocity(shootaPowwa);
                 }),
-                waitMs(2000)
+                waitMs(5000)
         );
     }
     private Command shooterFire() {
