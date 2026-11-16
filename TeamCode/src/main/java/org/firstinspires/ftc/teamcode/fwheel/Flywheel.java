@@ -26,6 +26,22 @@ public class Flywheel
         shooter_driver.setPower(power);
     }
 
+    public void stopMotors()
+    {
+        shooter_driver.setPower(0);
+    }
+
+    public void setMotorRPM(double targetRPM)
+    {
+        //call this every loop
+        double error = targetRPM - getRPM();
+        double ff = (kV * targetRPM) + kS;
+        double fb = error * kP;
+        double power = ff+fb;
+
+        setPower(power);
+    }
+
     public double getTicksPerSec()
     {
         return shooter_driver.getVelocity();
