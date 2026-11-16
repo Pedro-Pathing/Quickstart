@@ -1,31 +1,34 @@
 package org.firstinspires.ftc.teamcode.autos;
 
-import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.instant;
-import static com.pedropathing.ivy.commands.Commands.waitMs;
-import static com.pedropathing.ivy.groups.Groups.sequential;
-import static com.pedropathing.ivy.pedro.PedroCommands.follow;
-
 import com.pedropathing.api.Paths;
+
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ivy.Command;
-import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
+import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.*;
+import static com.pedropathing.ivy.groups.Groups.sequential;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
+import com.qualcomm.robotcore.hardware.Servo;
+
+
 @Autonomous(name = "AutoFarR", group = "Autonomous")
-public class AutoFarR extends LinearOpMode {
+public class AutoFarR extends OpMode {
 
     public DcMotorEx shoota;
     public DcMotor intake;
@@ -70,52 +73,57 @@ public class AutoFarR extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() {
+    public void init() {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
 
-        waitForStart();
+
+        intake = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        transfer = hardwareMap.get(DcMotor.class, "transferMotor");
+        transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        transfer.setDirection(DcMotor.Direction.REVERSE);
+
+
+        shoota = hardwareMap.get(DcMotorEx.class, "shoota");
+        shoota.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shoota.setDirection(DcMotor.Direction.FORWARD);
+        PIDFCoefficients shootaPID = new PIDFCoefficients(P, 0, 0, F);
+        shoota.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootaPID);
+
+
+        gate = hardwareMap.get(Servo.class, "gateServo");
+    }
+    @Override
+    public void start() {
         schedule(autoRoutine());
-
-        while (opModeIsActive()) {
-            follower.update();
-            OpModeStorage.autonomousEndPose = follower.pose();
-            Scheduler.execute();
-            intake = hardwareMap.get(DcMotor.class, "intakeMotor");
-            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-            transfer = hardwareMap.get(DcMotor.class, "transferMotor");
-            transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            transfer.setDirection(DcMotor.Direction.REVERSE);
-
-
-            shoota = hardwareMap.get(DcMotorEx.class, "shoota");
-            shoota.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            shoota.setDirection(DcMotor.Direction.FORWARD);
-            PIDFCoefficients shootaPID = new PIDFCoefficients(P, 0, 0, F);
-            shoota.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootaPID);
+    }
+    @Override
+    public void loop() {
 
 
 
-            gate = hardwareMap.get(Servo.class, "gateServo");
 
+        telemetry.addData("x", follower.pose().x());
+        telemetry.addData("y", follower.pose().y());
+        telemetry.addData("heading", follower.pose().heading());
 
-            telemetry.addData("x", follower.pose().x());
-            telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
-
-            if (follower.currentPath() != null) {
-                telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
-                telemetry.addData("Path number", follower.pathIndex());
-            }
-
-            telemetry.update();
-
-
+        if (follower.currentPath() != null) {
+            telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
+            telemetry.addData("Path number", follower.pathIndex());
         }
+
+        telemetry.update();
+
+    }
+    @Override
+    public void stop() {
+        follower.update();
+        OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {
@@ -174,3 +182,8 @@ public class AutoFarR extends LinearOpMode {
         return Paths.line(point5, point6).constant(point6);
     }
 }
+
+
+
+
+//.mirrorX(70.75).mirrorY(70.75)

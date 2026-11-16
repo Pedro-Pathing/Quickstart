@@ -15,6 +15,7 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -25,7 +26,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 
 @Autonomous(name = "AutoCloseR", group = "Autonomous")
-public class AutoCloseR extends LinearOpMode {
+public class AutoCloseR extends OpMode {
 
 
     public DcMotorEx shoota;
@@ -63,8 +64,7 @@ public class AutoCloseR extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() {
-
+    public void init() {
 
 
         Scheduler.reset();
@@ -88,19 +88,22 @@ public class AutoCloseR extends LinearOpMode {
         shoota.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootaPID);
 
 
-
         gate = hardwareMap.get(Servo.class, "gateServo");
 
 
-        waitForStart();
+
+    }
+    @Override
+    public void start() {
         schedule(autoRoutine());
+    }
+    @Override
+    public void loop() {
 
-        while (opModeIsActive()) {
 
 
 
-
-            follower.update();
+        follower.update();
             OpModeStorage.autonomousEndPose = follower.pose();
             Scheduler.execute();
 
@@ -117,7 +120,12 @@ public class AutoCloseR extends LinearOpMode {
             telemetry.update();
 
 
-        }
+
+    }
+    @Override
+    public void stop() {
+        follower.update();
+        OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {

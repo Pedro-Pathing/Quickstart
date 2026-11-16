@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 
-
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -28,7 +28,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 
 @Autonomous(name = "AutoFarB", group = "Autonomous")
-public class AutoFarB extends LinearOpMode {
+public class AutoFarB extends OpMode {
 
     public DcMotorEx shoota;
     public DcMotor intake;
@@ -73,40 +73,42 @@ public class AutoFarB extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() {
+    public void init() {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
 
-        waitForStart();
+
+        intake = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        transfer = hardwareMap.get(DcMotor.class, "transferMotor");
+        transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        transfer.setDirection(DcMotor.Direction.REVERSE);
+
+
+        shoota = hardwareMap.get(DcMotorEx.class, "shoota");
+        shoota.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shoota.setDirection(DcMotor.Direction.FORWARD);
+        PIDFCoefficients shootaPID = new PIDFCoefficients(P, 0, 0, F);
+        shoota.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootaPID);
+
+
+        gate = hardwareMap.get(Servo.class, "gateServo");
+    }
+    @Override
+    public void start() {
         schedule(autoRoutine());
-
-        while (opModeIsActive()) {
-            follower.update();
-            OpModeStorage.autonomousEndPose = follower.pose();
-            Scheduler.execute();
-            intake = hardwareMap.get(DcMotor.class, "intakeMotor");
-            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-            transfer = hardwareMap.get(DcMotor.class, "transferMotor");
-            transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            transfer.setDirection(DcMotor.Direction.REVERSE);
-
-
-            shoota = hardwareMap.get(DcMotorEx.class, "shoota");
-            shoota.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            shoota.setDirection(DcMotor.Direction.FORWARD);
-            PIDFCoefficients shootaPID = new PIDFCoefficients(P, 0, 0, F);
-            shoota.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootaPID);
+    }
+    @Override
+    public void loop() {
 
 
 
-            gate = hardwareMap.get(Servo.class, "gateServo");
 
-
-            telemetry.addData("x", follower.pose().x());
+        telemetry.addData("x", follower.pose().x());
             telemetry.addData("y", follower.pose().y());
             telemetry.addData("heading", follower.pose().heading());
 
@@ -117,8 +119,11 @@ public class AutoFarB extends LinearOpMode {
 
             telemetry.update();
 
-
-        }
+    }
+    @Override
+    public void stop() {
+        follower.update();
+        OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {
