@@ -15,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.ManualDrive;
+import com.qualcomm.robotcore.util.Range;
 
 
 @TeleOp
@@ -33,6 +34,12 @@ public class teleTest extends OpMode {
 
     Pose goal = new Pose(84, 91, Math.toRadians(0));
     double angleTolerance = 4;
+    double KP = .5;
+    double KD = .5;
+    double curTime = 0;
+    double lastTime = 0;
+    double lastError = 0;
+
 
     private Follower follower;
 
@@ -53,6 +60,9 @@ public class teleTest extends OpMode {
     public void start(){
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
+
+        resetRuntime();
+        curTime = getRuntime();
     }
 
 
@@ -109,18 +119,23 @@ public class teleTest extends OpMode {
 
         double headingTrueDegree = Math.toDegrees(follower.pose().heading());
 
-        double angleToTheGoal;
-        if (follower.pose().y() > goal.y()) {
+
+
+
+
+        /*if (follower.pose().y() > goal.y()) {
             angleToTheGoal = ((((Math.toDegrees(Math.atan((((goal.x() - follower.pose().x()) / (goal.y() - follower.pose().x()))))))) * -1) + 270);
         }
         else {
             angleToTheGoal = ((((Math.toDegrees(Math.atan((((goal.x() - follower.pose().x()) / (goal.y() - follower.pose().x()))))))) * -1) + 90);
         }
+        */
+        double angleToTheGoal = Math.toDegrees(Math.atan2(goal.y()-follower.pose().y(), goal.x() - follower.pose().x()));
 
-        double error = angleToTheGoal - headingTrueDegree;
+        double error = ((angleToTheGoal - headingTrueDegree + 540) % 360 + 360) % 360 - 180;
         //-----------------
-        /*if (gamepad1.left_trigger > 0.2) {
-            double error = angleToTheGoal - headingTrueDegree;
+        if (gamepad1.left_trigger > 0.2) {
+
 
             if (Math.abs(error) < angleTolerance) {
                 pivot = 0;
@@ -141,7 +156,7 @@ public class teleTest extends OpMode {
         else {
             lastError = 0;
             lastTime = getRuntime();
-        }*/
+        }
 
         //follower.manual(vertical,horizontal,pivot);
         DrivePowers powers = ManualDrive.fieldCentric(vertical,horizontal,pivot, follower.pose().heading());
