@@ -35,14 +35,14 @@ public class kVTuner extends OpMode
             incrementIdx--;
         }
 
-        /*if(gamepad1.a)
+        if(gamepad1.a)
         {
             goalRPM = 2700;
         }
         else if(gamepad1.b)
         {
-
-        }*/
+            goalRPM = 1500; //temp value
+        }
 
         double currentStep = increments[incrementIdx];
 
