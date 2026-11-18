@@ -10,6 +10,9 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver; // package depends on where your driver file lives
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "MainTeleop", group = "Teleop")
 public class Teleop extends LinearOpMode {
@@ -66,14 +69,13 @@ public class Teleop extends LinearOpMode {
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, p);
 
-        // Retrieve the IMU from the hardware map
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
+        // Retrieve GoBilda Pinpoint Driver (configured as "imu" in HardwareMap)
+        GoBildaPinpointDriver odo = hardwareMap.get(GoBildaPinpointDriver.class, "imu");
+        odo.setOffsets(-18.4, -179.6, DistanceUnit.MM);
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED,
+                                 GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.resetPosAndIMU(); // robot must be still to calibrate IMU
 
         waitForStart();
 
@@ -83,6 +85,8 @@ public class Teleop extends LinearOpMode {
         double driveMaxTicksPerSec = rpmToTicksPerSec(DRIVE_MAX_RPM, DRIVE_TICKS_PER_REV);
 
         while (opModeIsActive()) {
+            odo.update();
+
             // ===================== DRIVETRAIN (GAMEPAD 1) =====================
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x;
@@ -92,10 +96,10 @@ public class Teleop extends LinearOpMode {
             // it can be freely changed based on preference.
             // The equivalent button is start on Xbox-style controllers.
             if (gamepad1.options) {
-                imu.resetYaw();
+                odo.resetPosAndIMU();
             }
 
-            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            double botHeading = odo.getPosition().getHeading(AngleUnit.RADIANS);
 
             // Rotate the movement direction counter to the bot's rotation
             double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
