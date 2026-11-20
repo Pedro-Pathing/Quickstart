@@ -4,8 +4,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
@@ -13,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.field.Field;
+import org.firstinspires.ftc.teamcode.field.FieldImage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.turret.Turret;
 
@@ -155,6 +154,7 @@ public class OdometryDriftTest extends LinearOpMode {
         }
 
         Canvas c = packet.fieldOverlay();
+        FieldImage.drawPedro(c);
 
         c.setStrokeWidth(1);
         c.setStroke("#888888");
@@ -167,8 +167,8 @@ public class OdometryDriftTest extends LinearOpMode {
             double[] xs = new double[trail.size()];
             double[] ys = new double[trail.size()];
             for (int i = 0; i < trail.size(); i++) {
-                xs[i] = dx(trail.get(i)[0]);
-                ys[i] = dy(trail.get(i)[1]);
+                xs[i] = trail.get(i)[0];
+                ys[i] = trail.get(i)[1];
             }
             c.setStroke("#4CAF50");
             c.strokePolyline(xs, ys);
@@ -180,7 +180,7 @@ public class OdometryDriftTest extends LinearOpMode {
 
         if (measured != null) {
             c.setStroke("#F44336");
-            c.strokeLine(dx(start.x()), dy(start.y()), dx(measured.x()), dy(measured.y()));
+            c.strokeLine(start.x(), start.y(), measured.x(), measured.y());
             drawRobot(c, measured);
         }
 
@@ -188,55 +188,10 @@ public class OdometryDriftTest extends LinearOpMode {
         drawRobot(c, pose);
 
         dashboard.sendTelemetryPacket(packet);
-        drawPanels(pose, start);
-    }
-
-    private void drawPanels(Pose pose, Pose start) {
-        FieldManager f = PanelsField.INSTANCE.getField();
-        f.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
-
-        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#888888", 1);
-        panelsCircle(f, Field.RED_CELL_TOP, 3);
-        panelsCircle(f, Field.RED_CELL_BOTTOM, 3);
-        panelsCircle(f, Field.BLUE_CELL_TOP, 3);
-        panelsCircle(f, Field.BLUE_CELL_BOTTOM, 3);
-
-        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#4CAF50", 1);
-        for (int i = 1; i < trail.size(); i++) {
-            f.moveCursor(trail.get(i - 1)[0], trail.get(i - 1)[1]);
-            f.line(trail.get(i)[0], trail.get(i)[1]);
-        }
-
-        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#FFC107", 2);
-        panelsRobot(f, start);
-
-        if (measured != null) {
-            f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#F44336", 2);
-            f.moveCursor(start.x(), start.y());
-            f.line(measured.x(), measured.y());
-            panelsRobot(f, measured);
-        }
-
-        f.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), "#2196F3", 2);
-        panelsRobot(f, pose);
-
-        f.update();
-    }
-
-    private void panelsRobot(FieldManager f, Pose p) {
-        panelsCircle(f, p, ROBOT_RADIUS_IN);
-        f.moveCursor(p.x(), p.y());
-        f.line(p.x() + ROBOT_RADIUS_IN * Math.cos(p.heading()),
-                p.y() + ROBOT_RADIUS_IN * Math.sin(p.heading()));
-    }
-
-    private void panelsCircle(FieldManager f, Pose p, double radius) {
-        f.moveCursor(p.x(), p.y());
-        f.circle(radius);
     }
 
     private void drawRobot(Canvas c, Pose p) {
-        double x = dx(p.x()), y = dy(p.y());
+        double x = p.x(), y = p.y();
         c.strokeCircle(x, y, ROBOT_RADIUS_IN);
         c.strokeLine(x, y,
                 x + ROBOT_RADIUS_IN * Math.cos(p.heading()),
@@ -244,15 +199,7 @@ public class OdometryDriftTest extends LinearOpMode {
     }
 
     private void drawMarker(Canvas c, Pose p) {
-        c.strokeCircle(dx(p.x()), dy(p.y()), 3);
-    }
-
-    private static double dx(double pedroX) {
-        return pedroX - Field.CENTER_X;
-    }
-
-    private static double dy(double pedroY) {
-        return pedroY - Field.CENTER_Y;
+        c.strokeCircle(p.x(), p.y(), 3);
     }
 
     private static String fmt(Pose p) {

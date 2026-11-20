@@ -32,7 +32,7 @@ public class Intake extends SubsystemBase {
         switch (state) {
             case INTAKE:
                 intake1.setPower(IntakeConstants.intakeOn);
-                index1.setPower(IntakeConstants.indexReverse);
+                index1.setPower(IntakeConstants.indexOn);
                 break;
             case REVERSE:
                 intake1.setPower(IntakeConstants.intakeReverse);

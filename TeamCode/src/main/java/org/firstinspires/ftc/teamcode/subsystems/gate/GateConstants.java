@@ -9,4 +9,5 @@ public class GateConstants {
 
     public static double OPEN_POSITION = 0.5;
     public static double CLOSED_POSITION = 0;
+    public static double TUNING_POSITION = 0;
 }

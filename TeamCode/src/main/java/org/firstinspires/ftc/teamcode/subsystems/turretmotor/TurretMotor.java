@@ -55,6 +55,11 @@ public class TurretMotor extends SubsystemBase {
     private double velocity = 0;
     private double power = 0;
     private double previousAimTime = Double.NaN;
+    private double previousControlTime = Double.NaN;
+    private double previousTarget = Double.NaN;
+    private double targetRate = 0;
+    private double integral = 0;
+    private double feedforward = 0;
 
     private double odomAngle = 0;
     private double bias = 0;
@@ -122,6 +127,7 @@ public class TurretMotor extends SubsystemBase {
         if (state == this.state) return;
         if (state == State.STALL) stallTime = history.now();
         controller.reset();
+        integral = 0;
         stallStart = Double.NaN;
         this.state = state;
     }
@@ -182,8 +188,12 @@ public class TurretMotor extends SubsystemBase {
             cell = nextCell;
             bias = 0;
             lastSeenTime = Double.NaN;
+            previousTarget = Double.NaN;
+            targetRate = 0;
         }
         if (cell == null) {
+            previousTarget = Double.NaN;
+            targetRate = 0;
             target = 0;
             distance = Double.NaN;
             seen = false;
@@ -218,10 +228,18 @@ public class TurretMotor extends SubsystemBase {
         seen = !Double.isNaN(lastSeenTime) && (now - lastSeenTime) * 1000 <= VISION_LOCK_VALID_MS;
         if (!seen) bias *= Math.exp(-BIAS_DECAY_PER_S * dt);
         target = Turret.wrap(leadAngle + bias + Math.toRadians(AIM_OFFSET_DEG));
+        if (!Double.isNaN(previousTarget) && dt > 0) {
+            double maxRate = Math.toRadians(MOTOR_FF_MAX_RATE_DEG_S);
+            double rate = Range.clip(Turret.wrap(target - previousTarget) / dt, -maxRate, maxRate);
+            targetRate += MOTOR_FF_FILTER_ALPHA * (rate - targetRate);
+        }
+        previousTarget = target;
         distance = (seen ? visionDistance : odomDistance) + leadDistance - odomDistance;
     }
 
     private void updateTurret(double now) {
+        double dt = Double.isNaN(previousControlTime) ? 0 : now - previousControlTime;
+        previousControlTime = now;
         readEncoder();
         if (encoderFault) {
             setPower(0);
@@ -264,9 +282,21 @@ public class TurretMotor extends SubsystemBase {
         inRange = goal >= min && goal <= max;
         setpoint = inRange ? goal : 0;
 
-        controller.setPID(MOTOR_kP, MOTOR_kI, MOTOR_kD);
+        controller.setPID(MOTOR_kP, 0, MOTOR_kD);
         double error = setpoint - angle;
         double output = controller.calculate(angle, setpoint);
+
+        if (Math.abs(error) > Math.toRadians(MOTOR_I_ZONE_DEG)) {
+            integral = 0;
+        } else if (Math.abs(error) > Math.toRadians(MOTOR_DEADBAND_DEG) && MOTOR_kI > 0) {
+            double limit = MOTOR_I_MAX_POWER / MOTOR_kI;
+            integral = Range.clip(integral + error * dt, -limit, limit);
+        }
+        output += MOTOR_kI * integral;
+
+        feedforward = state == State.AIM && inRange ? MOTOR_kV * targetRate : 0;
+        output += feedforward;
+
         if (Math.abs(error) > Math.toRadians(MOTOR_DEADBAND_DEG)) output += MOTOR_kS * Math.signum(error);
         output = Range.clip(output, -MOTOR_MAX_POWER, MOTOR_MAX_POWER);
 
@@ -292,7 +322,7 @@ public class TurretMotor extends SubsystemBase {
                 && Math.abs(velocity) < Math.toRadians(MOTOR_STALL_VEL_DEG_S);
     }
 
-    static double ticksToAngle(double ticks) {
+    public static double ticksToAngle(double ticks) {
         return ticks / MOTOR_TICKS_PER_REV / MOTOR_GEAR_RATIO * 2 * Math.PI;
     }
 
@@ -344,6 +374,10 @@ public class TurretMotor extends SubsystemBase {
         telemetry.addData("Turret target deg", Math.toDegrees(target));
         telemetry.addData("Turret angle deg", Math.toDegrees(angle));
         telemetry.addData("Turret velocity deg/s", Math.toDegrees(velocity));
+        telemetry.addData("Turret error deg", Math.toDegrees(setpoint - angle));
+        telemetry.addData("Turret target rate deg/s", Math.toDegrees(targetRate));
+        telemetry.addData("Turret feedforward", feedforward);
+        telemetry.addData("Turret integral power", MOTOR_kI * integral);
         telemetry.addData("Turret power", power);
         telemetry.addData("Turret motor current A", motor.getCurrent(CurrentUnit.AMPS));
         telemetry.addData("Turret encoder ticks", ticks);

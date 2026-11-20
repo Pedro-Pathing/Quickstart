@@ -7,8 +7,10 @@ public class IntakeFlowerConstants {
 
    public static final String HMIntakeFlower1 = "Flower";
 
-   public static final double IntakeFlowerOn1 = 0.5;
-   public static final double IntakeFlowerOff = 0;
+   public static final double IntakeFlowerOn1 = 0.55;
+   public static final double IntakeFlowerOff = 0.9;
+
+   public static double IntakeFlowerTune = 0;
 
 
 }

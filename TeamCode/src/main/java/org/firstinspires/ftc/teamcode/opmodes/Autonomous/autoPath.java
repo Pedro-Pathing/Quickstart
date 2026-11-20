@@ -17,6 +17,7 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
+import org.firstinspires.ftc.teamcode.commands.IntakeFlower.IntakeFlowerDown;
 import org.firstinspires.ftc.teamcode.commands.intake.intakeOff;
 import org.firstinspires.ftc.teamcode.commands.intake.intakeOn;
 import org.firstinspires.ftc.teamcode.commands.intake.intakeShooting;
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.teamcode.field.Field;
 import org.firstinspires.ftc.teamcode.opmodes.TeleOP.TurretTuningTeleOp;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.intakeFlower.IntakeFlower;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.turret.Turret;
@@ -36,6 +38,7 @@ public class autoPath extends CommandOpMode {
 
     private Follower follower;
     private Intake intake;
+    private IntakeFlower intakeFlower;
     private Turret turret;
     private Shooter shooter;
     private Field.Alliance alliance;
@@ -49,6 +52,7 @@ public class autoPath extends CommandOpMode {
     private Pose shoot2ToHive2;
     private Pose hive2ToParkingStart;
     private Pose hive2ToParking;
+
 
     private void buildPoses(Field.Alliance alliance) {
         PoseFactory poseFactory = alliance == Field.Alliance.RED
@@ -77,15 +81,21 @@ public class autoPath extends CommandOpMode {
                 new intakeOn(intake),
                 new FollowPathCommand(follower, initGarden()),
                 new intakeOff(intake),
-                new FollowPathCommand(follower, gardenToShoot1()),
-                new InstantCommand(() -> shooter.setState(Shooter.State.FIXED)),
-                new WaitCommand(300),
-                new intakeShooting(intake, shooter),
-                new WaitCommand(300),
-                new intakeShooting(intake, shooter),
-                new InstantCommand(() -> shooter.setState(Shooter.State.OFF)),
                 new FollowPathCommand(follower, shoot1ToHive1()),
-                // Esperar um intake pra flower
+                new InstantCommand(() -> shooter.setState(Shooter.State.FIXED)),
+                new intakeShooting(intake, shooter),
+                new WaitCommand(300),
+                new intakeShooting(intake, shooter),
+                new WaitCommand(300),
+                new intakeOn(intake),
+                new WaitCommand(1000),
+                new intakeShooting(intake, shooter),
+                new WaitCommand(300),
+                new intakeShooting(intake, shooter),
+                new WaitCommand(300),
+                new InstantCommand(() -> shooter.setState(Shooter.State.OFF)),
+                new IntakeFlowerDown(intakeFlower),
+                new intakeOff(intake),
                 new FollowPathCommand(follower, hive1ToShoot2()),
                 new InstantCommand(() -> shooter.setState(Shooter.State.FIXED)),
                 new WaitCommand(300),
@@ -93,8 +103,9 @@ public class autoPath extends CommandOpMode {
                 new WaitCommand(300),
                 new intakeShooting(intake, shooter),
                 new InstantCommand(() -> shooter.setState(Shooter.State.OFF)),
+                new IntakeFlowerDown(intakeFlower),
+                new intakeOn(intake),
                 new FollowPathCommand(follower, shoot2ToHive2()),
-                // Esperar um intake pra flower
                 // Preciso de uma pose pra shootar de novo
                 new FollowPathCommand(follower, hive2ToParking())
         );

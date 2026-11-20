@@ -10,8 +10,8 @@ public class Field {
     // Placeholder coordinates - update with measured field positions.
     public static final Pose RED_CELL_TOP = new Pose(58, 83, 0);
     public static final Pose RED_CELL_BOTTOM = new Pose(58, 59, 0);
-    public static final Pose BLUE_CELL_TOP = new Pose(83, 82, 0);
-    public static final Pose BLUE_CELL_BOTTOM = new Pose(83, 55.1, 0);
+    public static final Pose BLUE_CELL_TOP = new Pose(84.5, 75.5, 0);
+    public static final Pose BLUE_CELL_BOTTOM = new Pose(84.5, 60.1, 0);
 
 
     public enum Alliance {

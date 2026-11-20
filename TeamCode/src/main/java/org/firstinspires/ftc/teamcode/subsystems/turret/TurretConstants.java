@@ -54,7 +54,7 @@ public class TurretConstants {
     public static double VISION_LOCK_VALID_MS = 500;
     public static boolean ALLOW_ODOMETRY_ONLY_SHOTS = true;
 
-    public static boolean SHOOT_ON_THE_MOVE = true;
+    public static boolean SHOOT_ON_THE_MOVE = false;
     public static double TRANSFER_DELAY_S = 0.3;
     public static double[] TOF_DIST_IN = {24, 48, 72, 96, 120};
     public static double[] TOF_S = {0.35, 0.45, 0.65, 0.65, 0.75};

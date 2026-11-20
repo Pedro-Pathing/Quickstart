@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.TauraServo;
 
 public class Gate extends SubsystemBase {
     public enum State {
-        OPEN, CLOSED
+        OPEN, CLOSED, TUNING
     }
 
     private final TauraServo servo;
@@ -34,6 +34,10 @@ public class Gate extends SubsystemBase {
         return state == State.OPEN;
     }
 
+    public boolean isTuning(){
+        return state == State.TUNING;
+    }
+
     public void open() {
         setState(State.OPEN);
     }
@@ -42,13 +46,18 @@ public class Gate extends SubsystemBase {
         setState(State.CLOSED);
     }
 
+    public void tuning() {
+        setState(State.TUNING);
+    }
+
     public void toggle() {
-        setState(isOpen() ? State.CLOSED : State.OPEN);
+        setState(isOpen() || isTuning() ? State.CLOSED : State.OPEN);
     }
 
     private void apply() {
         servo.setDirection(SERVO_REVERSED ? Servo.Direction.REVERSE : Servo.Direction.FORWARD);
-        servo.setPosition(state == State.OPEN ? OPEN_POSITION : CLOSED_POSITION);
+        servo.setPosition(state == State.OPEN ? OPEN_POSITION : state == State.TUNING ? TUNING_POSITION : CLOSED_POSITION);
+
     }
 
     @Override

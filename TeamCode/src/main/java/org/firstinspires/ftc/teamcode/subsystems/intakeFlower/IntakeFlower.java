@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.TauraServo;
 
 public class IntakeFlower extends SubsystemBase {
     public enum State {
-        UP, DOWN
+        UP, DOWN, TUNE
     }
 
     TauraServo IntakeFlower1;
@@ -30,6 +30,8 @@ public class IntakeFlower extends SubsystemBase {
     private void apply(){
         if (state == State.DOWN) {
             IntakeFlower1.setPosition(IntakeFlowerConstants.IntakeFlowerOn1);
+        } else if (state == State.TUNE) {
+            IntakeFlower1.setPosition(IntakeFlowerConstants.IntakeFlowerTune);
         } else {
             IntakeFlower1.setPosition(IntakeFlowerConstants.IntakeFlowerOff);
         }
@@ -38,5 +40,9 @@ public class IntakeFlower extends SubsystemBase {
     @Override
     public void periodic(){
         apply();
+    }
+
+    public double getPosition(){
+        return IntakeFlower1.getPosition();
     }
 }

@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import com.acmerobotics.dashboard.config.Config;
+
+@Config
 public class IntakeConstants {
 
     public static final String HMIntake1 = "intake1";
@@ -8,8 +11,8 @@ public class IntakeConstants {
     public static final double intakeReverse = 1;
 
     public static final String HMIndex1 = "index1";
-    public static final double indexOn = -1;
+    public static final double indexOn = 1;
     public static final double indexOff = 0;
-    public static final double indexReverse = 1;
+    public static final double indexReverse = -1;
 
 }

@@ -3,9 +3,6 @@ repositories {
     maven {
         url "https://repo.dairy.foundation/releases"
     }
-    maven {
-        url "https://mymaven.bylazar.com/releases"
-    }
     google()
 }
 
@@ -25,6 +22,4 @@ dependencies {
 
     implementation 'org.solverslib:core:0.3.6'
     implementation 'org.solverslib:pedroPathing:0.3.6'
-
-    implementation 'com.bylazar:fullpanels:1.0.20'
 }
