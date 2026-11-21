@@ -151,8 +151,8 @@ public class ThreeWheelIMUTuner extends Procedure {
                         "            RevHubOrientationOnRobot.LogoFacingDirection." + logoDirection + ",\n" +
                         "            RevHubOrientationOnRobot.UsbFacingDirection." + usbDirection + "\n" +
                         "    )));\n" +
-                        "    c.leftPodY.set(" + leftOffsets.get(0) + ");\n" +
-                        "    c.rightPodY.set(" + rightOffsets.get(0) + ");\n" +
+                        "    c.leftPodY.set(" + String.format("%.3f", leftOffsets.get(0)) + ");\n" +
+                        "    c.rightPodY.set(" + String.format("%.3f", rightOffsets.get(0)) + ");\n" +
                         "    c.strafePodX.set(" + strafeX + ");\n" +
                         "    c.forwardTicksToInches.set(" + forward + ");\n" +
                         "    c.strafeTicksToInches.set(" + lateral + ");\n" +

@@ -53,17 +53,14 @@ public class PinpointTuner extends Procedure {
 
         result("xPodDirection", forwardPodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
         result("yPodDirection", strafePodReversed ? GoBildaPinpointDriver.EncoderDirection.REVERSED : GoBildaPinpointDriver.EncoderDirection.FORWARD);
-
-        float xPodOffset = Math.max(0.1, offsets.get(0));
-        float yPodOffset = Math.max(0.1, offsets.get(1));
-        result("xPodOffset", xPodOffset);
-        result("yPodOffset", yPodOffset);
+        result("xPodOffset", offsets.get(0));
+        result("yPodOffset", offsets.get(1));
 
         code(Language.JAVA,"public static PinpointConfig localizerConfig = new PinpointConfig(c -> {\n" +
                 "    c.name.set(\"" + pinpointName.get() + "\");\n" +
                 (customPodScalar.isPresent() ? "    c.ticksPerUnit.set(OptionalDouble.of(" + customPodScalar.getAsDouble() + "));\n" : "    c.podType.set(" + (podType.get() == PodType.SWING_ARM ? "GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD" : "GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD") + ");\n") +
-                "    c.xPodOffset.set(" + xPodOffset + ");\n" +
-                "    c.yPodOffset.set(" + yPodOffset + ");\n" +
+                "    c.xPodOffset.set(" + String.format("%.3f", offsets.get(0)) + ");\n" +
+                "    c.yPodOffset.set(" + String.format("%.3f", offsets.get(1)) + ");\n" +
                 "    c.xPodDirection.set(" + (forwardPodReversed ? "GoBildaPinpointDriver.EncoderDirection.REVERSED" : "GoBildaPinpointDriver.EncoderDirection.FORWARD") + ");\n" +
                 "    c.yPodDirection.set(" + (strafePodReversed ? "GoBildaPinpointDriver.EncoderDirection.REVERSED" : "GoBildaPinpointDriver.EncoderDirection.FORWARD") + ");\n" +
                 "    c.globalDistanceUnit.set(DistanceUnit.INCH);\n" +

@@ -96,8 +96,8 @@ public class TwoWheelTuner extends Procedure {
                         "    c.xPodName.set(\"" + values.forwardPodName + "\");\n" +
                         "    c.yPodName.set(\"" + values.strafePodName + "\");\n" +
                         "    c.imuName.set(\"" + values.imuName + "\");\n" +
-                        "    c.xPodOffset.set(" + offsets.get(0) + ");\n" +
-                        "    c.yPodOffset.set(" + offsets.get(1) + ");\n" +
+                        "    c.xPodOffset.set(" + String.format("%.3f", offsets.get(0)) + ");\n" +
+                        "    c.yPodOffset.set(" + String.format("%.3f", offsets.get(1)) + ");\n" +
                         "    c.forwardTicksToInches.set(" + forwardTicksToInches + ");\n" +
                         "    c.strafeTicksToInches.set(" + strafeTicksToInches + ");\n" +
                         "    c.xPodDirection.set(" +
