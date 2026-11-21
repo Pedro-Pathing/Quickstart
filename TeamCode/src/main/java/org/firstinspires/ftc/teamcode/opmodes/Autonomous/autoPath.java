@@ -22,7 +22,6 @@ import org.firstinspires.ftc.teamcode.commands.intake.intakeOff;
 import org.firstinspires.ftc.teamcode.commands.intake.intakeOn;
 import org.firstinspires.ftc.teamcode.commands.intake.intakeShooting;
 import org.firstinspires.ftc.teamcode.field.Field;
-import org.firstinspires.ftc.teamcode.opmodes.TeleOP.TurretTuningTeleOp;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.intakeFlower.IntakeFlower;
@@ -52,7 +51,6 @@ public class autoPath extends CommandOpMode {
     private Pose shoot2ToHive2;
     private Pose hive2ToParkingStart;
     private Pose hive2ToParking;
-
 
     private void buildPoses(Field.Alliance alliance) {
         PoseFactory poseFactory = alliance == Field.Alliance.RED

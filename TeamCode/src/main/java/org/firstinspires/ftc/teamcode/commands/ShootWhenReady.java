@@ -15,7 +15,7 @@ public class ShootWhenReady extends SequentialCommandGroup {
     Gate gate;
     Turret turret;
 
-    public ShootWhenReady(BooleanSupplier okToShoot) {
+    public ShootWhenReady(BooleanSupplier okToShoot, Intake intake, Gate gate, Turret turret) {
         addCommands(
                 new WaitUntilCommand(okToShoot).withTimeout(TIMEOUT_MS),
                 new TransferSequence(intake, gate, turret)

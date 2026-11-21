@@ -202,7 +202,7 @@ public class TurretMotor extends SubsystemBase {
             return;
         }
 
-        double[] pivot = Turret.pivot(botPose.x(), botPose.y(), botPose.heading(), TURRET_FWD, TURRET_LEFT);
+        double[] pivot = Turret.pivot(botPose.x(), botPose.y(), botPose.heading(), MOTOR_TURRET_FWD, MOTOR_TURRET_LEFT);
         odomAngle = Turret.odomAngle(pivot[0], pivot[1], botPose.heading(), cell.pose.x(), cell.pose.y());
         double odomDistance = Math.hypot(cell.pose.x() - pivot[0], cell.pose.y() - pivot[1]);
         double vx = SHOOT_ON_THE_MOVE ? velocityX : 0;
@@ -360,16 +360,12 @@ public class TurretMotor extends SubsystemBase {
         telemetry.addData("Turret requested state", requestedState);
         telemetry.addData("Turret aimed", isAimed());
         telemetry.addData("Robot speed in/s", getRobotSpeed());
-        telemetry.addData("Turret too fast", isTooFast());
         telemetry.addData("Lead time s", leadTime);
         telemetry.addData("Turret cell", cell == null ? "none" : cell);
         telemetry.addData("Turret tags seen", seen);
-        telemetry.addData("Turret too close", isTooClose());
         telemetry.addData("Turret in range", inRange);
         telemetry.addData("Turret settled", isSettled());
         telemetry.addData("Turret distance in", distance);
-        telemetry.addData("Turret odom deg", Math.toDegrees(odomAngle));
-        telemetry.addData("Turret bias deg", Math.toDegrees(bias));
         telemetry.addData("Turret aim offset deg", AIM_OFFSET_DEG);
         telemetry.addData("Turret target deg", Math.toDegrees(target));
         telemetry.addData("Turret angle deg", Math.toDegrees(angle));
@@ -379,7 +375,6 @@ public class TurretMotor extends SubsystemBase {
         telemetry.addData("Turret feedforward", feedforward);
         telemetry.addData("Turret integral power", MOTOR_kI * integral);
         telemetry.addData("Turret power", power);
-        telemetry.addData("Turret motor current A", motor.getCurrent(CurrentUnit.AMPS));
         telemetry.addData("Turret encoder ticks", ticks);
         telemetry.addData("Turret encoder fault", encoderFault);
     }

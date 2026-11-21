@@ -56,7 +56,8 @@ public class TurretMotorTeleOp extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         TurretHistory history = new TurretHistory();
-        limelight = new Limelight(hardwareMap, history);
+        limelight = new Limelight(hardwareMap, history,
+                () -> TurretMotorConstants.MOTOR_TURRET_FWD, () -> TurretMotorConstants.MOTOR_TURRET_LEFT);
         turret = new TurretMotor(hardwareMap, limelight, history, follower::pose);
         shooter = new Shooter(hardwareMap, turret::getDistance);
         register(limelight, turret, shooter);
@@ -74,7 +75,6 @@ public class TurretMotorTeleOp extends CommandOpMode {
             shooter.setTargetRPM(ShooterConstants.TUNING_RPM);
             shooter.setState(shooterOn ? Shooter.State.DISTANCE : Shooter.State.OFF);
         });
-        driver.getGamepadButton(GamepadKeys.Button.A).whenPressed(new ShootWhenReady(() -> turret.isAimed() && shooter.flywheelReady()));
         driver.getGamepadButton(GamepadKeys.Button.B).whenPressed(() -> turret.setState(
                 turret.getRequestedState() == TurretMotor.State.AIM ? TurretMotor.State.IDLE : TurretMotor.State.AIM));
         driver.getGamepadButton(GamepadKeys.Button.Y).whenPressed(() ->
@@ -144,9 +144,7 @@ public class TurretMotorTeleOp extends CommandOpMode {
         telemetryData.addData("Controls", "RB shooter, A shoot, B aim/idle, Y manual angle on/off, DPAD U/D angle +/-, DPAD L/R reset pose");
         telemetryData.addData("Manual angle", TurretMotorConstants.MOTOR_USE_MANUAL_ANGLE
                 ? TurretMotorConstants.MOTOR_MANUAL_ANGLE_DEG + " deg" : "off (auto aim)");
-        telemetryData.addData("Seen tag IDs", ids.toString().trim());
         turret.addTelemetry(telemetryData);
-        shooter.addTelemetry(telemetryData);
         telemetryData.update();
     }
 

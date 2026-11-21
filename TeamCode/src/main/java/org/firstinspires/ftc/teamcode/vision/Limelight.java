@@ -19,10 +19,13 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleSupplier;
 
 public class Limelight extends SubsystemBase {
     private final Limelight3A limelight;
     private final TurretHistory history;
+    private final DoubleSupplier pivotForward;
+    private final DoubleSupplier pivotLeft;
 
     private List<LLResultTypes.FiducialResult> visibleTags = Collections.emptyList();
     private boolean resultValid = false;
@@ -38,7 +41,13 @@ public class Limelight extends SubsystemBase {
     }
 
     public Limelight(HardwareMap hardwareMap, TurretHistory history) {
+        this(hardwareMap, history, () -> TurretConstants.TURRET_FWD, () -> TurretConstants.TURRET_LEFT);
+    }
+
+    public Limelight(HardwareMap hardwareMap, TurretHistory history, DoubleSupplier pivotForward, DoubleSupplier pivotLeft) {
         this.history = history;
+        this.pivotForward = pivotForward;
+        this.pivotLeft = pivotLeft;
         limelight = hardwareMap.get(Limelight3A.class, DEVICE_NAME);
         limelight.pipelineSwitch(APRILTAG_PIPELINE_INDEX);
         limelight.setPollRateHz(POLL_RATE_HZ);
@@ -102,7 +111,7 @@ public class Limelight extends SubsystemBase {
         observations.clear();
         for (Map.Entry<HiveCells.Cell, List<CellLocator.TagPoint>> entry : byCell.entrySet()) {
             observations.put(entry.getKey(), CellLocator.locate(entry.getKey(), entry.getValue(), atCapture,
-                    TurretConstants.TURRET_FWD, TurretConstants.TURRET_LEFT));
+                    pivotForward.getAsDouble(), pivotLeft.getAsDouble()));
         }
         newFrame = true;
     }
