@@ -51,7 +51,7 @@ public class RobotConstants {
     public static final double SERVO_REST_POSITION = 0.4;  // Servo rest position
     public static final double LAUNCHER_VELOCITY_TOLERANCE_LOWER = 0.03;  // 3% tolerance below target for launcher speed check
     public static final double LAUNCHER_VELOCITY_TOLERANCE_UPPER = 0.05;  // 5% tolerance above target for launcher speed check
-    public static final long GATE_DELAY_MS = 4000;  // Teleop: wait after a launcher reaches speed before its gate feeds (lets it settle)
+    public static final long GATE_DELAY_MS = 3000;  // Teleop: wait after a launcher reaches speed before its gate feeds (lets it settle)
     
     // Launcher gate servo positions (0..1) - starting values, not yet tuned on the robot
     public static final double POLLEN_SERVO_OPEN_POSITION = 0.65;    // Pollen gate open (feeds launcher)
@@ -168,7 +168,7 @@ public class RobotConstants {
     public static final double BLUE_SF_SHOOTING_ZONE_MAX_X = 135;
     public static final double BLUE_SF_SHOOTING_ZONE_MAX_Y = 48;
 
-    public static final double BLUE_AF_SHOOTING_POSITION_X = 84;        // Where it drives to (inches)
+    public static final double BLUE_AF_SHOOTING_POSITION_X = 89;        // Where it drives to (inches)
     public static final double BLUE_AF_SHOOTING_POSITION_Y = 134;
     public static final double BLUE_AF_SHOOTING_POSITION_HEADING_DEG = 265;
 
