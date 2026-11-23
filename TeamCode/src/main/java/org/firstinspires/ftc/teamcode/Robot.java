@@ -3,45 +3,35 @@ package org.firstinspires.ftc.teamcode;
 import static com.pedropathing.ivy.Scheduler.schedule;
 
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.opmodes.teleop.RobotOpMode;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
-import java.util.Set;
 
-import dev.nextftc.robot.Mechanism;
-import dev.nextftc.robot.NextRobot;
-
-public class Robot implements NextRobot {
+public class Robot {
     public Flywheel flywheel;
     public Intake intake;
-
-    protected HardwareMap hardwareMap;
+    public final HardwareMap hardwareMap;
+    public final Telemetry telemetry;
     public Drivetrain drivetrain;
 
     public Follower follower;
+    public Gamepad gamepad2;
 
-    public Robot() {
-        flywheel = new Flywheel();
-        intake = new Intake();
-        drivetrain = new Drivetrain();
-//        follower = Constants.create(hardwareMap);
-    }
+    public Robot(OpMode opMode) {
+        hardwareMap = opMode.hardwareMap;
+        telemetry = opMode.telemetry;
+        gamepad2 = opMode.gamepad2;
 
-    @Override
-    public Set<Mechanism> getMechanisms() {
-        return Set.of(
-        flywheel
-        , intake
-        , drivetrain
-        );
-    }
-
-    public void destroy() {
-
+        flywheel = new Flywheel(this);
+        intake = new Intake(this);
+        drivetrain = new Drivetrain(this);
     }
 
 }

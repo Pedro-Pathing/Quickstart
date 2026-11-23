@@ -1,74 +1,129 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static dev.nextftc.units.Units.DegreesPerSecond;
-import static dev.nextftc.units.Units.RotationsPerMinute;
+import static com.pedropathing.ivy.commands.Commands.infinite;
+import static com.pedropathing.ivy.commands.Commands.instant;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.groups.Groups.race;
+import static com.pedropathing.ivy.groups.Groups.sequential;
 
-import org.firstinspires.ftc.teamcode.control.Math;
+import com.pedropathing.controllers.Controller;
+import com.pedropathing.ivy.Command;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import dev.nextftc.hardware.actuators.NextMotor;
-import dev.nextftc.robot.Mechanism;
-import dev.nextftc.robot.Telemetry;
-import dev.nextftc.robot.triggers.CommandGamepad;
-import dev.nextftc.units.measuretypes.AngularVelocity;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
 
-public class Flywheel implements Mechanism {
-    private final NextMotor motorOne = new NextMotor("flywheelMotorOne");
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.jetbrains.annotations.NotNull;
 
-    private final NextMotor motorTwo = new NextMotor("flywheelMotorTwo");
-    private Double targetVelocity = 1400.0;
-    public boolean isActive = false;
+public class Flywheel {
 
-    public void on() {
-        isActive = true; }
+    private static final double TICKS_PER_REV = 145.1;
+    private final DcMotorEx motorOne;
+    private final DcMotorEx motorTwo;
+    private final Telemetry telemetry;
 
-    public void off() { isActive = false; }
+    private Controller psv = Controller.sum(
+            Controller.proportionalFeedforward(0.0075),
+            Controller.proportional(0.1),
+            Controller.staticFeedforward(0.0065));
+    private Mode mode = Mode.OFF;
+    private double targetVelocity = 1400.0;
+    private double targetPosition = 0.0;
+    private double home = 0.0;
+    public Flywheel(Robot robot) {
+        motorOne = robot.hardwareMap.get(DcMotorEx.class, "flywheelMotorOne");
+        motorTwo = robot.hardwareMap.get(DcMotorEx.class, "flywheelMotorTwo");
+        motorTwo.setDirection(DcMotorSimple.Direction.REVERSE);
 
-    public void adjustTarget(Double change) {
+        telemetry = robot.telemetry;
+    }
+
+    public void setTargetPosition(double target) {
+        this.targetPosition = target;
+    }
+
+    public Command useInterpolation = instant(() -> mode = Mode.VELOCITY);
+    public Command runWithVelocity(double Velocity) {
+        return sequential(setTargetVelocity(Velocity), usePosition);
+    }
+    public Command usePosition = instant(() -> mode = Mode.POSITION);
+    public Command off = instant(() -> mode = Mode.OFF);
+
+
+    public void toggle() {
+        switch (mode) {
+            case OFF:
+                mode = Mode.VELOCITY;
+                return;
+            case POSITION:
+            case VELOCITY:
+                mode = Mode.OFF;
+                break;
+
+        }
+    }
+
+    public void adjustTarget(double change) {
         targetVelocity += change;
+        setTargetVelocity(targetVelocity);
     }
 
-    public void setTargetVelocity(Double newVelocity) {
-        isActive = true;
-        //targetVelocity = Math.MaxOf(0.0, newVelocity);
+    public Command setTargetVelocity(double newVelocity) {
+        return instant(() -> this.targetVelocity = newVelocity);
     }
 
-    public Double getVelocity() {
-        return motorOne.getEncoderVelocity().getMagnitude();
+    public double getVelocity() {
+        return motorOne.getVelocity(AngleUnit.DEGREES)/6.0;
     }
 
-    public void start(CommandGamepad commandGamepad) {
-        motorTwo.follow(motorOne, NextMotor.Direction.REVERSE);
-        motorOne.getPositionConstants().withV(0.0075);
-        motorOne.getPositionConstants().withP(0.1);
-        commandGamepad.dpadUp().onTrue(instant(() -> targetVelocity+= 100.0));
-        commandGamepad.dpadDown().onTrue(instant(() -> targetVelocity-= 100.0));
-        commandGamepad.dpadLeft().onTrue(instant(() -> targetVelocity-= 20.0));
-        commandGamepad.dpadRight().onTrue(instant(() -> targetVelocity+= 20.0));
-        commandGamepad.rightBumper().onTrue(instant(this::on));
-        commandGamepad.leftBumper().onTrue(instant(this::off));
+    public void setPower(double power) {
+        motorOne.setPower(power);
+        motorTwo.setPower(power);
+    }
+
+
+    public Command shootThree(Double velocity) {
+        return sequential(
+                runWithVelocity(velocity),
+                waitMs(200),
+                off
+        );
+    }
+
+    public Command shootThree() {
+        return sequential(
+                useInterpolation,
+                waitMs(200),
+                off
+        );
     }
 
     double error = 0.0;
-    @Override
-    public void periodic() {
-        error = targetVelocity - this.getVelocity();
-        if (isActive) {
-            if (error > 30) {
-                motorOne.setThrottle(1.0);
-            } else if (error < -30) {
-                motorOne.setThrottle(0.0);
-            } //Set Velocity setpoint doesn't appear to be doing anything
-//            else {
-//                motorOne.setVelocitySetpoint(RotationsPerMinute.of(targetVelocity));
-//            } //had to add because .setVelocitySetpoint was not triggering when velocity too low -- PID issue?
-            motorOne.update();
-        } else {
-            motorOne.setVelocitySetpoint(RotationsPerMinute.of(0));
-        }
-        Telemetry.log("Flywheel Velocity:", this.getVelocity());
-        Telemetry.log("Target Velocity:", this.targetVelocity);
-        Telemetry.log("is active?", isActive);
-        Telemetry.log("Control type:", motorOne.getControlType());
+
+    public Command periodic() {
+        return infinite(() -> {
+            switch (mode) {
+                case VELOCITY:
+                    setPower(psv.calculate(getVelocity(), targetVelocity));
+                    return;
+                case OFF:
+                    setPower(0);
+                    return;
+                case POSITION:
+                    setPower(psv.calculate(motorOne.getCurrentPosition(), targetPosition));
+                    break;
+            }
+
+        });
+    }
+
+
+    enum Mode {
+        OFF,
+        VELOCITY,
+        POSITION
     }
 }
 

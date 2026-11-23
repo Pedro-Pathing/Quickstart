@@ -1,52 +1,71 @@
 package org.firstinspires.ftc.teamcode.opmodes.auto;
 
+import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
-import static org.firstinspires.ftc.teamcode.control.AutoCommandsKt.*;
+import static com.pedropathing.ivy.groups.Groups.sequential;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
-import com.pedropathing.config.Modifier;
+import com.pedropathing.api.Paths;
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathSegment;
-import com.pedropathing.paths.curves.bezier.BezierCurve;
 import com.pedropathing.paths.interpolator.Interpolator;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
-
-import java.util.Collections;
-import java.util.List;
-
-import dev.nextftc.robot.opmode.NextAutonomous;
-import dev.nextftc.robot.opmode.NextOpMode;
+import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 
 
-@Disabled
-@NextAutonomous
-public class FirstTestAuto extends NextOpMode {
-    public final Robot robot;
+@Autonomous
+public class FirstTestAuto extends OpMode {
+    private Follower follower;
+    private Flywheel flywheel;
+    private final PoseFactory p = PoseFactory.degrees();
 
-    public final Pose startPose = new Pose(0.0, 0.0, 0.0);
+    ///left and right are relative to the driver
+    /*
 
-    public final Pose intakePose = new Pose(0.0,0.0, 0.0);
+     */
+    public final Pose shoot_right = p.of(56, 9, 90); //also start
+    public final Pose shoot_left = p.of(9,132, 270);
+    public final Pose loading_zone = p.of(9, 104, 90);
+    public final Pose garden = p.of(9,9, 270);
 
-    public final Pose shoot1 = new Pose(0.0,0.0, 0.0);
+    private Path rightToLoad = curve(shoot_right, new Pose(33, 28), loading_zone).linear(shoot_right, garden);
+    private Path rightToGarden = curve(shoot_right, new Pose(33, 28), garden).linear(shoot_right, garden);
+    private Path gardenToRight = curve(garden, new Pose(33, 28), shoot_right).linear(shoot_right, garden);
+    private Path leftToGarden = line(shoot_left, garden);
+    private Path gardenToLeft = line(garden, shoot_left);
 
-    private Path startToIntake = line(startPose, intakePose)
-                    .heading(Interpolator.linear(startPose, intakePose));
-
-    private Path intakeToShoot1 = line(intakePose, shoot1).linear(90.0, 0.0);
-
-    public FirstTestAuto(Robot robot) {
-        super(robot);
-        this.robot = robot;
+    private Command autoRoutine() {
+        return sequential(
+                flywheel.runWithVelocity(2460.0),
+                follow(follower, rightToLoad)
+        );
+    }
+    @Override
+    public void init() {
+        Scheduler.reset();
+        follower = Constants.create(hardwareMap);
+        follower.setPose(shoot_right);
     }
 
     @Override
     public void start() {
-        super.start();
-        //IntakeShoot(robot, startToIntake);
+        Scheduler.schedule(autoRoutine());
     }
+
+    @Override
+    public void loop() {
+        follower.update();
+        Scheduler.execute();
+    }
+
 }
