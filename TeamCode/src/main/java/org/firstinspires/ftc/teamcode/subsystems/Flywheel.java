@@ -6,10 +6,14 @@ import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
+import static java.lang.Math.abs;
+
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
+import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.*;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -31,6 +35,8 @@ public class Flywheel {
     private double targetVelocity = 1400.0;
     private double targetPosition = 0.0;
     private double home = 0.0;
+
+    double reversed = 1.0;
     public Flywheel(OpMode opMode) {
         motorOne = opMode.hardwareMap.get(DcMotorEx.class, "flywheelMotorOne");
         motorTwo = opMode.hardwareMap.get(DcMotorEx.class, "flywheelMotorTwo");
@@ -39,17 +45,31 @@ public class Flywheel {
         telemetry = opMode.telemetry;
     }
 
-    public void setTargetPosition(double target) {
-        this.targetPosition = target;
+    public Command setTargetPosition(double target) {
+        return instant(()-> this.targetPosition = target);
     }
 
     public Command useInterpolation = instant(() -> mode = Mode.VELOCITY);
     public Command runWithVelocity(double Velocity) {
-        return sequential(setTargetVelocity(Velocity), usePosition);
+        return sequential(setTargetVelocity(Velocity), useInterpolation);
     }
     public Command usePosition = instant(() -> mode = Mode.POSITION);
+
+    public Command runToPosition(double Position) {
+        return sequential(setTargetPosition(Position), usePosition);
+    }
+    public Command runToPosition() {
+        return sequential(setTargetVelocity(targetPosition), usePosition);
+    }
+
+    public Command home() {
+        return runToPosition(0.0);
+    }
     public Command off = instant(() -> mode = Mode.OFF);
 
+    public void reverse() {
+        reversed = -reversed;
+    }
 
     public Command toggle() {
         return conditional(() -> mode == Mode.OFF, useInterpolation, off);
@@ -96,13 +116,16 @@ public class Flywheel {
         return infinite(() -> {
             switch (mode) {
                 case VELOCITY:
-                    setPower(psv.calculate(getVelocity(), targetVelocity));
+                    setPower(psv.calculate(getVelocity(), targetVelocity*reversed));
                     return;
                 case OFF:
                     setPower(0);
                     return;
                 case POSITION:
                     setPower(psv.calculate(motorOne.getCurrentPosition(), targetPosition));
+                    if (abs(motorOne.getCurrentPosition() - targetPosition) < 40) {
+                        mode = Mode.OFF;
+                    }
                     break;
             }
 

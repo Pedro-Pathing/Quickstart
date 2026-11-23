@@ -36,7 +36,6 @@ public class teleOp extends OpMode {
     public void start() {
         super.start();
 
-
         schedule(
                 drivetrain.periodic(),
                 flywheel.periodic(),
@@ -46,6 +45,17 @@ public class teleOp extends OpMode {
 
     @Override
     public void loop() {
+        if (gamepad2.dpadUpWasPressed()) {
+            flywheel.adjustTarget(100);
+        } if (gamepad2.dpadDownWasPressed()) {
+            flywheel.adjustTarget(-100);
+        } if (gamepad2.circleWasPressed()) {
+            flywheel.toggle();
+        } else if (gamepad2.dpadLeftWasPressed()) {
+            flywheel.home();
+        } if (gamepad2.dpadRightWasPressed()) {
+            flywheel.reverse();
+        }
         Scheduler.execute();
     }
     public Command intake() {
@@ -55,4 +65,5 @@ public class teleOp extends OpMode {
                     telemetry.addData("intake power", gamepad2.left_trigger - gamepad2.right_trigger);
                 }).requiring(intake);
     }
+
 }
