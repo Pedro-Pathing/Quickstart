@@ -1,21 +1,20 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static com.pedropathing.ivy.commands.Commands.conditional;
 import static com.pedropathing.ivy.commands.Commands.infinite;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
-import static com.pedropathing.ivy.groups.Groups.race;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.ivy.Command;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Robot;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.jetbrains.annotations.NotNull;
 
 public class Flywheel {
 
@@ -32,12 +31,12 @@ public class Flywheel {
     private double targetVelocity = 1400.0;
     private double targetPosition = 0.0;
     private double home = 0.0;
-    public Flywheel(Robot robot) {
-        motorOne = robot.hardwareMap.get(DcMotorEx.class, "flywheelMotorOne");
-        motorTwo = robot.hardwareMap.get(DcMotorEx.class, "flywheelMotorTwo");
+    public Flywheel(OpMode opMode) {
+        motorOne = opMode.hardwareMap.get(DcMotorEx.class, "flywheelMotorOne");
+        motorTwo = opMode.hardwareMap.get(DcMotorEx.class, "flywheelMotorTwo");
         motorTwo.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        telemetry = robot.telemetry;
+        telemetry = opMode.telemetry;
     }
 
     public void setTargetPosition(double target) {
@@ -52,17 +51,8 @@ public class Flywheel {
     public Command off = instant(() -> mode = Mode.OFF);
 
 
-    public void toggle() {
-        switch (mode) {
-            case OFF:
-                mode = Mode.VELOCITY;
-                return;
-            case POSITION:
-            case VELOCITY:
-                mode = Mode.OFF;
-                break;
-
-        }
+    public Command toggle() {
+        return conditional(() -> mode == Mode.OFF, useInterpolation, off);
     }
 
     public void adjustTarget(double change) {

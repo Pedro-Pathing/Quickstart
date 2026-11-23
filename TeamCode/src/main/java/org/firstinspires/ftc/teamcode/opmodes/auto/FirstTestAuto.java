@@ -5,20 +5,16 @@ import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
-import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.paths.interpolator.Interpolator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.control.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 
@@ -30,9 +26,7 @@ public class FirstTestAuto extends OpMode {
     private final PoseFactory p = PoseFactory.degrees();
 
     ///left and right are relative to the driver
-    /*
 
-     */
     public final Pose shoot_right = p.of(56, 9, 90); //also start
     public final Pose shoot_left = p.of(9,132, 270);
     public final Pose loading_zone = p.of(9, 104, 90);
@@ -46,19 +40,23 @@ public class FirstTestAuto extends OpMode {
 
     private Command autoRoutine() {
         return sequential(
-                flywheel.runWithVelocity(2460.0),
+                flywheel.shootThree(2400.0),
                 follow(follower, rightToLoad)
         );
     }
     @Override
     public void init() {
         Scheduler.reset();
+
         follower = Constants.create(hardwareMap);
-        follower.setPose(shoot_right);
+
+
+        flywheel = new Flywheel(this);
     }
 
     @Override
     public void start() {
+        follower.setPose(shoot_right);
         Scheduler.schedule(autoRoutine());
     }
 
@@ -68,4 +66,8 @@ public class FirstTestAuto extends OpMode {
         Scheduler.execute();
     }
 
+    @Override
+    public void stop() {
+        OpModeStorage.autonomousEndPose = follower.pose(); //saves your position in that file
+    }
 }
