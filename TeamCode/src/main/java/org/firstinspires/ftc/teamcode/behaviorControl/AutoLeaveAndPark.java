@@ -1,23 +1,21 @@
 package org.firstinspires.ftc.teamcode.behaviorControl;
 
-import com.pedropathing.api.PoseFactory;
+import static com.pedropathing.api.Paths.*;
 import com.pedropathing.api.Paths;
+
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
-
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.*;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-
 import org.firstinspires.ftc.teamcode.pedro.Constants;
-
 @Autonomous
 public class AutoLeaveAndPark extends LinearOpMode {
 
@@ -25,21 +23,21 @@ public class AutoLeaveAndPark extends LinearOpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose startPose = poseFactory.of(58.1199, 6.5715, 0);
-    private final Pose endPose   = poseFactory.of(5.7595, 103.6232, 0);
+    private final Pose start = poseFactory.of(56, 8.9034, 270);
+    private final Pose path1 = poseFactory.of(7.0314, 96.2037, 0);
 
+    // Autonomous routine
     public Command autoRoutine() {
         return sequential(
-                follow(follower, buildPath1())
+                follow(follower, path1())
         );
     }
 
     @Override
     public void runOpMode() {
         Scheduler.reset();
-
         follower = Constants.create(hardwareMap);
-        follower.setPose(startPose);
+        follower.setPose(start);
         follower.update();
 
         waitForStart();
@@ -54,7 +52,7 @@ public class AutoLeaveAndPark extends LinearOpMode {
             telemetry.addData("heading", follower.pose().heading());
 
             if (follower.currentPath() != null) {
-                telemetry.addData("Distance remaining", follower.distanceToEndpoint());
+                telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
                 telemetry.addData("Path number", follower.pathIndex());
             }
 
@@ -62,7 +60,7 @@ public class AutoLeaveAndPark extends LinearOpMode {
         }
     }
 
-    private Path buildPath1() {
-        return Paths.line(startPose, endPose).linear(startPose, endPose);
+    public Path path1() {
+        return Paths.line(start, path1).linear(start, path1);
     }
 }

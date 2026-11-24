@@ -15,16 +15,16 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "AutoShoot2", group = "Autonomous")
-public class AutoShoot2 extends LinearOpMode {
+public class AutoShoot extends LinearOpMode {
 
     private Follower follower;
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    // Poses from your updated AutoPath
-    private final Pose start = poseFactory.of(58.1199, 8.0554, 270);
-    private final Pose path1 = poseFactory.of(5.7595, 103.6232, 360);
 
-    // Tunable values
+    private final Pose startPose = poseFactory.of(56, 8.9034, 270);
+    private final Pose endPose   = poseFactory.of(12.755, 88.7843, 270);
+
+
     private static final double LAUNCHER_VELOCITY = 1120;
     private static final long SPIN_UP_MS = 4000;
     private static final long FEED_MS = 3000;
@@ -32,7 +32,7 @@ public class AutoShoot2 extends LinearOpMode {
     @Override
     public void runOpMode() {
         follower = Constants.create(hardwareMap);
-        follower.setPose(start);
+        follower.setPose(startPose);
         follower.update();
 
         DcMotorEx launcher = hardwareMap.get(DcMotorEx.class, "launcher");
@@ -58,7 +58,7 @@ public class AutoShoot2 extends LinearOpMode {
         windmillServo.setPower(0);
 
         // 4. Drive the path to park
-        follower.follow(path1());
+        follower.follow(buildPath1());
 
         while (opModeIsActive() && follower.isBusy()) {
             follower.update();
@@ -85,7 +85,7 @@ public class AutoShoot2 extends LinearOpMode {
         telemetry.update();
     }
 
-    public Path path1() {
-        return Paths.line(start, path1).linear(start, path1);
+    private Path buildPath1() {
+        return Paths.line(startPose, endPose).linear(startPose, endPose);
     }
 }
